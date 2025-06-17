@@ -54,7 +54,7 @@ export class ProseMirrorEditorService {
         group: 'block',
         atom: true,
         toDOM: (node: any) => {
-          return ['div', {
+          const attrs = {
             class: 'beat-ai-node',
             'data-id': node.attrs.id || '',
             'data-prompt': node.attrs.prompt || '',
@@ -63,19 +63,34 @@ export class ProseMirrorEditorService {
             'data-editing': node.attrs.isEditing ? 'true' : 'false',
             'data-created': node.attrs.createdAt || '',
             'data-updated': node.attrs.updatedAt || ''
-          }] as const;
+          };
+          
+          // Create content to make the beat visible in saved HTML
+          const content = [];
+          if (node.attrs.prompt) {
+            content.push(['div', { style: 'border: 1px solid #404040; padding: 0.5rem; margin: 0.5rem 0; background: #3a3a3a; border-radius: 4px;' }, 
+              ['strong', '🎭 Beat AI'],
+              ['div', { style: 'color: #adb5bd; font-style: italic; margin-top: 0.25rem;' }, 'Prompt: ' + node.attrs.prompt]
+            ]);
+          }
+          
+          return ['div', attrs, ...content] as const;
         },
         parseDOM: [{
           tag: 'div.beat-ai-node',
-          getAttrs: (dom: any) => ({
-            id: dom.getAttribute('data-id') || '',
-            prompt: dom.getAttribute('data-prompt') || '',
-            generatedContent: dom.getAttribute('data-content') || '',
-            isGenerating: dom.getAttribute('data-generating') === 'true',
-            isEditing: dom.getAttribute('data-editing') === 'true',
-            createdAt: dom.getAttribute('data-created') || '',
-            updatedAt: dom.getAttribute('data-updated') || ''
-          })
+          getAttrs: (dom: any) => {
+            const attrs = {
+              id: dom.getAttribute('data-id') || '',
+              prompt: dom.getAttribute('data-prompt') || '',
+              generatedContent: dom.getAttribute('data-content') || '',
+              isGenerating: dom.getAttribute('data-generating') === 'true',
+              isEditing: dom.getAttribute('data-editing') === 'true',
+              createdAt: dom.getAttribute('data-created') || '',
+              updatedAt: dom.getAttribute('data-updated') || ''
+            };
+            
+            return attrs;
+          }
         }]
       }
     });
@@ -160,6 +175,7 @@ export class ProseMirrorEditorService {
       const div = document.createElement('div');
       div.innerHTML = content || '<p></p>';
       
+      
       const doc = DOMParser.fromSchema(this.editorSchema).parse(div);
       const state = EditorState.create({
         doc,
@@ -183,6 +199,9 @@ export class ProseMirrorEditorService {
       
       const div = document.createElement('div');
       div.appendChild(fragment);
+      
+      // No need to process beat nodes - they already have their data in attributes
+      
       return div.innerHTML;
     } catch (error) {
       console.warn('Failed to serialize content, returning text content:', error);
@@ -338,8 +357,12 @@ export class ProseMirrorEditorService {
   private handleBeatPromptSubmit(event: BeatAIPromptEvent): void {
     if (!this.editorView) return;
     
-    // Start generation process
-    this.updateBeatNode(event.beatId, { isGenerating: true, generatedContent: '' });
+    // Start generation process and update prompt
+    this.updateBeatNode(event.beatId, { 
+      isGenerating: true, 
+      generatedContent: '',
+      prompt: event.prompt 
+    });
     
     // Find the beat node position to insert content after it
     const beatNodePosition = this.findBeatNodePosition(event.beatId);
@@ -352,7 +375,8 @@ export class ProseMirrorEditorService {
         this.insertContentAfterBeatNode(event.beatId, content);
         this.updateBeatNode(event.beatId, { 
           isGenerating: false,
-          generatedContent: content
+          generatedContent: content,
+          prompt: event.prompt
         });
       },
       error: (error) => {
@@ -360,7 +384,8 @@ export class ProseMirrorEditorService {
         this.insertContentAfterBeatNode(event.beatId, 'Fehler bei der Generierung. Bitte versuchen Sie es erneut.');
         this.updateBeatNode(event.beatId, { 
           isGenerating: false,
-          generatedContent: 'Fehler bei der Generierung. Bitte versuchen Sie es erneut.'
+          generatedContent: 'Fehler bei der Generierung. Bitte versuchen Sie es erneut.',
+          prompt: event.prompt
         });
       }
     });
