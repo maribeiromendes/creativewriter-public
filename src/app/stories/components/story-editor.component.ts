@@ -1,16 +1,18 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { StoryService } from '../services/story.service';
 import { Story, Chapter, Scene } from '../models/story.interface';
 import { StoryStructureComponent } from './story-structure.component';
+import { SlashCommandDropdownComponent } from './slash-command-dropdown.component';
+import { SlashCommandResult, SlashCommandAction } from '../models/slash-command.interface';
 import { Subscription, debounceTime, Subject } from 'rxjs';
 
 @Component({
   selector: 'app-story-editor',
   standalone: true,
-  imports: [CommonModule, FormsModule, StoryStructureComponent],
+  imports: [CommonModule, FormsModule, StoryStructureComponent, SlashCommandDropdownComponent],
   template: `
     <div class="editor-container">
       <app-story-structure 
@@ -53,10 +55,13 @@ import { Subscription, debounceTime, Subject } from 'rxjs';
             />
             
             <textarea 
+              #contentEditor
               class="content-editor"
               placeholder="Hier beginnt deine Szene..."
               [(ngModel)]="activeScene.content"
               (ngModelChange)="onContentChange()"
+              (keydown)="onTextareaKeydown($event)"
+              (input)="onTextareaInput($event)"
             ></textarea>
           </div>
           
@@ -65,6 +70,14 @@ import { Subscription, debounceTime, Subject } from 'rxjs';
           </div>
         </div>
       </div>
+      
+      <app-slash-command-dropdown
+        *ngIf="showSlashDropdown"
+        [position]="slashDropdownPosition"
+        [cursorPosition]="slashCursorPosition"
+        (commandSelected)="onSlashCommandSelected($event)"
+        (dismissed)="hideSlashDropdown()">
+      </app-slash-command-dropdown>
     </div>
   `,
   styles: [`
@@ -215,6 +228,8 @@ import { Subscription, debounceTime, Subject } from 'rxjs';
   `]
 })
 export class StoryEditorComponent implements OnInit, OnDestroy {
+  @ViewChild('contentEditor') contentEditor!: ElementRef<HTMLTextAreaElement>;
+  
   story: Story = {
     id: '',
     title: '',
@@ -226,6 +241,11 @@ export class StoryEditorComponent implements OnInit, OnDestroy {
   activeChapterId: string | null = null;
   activeSceneId: string | null = null;
   activeScene: Scene | null = null;
+  
+  // Slash command functionality
+  showSlashDropdown = false;
+  slashDropdownPosition = { top: 0, left: 0 };
+  slashCursorPosition = 0;
   
   hasUnsavedChanges = false;
   private saveSubject = new Subject<void>();
@@ -355,5 +375,108 @@ export class StoryEditorComponent implements OnInit, OnDestroy {
   getWordCount(): number {
     if (!this.activeScene || !this.activeScene.content) return 0;
     return this.activeScene.content.trim().split(/\s+/).filter(word => word.length > 0).length;
+  }
+
+  onTextareaKeydown(event: KeyboardEvent): void {
+    // If slash dropdown is visible, let it handle navigation keys
+    if (this.showSlashDropdown && 
+        ['ArrowDown', 'ArrowUp', 'Enter', 'Escape'].includes(event.key)) {
+      // Let the dropdown component handle these keys
+      return;
+    }
+    
+    // Handle slash command trigger
+    if (event.key === '/' && this.contentEditor) {
+      const textarea = this.contentEditor.nativeElement;
+      const cursorPos = textarea.selectionStart;
+      
+      // Check if cursor is at start of line or after whitespace
+      const content = textarea.value;
+      const beforeCursor = content.substring(0, cursorPos);
+      const lastChar = beforeCursor[beforeCursor.length - 1];
+      
+      if (cursorPos === 0 || lastChar === '\n' || lastChar === ' ') {
+        setTimeout(() => this.showSlashDropdownAtCursor(), 0);
+      }
+    }
+  }
+
+  onTextareaInput(event: Event): void {
+    // Hide dropdown if user types something other than slash commands
+    if (this.showSlashDropdown) {
+      const textarea = event.target as HTMLTextAreaElement;
+      const cursorPos = textarea.selectionStart;
+      const content = textarea.value;
+      
+      // Check if we're still in slash command context
+      const beforeCursor = content.substring(0, cursorPos);
+      const lastSlash = beforeCursor.lastIndexOf('/');
+      
+      if (lastSlash === -1 || beforeCursor.substring(lastSlash).includes(' ') || beforeCursor.substring(lastSlash).includes('\n')) {
+        this.hideSlashDropdown();
+      }
+    }
+  }
+
+  private showSlashDropdownAtCursor(): void {
+    if (!this.contentEditor) return;
+    
+    const textarea = this.contentEditor.nativeElement;
+    const cursorPos = textarea.selectionStart;
+    this.slashCursorPosition = cursorPos;
+    
+    // Calculate dropdown position
+    const rect = textarea.getBoundingClientRect();
+    const textareaStyle = window.getComputedStyle(textarea);
+    const lineHeight = parseInt(textareaStyle.lineHeight) || 20;
+    
+    // Simple approximation - for more accuracy you'd need to measure text
+    const lines = textarea.value.substring(0, cursorPos).split('\n').length;
+    
+    this.slashDropdownPosition = {
+      top: rect.top + (lines * lineHeight) + 5,
+      left: rect.left + 10
+    };
+    
+    this.showSlashDropdown = true;
+  }
+
+  hideSlashDropdown(): void {
+    this.showSlashDropdown = false;
+  }
+
+  onSlashCommandSelected(result: SlashCommandResult): void {
+    if (!this.activeScene || !this.contentEditor) return;
+    
+    const textarea = this.contentEditor.nativeElement;
+    const content = this.activeScene.content || '';
+    const cursorPos = result.position;
+    
+    let insertText = '';
+    
+    switch (result.action) {
+      case SlashCommandAction.INSERT_BEAT:
+        insertText = '\n\n--- BEAT ---\n\n';
+        break;
+      case SlashCommandAction.INSERT_IMAGE:
+        insertText = '\n\n[Bild: Beschreibung hier einfügen]\n\n';
+        break;
+    }
+    
+    // Remove the slash and insert the content
+    const beforeSlash = content.substring(0, cursorPos);
+    const afterCursor = content.substring(cursorPos + 1); // +1 to remove the slash
+    
+    this.activeScene.content = beforeSlash + insertText + afterCursor;
+    this.onContentChange();
+    
+    // Set cursor position after inserted content
+    setTimeout(() => {
+      const newCursorPos = cursorPos + insertText.length;
+      textarea.setSelectionRange(newCursorPos, newCursorPos);
+      textarea.focus();
+    }, 0);
+    
+    this.hideSlashDropdown();
   }
 }

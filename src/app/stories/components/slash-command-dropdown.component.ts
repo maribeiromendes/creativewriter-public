@@ -1,0 +1,209 @@
+import { Component, Input, Output, EventEmitter, ElementRef, ViewChild, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { SlashCommand, SlashCommandAction, SlashCommandResult } from '../models/slash-command.interface';
+
+@Component({
+  selector: 'app-slash-command-dropdown',
+  standalone: true,
+  imports: [CommonModule],
+  template: `
+    <div class="slash-dropdown" 
+         [style.top.px]="position.top" 
+         [style.left.px]="position.left"
+         #dropdown>
+      <div class="slash-dropdown-content">
+        <div class="slash-dropdown-header">
+          <span class="slash-icon">/</span>
+          <span class="slash-title">Einfügen</span>
+        </div>
+        
+        <div class="slash-commands">
+          <div *ngFor="let command of commands; trackBy: trackCommand" 
+               class="slash-command-item"
+               [class.active]="selectedIndex === getCommandIndex(command)"
+               (click)="selectCommand(command)"
+               (mouseenter)="selectedIndex = getCommandIndex(command)">
+            <span class="command-icon">{{ command.icon }}</span>
+            <div class="command-content">
+              <div class="command-label">{{ command.label }}</div>
+              <div class="command-description">{{ command.description }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `,
+  styles: [`
+    .slash-dropdown {
+      position: absolute;
+      z-index: 1000;
+      background: #2d2d2d;
+      border: 1px solid #404040;
+      border-radius: 8px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      min-width: 280px;
+      max-width: 320px;
+    }
+    
+    .slash-dropdown-content {
+      padding: 0.5rem;
+    }
+    
+    .slash-dropdown-header {
+      display: flex;
+      align-items: center;
+      padding: 0.5rem 0.75rem;
+      border-bottom: 1px solid #404040;
+      margin-bottom: 0.5rem;
+    }
+    
+    .slash-icon {
+      background: #0d6efd;
+      color: white;
+      border-radius: 4px;
+      padding: 0.25rem 0.5rem;
+      font-weight: bold;
+      font-size: 0.9rem;
+      margin-right: 0.5rem;
+    }
+    
+    .slash-title {
+      color: #f8f9fa;
+      font-weight: 500;
+      font-size: 0.9rem;
+    }
+    
+    .slash-commands {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+    
+    .slash-command-item {
+      display: flex;
+      align-items: center;
+      padding: 0.75rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    
+    .slash-command-item:hover,
+    .slash-command-item.active {
+      background-color: #404040;
+    }
+    
+    .command-icon {
+      font-size: 1.25rem;
+      margin-right: 0.75rem;
+      width: 24px;
+      text-align: center;
+    }
+    
+    .command-content {
+      flex: 1;
+    }
+    
+    .command-label {
+      color: #f8f9fa;
+      font-weight: 500;
+      font-size: 0.9rem;
+      margin-bottom: 0.25rem;
+    }
+    
+    .command-description {
+      color: #adb5bd;
+      font-size: 0.8rem;
+      line-height: 1.3;
+    }
+  `]
+})
+export class SlashCommandDropdownComponent implements OnInit {
+  @Input() position: { top: number; left: number } = { top: 0, left: 0 };
+  @Input() cursorPosition: number = 0;
+  @Output() commandSelected = new EventEmitter<SlashCommandResult>();
+  @Output() dismissed = new EventEmitter<void>();
+  
+  @ViewChild('dropdown', { static: true }) dropdown!: ElementRef;
+  
+  selectedIndex = 0;
+  commands: SlashCommand[] = [
+    {
+      id: 'beat',
+      label: 'Beat hinzufügen',
+      description: 'Füge einen neuen Story-Beat ein',
+      icon: '📝',
+      action: SlashCommandAction.INSERT_BEAT
+    },
+    {
+      id: 'image',
+      label: 'Bild einfügen',
+      description: 'Füge ein Bild oder eine Beschreibung ein',
+      icon: '🖼️',
+      action: SlashCommandAction.INSERT_IMAGE
+    }
+  ];
+
+  ngOnInit() {
+    // Listen for keyboard events
+    document.addEventListener('keydown', this.handleKeyDown.bind(this));
+    document.addEventListener('click', this.handleClickOutside.bind(this));
+  }
+
+  ngOnDestroy() {
+    document.removeEventListener('keydown', this.handleKeyDown.bind(this));
+    document.removeEventListener('click', this.handleClickOutside.bind(this));
+  }
+
+  trackCommand(index: number, command: SlashCommand): string {
+    return command.id;
+  }
+
+  getCommandIndex(command: SlashCommand): number {
+    return this.commands.findIndex(c => c.id === command.id);
+  }
+
+  selectCommand(command: SlashCommand): void {
+    this.commandSelected.emit({
+      action: command.action,
+      position: this.cursorPosition,
+      data: { command }
+    });
+  }
+
+  private handleKeyDown(event: KeyboardEvent): void {
+    // Only handle keys when dropdown is actually visible and focused
+    if (!this.dropdown?.nativeElement) return;
+    
+    switch (event.key) {
+      case 'ArrowDown':
+        event.preventDefault();
+        event.stopPropagation();
+        this.selectedIndex = Math.min(this.selectedIndex + 1, this.commands.length - 1);
+        break;
+      case 'ArrowUp':
+        event.preventDefault();
+        event.stopPropagation();
+        this.selectedIndex = Math.max(this.selectedIndex - 1, 0);
+        break;
+      case 'Enter':
+        event.preventDefault();
+        event.stopPropagation();
+        if (this.commands[this.selectedIndex]) {
+          this.selectCommand(this.commands[this.selectedIndex]);
+        }
+        break;
+      case 'Escape':
+        event.preventDefault();
+        event.stopPropagation();
+        this.dismissed.emit();
+        break;
+    }
+  }
+
+  private handleClickOutside(event: Event): void {
+    if (this.dropdown && !this.dropdown.nativeElement.contains(event.target as Node)) {
+      this.dismissed.emit();
+    }
+  }
+}
