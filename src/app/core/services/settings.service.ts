@@ -1,0 +1,113 @@
+import { Injectable } from '@angular/core';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { Settings, DEFAULT_SETTINGS } from '../models/settings.interface';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class SettingsService {
+  private readonly STORAGE_KEY = 'creative-writer-settings';
+  private settingsSubject = new BehaviorSubject<Settings>(this.loadSettings());
+  
+  public settings$ = this.settingsSubject.asObservable();
+
+  constructor() {
+    // Initialize with saved settings or defaults
+    this.settingsSubject.next(this.loadSettings());
+  }
+
+  private loadSettings(): Settings {
+    try {
+      const savedSettings = localStorage.getItem(this.STORAGE_KEY);
+      if (savedSettings) {
+        const parsed = JSON.parse(savedSettings);
+        // Merge with defaults to ensure all properties exist
+        return {
+          ...DEFAULT_SETTINGS,
+          ...parsed,
+          openRouter: {
+            ...DEFAULT_SETTINGS.openRouter,
+            ...parsed.openRouter
+          },
+          replicate: {
+            ...DEFAULT_SETTINGS.replicate,
+            ...parsed.replicate
+          },
+          updatedAt: new Date(parsed.updatedAt || new Date())
+        };
+      }
+    } catch (error) {
+      console.error('Failed to load settings:', error);
+    }
+    return { ...DEFAULT_SETTINGS };
+  }
+
+  private saveSettings(settings: Settings): void {
+    try {
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(settings));
+    } catch (error) {
+      console.error('Failed to save settings:', error);
+    }
+  }
+
+  getSettings(): Settings {
+    return this.settingsSubject.value;
+  }
+
+  updateSettings(settings: Partial<Settings>): void {
+    const updatedSettings = {
+      ...this.settingsSubject.value,
+      ...settings,
+      updatedAt: new Date()
+    };
+    
+    this.saveSettings(updatedSettings);
+    this.settingsSubject.next(updatedSettings);
+  }
+
+  updateOpenRouterSettings(settings: Partial<Settings['openRouter']>): void {
+    const currentSettings = this.settingsSubject.value;
+    const updatedSettings = {
+      ...currentSettings,
+      openRouter: {
+        ...currentSettings.openRouter,
+        ...settings
+      },
+      updatedAt: new Date()
+    };
+    
+    this.saveSettings(updatedSettings);
+    this.settingsSubject.next(updatedSettings);
+  }
+
+  updateReplicateSettings(settings: Partial<Settings['replicate']>): void {
+    const currentSettings = this.settingsSubject.value;
+    const updatedSettings = {
+      ...currentSettings,
+      replicate: {
+        ...currentSettings.replicate,
+        ...settings
+      },
+      updatedAt: new Date()
+    };
+    
+    this.saveSettings(updatedSettings);
+    this.settingsSubject.next(updatedSettings);
+  }
+
+  clearSettings(): void {
+    localStorage.removeItem(this.STORAGE_KEY);
+    this.settingsSubject.next({ ...DEFAULT_SETTINGS });
+  }
+
+  // Utility methods for checking API availability
+  isOpenRouterConfigured(): boolean {
+    const settings = this.getSettings();
+    return settings.openRouter.enabled && !!settings.openRouter.apiKey;
+  }
+
+  isReplicateConfigured(): boolean {
+    const settings = this.getSettings();
+    return settings.replicate.enabled && !!settings.replicate.apiKey;
+  }
+}

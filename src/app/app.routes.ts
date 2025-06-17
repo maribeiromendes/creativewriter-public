@@ -11,6 +11,10 @@ export const routes: Routes = [
     loadChildren: () => import('./stories/stories.module').then(m => m.StoriesModule)
   },
   {
+    path: 'settings',
+    loadComponent: () => import('./settings/settings.component').then(m => m.SettingsComponent)
+  },
+  {
     path: '**',
     redirectTo: ''
   }

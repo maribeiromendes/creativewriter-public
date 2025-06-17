@@ -10,7 +10,10 @@ import { Story } from '../models/story.interface';
   imports: [CommonModule],
   template: `
     <div class="story-list-container">
-      <h1>Meine Geschichten</h1>
+      <div class="header">
+        <h1>Meine Geschichten</h1>
+        <button class="settings-btn" (click)="goToSettings()" title="Einstellungen">⚙️</button>
+      </div>
       
       <button class="new-story-btn" (click)="createNewStory()">
         Neue Geschichte schreiben
@@ -43,10 +46,31 @@ import { Story } from '../models/story.interface';
       padding: 2rem;
     }
     
+    .header {
+      position: relative;
+      margin-bottom: 2rem;
+    }
+    
     h1 {
       text-align: center;
-      margin-bottom: 2rem;
       color: #e0e0e0;
+    }
+    
+    .settings-btn {
+      position: absolute;
+      top: 0;
+      right: 0;
+      background: #6c757d;
+      border: none;
+      padding: 0.5rem 0.75rem;
+      border-radius: 6px;
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    
+    .settings-btn:hover {
+      background: #5a6268;
     }
     
     .new-story-btn {
@@ -169,6 +193,10 @@ export class StoryListComponent implements OnInit {
 
   openStory(storyId: string): void {
     this.router.navigate(['/stories/editor', storyId]);
+  }
+
+  goToSettings(): void {
+    this.router.navigate(['/settings']);
   }
 
   deleteStory(event: Event, storyId: string): void {
