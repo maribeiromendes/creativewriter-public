@@ -34,3 +34,16 @@ button {
 button:hover {
   background-color: #0b5ed7;
 }
+
+/* ProseMirror Global Styles */
+.ProseMirror {
+  white-space: pre-wrap !important;
+  word-wrap: break-word;
+  -webkit-font-variant-ligatures: none;
+  font-variant-ligatures: none;
+  font-feature-settings: "liga" 0;
+}
+
+.prosemirror-editor {
+  white-space: pre-wrap !important;
+}

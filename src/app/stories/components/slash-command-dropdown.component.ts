@@ -169,6 +169,8 @@ export class SlashCommandDropdownComponent implements OnInit {
       position: this.cursorPosition,
       data: { command }
     });
+    // Emit dismissed event to close the dropdown
+    this.dismissed.emit();
   }
 
   private handleKeyDown(event: KeyboardEvent): void {

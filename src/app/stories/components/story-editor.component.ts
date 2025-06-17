@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit, ChangeDetectorRef } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -10,6 +10,8 @@ import { SlashCommandResult, SlashCommandAction } from '../models/slash-command.
 import { Subscription, debounceTime, Subject } from 'rxjs';
 import { ProseMirrorEditorService } from '../../shared/services/prosemirror-editor.service';
 import { EditorView } from 'prosemirror-view';
+import { BeatAI, BeatAIPromptEvent } from '../models/beat-ai.interface';
+import { BeatAIService } from '../../shared/services/beat-ai.service';
 
 @Component({
   selector: 'app-story-editor',
@@ -31,7 +33,7 @@ import { EditorView } from 'prosemirror-view';
             <span class="scene-info" *ngIf="activeScene">
               {{ getCurrentChapterTitle() }} - {{ activeScene.title }}
             </span>
-            <span class="word-count">{{ getWordCount() }} Wörter</span>
+            <span class="word-count">{{ wordCount }} Wörter</span>
             <span class="save-status" [class.saved]="!hasUnsavedChanges">
               {{ hasUnsavedChanges ? 'Nicht gespeichert' : 'Gespeichert' }}
             </span>
@@ -228,6 +230,10 @@ import { EditorView } from 'prosemirror-view';
       line-height: 1.6;
       font-family: Georgia, serif;
       min-height: 200px;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      -webkit-font-variant-ligatures: none;
+      font-variant-ligatures: none;
     }
     
     .content-editor :global(.prosemirror-editor p) {
@@ -284,11 +290,49 @@ import { EditorView } from 'prosemirror-view';
     .content-editor :global(.prosemirror-editor li) {
       margin: 0.5rem 0;
     }
+    
+    .content-editor :global(.beat-ai-wrapper) {
+      margin: 1rem 0;
+      position: relative;
+    }
+    
+    .content-editor :global(.ProseMirror-selectednode .beat-ai-wrapper) {
+      outline: 2px solid #0d6efd;
+      outline-offset: 2px;
+      border-radius: 8px;
+    }
+    
+    /* Additional ProseMirror CSS fixes */
+    .content-editor :global(.ProseMirror) {
+      position: relative;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      -webkit-font-variant-ligatures: none;
+      font-variant-ligatures: none;
+      font-feature-settings: "liga" 0;
+    }
+    
+    .content-editor :global(.ProseMirror-hideselection *::selection) {
+      background: transparent;
+    }
+    
+    .content-editor :global(.ProseMirror-hideselection *::-moz-selection) {
+      background: transparent;
+    }
+    
+    .content-editor :global(.ProseMirror-hideselection) {
+      caret-color: transparent;
+    }
+    
+    .content-editor :global(.ProseMirror-selectednode) {
+      outline: 2px solid #8cf;
+    }
   `]
 })
 export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('editorContainer') editorContainer!: ElementRef<HTMLDivElement>;
   private editorView: EditorView | null = null;
+  wordCount: number = 0;
   
   story: Story = {
     id: '',
@@ -315,7 +359,9 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     private route: ActivatedRoute,
     private router: Router,
     private storyService: StoryService,
-    private proseMirrorService: ProseMirrorEditorService
+    private proseMirrorService: ProseMirrorEditorService,
+    private beatAIService: BeatAIService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -441,11 +487,6 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     return chapter ? chapter.title : '';
   }
 
-  getWordCount(): number {
-    if (!this.editorView) return 0;
-    const textContent = this.proseMirrorService.getTextContent();
-    return textContent.trim().split(/\s+/).filter(word => word.length > 0).length;
-  }
 
   private initializeProseMirrorEditor(): void {
     if (!this.editorContainer) return;
@@ -457,35 +498,68 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
         onUpdate: (content: string) => {
           if (this.activeScene) {
             this.activeScene.content = content;
+            this.updateWordCount();
             this.onContentChange();
           }
         },
         onSlashCommand: (position: number) => {
           this.slashCursorPosition = position;
           this.showSlashDropdownAtCursor();
+        },
+        onBeatPromptSubmit: (event: BeatAIPromptEvent) => {
+          this.handleBeatPromptSubmit(event);
+        },
+        onBeatContentUpdate: (beatData: BeatAI) => {
+          this.handleBeatContentUpdate(beatData);
+        },
+        onBeatFocus: () => {
+          this.hideSlashDropdown();
         }
       }
     );
     
     // Set initial content if we have an active scene
     this.updateEditorContent();
+    
+    // Add click listener to hide dropdown when clicking in editor
+    this.editorContainer.nativeElement.addEventListener('click', () => {
+      if (this.showSlashDropdown) {
+        setTimeout(() => this.hideSlashDropdown(), 100);
+      }
+    });
   }
 
   private updateEditorContent(): void {
     if (this.editorView && this.activeScene) {
       this.proseMirrorService.setContent(this.activeScene.content || '');
+      this.updateWordCount();
     }
   }
 
+  private updateWordCount(): void {
+    if (!this.editorView) {
+      this.wordCount = 0;
+      return;
+    }
+    const textContent = this.proseMirrorService.getTextContent();
+    this.wordCount = textContent.trim().split(/\s+/).filter(word => word.length > 0).length;
+    this.cdr.detectChanges();
+  }
+
   private showSlashDropdownAtCursor(): void {
-    if (!this.editorContainer) return;
+    if (!this.editorContainer || !this.editorView) return;
     
-    // Calculate dropdown position
-    const rect = this.editorContainer.nativeElement.getBoundingClientRect();
+    // Get the cursor position in the editor
+    const { state } = this.editorView;
+    const { from } = state.selection;
     
+    // Get the DOM position of the cursor
+    const coords = this.editorView.coordsAtPos(from);
+    
+    // Calculate dropdown position relative to viewport
     this.slashDropdownPosition = {
-      top: rect.top + 50, // Approximate position
-      left: rect.left + 10
+      top: coords.bottom + 5, // Position below cursor with small gap
+      left: coords.left
     };
     
     this.showSlashDropdown = true;
@@ -498,25 +572,38 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
   onSlashCommandSelected(result: SlashCommandResult): void {
     if (!this.activeScene || !this.editorView) return;
     
-    let insertContent = '';
+    // Hide dropdown immediately
+    this.hideSlashDropdown();
     
     switch (result.action) {
       case SlashCommandAction.INSERT_BEAT:
-        insertContent = '<p><strong>--- BEAT ---</strong></p>';
+        this.proseMirrorService.insertBeatAI(this.slashCursorPosition, true);
         break;
       case SlashCommandAction.INSERT_IMAGE:
-        insertContent = '<p><em>[Bild: Beschreibung hier einfügen]</em></p>';
+        const insertContent = '<p><em>[Bild: Beschreibung hier einfügen]</em></p>';
+        this.proseMirrorService.insertContent(insertContent, this.slashCursorPosition, true);
         break;
     }
     
-    // Remove the slash and insert the content
-    this.proseMirrorService.insertContent(insertContent, this.slashCursorPosition - 1);
-    
-    // Focus the editor
+    // Focus the editor after a brief delay to ensure the component is ready
     setTimeout(() => {
       this.proseMirrorService.focus();
-    }, 0);
-    
+    }, 100);
+  }
+
+  private handleBeatPromptSubmit(event: BeatAIPromptEvent): void {
+    console.log('Beat prompt submitted:', event);
+    // Make sure dropdown is hidden when working with beat AI
     this.hideSlashDropdown();
+    // The ProseMirror service handles the actual AI generation
+    // We can add additional logic here if needed
+  }
+
+  private handleBeatContentUpdate(beatData: BeatAI): void {
+    console.log('Beat content updated:', beatData);
+    // Trigger auto-save when beat content changes
+    this.hasUnsavedChanges = true;
+    this.updateWordCount();
+    this.saveSubject.next();
   }
 }
