@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -8,6 +8,8 @@ import { StoryStructureComponent } from './story-structure.component';
 import { SlashCommandDropdownComponent } from './slash-command-dropdown.component';
 import { SlashCommandResult, SlashCommandAction } from '../models/slash-command.interface';
 import { Subscription, debounceTime, Subject } from 'rxjs';
+import { ProseMirrorEditorService } from '../../shared/services/prosemirror-editor.service';
+import { EditorView } from 'prosemirror-view';
 
 @Component({
   selector: 'app-story-editor',
@@ -54,15 +56,10 @@ import { Subscription, debounceTime, Subject } from 'rxjs';
               (ngModelChange)="onSceneTitleChange()"
             />
             
-            <textarea 
-              #contentEditor
+            <div 
+              #editorContainer
               class="content-editor"
-              placeholder="Hier beginnt deine Szene..."
-              [(ngModel)]="activeScene.content"
-              (ngModelChange)="onContentChange()"
-              (keydown)="onTextareaKeydown($event)"
-              (input)="onTextareaInput($event)"
-            ></textarea>
+            ></div>
           </div>
           
           <div class="no-scene" *ngIf="!activeScene">
@@ -216,19 +213,82 @@ import { Subscription, debounceTime, Subject } from 'rxjs';
       font-size: 1.1rem;
       line-height: 1.6;
       font-family: Georgia, serif;
-      resize: none;
       padding: 1rem 0;
       background: transparent;
       color: #e0e0e0;
+      overflow-y: auto;
     }
     
-    .content-editor::placeholder {
+    .content-editor :global(.prosemirror-editor) {
+      outline: none;
+      border: none;
+      background: transparent;
+      color: #e0e0e0;
+      font-size: 1.1rem;
+      line-height: 1.6;
+      font-family: Georgia, serif;
+      min-height: 200px;
+    }
+    
+    .content-editor :global(.prosemirror-editor p) {
+      margin: 0 0 1rem 0;
+    }
+    
+    .content-editor :global(.prosemirror-editor p:last-child) {
+      margin-bottom: 0;
+    }
+    
+    .content-editor :global(.prosemirror-editor[data-placeholder]:empty::before) {
+      content: attr(data-placeholder);
       color: #6c757d;
+      pointer-events: none;
+      position: absolute;
+    }
+    
+    .content-editor :global(.prosemirror-editor h1),
+    .content-editor :global(.prosemirror-editor h2),
+    .content-editor :global(.prosemirror-editor h3) {
+      color: #f8f9fa;
+      font-weight: bold;
+      margin: 1.5rem 0 1rem 0;
+    }
+    
+    .content-editor :global(.prosemirror-editor h1) {
+      font-size: 1.5rem;
+    }
+    
+    .content-editor :global(.prosemirror-editor h2) {
+      font-size: 1.3rem;
+    }
+    
+    .content-editor :global(.prosemirror-editor h3) {
+      font-size: 1.1rem;
+    }
+    
+    .content-editor :global(.prosemirror-editor strong) {
+      color: #f8f9fa;
+      font-weight: bold;
+    }
+    
+    .content-editor :global(.prosemirror-editor em) {
+      color: #adb5bd;
+      font-style: italic;
+    }
+    
+    .content-editor :global(.prosemirror-editor ul),
+    .content-editor :global(.prosemirror-editor ol) {
+      padding-left: 1.5rem;
+      margin: 1rem 0;
+    }
+    
+    .content-editor :global(.prosemirror-editor li) {
+      margin: 0.5rem 0;
     }
   `]
 })
-export class StoryEditorComponent implements OnInit, OnDestroy {
-  @ViewChild('contentEditor') contentEditor!: ElementRef<HTMLTextAreaElement>;
+export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
+  @ViewChild('editorContainer') editorContainer!: ElementRef<HTMLDivElement>;
+  private editorView: EditorView | null = null;
   
   story: Story = {
     id: '',
@@ -254,7 +314,8 @@ export class StoryEditorComponent implements OnInit, OnDestroy {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private storyService: StoryService
+    private storyService: StoryService,
+    private proseMirrorService: ProseMirrorEditorService
   ) {}
 
   ngOnInit(): void {
@@ -286,10 +347,17 @@ export class StoryEditorComponent implements OnInit, OnDestroy {
     );
   }
 
+  ngAfterViewInit(): void {
+    this.initializeProseMirrorEditor();
+  }
+
   ngOnDestroy(): void {
     // Beim Verlassen der Komponente noch einmal speichern
     if (this.hasUnsavedChanges) {
       this.saveStory();
+    }
+    if (this.editorView) {
+      this.proseMirrorService.destroy();
     }
     this.subscription.unsubscribe();
   }
@@ -298,6 +366,7 @@ export class StoryEditorComponent implements OnInit, OnDestroy {
     this.activeChapterId = event.chapterId;
     this.activeSceneId = event.sceneId;
     this.activeScene = this.storyService.getScene(this.story.id, event.chapterId, event.sceneId);
+    this.updateEditorContent();
   }
 
   onStoryTitleChange(): void {
@@ -373,68 +442,49 @@ export class StoryEditorComponent implements OnInit, OnDestroy {
   }
 
   getWordCount(): number {
-    if (!this.activeScene || !this.activeScene.content) return 0;
-    return this.activeScene.content.trim().split(/\s+/).filter(word => word.length > 0).length;
+    if (!this.editorView) return 0;
+    const textContent = this.proseMirrorService.getTextContent();
+    return textContent.trim().split(/\s+/).filter(word => word.length > 0).length;
   }
 
-  onTextareaKeydown(event: KeyboardEvent): void {
-    // If slash dropdown is visible, let it handle navigation keys
-    if (this.showSlashDropdown && 
-        ['ArrowDown', 'ArrowUp', 'Enter', 'Escape'].includes(event.key)) {
-      // Let the dropdown component handle these keys
-      return;
-    }
+  private initializeProseMirrorEditor(): void {
+    if (!this.editorContainer) return;
     
-    // Handle slash command trigger
-    if (event.key === '/' && this.contentEditor) {
-      const textarea = this.contentEditor.nativeElement;
-      const cursorPos = textarea.selectionStart;
-      
-      // Check if cursor is at start of line or after whitespace
-      const content = textarea.value;
-      const beforeCursor = content.substring(0, cursorPos);
-      const lastChar = beforeCursor[beforeCursor.length - 1];
-      
-      if (cursorPos === 0 || lastChar === '\n' || lastChar === ' ') {
-        setTimeout(() => this.showSlashDropdownAtCursor(), 0);
+    this.editorView = this.proseMirrorService.createEditor(
+      this.editorContainer.nativeElement,
+      {
+        placeholder: 'Hier beginnt deine Szene...',
+        onUpdate: (content: string) => {
+          if (this.activeScene) {
+            this.activeScene.content = content;
+            this.onContentChange();
+          }
+        },
+        onSlashCommand: (position: number) => {
+          this.slashCursorPosition = position;
+          this.showSlashDropdownAtCursor();
+        }
       }
-    }
+    );
+    
+    // Set initial content if we have an active scene
+    this.updateEditorContent();
   }
 
-  onTextareaInput(event: Event): void {
-    // Hide dropdown if user types something other than slash commands
-    if (this.showSlashDropdown) {
-      const textarea = event.target as HTMLTextAreaElement;
-      const cursorPos = textarea.selectionStart;
-      const content = textarea.value;
-      
-      // Check if we're still in slash command context
-      const beforeCursor = content.substring(0, cursorPos);
-      const lastSlash = beforeCursor.lastIndexOf('/');
-      
-      if (lastSlash === -1 || beforeCursor.substring(lastSlash).includes(' ') || beforeCursor.substring(lastSlash).includes('\n')) {
-        this.hideSlashDropdown();
-      }
+  private updateEditorContent(): void {
+    if (this.editorView && this.activeScene) {
+      this.proseMirrorService.setContent(this.activeScene.content || '');
     }
   }
 
   private showSlashDropdownAtCursor(): void {
-    if (!this.contentEditor) return;
-    
-    const textarea = this.contentEditor.nativeElement;
-    const cursorPos = textarea.selectionStart;
-    this.slashCursorPosition = cursorPos;
+    if (!this.editorContainer) return;
     
     // Calculate dropdown position
-    const rect = textarea.getBoundingClientRect();
-    const textareaStyle = window.getComputedStyle(textarea);
-    const lineHeight = parseInt(textareaStyle.lineHeight) || 20;
-    
-    // Simple approximation - for more accuracy you'd need to measure text
-    const lines = textarea.value.substring(0, cursorPos).split('\n').length;
+    const rect = this.editorContainer.nativeElement.getBoundingClientRect();
     
     this.slashDropdownPosition = {
-      top: rect.top + (lines * lineHeight) + 5,
+      top: rect.top + 50, // Approximate position
       left: rect.left + 10
     };
     
@@ -446,35 +496,25 @@ export class StoryEditorComponent implements OnInit, OnDestroy {
   }
 
   onSlashCommandSelected(result: SlashCommandResult): void {
-    if (!this.activeScene || !this.contentEditor) return;
+    if (!this.activeScene || !this.editorView) return;
     
-    const textarea = this.contentEditor.nativeElement;
-    const content = this.activeScene.content || '';
-    const cursorPos = result.position;
-    
-    let insertText = '';
+    let insertContent = '';
     
     switch (result.action) {
       case SlashCommandAction.INSERT_BEAT:
-        insertText = '\n\n--- BEAT ---\n\n';
+        insertContent = '<p><strong>--- BEAT ---</strong></p>';
         break;
       case SlashCommandAction.INSERT_IMAGE:
-        insertText = '\n\n[Bild: Beschreibung hier einfügen]\n\n';
+        insertContent = '<p><em>[Bild: Beschreibung hier einfügen]</em></p>';
         break;
     }
     
     // Remove the slash and insert the content
-    const beforeSlash = content.substring(0, cursorPos);
-    const afterCursor = content.substring(cursorPos + 1); // +1 to remove the slash
+    this.proseMirrorService.insertContent(insertContent, this.slashCursorPosition - 1);
     
-    this.activeScene.content = beforeSlash + insertText + afterCursor;
-    this.onContentChange();
-    
-    // Set cursor position after inserted content
+    // Focus the editor
     setTimeout(() => {
-      const newCursorPos = cursorPos + insertText.length;
-      textarea.setSelectionRange(newCursorPos, newCursorPos);
-      textarea.focus();
+      this.proseMirrorService.focus();
     }, 0);
     
     this.hideSlashDropdown();
