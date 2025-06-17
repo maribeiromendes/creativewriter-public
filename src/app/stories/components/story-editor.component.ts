@@ -3,40 +3,67 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { StoryService } from '../services/story.service';
-import { Story } from '../models/story.interface';
+import { Story, Chapter, Scene } from '../models/story.interface';
+import { StoryStructureComponent } from './story-structure.component';
 import { Subscription, debounceTime, Subject } from 'rxjs';
 
 @Component({
   selector: 'app-story-editor',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, StoryStructureComponent],
   template: `
     <div class="editor-container">
-      <div class="editor-header">
-        <button class="back-btn" (click)="goBack()">← Zurück zur Übersicht</button>
-        <div class="story-info">
-          <span class="word-count">{{ getWordCount() }} Wörter</span>
-          <span class="save-status" [class.saved]="!hasUnsavedChanges">
-            {{ hasUnsavedChanges ? 'Nicht gespeichert' : 'Gespeichert' }}
-          </span>
-        </div>
-      </div>
+      <app-story-structure 
+        [story]="story" 
+        [activeChapterId]="activeChapterId"
+        [activeSceneId]="activeSceneId"
+        (sceneSelected)="onSceneSelected($event)">
+      </app-story-structure>
       
-      <div class="editor-content">
-        <input 
-          type="text" 
-          class="title-input" 
-          placeholder="Titel deiner Geschichte..." 
-          [(ngModel)]="story.title"
-          (ngModelChange)="onContentChange()"
-        />
+      <div class="editor-main">
+        <div class="editor-header">
+          <button class="back-btn" (click)="goBack()">← Zurück zur Übersicht</button>
+          <div class="story-info">
+            <span class="scene-info" *ngIf="activeScene">
+              {{ getCurrentChapterTitle() }} - {{ activeScene.title }}
+            </span>
+            <span class="word-count">{{ getWordCount() }} Wörter</span>
+            <span class="save-status" [class.saved]="!hasUnsavedChanges">
+              {{ hasUnsavedChanges ? 'Nicht gespeichert' : 'Gespeichert' }}
+            </span>
+          </div>
+        </div>
         
-        <textarea 
-          class="content-editor"
-          placeholder="Hier beginnt deine Geschichte..."
-          [(ngModel)]="story.content"
-          (ngModelChange)="onContentChange()"
-        ></textarea>
+        <div class="editor-content">
+          <input 
+            type="text" 
+            class="title-input" 
+            placeholder="Titel deiner Geschichte..." 
+            [(ngModel)]="story.title"
+            (ngModelChange)="onStoryTitleChange()"
+          />
+          
+          <div class="scene-editor" *ngIf="activeScene">
+            <input 
+              type="text" 
+              class="scene-title-input" 
+              placeholder="Szenen-Titel..." 
+              [(ngModel)]="activeScene.title"
+              (ngModelChange)="onSceneTitleChange()"
+            />
+            
+            <textarea 
+              class="content-editor"
+              placeholder="Hier beginnt deine Szene..."
+              [(ngModel)]="activeScene.content"
+              (ngModelChange)="onContentChange()"
+            ></textarea>
+          </div>
+          
+          <div class="no-scene" *ngIf="!activeScene">
+            <p>Wähle eine Szene aus der Struktur, um zu beginnen.</p>
+          </div>
+        </div>
       </div>
     </div>
   `,
@@ -44,8 +71,13 @@ import { Subscription, debounceTime, Subject } from 'rxjs';
     .editor-container {
       height: 100vh;
       display: flex;
-      flex-direction: column;
       background: #1a1a1a;
+    }
+    
+    .editor-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
     }
     
     .editor-header {
@@ -102,12 +134,12 @@ import { Subscription, debounceTime, Subject } from 'rxjs';
     }
     
     .title-input {
-      font-size: 2rem;
+      font-size: 1.8rem;
       font-weight: bold;
       border: none;
       outline: none;
       padding: 1rem 0;
-      margin-bottom: 2rem;
+      margin-bottom: 1rem;
       border-bottom: 2px solid transparent;
       transition: border-color 0.3s;
       background: transparent;
@@ -120,6 +152,48 @@ import { Subscription, debounceTime, Subject } from 'rxjs';
     
     .title-input::placeholder {
       color: #6c757d;
+    }
+    
+    .scene-editor {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .scene-title-input {
+      font-size: 1.3rem;
+      font-weight: 500;
+      border: none;
+      outline: none;
+      padding: 0.75rem 0;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.3s;
+      background: transparent;
+      color: #e0e0e0;
+    }
+    
+    .scene-title-input:focus {
+      border-bottom-color: #6c757d;
+    }
+    
+    .scene-title-input::placeholder {
+      color: #6c757d;
+    }
+    
+    .scene-info {
+      color: #adb5bd;
+      font-size: 0.9rem;
+      margin-right: 1rem;
+    }
+    
+    .no-scene {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #6c757d;
+      font-size: 1.1rem;
     }
     
     .content-editor {
@@ -144,10 +218,14 @@ export class StoryEditorComponent implements OnInit, OnDestroy {
   story: Story = {
     id: '',
     title: '',
-    content: '',
+    chapters: [],
     createdAt: new Date(),
     updatedAt: new Date()
   };
+  
+  activeChapterId: string | null = null;
+  activeSceneId: string | null = null;
+  activeScene: Scene | null = null;
   
   hasUnsavedChanges = false;
   private saveSubject = new Subject<void>();
@@ -165,6 +243,13 @@ export class StoryEditorComponent implements OnInit, OnDestroy {
       const existingStory = this.storyService.getStory(storyId);
       if (existingStory) {
         this.story = { ...existingStory };
+        // Auto-select first scene
+        if (this.story.chapters && this.story.chapters.length > 0 && 
+            this.story.chapters[0].scenes && this.story.chapters[0].scenes.length > 0) {
+          this.activeChapterId = this.story.chapters[0].id;
+          this.activeSceneId = this.story.chapters[0].scenes[0].id;
+          this.activeScene = this.story.chapters[0].scenes[0];
+        }
       } else {
         // Wenn Story nicht gefunden wird, zur Übersicht zurück
         this.router.navigate(['/']);
@@ -189,15 +274,69 @@ export class StoryEditorComponent implements OnInit, OnDestroy {
     this.subscription.unsubscribe();
   }
 
-  onContentChange(): void {
+  onSceneSelected(event: {chapterId: string, sceneId: string}): void {
+    this.activeChapterId = event.chapterId;
+    this.activeSceneId = event.sceneId;
+    this.activeScene = this.storyService.getScene(this.story.id, event.chapterId, event.sceneId);
+  }
+
+  onStoryTitleChange(): void {
     this.hasUnsavedChanges = true;
     this.saveSubject.next();
   }
 
+  onSceneTitleChange(): void {
+    if (this.activeScene && this.activeChapterId) {
+      this.hasUnsavedChanges = true;
+      this.saveSubject.next();
+    }
+  }
+
+  onContentChange(): void {
+    if (this.activeScene && this.activeChapterId) {
+      this.hasUnsavedChanges = true;
+      this.saveSubject.next();
+    }
+  }
+
   private saveStory(): void {
+    // Only save story title and active scene content - don't overwrite entire story structure
     this.story.updatedAt = new Date();
-    this.storyService.updateStory(this.story);
+    
+    // Save story title only
+    const currentStory = this.storyService.getStory(this.story.id);
+    if (currentStory) {
+      this.storyService.updateStory({
+        ...currentStory,
+        title: this.story.title,
+        updatedAt: new Date()
+      });
+    }
+    
+    // Save active scene changes
+    if (this.activeScene && this.activeChapterId) {
+      this.storyService.updateScene(
+        this.story.id, 
+        this.activeChapterId, 
+        this.activeScene.id, 
+        {
+          title: this.activeScene.title,
+          content: this.activeScene.content
+        }
+      );
+    }
+    
     this.hasUnsavedChanges = false;
+    
+    // Refresh story data to get latest structure
+    const updatedStory = this.storyService.getStory(this.story.id);
+    if (updatedStory) {
+      this.story = updatedStory;
+      // Refresh active scene reference
+      if (this.activeChapterId && this.activeSceneId) {
+        this.activeScene = this.storyService.getScene(this.story.id, this.activeChapterId, this.activeSceneId);
+      }
+    }
   }
 
   goBack(): void {
@@ -207,7 +346,14 @@ export class StoryEditorComponent implements OnInit, OnDestroy {
     this.router.navigate(['/']);
   }
 
+  getCurrentChapterTitle(): string {
+    if (!this.activeChapterId || !this.story.chapters) return '';
+    const chapter = this.story.chapters.find(c => c.id === this.activeChapterId);
+    return chapter ? chapter.title : '';
+  }
+
   getWordCount(): number {
-    return this.story.content.trim().split(/\s+/).filter(word => word.length > 0).length;
+    if (!this.activeScene || !this.activeScene.content) return 0;
+    return this.activeScene.content.trim().split(/\s+/).filter(word => word.length > 0).length;
   }
 }

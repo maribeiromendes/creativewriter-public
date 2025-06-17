@@ -19,9 +19,9 @@ import { Story } from '../models/story.interface';
       <div class="stories-grid" *ngIf="stories.length > 0; else noStories">
         <div class="story-card" *ngFor="let story of stories" (click)="openStory(story.id)">
           <h3>{{ story.title || 'Unbenannte Geschichte' }}</h3>
-          <p class="story-preview">{{ getStoryPreview(story.content) }}</p>
+          <p class="story-preview">{{ getStoryPreview(story) }}</p>
           <div class="story-meta">
-            <span class="word-count">{{ getWordCount(story.content) }} Wörter</span>
+            <span class="word-count">{{ getWordCount(story) }} Wörter</span>
             <span class="last-modified">{{ story.updatedAt | date:'short' }}</span>
           </div>
           <button class="delete-btn" (click)="deleteStory($event, story.id)">Löschen</button>
@@ -179,11 +179,41 @@ export class StoryListComponent implements OnInit {
     }
   }
 
-  getStoryPreview(content: string): string {
-    return content.length > 150 ? content.substring(0, 150) + '...' : content;
+  getStoryPreview(story: Story): string {
+    // For legacy stories with content
+    if (story.content) {
+      return story.content.length > 150 ? story.content.substring(0, 150) + '...' : story.content;
+    }
+    
+    // For new chapter/scene structure
+    if (story.chapters && story.chapters.length > 0 && story.chapters[0].scenes && story.chapters[0].scenes.length > 0) {
+      const firstScene = story.chapters[0].scenes[0];
+      const content = firstScene.content || '';
+      return content.length > 150 ? content.substring(0, 150) + '...' : content;
+    }
+    
+    return 'Noch kein Inhalt...';
   }
 
-  getWordCount(content: string): number {
-    return content.trim().split(/\s+/).filter(word => word.length > 0).length;
+  getWordCount(story: Story): number {
+    // For legacy stories with content
+    if (story.content) {
+      return story.content.trim().split(/\s+/).filter(word => word.length > 0).length;
+    }
+    
+    // For new chapter/scene structure - count all scenes
+    let totalWords = 0;
+    if (story.chapters) {
+      story.chapters.forEach(chapter => {
+        if (chapter.scenes) {
+          chapter.scenes.forEach(scene => {
+            const content = scene.content || '';
+            totalWords += content.trim().split(/\s+/).filter(word => word.length > 0).length;
+          });
+        }
+      });
+    }
+    
+    return totalWords;
   }
 }
