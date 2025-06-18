@@ -18,8 +18,11 @@ import { NgSelectModule } from '@ng-select/ng-select';
       <div class="settings-header">
         <button class="back-btn" (click)="goBack()">← Zurück</button>
         <h1>Einstellungen</h1>
-        <div class="save-status" [class.saved]="!hasUnsavedChanges">
-          {{ hasUnsavedChanges ? 'Nicht gespeichert' : 'Gespeichert' }}
+        <div class="header-actions">
+          <button class="ai-logs-btn" (click)="goToAILogs()" title="AI Request Logs">📊 AI Logs</button>
+          <div class="save-status" [class.saved]="!hasUnsavedChanges">
+            {{ hasUnsavedChanges ? 'Nicht gespeichert' : 'Gespeichert' }}
+          </div>
         </div>
       </div>
 
@@ -202,20 +205,26 @@ import { NgSelectModule } from '@ng-select/ng-select';
     .settings-header {
       display: flex;
       align-items: center;
-      gap: 2rem;
+      justify-content: space-between;
       padding: 1.5rem 2rem;
       background: #2d2d2d;
       border-bottom: 1px solid #404040;
     }
 
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
     .settings-header h1 {
-      flex: 1;
       margin: 0;
       font-size: 1.8rem;
       color: #f8f9fa;
     }
 
-    .back-btn {
+    .back-btn,
+    .ai-logs-btn {
       background: #6c757d;
       color: white;
       border: none;
@@ -223,9 +232,11 @@ import { NgSelectModule } from '@ng-select/ng-select';
       border-radius: 6px;
       cursor: pointer;
       transition: background 0.3s;
+      font-size: 0.9rem;
     }
 
-    .back-btn:hover {
+    .back-btn:hover,
+    .ai-logs-btn:hover {
       background: #5a6268;
     }
 
@@ -734,6 +745,16 @@ export class SettingsComponent implements OnInit, OnDestroy {
       }
     } else {
       this.router.navigate(['/']);
+    }
+  }
+
+  goToAILogs(): void {
+    if (this.hasUnsavedChanges) {
+      if (confirm('Sie haben ungespeicherte Änderungen. Möchten Sie die Seite wirklich verlassen?')) {
+        this.router.navigate(['/ai-logs']);
+      }
+    } else {
+      this.router.navigate(['/ai-logs']);
     }
   }
 }

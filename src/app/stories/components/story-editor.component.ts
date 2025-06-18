@@ -32,6 +32,7 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
           <div class="story-info">
             <button class="codex-btn" (click)="goToCodex()" title="Codex">📚</button>
             <button class="settings-btn" (click)="goToSettings()" title="Story-Einstellungen">⚙️</button>
+            <button class="ai-logs-btn" (click)="goToAILogs()" title="AI Request Logs">📊</button>
             <span class="scene-info" *ngIf="activeScene">
               {{ getCurrentChapterTitle() }} - {{ activeScene.title }}
             </span>
@@ -124,7 +125,7 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
       align-items: center;
     }
     
-    .codex-btn, .settings-btn {
+    .codex-btn, .settings-btn, .ai-logs-btn {
       background: #495057;
       border: none;
       padding: 0.4rem 0.6rem;
@@ -135,7 +136,7 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
       margin-right: 0.5rem;
     }
     
-    .codex-btn:hover, .settings-btn:hover {
+    .codex-btn:hover, .settings-btn:hover, .ai-logs-btn:hover {
       background: #343a40;
     }
     
@@ -518,6 +519,13 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
       this.saveStory();
     }
     this.router.navigate(['/stories/settings', this.story.id]);
+  }
+
+  goToAILogs(): void {
+    if (this.hasUnsavedChanges) {
+      this.saveStory();
+    }
+    this.router.navigate(['/ai-logs']);
   }
 
   getCurrentChapterTitle(): string {

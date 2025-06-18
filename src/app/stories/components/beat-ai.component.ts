@@ -163,12 +163,12 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
     }
     
     .beat-prompt-section {
-      padding: 1rem;
+      padding: 0.3rem;
       transition: all 0.3s ease;
     }
     
     .beat-prompt-section.collapsed {
-      padding: 0.5rem 1rem;
+      padding: 0.3rem;
     }
     
     .beat-header {

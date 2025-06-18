@@ -133,7 +133,6 @@ export class ProseMirrorEditorService {
           this.envInjector,
           (event: BeatAIPromptEvent) => {
             config.onBeatPromptSubmit?.(event);
-            this.handleBeatPromptSubmit(event);
           },
           (beatData: BeatAI) => {
             config.onBeatContentUpdate?.(beatData);

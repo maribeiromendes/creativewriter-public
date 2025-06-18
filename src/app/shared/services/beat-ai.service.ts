@@ -53,7 +53,8 @@ export class BeatAIService {
 
     return this.openRouterApi.generateText(enhancedPrompt, {
       model: options.model,
-      maxTokens: maxTokens
+      maxTokens: maxTokens,
+      wordCount: wordCount
     }).pipe(
       map(response => {
         if (response.choices && response.choices.length > 0) {

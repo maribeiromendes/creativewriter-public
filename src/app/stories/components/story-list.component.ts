@@ -12,7 +12,10 @@ import { Story } from '../models/story.interface';
     <div class="story-list-container">
       <div class="header">
         <h1>Meine Geschichten</h1>
-        <button class="settings-btn" (click)="goToSettings()" title="Einstellungen">⚙️</button>
+        <div class="header-actions">
+          <button class="ai-logger-btn" (click)="goToAILogger()" title="AI Request Logger">📊 AI Logs</button>
+          <button class="settings-btn" (click)="goToSettings()" title="Einstellungen">⚙️</button>
+        </div>
       </div>
       
       <button class="new-story-btn" (click)="createNewStory()">
@@ -47,28 +50,35 @@ import { Story } from '../models/story.interface';
     }
     
     .header {
-      position: relative;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       margin-bottom: 2rem;
     }
     
     h1 {
-      text-align: center;
       color: #e0e0e0;
+      margin: 0;
     }
     
+    .header-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+    
+    .ai-logger-btn,
     .settings-btn {
-      position: absolute;
-      top: 0;
-      right: 0;
       background: #6c757d;
+      color: white;
       border: none;
       padding: 0.5rem 0.75rem;
       border-radius: 6px;
-      font-size: 1.2rem;
+      font-size: 0.9rem;
       cursor: pointer;
       transition: background 0.3s;
     }
     
+    .ai-logger-btn:hover,
     .settings-btn:hover {
       background: #5a6268;
     }
@@ -197,6 +207,10 @@ export class StoryListComponent implements OnInit {
 
   goToSettings(): void {
     this.router.navigate(['/settings']);
+  }
+
+  goToAILogger(): void {
+    this.router.navigate(['/ai-logs']);
   }
 
   deleteStory(event: Event, storyId: string): void {
