@@ -12,7 +12,7 @@ RUN npm ci --prefer-offline --no-audit
 # Copy source code (separate layer for better caching)
 COPY src/ ./src/
 COPY angular.json tsconfig*.json ./
-COPY public/ ./public/ 2>/dev/null || true
+COPY public/ ./public/
 
 # Build the application
 RUN npm run build
