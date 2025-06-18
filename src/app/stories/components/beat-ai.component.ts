@@ -87,7 +87,7 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
               {{ beatData.generatedContent ? 'Regenerieren' : 'Generieren' }}
             </button>
             <button 
-              class="preview-btn"
+              class="generate-btn primary"
               (click)="showPromptPreview()"
               [disabled]="!currentPrompt.trim()"
               title="Prompt-Vorschau anzeigen">
@@ -296,7 +296,7 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
     }
     
     .generate-btn, .cancel-btn {
-      padding: 0.5rem 1rem;
+      padding: 0.2rem;
       border: none;
       border-radius: 6px;
       font-size: 0.9rem;
@@ -442,26 +442,6 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
     
     :global(.model-select .ng-dropdown-panel .ng-dropdown-panel-items .ng-option.ng-option-selected) {
       background: #0d6efd !important;
-    }
-
-    .preview-btn {
-      background: #6c757d;
-      color: white;
-      border: none;
-      padding: 0.5rem 1rem;
-      border-radius: 4px;
-      font-size: 0.9rem;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-
-    .preview-btn:hover:not(:disabled) {
-      background: #5a6268;
-    }
-
-    .preview-btn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
     }
 
     .preview-modal {

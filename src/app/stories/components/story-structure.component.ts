@@ -117,15 +117,15 @@ import { Subscription } from 'rxjs';
       background: #2d2d2d;
       border-right: 1px solid #404040;
       overflow-y: auto;
-      padding: 0.75rem;
+      padding: 0.2rem;
     }
     
     .structure-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 1rem;
-      padding-bottom: 1rem;
+      margin-bottom: 0.2rem;
+      padding-bottom: 0.2rem;
       border-bottom: 1px solid #404040;
     }
     
@@ -169,7 +169,7 @@ import { Subscription } from 'rxjs';
     .chapter-header {
       display: flex;
       align-items: center;
-      padding: 0.75rem;
+      padding: 0.2rem;
       background: #3a3a3a;
       cursor: pointer;
       transition: background 0.2s;
@@ -204,11 +204,11 @@ import { Subscription } from 'rxjs';
     
     .scenes-list {
       background: #2a2a2a;
-      padding: 0.5rem;
+      padding: 0.3rem;
     }
     
     .scene-item {
-      margin-bottom: 0.25rem;
+      margin-bottom: 0.1rem;
       background: #404040;
       border-radius: 4px;
       overflow: hidden;
@@ -226,7 +226,7 @@ import { Subscription } from 'rxjs';
     .scene-header {
       display: flex;
       align-items: center;
-      padding: 0.5rem;
+      padding: 0.2rem;
       cursor: pointer;
       transition: background 0.2s;
     }
@@ -241,8 +241,8 @@ import { Subscription } from 'rxjs';
       border: none;
       color: #e0e0e0;
       font-size: 0.85rem;
-      padding: 0.25rem;
-      margin-right: 0.5rem;
+      padding: 0.15rem;
+      margin-right: 0.2rem;
     }
     
     .scene-item.active .scene-title-input {
@@ -257,7 +257,7 @@ import { Subscription } from 'rxjs';
     .word-count {
       font-size: 0.7rem;
       color: #6c757d;
-      margin-right: 0.5rem;
+      margin-right: 0.2rem;
       white-space: nowrap;
     }
     
@@ -300,7 +300,7 @@ import { Subscription } from 'rxjs';
       color: #dc3545;
       cursor: pointer;
       font-size: 1.2rem;
-      padding: 0.25rem;
+      padding: 0.22rem;
       border-radius: 3px;
       transition: background 0.2s;
       opacity: 0.7;
@@ -313,7 +313,7 @@ import { Subscription } from 'rxjs';
     }
     
     .scene-details {
-      padding: 0.5rem;
+      padding: 0.2rem;
       background: #353535;
       border-top: 1px solid #555;
     }
@@ -321,18 +321,18 @@ import { Subscription } from 'rxjs';
     .scene-summary-section {
       display: flex;
       flex-direction: column;
-      gap: 0.375rem;
+      gap: 0.2rem;
     }
     
     .summary-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.2rem;
     }
     
     .summary-label {
-      font-size: 0.75rem;
+      font-size: 0.8rem;
       color: #adb5bd;
       font-weight: 500;
     }
@@ -348,7 +348,7 @@ import { Subscription } from 'rxjs';
       border: 1px solid #555;
       border-radius: 3px;
       color: #e0e0e0;
-      padding: 0.375rem;
+      padding: 0.2rem;
       height: 28px;
     }
     
@@ -399,7 +399,7 @@ import { Subscription } from 'rxjs';
       background: #2a2a2a;
       border: 1px solid #555;
       border-radius: 3px;
-      padding: 0.375rem;
+      padding: 0.2rem;
       color: #e0e0e0;
       font-family: inherit;
       font-size: 0.75rem;
@@ -434,12 +434,12 @@ import { Subscription } from 'rxjs';
       background: transparent;
       border: 1px dashed #6c757d;
       color: #adb5bd;
-      padding: 0.5rem;
+      padding: 0.2rem;
       border-radius: 4px;
       cursor: pointer;
       font-size: 0.8rem;
       transition: all 0.2s;
-      margin-top: 0.5rem;
+      margin-top: 0.4rem;
     }
     
     .add-scene-btn:hover {
