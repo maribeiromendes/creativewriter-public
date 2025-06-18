@@ -30,6 +30,7 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
         <div class="editor-header">
           <button class="back-btn" (click)="goBack()">← Zurück zur Übersicht</button>
           <div class="story-info">
+            <button class="settings-btn" (click)="goToSettings()" title="Story-Einstellungen">⚙️</button>
             <span class="scene-info" *ngIf="activeScene">
               {{ getCurrentChapterTitle() }} - {{ activeScene.title }}
             </span>
@@ -119,6 +120,21 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
       display: flex;
       gap: 2rem;
       font-size: 0.9rem;
+      align-items: center;
+    }
+    
+    .settings-btn {
+      background: #495057;
+      border: none;
+      padding: 0.4rem 0.6rem;
+      border-radius: 6px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    
+    .settings-btn:hover {
+      background: #343a40;
     }
     
     .word-count {
@@ -479,6 +495,13 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
       this.saveStory();
     }
     this.router.navigate(['/']);
+  }
+
+  goToSettings(): void {
+    if (this.hasUnsavedChanges) {
+      this.saveStory();
+    }
+    this.router.navigate(['/stories/settings', this.story.id]);
   }
 
   getCurrentChapterTitle(): string {

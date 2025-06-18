@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Story, Chapter, Scene } from '../models/story.interface';
+import { Story, Chapter, Scene, DEFAULT_STORY_SETTINGS } from '../models/story.interface';
 
 @Injectable({
   providedIn: 'root'
@@ -43,6 +43,7 @@ export class StoryService {
       id: this.generateId(),
       title: '',
       chapters: [firstChapter],
+      settings: { ...DEFAULT_STORY_SETTINGS },
       createdAt: new Date(),
       updatedAt: new Date()
     };
@@ -81,6 +82,11 @@ export class StoryService {
       createdAt: new Date(story.createdAt),
       updatedAt: new Date(story.updatedAt)
     };
+
+    // Add default settings if not present
+    if (!migrated.settings) {
+      migrated.settings = { ...DEFAULT_STORY_SETTINGS };
+    }
 
     // If old story format with content field, migrate to chapter/scene structure
     if (story.content && !story.chapters) {
