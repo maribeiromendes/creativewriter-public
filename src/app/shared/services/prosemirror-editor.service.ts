@@ -369,7 +369,10 @@ export class ProseMirrorEditorService {
     if (beatNodePosition === null) return;
     
     // Generate AI content and insert the final result
-    this.beatAIService.generateBeatContent(event.prompt, event.beatId).subscribe({
+    this.beatAIService.generateBeatContent(event.prompt, event.beatId, {
+      wordCount: event.wordCount,
+      model: event.model
+    }).subscribe({
       next: (content) => {
         // Insert the complete content in editor after the beat node
         this.insertContentAfterBeatNode(event.beatId, content);

@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
-import { Observable, Subject, delay, map, scan, timer } from 'rxjs';
+import { Observable, Subject, delay, map, scan, timer, catchError, of } from 'rxjs';
 import { BeatAI, BeatAIGenerationEvent, BeatAIPromptEvent } from '../../stories/models/beat-ai.interface';
+import { OpenRouterApiService } from '../../core/services/openrouter-api.service';
+import { SettingsService } from '../../core/services/settings.service';
 
 @Injectable({
   providedIn: 'root'
@@ -9,30 +11,80 @@ export class BeatAIService {
   private generationSubject = new Subject<BeatAIGenerationEvent>();
   public generation$ = this.generationSubject.asObservable();
 
-  generateBeatContent(prompt: string, beatId: string): Observable<string> {
-    // Simulate AI content generation and return only the final result
-    const sampleContent = this.generateSampleContent(prompt);
+  constructor(
+    private openRouterApi: OpenRouterApiService,
+    private settingsService: SettingsService
+  ) {}
+
+  generateBeatContent(prompt: string, beatId: string, options: {
+    wordCount?: number;
+    model?: string;
+  } = {}): Observable<string> {
+    const settings = this.settingsService.getSettings();
     
+    // Check if OpenRouter is enabled and configured
+    if (!settings.openRouter.enabled || !settings.openRouter.apiKey) {
+      console.warn('OpenRouter not configured, using fallback content');
+      return this.generateFallbackContent(prompt, beatId);
+    }
+
     // Emit generation start
     this.generationSubject.next({
       beatId,
       chunk: '',
       isComplete: false
     });
+
+    // Create enhanced prompt with word count guidance
+    const wordCount = options.wordCount || 200;
+    const enhancedPrompt = `${prompt}\n\nBitte erstelle einen Text von ungefähr ${wordCount} Wörtern.`;
     
-    // Simulate generation delay and return final content
-    return timer(2000).pipe(
-      map(() => {
-        // Emit generation complete
+    // Calculate max tokens based on word count (roughly 1.3 tokens per word)
+    const maxTokens = Math.ceil(wordCount * 1.3);
+
+    return this.openRouterApi.generateText(enhancedPrompt, {
+      model: options.model,
+      maxTokens: maxTokens
+    }).pipe(
+      map(response => {
+        if (response.choices && response.choices.length > 0) {
+          const content = response.choices[0].message.content;
+          
+          // Emit generation complete
+          this.generationSubject.next({
+            beatId,
+            chunk: content,
+            isComplete: true
+          });
+          
+          return content;
+        }
+        throw new Error('No content generated');
+      }),
+      catchError(error => {
+        console.error('OpenRouter API error, using fallback:', error);
+        // Emit error and fall back to sample content
         this.generationSubject.next({
           beatId,
-          chunk: sampleContent,
+          chunk: '',
           isComplete: true
         });
-        
-        return sampleContent;
+        return this.generateFallbackContent(prompt, beatId);
       })
     );
+  }
+
+  private generateFallbackContent(prompt: string, beatId: string): Observable<string> {
+    const fallbackContent = this.generateSampleContent(prompt);
+    
+    // Emit generation complete with fallback
+    this.generationSubject.next({
+      beatId,
+      chunk: fallbackContent,
+      isComplete: true
+    });
+    
+    return of(fallbackContent);
   }
 
   private generateSampleContent(prompt: string): string {

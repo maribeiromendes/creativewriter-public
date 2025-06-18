@@ -18,6 +18,8 @@ export interface BeatAIPromptEvent {
   beatId: string;
   prompt: string;
   action: 'generate' | 'regenerate';
+  wordCount?: number;
+  model?: string;
 }
 
 export interface BeatContentInsertEvent {

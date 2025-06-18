@@ -1,13 +1,17 @@
 import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { NgSelectModule } from '@ng-select/ng-select';
 import { BeatAI, BeatAIPromptEvent } from '../models/beat-ai.interface';
 import { Subscription } from 'rxjs';
+import { ModelOption } from '../../core/models/model.interface';
+import { ModelService } from '../../core/services/model.service';
+import { SettingsService } from '../../core/services/settings.service';
 
 @Component({
   selector: 'app-beat-ai',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, NgSelectModule],
   template: `
     <div class="beat-ai-container" [class.editing]="beatData.isEditing" [class.generating]="beatData.isGenerating">
       <!-- Prompt Input Section -->
@@ -46,11 +50,39 @@ import { Subscription } from 'rxjs';
             (mousedown)="onTextareaMousedown($event)"
           ></textarea>
           
+          <!-- Generation Options -->
+          <div class="generation-options" *ngIf="beatData.isEditing || !beatData.prompt">
+            <div class="options-row">
+              <div class="option-group">
+                <label>Wortanzahl</label>
+                <select [(ngModel)]="selectedWordCount" class="word-count-select">
+                  <option value="50">~50 Wörter</option>
+                  <option value="100">~100 Wörter</option>
+                  <option value="200">~200 Wörter</option>
+                  <option value="300">~300 Wörter</option>
+                  <option value="500">~500 Wörter</option>
+                </select>
+              </div>
+              <div class="option-group">
+                <label>AI-Modell</label>
+                <ng-select [(ngModel)]="selectedModel"
+                           [items]="availableModels"
+                           bindLabel="label"
+                           bindValue="id"
+                           [clearable]="false"
+                           [searchable]="true"
+                           placeholder="Modell auswählen..."
+                           class="model-select">
+                </ng-select>
+              </div>
+            </div>
+          </div>
+
           <div class="prompt-actions">
             <button 
               class="generate-btn primary"
               (click)="generateContent()"
-              [disabled]="!currentPrompt.trim() || beatData.isGenerating">
+              [disabled]="!currentPrompt.trim() || beatData.isGenerating || !selectedModel">
               {{ beatData.generatedContent ? 'Regenerieren' : 'Generieren' }}
             </button>
             <button 
@@ -176,6 +208,59 @@ import { Subscription } from 'rxjs';
       color: #6c757d;
     }
     
+    .generation-options {
+      margin-top: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+    
+    .options-row {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 1rem;
+    }
+    
+    .option-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+    
+    .option-group label {
+      font-size: 0.85rem;
+      color: #adb5bd;
+      font-weight: 500;
+    }
+    
+    .word-count-select {
+      padding: 0.75rem;
+      background: #1a1a1a;
+      border: 1px solid #404040;
+      border-radius: 4px;
+      color: #e0e0e0;
+      font-size: 1rem;
+      min-height: 44px; /* iOS minimum touch target */
+    }
+    
+    .word-count-select:focus {
+      outline: none;
+      border-color: #0d6efd;
+      box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.25);
+    }
+    
+    .model-select {
+      font-size: 0.9rem;
+    }
+    
+    .model-name {
+      display: block;
+      font-weight: 500;
+    }
+    
+    .model-cost {
+      color: #28a745;
+      font-weight: 500;
+    }
+
     .prompt-actions {
       display: flex;
       gap: 0.5rem;
@@ -277,6 +362,60 @@ import { Subscription } from 'rxjs';
         opacity: 1;
       }
     }
+    
+    /* Custom ng-select styling */
+    :global(.model-select .ng-select-container) {
+      min-height: 44px !important; /* iOS minimum touch target */
+      background: #1a1a1a !important;
+      border: 1px solid #404040 !important;
+      border-radius: 4px !important;
+    }
+    
+    :global(.model-select .ng-select-container .ng-value-container) {
+      padding-left: 0.5rem !important;
+      background: transparent !important;
+    }
+    
+    :global(.model-select .ng-select-container .ng-value-container .ng-input > input) {
+      color: #e0e0e0 !important;
+      background: transparent !important;
+    }
+    
+    :global(.model-select .ng-select-container .ng-value-container .ng-value) {
+      color: #e0e0e0 !important;
+      background: transparent !important;
+    }
+    
+    :global(.model-select .ng-select-container .ng-value-container .ng-placeholder) {
+      color: #6c757d !important;
+    }
+    
+    :global(.model-select.ng-select-focused .ng-select-container) {
+      border-color: #0d6efd !important;
+      box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.25) !important;
+    }
+    
+    :global(.model-select .ng-dropdown-panel) {
+      background: #2d2d2d !important;
+      border: 1px solid #404040 !important;
+      border-radius: 4px !important;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+    }
+    
+    :global(.model-select .ng-dropdown-panel .ng-dropdown-panel-items .ng-option) {
+      color: #e0e0e0 !important;
+      background: #2d2d2d !important;
+      padding: 0.5rem !important;
+      font-size: 0.9rem !important;
+    }
+    
+    :global(.model-select .ng-dropdown-panel .ng-dropdown-panel-items .ng-option.ng-option-highlighted) {
+      background: #383838 !important;
+    }
+    
+    :global(.model-select .ng-dropdown-panel .ng-dropdown-panel-items .ng-option.ng-option-selected) {
+      background: #0d6efd !important;
+    }
   `]
 })
 export class BeatAIComponent implements OnInit, OnDestroy {
@@ -289,10 +428,22 @@ export class BeatAIComponent implements OnInit, OnDestroy {
   @ViewChild('promptInput') promptInput!: ElementRef<HTMLTextAreaElement>;
   
   currentPrompt: string = '';
+  selectedWordCount: number = 200;
+  selectedModel: string = '';
+  availableModels: ModelOption[] = [];
   private subscription = new Subscription();
+  
+  constructor(
+    private modelService: ModelService,
+    private settingsService: SettingsService
+  ) {}
   
   ngOnInit(): void {
     this.currentPrompt = this.beatData.prompt;
+    
+    // Load available models and set default
+    this.loadAvailableModels();
+    this.setDefaultModel();
     
     // Auto-focus prompt input if it's a new beat
     if (!this.beatData.prompt) {
@@ -317,7 +468,7 @@ export class BeatAIComponent implements OnInit, OnDestroy {
   }
   
   generateContent(): void {
-    if (!this.currentPrompt.trim()) return;
+    if (!this.currentPrompt.trim() || !this.selectedModel) return;
     
     this.beatData.prompt = this.currentPrompt.trim();
     this.beatData.isEditing = false;
@@ -326,8 +477,10 @@ export class BeatAIComponent implements OnInit, OnDestroy {
     this.promptSubmit.emit({
       beatId: this.beatData.id,
       prompt: this.beatData.prompt,
-      action: this.beatData.generatedContent ? 'regenerate' : 'generate'
-    });
+      action: this.beatData.generatedContent ? 'regenerate' : 'generate',
+      wordCount: this.selectedWordCount,
+      model: this.selectedModel
+    } as any);
     
     this.contentUpdate.emit(this.beatData);
   }
@@ -338,8 +491,10 @@ export class BeatAIComponent implements OnInit, OnDestroy {
     this.promptSubmit.emit({
       beatId: this.beatData.id,
       prompt: this.beatData.prompt,
-      action: 'regenerate'
-    });
+      action: 'regenerate',
+      wordCount: this.selectedWordCount,
+      model: this.selectedModel
+    } as any);
   }
   
   onPromptKeydown(event: any): void {
@@ -360,6 +515,36 @@ export class BeatAIComponent implements OnInit, OnDestroy {
 
   onTextareaMousedown(event: Event): void {
     event.stopPropagation();
+  }
+
+  private loadAvailableModels(): void {
+    // Subscribe to model changes
+    this.subscription.add(
+      this.modelService.openRouterModels$.subscribe(models => {
+        this.availableModels = models;
+        if (models.length > 0 && !this.selectedModel) {
+          this.setDefaultModel();
+        }
+      })
+    );
+    
+    // Load models if not already loaded
+    const currentModels = this.modelService.getCurrentOpenRouterModels();
+    if (currentModels.length === 0) {
+      this.modelService.loadOpenRouterModels().subscribe();
+    } else {
+      this.availableModels = currentModels;
+    }
+  }
+  
+  private setDefaultModel(): void {
+    const settings = this.settingsService.getSettings();
+    if (settings.openRouter.enabled && settings.openRouter.model) {
+      this.selectedModel = settings.openRouter.model;
+    } else if (this.availableModels.length > 0) {
+      // Fallback to first available model
+      this.selectedModel = this.availableModels[0].id;
+    }
   }
 
   private focusPromptInput(): void {
