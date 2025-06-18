@@ -20,8 +20,8 @@ RUN npm run build
 # Production stage
 FROM nginx:alpine
 
-# Copy built application from build stage
-COPY --from=build /app/dist/creativewriter2 /usr/share/nginx/html
+# Copy built application from build stage (Angular 20 outputs to browser/ subdirectory)
+COPY --from=build /app/dist/creativewriter2/browser /usr/share/nginx/html
 
 # Copy nginx configuration
 COPY nginx.conf /etc/nginx/nginx.conf
