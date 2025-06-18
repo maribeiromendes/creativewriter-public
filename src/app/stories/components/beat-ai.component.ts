@@ -57,11 +57,11 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
               <div class="option-group">
                 <label>Wortanzahl</label>
                 <select [(ngModel)]="selectedWordCount" class="word-count-select">
-                  <option value="50">~50 Wörter</option>
-                  <option value="100">~100 Wörter</option>
-                  <option value="200">~200 Wörter</option>
-                  <option value="300">~300 Wörter</option>
-                  <option value="500">~500 Wörter</option>
+                  <option [value]="50">~50 Wörter</option>
+                  <option [value]="100">~100 Wörter</option>
+                  <option [value]="200">~200 Wörter</option>
+                  <option [value]="300">~300 Wörter</option>
+                  <option [value]="500">~500 Wörter</option>
                 </select>
               </div>
               <div class="option-group">
@@ -737,7 +737,8 @@ export class BeatAIComponent implements OnInit, OnDestroy {
     this.previewContent = this.beatAIService.previewPrompt(this.currentPrompt, {
       storyId: this.storyId,
       chapterId: this.chapterId,
-      sceneId: this.sceneId
+      sceneId: this.sceneId,
+      wordCount: this.selectedWordCount
     });
     
     this.showPreviewModal = true;

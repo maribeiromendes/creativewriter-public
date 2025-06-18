@@ -39,7 +39,7 @@ export interface Story {
 
 export const DEFAULT_STORY_SETTINGS: StorySettings = {
   systemMessage: 'Du bist ein kreativer Schreibassistent, der beim Verfassen von Geschichten hilft. Behalte den Stil und Ton der bisherigen Geschichte bei.',
-  beatTemplate: 'Schreibe den nächsten Beat der Geschichte basierend auf folgendem Prompt: {prompt}\n\nAchte darauf, dass der Beat nahtlos an die vorherige Handlung anknüpft und die Charaktere konsistent bleiben.',
+  beatTemplate: 'Schreibe den nächsten Beat der Geschichte basierend auf folgendem Prompt: {prompt}\n\nAchte darauf, dass der Beat nahtlos an die vorherige Handlung anknüpft und die Charaktere konsistent bleiben. Schreibe {wordcount} Wörter.',
   useFullStoryContext: false,
   beatInstruction: 'continue'
 };

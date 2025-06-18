@@ -45,8 +45,8 @@ export class BeatAIService {
 
     // Create structured prompt
     const wordCount = options.wordCount || 200;
-    const structuredPrompt = this.buildStructuredPrompt(prompt, options);
-    const enhancedPrompt = `${structuredPrompt}\n\nBitte erstelle einen Text von ungefähr ${wordCount} Wörtern.`;
+    const structuredPrompt = this.buildStructuredPrompt(prompt, { ...options, wordCount });
+    const enhancedPrompt = structuredPrompt;
     
     // Calculate max tokens based on word count (roughly 1.3 tokens per word)
     const maxTokens = Math.ceil(wordCount * 1.3);
@@ -164,6 +164,7 @@ export class BeatAIService {
     storyId?: string;
     chapterId?: string;
     sceneId?: string;
+    wordCount?: number;
   }): string {
     return this.buildStructuredPrompt(userPrompt, options);
   }
@@ -172,6 +173,7 @@ export class BeatAIService {
     storyId?: string;
     chapterId?: string;
     sceneId?: string;
+    wordCount?: number;
   }): string {
     if (!options.storyId) {
       return userPrompt;
@@ -216,8 +218,13 @@ export class BeatAIService {
       parts.push('');
     }
 
-    // 4. Beat Template with user prompt
-    const beatTemplate = story.settings.beatTemplate.replace('{prompt}', userPrompt);
+    // 4. Beat Template with user prompt and word count
+    let beatTemplate = story.settings.beatTemplate.replace('{prompt}', userPrompt);
+    
+    // Replace {wordcount} placeholder if present
+    const wordCount = options.wordCount || 200;
+    beatTemplate = beatTemplate.replace('{wordcount}', wordCount.toString());
+    
     parts.push('## Aufgabe');
     parts.push(beatTemplate);
     parts.push('');
