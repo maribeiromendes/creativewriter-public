@@ -2,6 +2,8 @@ export interface Scene {
   id: string;
   title: string;
   content: string;
+  summary?: string;
+  summaryGeneratedAt?: Date;
   order: number;
   createdAt: Date;
   updatedAt: Date;

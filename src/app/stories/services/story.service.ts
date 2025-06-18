@@ -122,7 +122,8 @@ export class StoryService {
         scenes: chapter.scenes.map(scene => ({
           ...scene,
           createdAt: new Date(scene.createdAt),
-          updatedAt: new Date(scene.updatedAt)
+          updatedAt: new Date(scene.updatedAt),
+          summaryGeneratedAt: scene.summaryGeneratedAt ? new Date(scene.summaryGeneratedAt) : undefined
         }))
       }));
     }
@@ -260,6 +261,6 @@ export class StoryService {
   }
 
   private generateId(): string {
-    return Date.now().toString(36) + Math.random().toString(36).substr(2);
+    return Date.now().toString(36) + Math.random().toString(36).substring(2);
   }
 }
