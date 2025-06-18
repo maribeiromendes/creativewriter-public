@@ -3,14 +3,16 @@ FROM node:20-alpine AS build
 
 WORKDIR /app
 
-# Copy package files
+# Copy package files first for better layer caching
 COPY package*.json ./
 
 # Install dependencies (including dev dependencies for build)
-RUN npm ci
+RUN npm ci --prefer-offline --no-audit
 
-# Copy source code
-COPY . .
+# Copy source code (separate layer for better caching)
+COPY src/ ./src/
+COPY angular.json tsconfig*.json ./
+COPY public/ ./public/ 2>/dev/null || true
 
 # Build the application
 RUN npm run build
