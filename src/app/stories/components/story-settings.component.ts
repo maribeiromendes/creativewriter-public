@@ -58,6 +58,60 @@ import { Story, StorySettings, DEFAULT_STORY_SETTINGS } from '../models/story.in
           </div>
         </div>
 
+        <div class="settings-section">
+          <h3>Beat AI Konfiguration</h3>
+          <p class="section-description">
+            Konfiguration für die Beat AI Generierung.
+          </p>
+          
+          <div class="setting-group">
+            <label class="setting-label">
+              <input
+                type="checkbox"
+                [(ngModel)]="settings.useFullStoryContext"
+                (ngModelChange)="onSettingsChange()"
+              />
+              <span class="checkmark"></span>
+              Vollständigen Story-Kontext verwenden
+            </label>
+            <p class="setting-description">
+              Wenn aktiviert, wird der vollständige Text aller Szenen als Kontext verwendet. 
+              Andernfalls werden nur Zusammenfassungen verwendet (falls verfügbar).
+            </p>
+          </div>
+
+          <div class="setting-group">
+            <label class="setting-label-text">Beat Anweisung</label>
+            <p class="setting-description">
+              Standardanweisung für die Beat AI Generierung.
+            </p>
+            <div class="radio-group">
+              <label class="radio-label">
+                <input
+                  type="radio"
+                  name="beatInstruction"
+                  value="continue"
+                  [(ngModel)]="settings.beatInstruction"
+                  (ngModelChange)="onSettingsChange()"
+                />
+                <span class="radio-mark"></span>
+                Setze die Geschichte fort
+              </label>
+              <label class="radio-label">
+                <input
+                  type="radio"
+                  name="beatInstruction"
+                  value="stay"
+                  [(ngModel)]="settings.beatInstruction"
+                  (ngModelChange)="onSettingsChange()"
+                />
+                <span class="radio-mark"></span>
+                Bleibe im Moment
+              </label>
+            </div>
+          </div>
+        </div>
+
         <div class="settings-actions">
           <button class="btn btn-primary" (click)="saveSettings()" [disabled]="!hasUnsavedChanges">
             Einstellungen speichern
@@ -242,6 +296,107 @@ import { Story, StorySettings, DEFAULT_STORY_SETTINGS } from '../models/story.in
       text-align: center;
       padding: 3rem;
       color: #adb5bd;
+    }
+
+    .setting-group {
+      margin: 1.5rem 0;
+    }
+
+    .setting-label {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      cursor: pointer;
+      font-weight: 500;
+      color: #f8f9fa;
+      margin-bottom: 0.5rem;
+    }
+
+    .setting-label-text {
+      display: block;
+      font-weight: 500;
+      color: #f8f9fa;
+      margin-bottom: 0.5rem;
+    }
+
+    .setting-description {
+      color: #adb5bd;
+      font-size: 0.9rem;
+      margin: 0.5rem 0 1rem 0;
+      line-height: 1.4;
+    }
+
+    .checkmark {
+      width: 20px;
+      height: 20px;
+      border: 2px solid #6c757d;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s;
+    }
+
+    input[type="checkbox"]:checked + .checkmark {
+      background: #0d6efd;
+      border-color: #0d6efd;
+    }
+
+    input[type="checkbox"]:checked + .checkmark::after {
+      content: '✓';
+      color: white;
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    input[type="checkbox"] {
+      display: none;
+    }
+
+    .radio-group {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .radio-label {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      cursor: pointer;
+      color: #e0e0e0;
+      transition: color 0.3s;
+    }
+
+    .radio-label:hover {
+      color: #f8f9fa;
+    }
+
+    .radio-mark {
+      width: 18px;
+      height: 18px;
+      border: 2px solid #6c757d;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s;
+    }
+
+    input[type="radio"]:checked + .radio-mark {
+      border-color: #0d6efd;
+    }
+
+    input[type="radio"]:checked + .radio-mark::after {
+      content: '';
+      width: 8px;
+      height: 8px;
+      background: #0d6efd;
+      border-radius: 50%;
+    }
+
+    input[type="radio"] {
+      display: none;
     }
   `]
 })

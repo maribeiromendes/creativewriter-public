@@ -83,9 +83,15 @@ export class StoryService {
       updatedAt: new Date(story.updatedAt)
     };
 
-    // Add default settings if not present
+    // Add default settings if not present or merge missing fields
     if (!migrated.settings) {
       migrated.settings = { ...DEFAULT_STORY_SETTINGS };
+    } else {
+      // Ensure all new settings fields are present
+      migrated.settings = {
+        ...DEFAULT_STORY_SETTINGS,
+        ...migrated.settings
+      };
     }
 
     // If old story format with content field, migrate to chapter/scene structure

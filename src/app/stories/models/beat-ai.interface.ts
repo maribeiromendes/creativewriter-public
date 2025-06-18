@@ -20,6 +20,9 @@ export interface BeatAIPromptEvent {
   action: 'generate' | 'regenerate';
   wordCount?: number;
   model?: string;
+  storyId?: string;
+  chapterId?: string;
+  sceneId?: string;
 }
 
 export interface BeatContentInsertEvent {

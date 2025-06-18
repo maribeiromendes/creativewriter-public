@@ -18,6 +18,11 @@ export interface EditorConfig {
   onBeatPromptSubmit?: (event: BeatAIPromptEvent) => void;
   onBeatContentUpdate?: (beatData: BeatAI) => void;
   onBeatFocus?: () => void;
+  storyContext?: {
+    storyId?: string;
+    chapterId?: string;
+    sceneId?: string;
+  };
 }
 
 @Injectable({
@@ -135,7 +140,8 @@ export class ProseMirrorEditorService {
           },
           () => {
             config.onBeatFocus?.();
-          }
+          },
+          config.storyContext
         )
       },
       dispatchTransaction: (transaction: Transaction) => {
@@ -354,7 +360,7 @@ export class ProseMirrorEditorService {
     });
   }
 
-  private handleBeatPromptSubmit(event: BeatAIPromptEvent): void {
+  handleBeatPromptSubmit(event: BeatAIPromptEvent): void {
     if (!this.editorView) return;
     
     // Start generation process and update prompt
@@ -371,7 +377,10 @@ export class ProseMirrorEditorService {
     // Generate AI content and insert the final result
     this.beatAIService.generateBeatContent(event.prompt, event.beatId, {
       wordCount: event.wordCount,
-      model: event.model
+      model: event.model,
+      storyId: event.storyId,
+      chapterId: event.chapterId,
+      sceneId: event.sceneId
     }).subscribe({
       next: (content) => {
         // Insert the complete content in editor after the beat node
@@ -515,5 +524,22 @@ export class ProseMirrorEditorService {
         onSlashCommand?.(from);
       }
     }
+  }
+
+  updateStoryContext(storyContext: { storyId?: string; chapterId?: string; sceneId?: string }): void {
+    if (!this.editorView) return;
+
+    // Update all existing BeatAI node views with new context
+    this.editorView.state.doc.descendants((node, pos) => {
+      if (node.type.name === 'beatAI') {
+        const nodeView = (this.editorView as any).nodeViews[pos] as BeatAINodeView;
+        if (nodeView && nodeView.componentRef) {
+          nodeView.componentRef.instance.storyId = storyContext.storyId;
+          nodeView.componentRef.instance.chapterId = storyContext.chapterId;
+          nodeView.componentRef.instance.sceneId = storyContext.sceneId;
+          nodeView.componentRef.changeDetectorRef?.detectChanges();
+        }
+      }
+    });
   }
 }

@@ -3,7 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { StoryService } from '../services/story.service';
-import { Story, Chapter, Scene } from '../models/story.interface';
+import { Story, Scene } from '../models/story.interface';
 import { StoryStructureComponent } from './story-structure.component';
 import { SlashCommandDropdownComponent } from './slash-command-dropdown.component';
 import { SlashCommandResult, SlashCommandAction } from '../models/slash-command.interface';
@@ -431,6 +431,13 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     this.activeSceneId = event.sceneId;
     this.activeScene = this.storyService.getScene(this.story.id, event.chapterId, event.sceneId);
     this.updateEditorContent();
+    
+    // Update story context for all Beat AI components
+    this.proseMirrorService.updateStoryContext({
+      storyId: this.story.id,
+      chapterId: this.activeChapterId,
+      sceneId: this.activeSceneId
+    });
   }
 
   onStoryTitleChange(): void {
@@ -546,6 +553,11 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
         },
         onBeatFocus: () => {
           this.hideSlashDropdown();
+        },
+        storyContext: {
+          storyId: this.story.id,
+          chapterId: this.activeChapterId || undefined,
+          sceneId: this.activeSceneId || undefined
         }
       }
     );
@@ -627,8 +639,19 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     console.log('Beat prompt submitted:', event);
     // Make sure dropdown is hidden when working with beat AI
     this.hideSlashDropdown();
-    // The ProseMirror service handles the actual AI generation
-    // We can add additional logic here if needed
+    
+    // Add story context to the beat AI prompt
+    const enhancedEvent: BeatAIPromptEvent = {
+      ...event,
+      storyId: this.story.id,
+      chapterId: this.activeChapterId || undefined,
+      sceneId: this.activeSceneId || undefined
+    };
+    
+    // Pass the enhanced event to the ProseMirror service
+    if (this.proseMirrorService) {
+      this.proseMirrorService.handleBeatPromptSubmit(enhancedEvent);
+    }
   }
 
   private handleBeatContentUpdate(beatData: BeatAI): void {

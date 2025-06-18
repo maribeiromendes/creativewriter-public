@@ -7,7 +7,7 @@ import { BeatAI, BeatAIPromptEvent } from '../../stories/models/beat-ai.interfac
 export class BeatAINodeView implements NodeView {
   dom: HTMLElement;
   contentDOM: HTMLElement | null = null;
-  private componentRef: ComponentRef<BeatAIComponent>;
+  componentRef: ComponentRef<BeatAIComponent>; // Make public for context updates
   private beatData: BeatAI;
 
   constructor(
@@ -19,7 +19,12 @@ export class BeatAINodeView implements NodeView {
     private envInjector: EnvironmentInjector,
     private onPromptSubmit: (event: BeatAIPromptEvent) => void,
     private onContentUpdate: (beatData: BeatAI) => void,
-    private onBeatFocus?: () => void
+    private onBeatFocus?: () => void,
+    private storyContext?: {
+      storyId?: string;
+      chapterId?: string;
+      sceneId?: string;
+    }
   ) {
     // Create the DOM element
     this.dom = document.createElement('div');
@@ -36,6 +41,11 @@ export class BeatAINodeView implements NodeView {
     
     // Set component inputs
     this.componentRef.instance.beatData = this.beatData;
+    if (this.storyContext) {
+      this.componentRef.instance.storyId = this.storyContext.storyId;
+      this.componentRef.instance.chapterId = this.storyContext.chapterId;
+      this.componentRef.instance.sceneId = this.storyContext.sceneId;
+    }
     
     // Subscribe to component outputs
     this.componentRef.instance.promptSubmit.subscribe((event: BeatAIPromptEvent) => {

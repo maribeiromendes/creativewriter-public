@@ -3,6 +3,9 @@ import { Observable, Subject, delay, map, scan, timer, catchError, of } from 'rx
 import { BeatAI, BeatAIGenerationEvent, BeatAIPromptEvent } from '../../stories/models/beat-ai.interface';
 import { OpenRouterApiService } from '../../core/services/openrouter-api.service';
 import { SettingsService } from '../../core/services/settings.service';
+import { StoryService } from '../../stories/services/story.service';
+import { CodexService } from '../../stories/services/codex.service';
+import { Story, Scene, Chapter } from '../../stories/models/story.interface';
 
 @Injectable({
   providedIn: 'root'
@@ -13,12 +16,17 @@ export class BeatAIService {
 
   constructor(
     private openRouterApi: OpenRouterApiService,
-    private settingsService: SettingsService
+    private settingsService: SettingsService,
+    private storyService: StoryService,
+    private codexService: CodexService
   ) {}
 
   generateBeatContent(prompt: string, beatId: string, options: {
     wordCount?: number;
     model?: string;
+    storyId?: string;
+    chapterId?: string;
+    sceneId?: string;
   } = {}): Observable<string> {
     const settings = this.settingsService.getSettings();
     
@@ -35,9 +43,10 @@ export class BeatAIService {
       isComplete: false
     });
 
-    // Create enhanced prompt with word count guidance
+    // Create structured prompt
     const wordCount = options.wordCount || 200;
-    const enhancedPrompt = `${prompt}\n\nBitte erstelle einen Text von ungefähr ${wordCount} Wörtern.`;
+    const structuredPrompt = this.buildStructuredPrompt(prompt, options);
+    const enhancedPrompt = `${structuredPrompt}\n\nBitte erstelle einen Text von ungefähr ${wordCount} Wörtern.`;
     
     // Calculate max tokens based on word count (roughly 1.3 tokens per word)
     const maxTokens = Math.ceil(wordCount * 1.3);
@@ -148,5 +157,122 @@ export class BeatAIService {
 
   private generateId(): string {
     return 'beat-' + Math.random().toString(36).substr(2, 9);
+  }
+
+  // Public method to preview the structured prompt
+  previewPrompt(userPrompt: string, options: {
+    storyId?: string;
+    chapterId?: string;
+    sceneId?: string;
+  }): string {
+    return this.buildStructuredPrompt(userPrompt, options);
+  }
+
+  private buildStructuredPrompt(userPrompt: string, options: {
+    storyId?: string;
+    chapterId?: string;
+    sceneId?: string;
+  }): string {
+    if (!options.storyId) {
+      return userPrompt;
+    }
+
+    const story = this.storyService.getStory(options.storyId);
+    if (!story || !story.settings) {
+      return userPrompt;
+    }
+
+    const parts: string[] = [];
+
+    // 1. System Message
+    parts.push('## System Message');
+    parts.push(story.settings.systemMessage);
+    parts.push('');
+
+    // 2. Codex Entries
+    const codexEntries = this.codexService.getAllCodexEntries(options.storyId);
+    if (codexEntries.length > 0) {
+      parts.push('## Codex');
+      codexEntries.forEach(categoryData => {
+        parts.push(`### ${categoryData.icon || ''} ${categoryData.category}`.trim());
+        categoryData.entries.forEach(entry => {
+          parts.push(`**${entry.title}**`);
+          if (entry.content) {
+            parts.push(entry.content);
+          }
+          if (entry.tags && entry.tags.length > 0) {
+            parts.push(`Tags: ${entry.tags.join(', ')}`);
+          }
+          parts.push('');
+        });
+      });
+    }
+
+    // 3. Story Context (summaries or full content)
+    const storyContext = this.getStoryContext(story, options.chapterId, options.sceneId);
+    if (storyContext) {
+      parts.push('## Bisherige Geschichte');
+      parts.push(storyContext);
+      parts.push('');
+    }
+
+    // 4. Beat Template with user prompt
+    const beatTemplate = story.settings.beatTemplate.replace('{prompt}', userPrompt);
+    parts.push('## Aufgabe');
+    parts.push(beatTemplate);
+    parts.push('');
+
+    // 5. Beat Instruction
+    const instruction = story.settings.beatInstruction === 'continue' 
+      ? 'Setze die Geschichte fort' 
+      : 'Bleibe im Moment';
+    parts.push('## Anweisung');
+    parts.push(instruction);
+
+    return parts.join('\n');
+  }
+
+  private getStoryContext(story: Story, currentChapterId?: string, currentSceneId?: string): string {
+    if (!story.settings) return '';
+
+    const useFullContext = story.settings.useFullStoryContext;
+    const parts: string[] = [];
+
+    for (const chapter of story.chapters) {
+      // Stop at current chapter/scene
+      if (currentChapterId && chapter.id === currentChapterId) {
+        const currentSceneIndex = currentSceneId 
+          ? chapter.scenes.findIndex(s => s.id === currentSceneId)
+          : chapter.scenes.length;
+        
+        if (currentSceneIndex > 0) {
+          const scenesToInclude = chapter.scenes.slice(0, currentSceneIndex);
+          for (const scene of scenesToInclude) {
+            parts.push(`### ${chapter.title} - ${scene.title}`);
+            if (useFullContext) {
+              parts.push(scene.content || '(Leer)');
+            } else {
+              parts.push(scene.summary || scene.content.substring(0, 200) + '...' || '(Keine Zusammenfassung verfügbar)');
+            }
+            parts.push('');
+          }
+        }
+        break;
+      } else {
+        // Include full chapter
+        parts.push(`### ${chapter.title}`);
+        for (const scene of chapter.scenes) {
+          parts.push(`#### ${scene.title}`);
+          if (useFullContext) {
+            parts.push(scene.content || '(Leer)');
+          } else {
+            parts.push(scene.summary || scene.content.substring(0, 200) + '...' || '(Keine Zusammenfassung verfügbar)');
+          }
+          parts.push('');
+        }
+      }
+    }
+
+    return parts.join('\n');
   }
 }

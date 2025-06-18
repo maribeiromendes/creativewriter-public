@@ -7,6 +7,7 @@ import { Subscription } from 'rxjs';
 import { ModelOption } from '../../core/models/model.interface';
 import { ModelService } from '../../core/services/model.service';
 import { SettingsService } from '../../core/services/settings.service';
+import { BeatAIService } from '../../shared/services/beat-ai.service';
 
 @Component({
   selector: 'app-beat-ai',
@@ -86,6 +87,13 @@ import { SettingsService } from '../../core/services/settings.service';
               {{ beatData.generatedContent ? 'Regenerieren' : 'Generieren' }}
             </button>
             <button 
+              class="preview-btn"
+              (click)="showPromptPreview()"
+              [disabled]="!currentPrompt.trim()"
+              title="Prompt-Vorschau anzeigen">
+              👁️ Vorschau
+            </button>
+            <button 
               *ngIf="beatData.prompt && beatData.isEditing"
               class="cancel-btn"
               (click)="cancelEditing()">
@@ -106,6 +114,25 @@ import { SettingsService } from '../../core/services/settings.service';
           <div class="typing-indicator">
             <span></span><span></span><span></span>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Prompt Preview Modal -->
+    <div class="preview-modal" *ngIf="showPreviewModal" (click)="hidePromptPreview()">
+      <div class="preview-content" (click)="$event.stopPropagation()">
+        <div class="preview-header">
+          <h3>Prompt-Vorschau</h3>
+          <button class="close-btn" (click)="hidePromptPreview()">×</button>
+        </div>
+        <div class="preview-body">
+          <pre class="prompt-preview">{{ previewContent }}</pre>
+        </div>
+        <div class="preview-footer">
+          <button class="btn btn-secondary" (click)="hidePromptPreview()">Schließen</button>
+          <button class="btn btn-primary" (click)="hidePromptPreview(); generateContent()">
+            Jetzt generieren
+          </button>
         </div>
       </div>
     </div>
@@ -416,10 +443,151 @@ import { SettingsService } from '../../core/services/settings.service';
     :global(.model-select .ng-dropdown-panel .ng-dropdown-panel-items .ng-option.ng-option-selected) {
       background: #0d6efd !important;
     }
+
+    .preview-btn {
+      background: #6c757d;
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .preview-btn:hover:not(:disabled) {
+      background: #5a6268;
+    }
+
+    .preview-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .preview-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      backdrop-filter: blur(2px);
+    }
+
+    .preview-content {
+      background: #2d2d2d;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 800px;
+      max-height: 80vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .preview-header {
+      padding: 1rem 1.5rem;
+      background: #343a40;
+      border-bottom: 1px solid #495057;
+      display: flex;
+      justify-content: between;
+      align-items: center;
+    }
+
+    .preview-header h3 {
+      margin: 0;
+      color: #f8f9fa;
+      flex: 1;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      color: #adb5bd;
+      font-size: 1.5rem;
+      cursor: pointer;
+      padding: 0;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    .close-btn:hover {
+      background: #495057;
+      color: #f8f9fa;
+    }
+
+    .preview-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem;
+    }
+
+    .prompt-preview {
+      background: #1a1a1a;
+      border: 1px solid #404040;
+      border-radius: 6px;
+      padding: 1rem;
+      color: #e0e0e0;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      margin: 0;
+      overflow-x: auto;
+    }
+
+    .preview-footer {
+      padding: 1rem 1.5rem;
+      background: #343a40;
+      border-top: 1px solid #495057;
+      display: flex;
+      gap: 1rem;
+      justify-content: flex-end;
+    }
+
+    .btn {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .btn-secondary {
+      background: #6c757d;
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      background: #5a6268;
+    }
+
+    .btn-primary {
+      background: #0d6efd;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #0b5ed7;
+    }
   `]
 })
 export class BeatAIComponent implements OnInit, OnDestroy {
   @Input() beatData!: BeatAI;
+  @Input() storyId?: string;
+  @Input() chapterId?: string;
+  @Input() sceneId?: string;
   @Output() promptSubmit = new EventEmitter<BeatAIPromptEvent>();
   @Output() contentUpdate = new EventEmitter<BeatAI>();
   @Output() delete = new EventEmitter<string>();
@@ -431,11 +599,14 @@ export class BeatAIComponent implements OnInit, OnDestroy {
   selectedWordCount: number = 200;
   selectedModel: string = '';
   availableModels: ModelOption[] = [];
+  showPreviewModal: boolean = false;
+  previewContent: string = '';
   private subscription = new Subscription();
   
   constructor(
     private modelService: ModelService,
-    private settingsService: SettingsService
+    private settingsService: SettingsService,
+    private beatAIService: BeatAIService
   ) {}
   
   ngOnInit(): void {
@@ -554,5 +725,26 @@ export class BeatAIComponent implements OnInit, OnDestroy {
       const textarea = this.promptInput.nativeElement;
       textarea.setSelectionRange(textarea.value.length, textarea.value.length);
     }
+  }
+
+  showPromptPreview(): void {
+    if (!this.currentPrompt.trim()) {
+      return;
+    }
+
+    // Use the context provided via Input properties
+    // These will be set by the BeatAINodeView from the story editor context
+    this.previewContent = this.beatAIService.previewPrompt(this.currentPrompt, {
+      storyId: this.storyId,
+      chapterId: this.chapterId,
+      sceneId: this.sceneId
+    });
+    
+    this.showPreviewModal = true;
+  }
+
+  hidePromptPreview(): void {
+    this.showPreviewModal = false;
+    this.previewContent = '';
   }
 }

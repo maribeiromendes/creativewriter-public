@@ -325,4 +325,23 @@ export class CodexService {
 
     return results;
   }
+
+  // Get all codex entries for a story (for Beat AI prompts)
+  getAllCodexEntries(storyId: string): { category: string; entries: CodexEntry[]; icon?: string }[] {
+    const codex = this.codexMap.get(storyId);
+    if (!codex) return [];
+
+    return codex.categories
+      .filter(category => category.entries.length > 0)
+      .map(category => ({
+        category: category.title,
+        entries: [...category.entries].sort((a, b) => a.order - b.order),
+        icon: category.icon
+      }))
+      .sort((a, b) => {
+        const categoryA = codex.categories.find(c => c.title === a.category);
+        const categoryB = codex.categories.find(c => c.title === b.category);
+        return (categoryA?.order || 0) - (categoryB?.order || 0);
+      });
+  }
 }
