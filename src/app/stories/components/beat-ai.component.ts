@@ -145,6 +145,7 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
       margin: 1rem 0;
       overflow: hidden;
       transition: all 0.3s ease;
+      max-width: 100%;
     }
     
     .beat-ai-container.editing {
@@ -245,6 +246,13 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
       grid-template-columns: 1fr 2fr;
       gap: 1rem;
     }
+
+    @media (max-width: 768px) {
+      .options-row {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+      }
+    }
     
     .option-group {
       display: flex;
@@ -293,6 +301,7 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
       gap: 0.5rem;
       margin-top: 0.75rem;
       justify-content: flex-end;
+      flex-wrap: wrap;
     }
     
     .generate-btn, .cancel-btn {
@@ -560,6 +569,116 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
 
     .btn-primary:hover {
       background: #0b5ed7;
+    }
+
+    /* Mobile optimizations for Beat AI */
+    @media (max-width: 768px) {
+      .beat-ai-container {
+        margin: 0.5rem 0;
+        border-radius: 6px;
+      }
+      
+      .beat-prompt-section {
+        padding: 0.25rem;
+      }
+      
+      .beat-header {
+        margin-bottom: 0.5rem;
+      }
+      
+      .beat-title {
+        font-size: 0.9rem;
+      }
+      
+      .prompt-input {
+        font-size: 0.9rem;
+        padding: 0.5rem;
+        min-height: 50px;
+      }
+      
+      .generation-options {
+        margin-top: 0.5rem;
+        margin-bottom: 0.5rem;
+      }
+      
+      .option-group label {
+        font-size: 0.8rem;
+      }
+      
+      .word-count-select {
+        padding: 0.5rem;
+        font-size: 0.9rem;
+        min-height: 40px;
+      }
+      
+      .prompt-actions {
+        margin-top: 0.5rem;
+        gap: 0.25rem;
+      }
+      
+      .generate-btn, .cancel-btn {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.85rem;
+        min-width: 80px;
+      }
+      
+      .preview-modal .preview-content {
+        width: 95%;
+        max-height: 90vh;
+        margin: 0.5rem;
+      }
+      
+      .preview-header {
+        padding: 0.75rem 1rem;
+      }
+      
+      .preview-header h3 {
+        font-size: 1.1rem;
+      }
+      
+      .preview-body {
+        padding: 1rem;
+      }
+      
+      .prompt-preview {
+        font-size: 0.8rem;
+        padding: 0.75rem;
+      }
+      
+      .preview-footer {
+        padding: 0.75rem 1rem;
+        gap: 0.5rem;
+      }
+      
+      .btn {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.85rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .beat-ai-container {
+        margin: 0.25rem 0;
+      }
+      
+      .prompt-actions {
+        justify-content: center;
+      }
+      
+      .generate-btn, .cancel-btn {
+        flex: 1;
+        min-width: auto;
+        max-width: 120px;
+      }
+      
+      .preview-modal .preview-content {
+        width: 98%;
+        margin: 0.25rem;
+      }
+      
+      .prompt-preview {
+        font-size: 0.75rem;
+      }
     }
   `]
 })

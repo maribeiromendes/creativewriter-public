@@ -19,16 +19,23 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
   imports: [CommonModule, FormsModule, StoryStructureComponent, SlashCommandDropdownComponent],
   template: `
     <div class="editor-container">
-      <app-story-structure 
-        [story]="story" 
-        [activeChapterId]="activeChapterId"
-        [activeSceneId]="activeSceneId"
-        (sceneSelected)="onSceneSelected($event)">
-      </app-story-structure>
+      <div class="sidebar-overlay" *ngIf="showSidebar" (click)="closeSidebarOnMobile($event)">
+        <app-story-structure 
+          [story]="story" 
+          [activeChapterId]="activeChapterId"
+          [activeSceneId]="activeSceneId"
+          (sceneSelected)="onSceneSelected($event)">
+        </app-story-structure>
+      </div>
       
       <div class="editor-main">
         <div class="editor-header">
-          <button class="back-btn" (click)="goBack()">← Zurück zur Übersicht</button>
+          <div class="header-left">
+            <button class="back-btn" (click)="goBack()">← Zurück zur Übersicht</button>
+            <button class="toggle-sidebar-btn" (click)="toggleSidebar()" title="Struktur anzeigen/verbergen">
+              {{ showSidebar ? '📖' : '📑' }}
+            </button>
+          </div>
           <div class="story-info">
             <button class="codex-btn" (click)="goToCodex()" title="Codex">📚</button>
             <button class="settings-btn" (click)="goToSettings()" title="Story-Einstellungen">⚙️</button>
@@ -44,31 +51,33 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
         </div>
         
         <div class="editor-content">
-          <input 
-            type="text" 
-            class="title-input" 
-            placeholder="Titel deiner Geschichte..." 
-            [(ngModel)]="story.title"
-            (ngModelChange)="onStoryTitleChange()"
-          />
-          
-          <div class="scene-editor" *ngIf="activeScene">
+          <div class="editor-inner">
             <input 
               type="text" 
-              class="scene-title-input" 
-              placeholder="Szenen-Titel..." 
-              [(ngModel)]="activeScene.title"
-              (ngModelChange)="onSceneTitleChange()"
+              class="title-input" 
+              placeholder="Titel deiner Geschichte..." 
+              [(ngModel)]="story.title"
+              (ngModelChange)="onStoryTitleChange()"
             />
             
-            <div 
-              #editorContainer
-              class="content-editor"
-            ></div>
-          </div>
-          
-          <div class="no-scene" *ngIf="!activeScene">
-            <p>Wähle eine Szene aus der Struktur, um zu beginnen.</p>
+            <div class="scene-editor" *ngIf="activeScene">
+              <input 
+                type="text" 
+                class="scene-title-input" 
+                placeholder="Szenen-Titel..." 
+                [(ngModel)]="activeScene.title"
+                (ngModelChange)="onSceneTitleChange()"
+              />
+              
+              <div 
+                #editorContainer
+                class="content-editor"
+              ></div>
+            </div>
+            
+            <div class="no-scene" *ngIf="!activeScene">
+              <p>Wähle eine Szene aus der Struktur, um zu beginnen.</p>
+            </div>
           </div>
         </div>
       </div>
@@ -87,6 +96,7 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
       height: 100vh;
       display: flex;
       background: #1a1a1a;
+      position: relative;
     }
     
     .editor-main {
@@ -102,6 +112,12 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
       padding: 1rem 2rem;
       background: #2d2d2d;
       border-bottom: 1px solid #404040;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
     }
     
     .back-btn {
@@ -125,7 +141,10 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
       align-items: center;
     }
     
-    .codex-btn, .settings-btn, .ai-logs-btn {
+    .toggle-sidebar-btn,
+    .codex-btn, 
+    .settings-btn, 
+    .ai-logs-btn {
       background: #495057;
       border: none;
       padding: 0.4rem 0.6rem;
@@ -136,7 +155,10 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
       margin-right: 0.5rem;
     }
     
-    .codex-btn:hover, .settings-btn:hover, .ai-logs-btn:hover {
+    .toggle-sidebar-btn:hover,
+    .codex-btn:hover, 
+    .settings-btn:hover, 
+    .ai-logs-btn:hover {
       background: #343a40;
     }
     
@@ -157,11 +179,30 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
       flex: 1;
       display: flex;
       flex-direction: column;
-      padding: 2rem;
-      max-width: 800px;
-      margin: 0 auto;
+      padding: 2rem 1rem;
       width: 100%;
       box-sizing: border-box;
+      overflow-y: auto;
+    }
+
+    /* Optimal reading width container */
+    .editor-inner {
+      max-width: 650px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* Different max-widths for different screens */
+    @media (min-width: 1400px) {
+      .editor-inner {
+        max-width: 700px;
+      }
+    }
+
+    @media (min-width: 1600px) {
+      .editor-inner {
+        max-width: 750px;
+      }
     }
     
     .title-input {
@@ -232,7 +273,7 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
       border: none;
       outline: none;
       font-size: 1.1rem;
-      line-height: 1.6;
+      line-height: 1.8;
       font-family: Georgia, serif;
       padding: 1rem 0;
       background: transparent;
@@ -246,7 +287,7 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
       background: transparent;
       color: #e0e0e0;
       font-size: 1.1rem;
-      line-height: 1.6;
+      line-height: 1.8;
       font-family: Georgia, serif;
       min-height: 200px;
       white-space: pre-wrap;
@@ -346,6 +387,135 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
     .content-editor :global(.ProseMirror-selectednode) {
       outline: 2px solid #8cf;
     }
+
+    /* Mobile Responsiveness */
+    @media (max-width: 768px) {
+      .editor-header {
+        padding: 0.75rem 1rem;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+
+      .header-left {
+        order: 1;
+        flex: 1;
+      }
+
+      .story-info {
+        order: 2;
+        width: 100%;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+      }
+
+      .toggle-sidebar-btn,
+      .codex-btn, 
+      .settings-btn, 
+      .ai-logs-btn {
+        font-size: 0.9rem;
+        padding: 0.3rem 0.5rem;
+        margin-right: 0.25rem;
+      }
+
+      .scene-info {
+        font-size: 0.8rem;
+        order: 1;
+        width: 100%;
+        margin-bottom: 0.25rem;
+      }
+
+      .word-count, .save-status {
+        font-size: 0.8rem;
+      }
+
+      .editor-content {
+        padding: 1rem 0.75rem;
+      }
+
+      .editor-inner {
+        max-width: 100%;
+      }
+
+      .title-input {
+        font-size: 1.5rem;
+      }
+
+      .scene-title-input {
+        font-size: 1.1rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .editor-header {
+        padding: 0.5rem;
+      }
+
+      .back-btn {
+        font-size: 0.8rem;
+        padding: 0.3rem 0.6rem;
+      }
+
+      .toggle-sidebar-btn,
+      .codex-btn, 
+      .settings-btn, 
+      .ai-logs-btn {
+        font-size: 0.8rem;
+        padding: 0.25rem 0.4rem;
+      }
+
+      .story-info {
+        font-size: 0.8rem;
+      }
+
+      .scene-info {
+        font-size: 0.75rem;
+      }
+
+      .editor-content {
+        padding: 0.75rem 0.5rem;
+      }
+
+      .title-input {
+        font-size: 1.3rem;
+        padding: 0.75rem 0;
+      }
+
+      .scene-title-input {
+        font-size: 1rem;
+        padding: 0.5rem 0;
+      }
+    }
+
+    /* Sidebar Overlay */
+    .sidebar-overlay {
+      display: contents;
+    }
+
+    /* Mobile Sidebar Overlay */
+    @media (max-width: 768px) {
+      .sidebar-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: 1000;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        align-items: flex-start;
+        padding-top: 2rem;
+      }
+
+      .sidebar-overlay :global(app-story-structure .story-structure) {
+        width: min(90vw, 320px);
+        height: calc(100vh - 4rem);
+        margin: 0 auto;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        border-radius: 8px;
+        border: 1px solid #404040;
+      }
+    }
   `]
 })
 export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
@@ -364,6 +534,7 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
   activeChapterId: string | null = null;
   activeSceneId: string | null = null;
   activeScene: Scene | null = null;
+  showSidebar: boolean = true;
   
   // Slash command functionality
   showSlashDropdown = false;
@@ -384,6 +555,9 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
   ) {}
 
   ngOnInit(): void {
+    // Check if we're on mobile and start with sidebar hidden
+    this.checkMobileAndHideSidebar();
+    
     const storyId = this.route.snapshot.paramMap.get('id');
     if (storyId) {
       const existingStory = this.storyService.getStory(storyId);
@@ -410,6 +584,11 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
         this.saveStory();
       })
     );
+
+    // Listen for window resize to handle sidebar visibility
+    window.addEventListener('resize', () => {
+      this.checkMobileAndHideSidebar();
+    });
   }
 
   ngAfterViewInit(): void {
@@ -439,6 +618,11 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
       chapterId: this.activeChapterId,
       sceneId: this.activeSceneId
     });
+
+    // Hide sidebar on mobile after scene selection
+    if (window.innerWidth <= 768) {
+      this.showSidebar = false;
+    }
   }
 
   onStoryTitleChange(): void {
@@ -532,6 +716,26 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     if (!this.activeChapterId || !this.story.chapters) return '';
     const chapter = this.story.chapters.find(c => c.id === this.activeChapterId);
     return chapter ? chapter.title : '';
+  }
+
+  toggleSidebar(): void {
+    this.showSidebar = !this.showSidebar;
+  }
+
+  private checkMobileAndHideSidebar(): void {
+    const isMobile = window.innerWidth <= 768;
+    if (isMobile && this.showSidebar) {
+      this.showSidebar = false;
+    } else if (!isMobile && !this.showSidebar) {
+      this.showSidebar = true;
+    }
+  }
+
+  closeSidebarOnMobile(event: Event): void {
+    // Close sidebar when clicking on overlay background (not the sidebar itself)
+    if (event.target === event.currentTarget && window.innerWidth <= 768) {
+      this.showSidebar = false;
+    }
   }
 
 
