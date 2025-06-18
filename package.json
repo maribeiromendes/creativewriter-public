@@ -17,6 +17,7 @@
     "@angular/forms": "^20.0.0",
     "@angular/platform-browser": "^20.0.0",
     "@angular/router": "^20.0.0",
+    "@ng-select/ng-select": "^15.1.2",
     "@types/uuid": "^10.0.0",
     "prosemirror-commands": "^1.7.1",
     "prosemirror-example-setup": "^1.2.3",

@@ -47,3 +47,78 @@ button:hover {
 .prosemirror-editor {
   white-space: pre-wrap !important;
 }
+
+/* ng-select Global Dark Theme Override */
+.ng-dropdown-panel {
+  background: #2d2d2d !important;
+  border: 1px solid #404040 !important;
+  border-radius: 6px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+}
+
+.ng-dropdown-panel .ng-dropdown-panel-items {
+  background: #2d2d2d !important;
+}
+
+.ng-dropdown-panel .ng-dropdown-panel-items .ng-option {
+  color: #e0e0e0 !important;
+  background: #2d2d2d !important;
+  border-bottom: 1px solid #404040;
+}
+
+.ng-dropdown-panel .ng-dropdown-panel-items .ng-option:last-child {
+  border-bottom: none;
+}
+
+.ng-dropdown-panel .ng-dropdown-panel-items .ng-option.ng-option-highlighted {
+  background: #383838 !important;
+  color: #f8f9fa !important;
+}
+
+.ng-dropdown-panel .ng-dropdown-panel-items .ng-option.ng-option-selected {
+  background: #0d6efd !important;
+  color: white !important;
+}
+
+.ng-dropdown-panel .ng-dropdown-panel-items .ng-option.ng-option-selected.ng-option-highlighted {
+  background: #0b5ed7 !important;
+  color: white !important;
+}
+
+.ng-select.ng-select-single .ng-select-container {
+  background: #1a1a1a !important;
+  border: 1px solid #404040 !important;
+  border-radius: 6px !important;
+}
+
+.ng-select .ng-select-container .ng-value-container {
+  background: #1a1a1a !important;
+}
+
+.ng-select .ng-select-container .ng-value-container .ng-input > input {
+  color: #e0e0e0 !important;
+  background: transparent !important;
+}
+
+.ng-select .ng-select-container .ng-value-container .ng-placeholder {
+  color: #6c757d !important;
+}
+
+.ng-select .ng-select-container .ng-value-container .ng-value {
+  color: #e0e0e0 !important;
+  background: transparent !important;
+}
+
+.ng-select .ng-arrow-wrapper .ng-arrow {
+  border-color: #adb5bd transparent transparent !important;
+}
+
+.ng-select.ng-select-focused .ng-select-container {
+  border-color: #0d6efd !important;
+  box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.25) !important;
+}
+
+.ng-select.ng-select-disabled .ng-select-container {
+  background: #242424 !important;
+  cursor: not-allowed !important;
+}

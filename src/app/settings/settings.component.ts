@@ -7,12 +7,12 @@ import { SettingsService } from '../core/services/settings.service';
 import { ModelService } from '../core/services/model.service';
 import { Settings } from '../core/models/settings.interface';
 import { ModelOption } from '../core/models/model.interface';
-import { SearchableDropdownComponent } from '../shared/components/searchable-dropdown.component';
+import { NgSelectModule } from '@ng-select/ng-select';
 
 @Component({
   selector: 'app-settings',
   standalone: true,
-  imports: [CommonModule, FormsModule, SearchableDropdownComponent],
+  imports: [CommonModule, FormsModule, NgSelectModule],
   template: `
     <div class="settings-container">
       <div class="settings-header">
@@ -64,14 +64,18 @@ import { SearchableDropdownComponent } from '../shared/components/searchable-dro
                 {{ loadingModels ? 'Laden...' : 'Modelle laden' }}
               </button>
             </div>
-            <app-searchable-dropdown
-              [options]="openRouterModels"
-              [selectedValue]="settings.openRouter.model"
-              [disabled]="!settings.openRouter.enabled"
-              [loadingMessage]="getOpenRouterLoadingMessage()"
-              placeholder="Modell auswählen oder suchen..."
-              (selectionChange)="onOpenRouterModelChange($event)">
-            </app-searchable-dropdown>
+            <ng-select [(ngModel)]="settings.openRouter.model"
+                       [items]="openRouterModels"
+                       bindLabel="label"
+                       bindValue="id"
+                       [searchable]="true"
+                       [clearable]="true"
+                       [disabled]="!settings.openRouter.enabled"
+                       placeholder="Modell auswählen oder suchen..."
+                       (ngModelChange)="onSettingsChange()"
+                       [loading]="loadingModels"
+                       [virtualScroll]="true">
+            </ng-select>
             <small *ngIf="modelLoadError" class="error-text">{{ modelLoadError }}</small>
             <small *ngIf="!modelLoadError && openRouterModels.length > 0">{{ openRouterModels.length }} Modelle verfügbar. Preise in EUR pro 1M Tokens.</small>
             <small *ngIf="!modelLoadError && openRouterModels.length === 0 && settings.openRouter.enabled">Klicken Sie "Modelle laden" um verfügbare Modelle anzuzeigen.</small>
@@ -146,14 +150,18 @@ import { SearchableDropdownComponent } from '../shared/components/searchable-dro
                 {{ loadingModels ? 'Laden...' : 'Modelle laden' }}
               </button>
             </div>
-            <app-searchable-dropdown
-              [options]="replicateModels"
-              [selectedValue]="settings.replicate.model"
-              [disabled]="!settings.replicate.enabled"
-              [loadingMessage]="getReplicateLoadingMessage()"
-              placeholder="Modell auswählen oder suchen..."
-              (selectionChange)="onReplicateModelChange($event)">
-            </app-searchable-dropdown>
+            <ng-select [(ngModel)]="settings.replicate.model"
+                       [items]="replicateModels"
+                       bindLabel="label"
+                       bindValue="id"
+                       [searchable]="true"
+                       [clearable]="true"
+                       [disabled]="!settings.replicate.enabled"
+                       placeholder="Modell auswählen oder suchen..."
+                       (ngModelChange)="onSettingsChange()"
+                       [loading]="loadingModels"
+                       [virtualScroll]="true">
+            </ng-select>
             <small *ngIf="modelLoadError" class="error-text">{{ modelLoadError }}</small>
             <small *ngIf="!modelLoadError && replicateModels.length > 0">{{ replicateModels.length }} Modelle verfügbar. Preise geschätzt in EUR pro 1M Tokens.</small>
             <small *ngIf="!modelLoadError && replicateModels.length === 0 && settings.replicate.enabled">Klicken Sie "Modelle laden" um verfügbare Modelle anzuzeigen.</small>
@@ -430,6 +438,125 @@ import { SearchableDropdownComponent } from '../shared/components/searchable-dro
       color: #e0e0e0;
       padding: 0.5rem;
     }
+    
+    /* ng-select custom styling */
+    .settings-group :global(.ng-select) {
+      font-size: 1rem;
+    }
+    
+    .settings-group :global(.ng-select.ng-select-single .ng-select-container) {
+      height: auto !important;
+      min-height: 45px !important;
+      background: #1a1a1a !important;
+      border: 1px solid #404040 !important;
+      border-radius: 6px !important;
+    }
+    
+    .settings-group :global(.ng-select .ng-select-container .ng-value-container) {
+      background: #1a1a1a !important;
+      padding-left: 0.75rem !important;
+    }
+    
+    .settings-group :global(.ng-select .ng-select-container .ng-value-container .ng-input > input) {
+      color: #e0e0e0 !important;
+      background: transparent !important;
+    }
+    
+    .settings-group :global(.ng-select .ng-select-container .ng-value-container .ng-placeholder) {
+      color: #6c757d !important;
+    }
+    
+    .settings-group :global(.ng-select .ng-select-container .ng-value-container .ng-value) {
+      color: #e0e0e0 !important;
+      background: transparent !important;
+    }
+    
+    .settings-group :global(.ng-select .ng-arrow-wrapper) {
+      width: 25px;
+    }
+    
+    .settings-group :global(.ng-select .ng-arrow-wrapper .ng-arrow) {
+      border-color: #adb5bd transparent transparent;
+    }
+    
+    .settings-group :global(.ng-select.ng-select-focused .ng-select-container) {
+      border-color: #0d6efd;
+      box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.25);
+    }
+    
+    .settings-group :global(.ng-select.ng-select-disabled .ng-select-container) {
+      background: #242424;
+      cursor: not-allowed;
+    }
+    
+    .settings-group :global(.ng-dropdown-panel) {
+      background: #2d2d2d !important;
+      border: 1px solid #404040 !important;
+      border-radius: 6px !important;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+      z-index: 1050 !important;
+    }
+    
+    .settings-group :global(.ng-dropdown-panel .ng-dropdown-panel-items) {
+      background: #2d2d2d !important;
+    }
+    
+    .settings-group :global(.ng-dropdown-panel .ng-dropdown-panel-items .ng-option) {
+      color: #e0e0e0 !important;
+      background: #2d2d2d !important;
+      padding: 0.75rem !important;
+      border-bottom: 1px solid #404040;
+    }
+    
+    .settings-group :global(.ng-dropdown-panel .ng-dropdown-panel-items .ng-option:last-child) {
+      border-bottom: none;
+    }
+    
+    .settings-group :global(.ng-dropdown-panel .ng-dropdown-panel-items .ng-option.ng-option-highlighted) {
+      background: #383838 !important;
+      color: #f8f9fa !important;
+    }
+    
+    .settings-group :global(.ng-dropdown-panel .ng-dropdown-panel-items .ng-option.ng-option-selected) {
+      background: #0d6efd !important;
+      color: white !important;
+    }
+    
+    .settings-group :global(.ng-dropdown-panel .ng-dropdown-panel-items .ng-option.ng-option-selected.ng-option-highlighted) {
+      background: #0b5ed7 !important;
+      color: white !important;
+    }
+    
+    .model-option {
+      padding: 0.25rem 0;
+    }
+    
+    .model-name {
+      font-weight: 500;
+      margin-bottom: 0.25rem;
+      color: #f8f9fa;
+    }
+    
+    .model-details {
+      font-size: 0.85rem;
+      color: #adb5bd;
+      margin-bottom: 0.25rem;
+    }
+    
+    .model-details .cost {
+      color: #28a745;
+      font-weight: 500;
+    }
+    
+    .model-details .context {
+      color: #6c757d;
+    }
+    
+    .model-description {
+      font-size: 0.8rem;
+      color: #6c757d;
+      line-height: 1.3;
+    }
   `]
 })
 export class SettingsComponent implements OnInit, OnDestroy {
@@ -561,30 +688,13 @@ export class SettingsComponent implements OnInit, OnDestroy {
              !this.replicateModels.find(m => m.id === this.settings.replicate.model));
   }
   
-  onOpenRouterModelChange(modelId: string): void {
-    this.settings.openRouter.model = modelId;
-    this.onSettingsChange();
-  }
-  
-  onReplicateModelChange(modelId: string): void {
-    this.settings.replicate.model = modelId;
-    this.onSettingsChange();
-  }
-  
-  getOpenRouterLoadingMessage(): string {
-    if (this.loadingModels) return 'Modelle werden geladen...';
-    if (this.openRouterModels.length === 0 && this.settings.openRouter.enabled) {
-      return 'Klicken Sie "Modelle laden" um verfügbare Modelle anzuzeigen';
+  formatContextLength(length: number): string {
+    if (length >= 1000000) {
+      return `${(length / 1000000).toFixed(1)}M`;
+    } else if (length >= 1000) {
+      return `${(length / 1000).toFixed(0)}K`;
     }
-    return '';
-  }
-  
-  getReplicateLoadingMessage(): string {
-    if (this.loadingModels) return 'Modelle werden geladen...';
-    if (this.replicateModels.length === 0 && this.settings.replicate.enabled) {
-      return 'Klicken Sie "Modelle laden" um verfügbare Modelle anzuzeigen';
-    }
-    return '';
+    return length.toString();
   }
   
   private autoLoadModelsIfNeeded(): void {
