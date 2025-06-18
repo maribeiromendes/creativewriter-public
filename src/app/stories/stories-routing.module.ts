@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { StoryEditorComponent } from './components/story-editor.component';
 import { StorySettingsComponent } from './components/story-settings.component';
+import { CodexComponent } from './components/codex.component';
 
 const routes: Routes = [
   {
@@ -11,6 +12,10 @@ const routes: Routes = [
   {
     path: 'settings/:id',
     component: StorySettingsComponent
+  },
+  {
+    path: 'codex/:id',
+    component: CodexComponent
   }
 ];
 

@@ -5,6 +5,7 @@ import { SharedModule } from '../shared/shared.module';
 import { StoryListComponent } from './components/story-list.component';
 import { StoryEditorComponent } from './components/story-editor.component';
 import { BeatAIComponent } from './components/beat-ai.component';
+import { CodexComponent } from './components/codex.component';
 
 @NgModule({
   imports: [
@@ -13,7 +14,8 @@ import { BeatAIComponent } from './components/beat-ai.component';
     StoriesRoutingModule,
     StoryListComponent,
     StoryEditorComponent,
-    BeatAIComponent
+    BeatAIComponent,
+    CodexComponent
   ]
 })
 export class StoriesModule { }

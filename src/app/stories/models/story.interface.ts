@@ -26,6 +26,7 @@ export interface Story {
   title: string;
   chapters: Chapter[];
   settings?: StorySettings;
+  codexId?: string;
   createdAt: Date;
   updatedAt: Date;
   // Legacy support for old stories

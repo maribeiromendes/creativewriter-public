@@ -30,6 +30,7 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
         <div class="editor-header">
           <button class="back-btn" (click)="goBack()">← Zurück zur Übersicht</button>
           <div class="story-info">
+            <button class="codex-btn" (click)="goToCodex()" title="Codex">📚</button>
             <button class="settings-btn" (click)="goToSettings()" title="Story-Einstellungen">⚙️</button>
             <span class="scene-info" *ngIf="activeScene">
               {{ getCurrentChapterTitle() }} - {{ activeScene.title }}
@@ -123,7 +124,7 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
       align-items: center;
     }
     
-    .settings-btn {
+    .codex-btn, .settings-btn {
       background: #495057;
       border: none;
       padding: 0.4rem 0.6rem;
@@ -131,9 +132,10 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
       font-size: 1rem;
       cursor: pointer;
       transition: background 0.3s;
+      margin-right: 0.5rem;
     }
     
-    .settings-btn:hover {
+    .codex-btn:hover, .settings-btn:hover {
       background: #343a40;
     }
     
@@ -495,6 +497,13 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
       this.saveStory();
     }
     this.router.navigate(['/']);
+  }
+
+  goToCodex(): void {
+    if (this.hasUnsavedChanges) {
+      this.saveStory();
+    }
+    this.router.navigate(['/stories/codex', this.story.id]);
   }
 
   goToSettings(): void {
