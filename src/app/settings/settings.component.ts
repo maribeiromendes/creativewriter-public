@@ -4,12 +4,15 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { SettingsService } from '../core/services/settings.service';
+import { ModelService } from '../core/services/model.service';
 import { Settings } from '../core/models/settings.interface';
+import { ModelOption } from '../core/models/model.interface';
+import { SearchableDropdownComponent } from '../shared/components/searchable-dropdown.component';
 
 @Component({
   selector: 'app-settings',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, SearchableDropdownComponent],
   template: `
     <div class="settings-container">
       <div class="settings-header">
@@ -29,7 +32,7 @@ import { Settings } from '../core/models/settings.interface';
               <input 
                 type="checkbox" 
                 [(ngModel)]="settings.openRouter.enabled"
-                (ngModelChange)="onSettingsChange()"
+                (ngModelChange)="onProviderToggle('openRouter')"
               />
               <span class="toggle-slider"></span>
               <span class="toggle-text">OpenRouter aktivieren</span>
@@ -41,7 +44,7 @@ import { Settings } from '../core/models/settings.interface';
             <input 
               type="password"
               [(ngModel)]="settings.openRouter.apiKey"
-              (ngModelChange)="onSettingsChange()"
+              (ngModelChange)="onApiKeyChange('openRouter')"
               placeholder="sk-or-v1-..."
               [disabled]="!settings.openRouter.enabled"
             />
@@ -49,36 +52,32 @@ import { Settings } from '../core/models/settings.interface';
           </div>
 
           <div class="settings-group" [class.disabled]="!settings.openRouter.enabled">
-            <label>Model</label>
-            <select 
-              [(ngModel)]="settings.openRouter.model"
-              (ngModelChange)="onSettingsChange()"
+            <div class="model-header">
+              <label>Model</label>
+              <button 
+                type="button" 
+                class="load-models-btn"
+                (click)="loadModels()" 
+                [disabled]="!settings.openRouter.enabled || !settings.openRouter.apiKey || loadingModels"
+                title="Modelle von OpenRouter laden"
+              >
+                {{ loadingModels ? 'Laden...' : 'Modelle laden' }}
+              </button>
+            </div>
+            <app-searchable-dropdown
+              [options]="openRouterModels"
+              [selectedValue]="settings.openRouter.model"
               [disabled]="!settings.openRouter.enabled"
-            >
-              <option value="anthropic/claude-3-opus">Claude 3 Opus</option>
-              <option value="anthropic/claude-3-sonnet">Claude 3 Sonnet</option>
-              <option value="anthropic/claude-3-haiku">Claude 3 Haiku</option>
-              <option value="openai/gpt-4-turbo">GPT-4 Turbo</option>
-              <option value="openai/gpt-4">GPT-4</option>
-              <option value="openai/gpt-3.5-turbo">GPT-3.5 Turbo</option>
-              <option value="meta-llama/llama-3-70b-instruct">Llama 3 70B</option>
-              <option value="meta-llama/llama-3-8b-instruct">Llama 3 8B</option>
-            </select>
+              [loadingMessage]="getOpenRouterLoadingMessage()"
+              placeholder="Modell auswählen oder suchen..."
+              (selectionChange)="onOpenRouterModelChange($event)">
+            </app-searchable-dropdown>
+            <small *ngIf="modelLoadError" class="error-text">{{ modelLoadError }}</small>
+            <small *ngIf="!modelLoadError && openRouterModels.length > 0">{{ openRouterModels.length }} Modelle verfügbar. Preise in EUR pro 1M Tokens.</small>
+            <small *ngIf="!modelLoadError && openRouterModels.length === 0 && settings.openRouter.enabled">Klicken Sie "Modelle laden" um verfügbare Modelle anzuzeigen.</small>
           </div>
 
           <div class="settings-row" [class.disabled]="!settings.openRouter.enabled">
-            <div class="settings-group">
-              <label>Max Tokens</label>
-              <input 
-                type="number"
-                [(ngModel)]="settings.openRouter.maxTokens"
-                (ngModelChange)="onSettingsChange()"
-                min="100"
-                max="32000"
-                [disabled]="!settings.openRouter.enabled"
-              />
-            </div>
-
             <div class="settings-group">
               <label>Temperature</label>
               <input 
@@ -115,7 +114,7 @@ import { Settings } from '../core/models/settings.interface';
               <input 
                 type="checkbox" 
                 [(ngModel)]="settings.replicate.enabled"
-                (ngModelChange)="onSettingsChange()"
+                (ngModelChange)="onProviderToggle('replicate')"
               />
               <span class="toggle-slider"></span>
               <span class="toggle-text">Replicate aktivieren</span>
@@ -127,7 +126,7 @@ import { Settings } from '../core/models/settings.interface';
             <input 
               type="password"
               [(ngModel)]="settings.replicate.apiKey"
-              (ngModelChange)="onSettingsChange()"
+              (ngModelChange)="onApiKeyChange('replicate')"
               placeholder="r8_..."
               [disabled]="!settings.replicate.enabled"
             />
@@ -135,15 +134,30 @@ import { Settings } from '../core/models/settings.interface';
           </div>
 
           <div class="settings-group" [class.disabled]="!settings.replicate.enabled">
-            <label>Model</label>
-            <input 
-              type="text"
-              [(ngModel)]="settings.replicate.model"
-              (ngModelChange)="onSettingsChange()"
-              placeholder="meta/llama-2-70b-chat"
+            <div class="model-header">
+              <label>Model</label>
+              <button 
+                type="button" 
+                class="load-models-btn"
+                (click)="loadModels()" 
+                [disabled]="!settings.replicate.enabled || !settings.replicate.apiKey || loadingModels"
+                title="Modelle von Replicate laden"
+              >
+                {{ loadingModels ? 'Laden...' : 'Modelle laden' }}
+              </button>
+            </div>
+            <app-searchable-dropdown
+              [options]="replicateModels"
+              [selectedValue]="settings.replicate.model"
               [disabled]="!settings.replicate.enabled"
-            />
-            <small>Format: owner/model-name</small>
+              [loadingMessage]="getReplicateLoadingMessage()"
+              placeholder="Modell auswählen oder suchen..."
+              (selectionChange)="onReplicateModelChange($event)">
+            </app-searchable-dropdown>
+            <small *ngIf="modelLoadError" class="error-text">{{ modelLoadError }}</small>
+            <small *ngIf="!modelLoadError && replicateModels.length > 0">{{ replicateModels.length }} Modelle verfügbar. Preise geschätzt in EUR pro 1M Tokens.</small>
+            <small *ngIf="!modelLoadError && replicateModels.length === 0 && settings.replicate.enabled">Klicken Sie "Modelle laden" um verfügbare Modelle anzuzeigen.</small>
+            <small *ngIf="!settings.replicate.enabled">Format: owner/model-name (z.B. meta/llama-2-70b-chat)</small>
           </div>
 
           <div class="settings-group" [class.disabled]="!settings.replicate.enabled">
@@ -288,7 +302,7 @@ import { Settings } from '../core/models/settings.interface';
 
     .settings-row {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(2, 1fr);
       gap: 1rem;
     }
 
@@ -378,6 +392,44 @@ import { Settings } from '../core/models/settings.interface';
     .btn-secondary:hover {
       background: #5a6268;
     }
+    
+    .model-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+    
+    .load-models-btn {
+      background: #0d6efd;
+      color: white;
+      border: none;
+      padding: 0.25rem 0.75rem;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    
+    .load-models-btn:hover:not(:disabled) {
+      background: #0b5ed7;
+    }
+    
+    .load-models-btn:disabled {
+      background: #6c757d;
+      cursor: not-allowed;
+    }
+    
+    .error-text {
+      color: #dc3545 !important;
+      font-weight: 500;
+    }
+    
+    .settings-group select option {
+      background: #2d2d2d;
+      color: #e0e0e0;
+      padding: 0.5rem;
+    }
   `]
 })
 export class SettingsComponent implements OnInit, OnDestroy {
@@ -385,10 +437,17 @@ export class SettingsComponent implements OnInit, OnDestroy {
   hasUnsavedChanges = false;
   private originalSettings!: Settings;
   private subscription: Subscription = new Subscription();
+  
+  // Model loading state
+  openRouterModels: ModelOption[] = [];
+  replicateModels: ModelOption[] = [];
+  loadingModels = false;
+  modelLoadError: string | null = null;
 
   constructor(
     private router: Router,
-    private settingsService: SettingsService
+    private settingsService: SettingsService,
+    private modelService: ModelService
   ) {
     this.settings = this.settingsService.getSettings();
   }
@@ -400,8 +459,34 @@ export class SettingsComponent implements OnInit, OnDestroy {
         this.settings = { ...settings };
         this.originalSettings = JSON.parse(JSON.stringify(settings));
         this.hasUnsavedChanges = false;
+        
+        // Auto-load models if a model is already selected but models aren't loaded yet
+        this.autoLoadModelsIfNeeded();
       })
     );
+    
+    // Subscribe to model loading state
+    this.subscription.add(
+      this.modelService.loading$.subscribe(loading => {
+        this.loadingModels = loading;
+      })
+    );
+    
+    // Subscribe to model updates
+    this.subscription.add(
+      this.modelService.openRouterModels$.subscribe(models => {
+        this.openRouterModels = models;
+      })
+    );
+    
+    this.subscription.add(
+      this.modelService.replicateModels$.subscribe(models => {
+        this.replicateModels = models;
+      })
+    );
+    
+    // Initial auto-load check
+    this.autoLoadModelsIfNeeded();
   }
 
   ngOnDestroy(): void {
@@ -420,6 +505,115 @@ export class SettingsComponent implements OnInit, OnDestroy {
   resetSettings(): void {
     if (confirm('Sind Sie sicher, dass Sie alle Einstellungen auf die Standardwerte zurücksetzen möchten?')) {
       this.settingsService.clearSettings();
+    }
+  }
+
+  loadModels(): void {
+    this.modelLoadError = null;
+    this.modelService.loadAllModels().subscribe({
+      next: (models) => {
+        console.log('Models loaded successfully:', models);
+      },
+      error: (error) => {
+        console.error('Failed to load models:', error);
+        this.modelLoadError = 'Fehler beim Laden der Modelle. Überprüfen Sie Ihre API-Keys und Internetverbindung.';
+      }
+    });
+  }
+  
+  onApiKeyChange(provider: 'openRouter' | 'replicate'): void {
+    this.onSettingsChange();
+    
+    // Auto-load models when API key is entered and provider is enabled
+    // This ensures models are available for selection
+    if (provider === 'openRouter' && this.settings.openRouter.enabled && this.settings.openRouter.apiKey) {
+      console.log('API key entered for OpenRouter, loading models...');
+      this.modelService.loadOpenRouterModels().subscribe();
+    } else if (provider === 'replicate' && this.settings.replicate.enabled && this.settings.replicate.apiKey) {
+      console.log('API key entered for Replicate, loading models...');
+      this.modelService.loadReplicateModels().subscribe();
+    }
+  }
+  
+  onProviderToggle(provider: 'openRouter' | 'replicate'): void {
+    this.onSettingsChange();
+    
+    // Load models when provider is enabled and has API key
+    // This ensures models are available when user enables a provider
+    if (provider === 'openRouter' && this.settings.openRouter.enabled && this.settings.openRouter.apiKey) {
+      console.log('OpenRouter enabled, loading models...');
+      this.modelService.loadOpenRouterModels().subscribe();
+    } else if (provider === 'replicate' && this.settings.replicate.enabled && this.settings.replicate.apiKey) {
+      console.log('Replicate enabled, loading models...');
+      this.modelService.loadReplicateModels().subscribe();
+    }
+  }
+  
+  shouldShowDeprecatedOpenRouterModel(): boolean {
+    return !!(this.settings.openRouter.model && 
+             this.openRouterModels.length > 0 && 
+             !this.openRouterModels.find(m => m.id === this.settings.openRouter.model));
+  }
+  
+  shouldShowDeprecatedReplicateModel(): boolean {
+    return !!(this.settings.replicate.model && 
+             this.replicateModels.length > 0 && 
+             !this.replicateModels.find(m => m.id === this.settings.replicate.model));
+  }
+  
+  onOpenRouterModelChange(modelId: string): void {
+    this.settings.openRouter.model = modelId;
+    this.onSettingsChange();
+  }
+  
+  onReplicateModelChange(modelId: string): void {
+    this.settings.replicate.model = modelId;
+    this.onSettingsChange();
+  }
+  
+  getOpenRouterLoadingMessage(): string {
+    if (this.loadingModels) return 'Modelle werden geladen...';
+    if (this.openRouterModels.length === 0 && this.settings.openRouter.enabled) {
+      return 'Klicken Sie "Modelle laden" um verfügbare Modelle anzuzeigen';
+    }
+    return '';
+  }
+  
+  getReplicateLoadingMessage(): string {
+    if (this.loadingModels) return 'Modelle werden geladen...';
+    if (this.replicateModels.length === 0 && this.settings.replicate.enabled) {
+      return 'Klicken Sie "Modelle laden" um verfügbare Modelle anzuzeigen';
+    }
+    return '';
+  }
+  
+  private autoLoadModelsIfNeeded(): void {
+    // Auto-load OpenRouter models if:
+    // 1. OpenRouter is enabled
+    // 2. API key is present  
+    // 3. A model is already selected
+    // 4. Models haven't been loaded yet
+    if (this.settings.openRouter.enabled && 
+        this.settings.openRouter.apiKey && 
+        this.settings.openRouter.model && 
+        this.openRouterModels.length === 0 &&
+        !this.loadingModels) {
+      console.log('Auto-loading OpenRouter models because model is selected:', this.settings.openRouter.model);
+      this.modelService.loadOpenRouterModels().subscribe();
+    }
+    
+    // Auto-load Replicate models if:
+    // 1. Replicate is enabled
+    // 2. API key is present
+    // 3. A model is already selected  
+    // 4. Models haven't been loaded yet
+    if (this.settings.replicate.enabled && 
+        this.settings.replicate.apiKey && 
+        this.settings.replicate.model && 
+        this.replicateModels.length === 0 &&
+        !this.loadingModels) {
+      console.log('Auto-loading Replicate models because model is selected:', this.settings.replicate.model);
+      this.modelService.loadReplicateModels().subscribe();
     }
   }
 
