@@ -18,9 +18,14 @@ import { Story } from '../models/story.interface';
         </div>
       </div>
       
-      <button class="new-story-btn" (click)="createNewStory()">
-        Neue Geschichte schreiben
-      </button>
+      <div class="action-buttons">
+        <button class="new-story-btn" (click)="createNewStory()">
+          Neue Geschichte schreiben
+        </button>
+        <button class="import-btn" (click)="importNovelCrafter()">
+          📥 NovelCrafter Import
+        </button>
+      </div>
       
       <div class="stories-grid" *ngIf="stories.length > 0; else noStories">
         <div class="story-card" *ngFor="let story of stories" (click)="openStory(story.id)">
@@ -83,9 +88,15 @@ import { Story } from '../models/story.interface';
       background: #5a6268;
     }
     
-    .new-story-btn {
-      display: block;
+    .action-buttons {
+      display: flex;
+      gap: 1rem;
       margin: 0 auto 2rem;
+      max-width: 600px;
+      flex-wrap: wrap;
+    }
+
+    .new-story-btn {
       padding: 1rem 2rem;
       background: #0d6efd;
       color: white;
@@ -94,10 +105,29 @@ import { Story } from '../models/story.interface';
       font-size: 1.1rem;
       cursor: pointer;
       transition: background 0.3s;
+      flex: 1;
+      min-width: 200px;
     }
     
     .new-story-btn:hover {
       background: #0b5ed7;
+    }
+
+    .import-btn {
+      padding: 1rem 2rem;
+      background: #6f42c1;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: background 0.3s;
+      flex: 1;
+      min-width: 200px;
+    }
+    
+    .import-btn:hover {
+      background: #5a2d91;
     }
     
     .stories-grid {
@@ -211,6 +241,10 @@ export class StoryListComponent implements OnInit {
 
   goToAILogger(): void {
     this.router.navigate(['/ai-logs']);
+  }
+
+  importNovelCrafter(): void {
+    this.router.navigate(['/stories/import/novelcrafter']);
   }
 
   deleteStory(event: Event, storyId: string): void {

@@ -1,0 +1,614 @@
+import { Injectable } from '@angular/core';
+import { StoryService } from '../../stories/services/story.service';
+import { CodexService } from '../../stories/services/codex.service';
+import { Story, Chapter, Scene } from '../../stories/models/story.interface';
+import { CodexEntry } from '../../stories/models/codex.interface';
+import JSZip from 'jszip';
+import * as yaml from 'js-yaml';
+
+export interface NovelCrafterCharacter {
+  id: string;
+  metadata: {
+    attributes: {
+      type: string;
+      name: string;
+      color?: string;
+      aliases?: string[];
+      tags?: string[];
+    };
+  };
+  content: string;
+  fields: Record<string, any>;
+}
+
+export interface NovelCrafterImportResult {
+  story: Story;
+  codexEntries: {
+    characters: CodexEntry[];
+    locations: CodexEntry[];
+    objects: CodexEntry[];
+    other: CodexEntry[];
+  };
+  warnings: string[];
+}
+
+@Injectable({
+  providedIn: 'root'
+})
+export class NovelCrafterImportService {
+  constructor(
+    private storyService: StoryService,
+    private codexService: CodexService
+  ) {}
+
+  async importFromZip(zipFile: File): Promise<NovelCrafterImportResult> {
+    const result: NovelCrafterImportResult = {
+      story: {} as Story,
+      codexEntries: {
+        characters: [],
+        locations: [],
+        objects: [],
+        other: []
+      },
+      warnings: []
+    };
+
+    try {
+      // Load and extract ZIP file
+      const zip = new JSZip();
+      const zipContent = await zip.loadAsync(zipFile);
+      
+      // Find novel.md file
+      let novelContent: string | null = null;
+      const codexFiles: { [key: string]: { content: string; path: string }[] } = {
+        characters: [],
+        locations: [],
+        objects: [],
+        other: []
+      };
+
+      // Process all files in ZIP
+      console.log('=== ZIP File Analysis ===');  
+      const allFiles: string[] = [];
+      const mdFiles: string[] = [];
+      const entryFiles: string[] = [];
+      
+      for (const [relativePath, zipObject] of Object.entries(zipContent.files)) {
+        const fileObj = zipObject as any;
+        if (fileObj.dir) {
+          console.log(`Directory: ${relativePath}`);
+          continue; // Skip directories
+        }
+
+        const fileName = relativePath.split('/').pop() || '';
+        allFiles.push(relativePath);
+        
+        if (fileName.endsWith('.md')) {
+          mdFiles.push(relativePath);
+        }
+        
+        if (fileName === 'entry.md') {
+          entryFiles.push(relativePath);
+        }
+        
+        console.log(`File: ${relativePath} (fileName: ${fileName})`);
+        
+        if (fileName === 'novel.md') {
+          console.log('✓ Found novel.md');
+          novelContent = await fileObj.async('text');
+        } else if (relativePath.includes('characters/') && fileName === 'entry.md') {
+          console.log('✓ Found characters entry:', relativePath);
+          const content = await fileObj.async('text');
+          codexFiles['characters'].push({ content, path: relativePath });
+        } else if (relativePath.includes('locations/') && fileName === 'entry.md') {
+          console.log('✓ Found locations entry:', relativePath);
+          const content = await fileObj.async('text');
+          codexFiles['locations'].push({ content, path: relativePath });
+        } else if (relativePath.includes('objects/') && fileName === 'entry.md') {
+          console.log('✓ Found objects entry:', relativePath);
+          const content = await fileObj.async('text');
+          codexFiles['objects'].push({ content, path: relativePath });
+        } else if (relativePath.includes('other/') && fileName === 'entry.md') {
+          console.log('✓ Found other entry:', relativePath);
+          const content = await fileObj.async('text');
+          codexFiles['other'].push({ content, path: relativePath });
+        } else if (fileName.endsWith('.md')) {
+          console.log('⚠️ Found unmatched .md file:', relativePath);
+        }
+      }
+      
+      console.log('=== File Structure Summary ===');
+      console.log('Total files:', allFiles.length);
+      console.log('All files:', allFiles);
+      console.log('Markdown files:', mdFiles);
+      console.log('Entry.md files:', entryFiles);
+      console.log('=== End ZIP File Analysis ===');
+      console.log('Codex files found:', {
+        characters: codexFiles['characters'].length,
+        locations: codexFiles['locations'].length,
+        objects: codexFiles['objects'].length,
+        other: codexFiles['other'].length
+      });
+
+      if (!novelContent) {
+        throw new Error('novel.md file not found in ZIP archive');
+      }
+
+      // Parse novel content
+      result.story = await this.parseNovelStructure(novelContent);
+
+      // Parse codex entries
+      for (const [category, files] of Object.entries(codexFiles)) {
+        for (const fileData of files) {
+          try {
+            const entry = this.parseCodexEntry(fileData.content, fileData.path, category);
+            if (entry) {
+              (result.codexEntries as any)[category].push(entry);
+            }
+          } catch (error) {
+            result.warnings.push(`Failed to parse ${fileData.path}: ${error}`);
+          }
+        }
+      }
+
+      return result;
+    } catch (error) {
+      throw new Error(`Failed to process ZIP file: ${error}`);
+    }
+  }
+
+  async importFromFiles(files: FileList): Promise<NovelCrafterImportResult> {
+    const result: NovelCrafterImportResult = {
+      story: {} as Story,
+      codexEntries: {
+        characters: [],
+        locations: [],
+        objects: [],
+        other: []
+      },
+      warnings: []
+    };
+
+    // Find novel.md file
+    let novelFile: File | null = null;
+    const codexFiles: { [key: string]: File[] } = {
+      characters: [],
+      locations: [],
+      objects: [],
+      other: []
+    };
+
+    // Sort files
+    console.log('=== Folder Import Analysis ===');
+    Array.from(files).forEach(file => {
+      console.log(`File: ${file.webkitRelativePath} (name: ${file.name})`);
+      
+      if (file.name === 'novel.md') {
+        console.log('✓ Found novel.md');
+        novelFile = file;
+      } else if (file.webkitRelativePath.includes('characters/') && file.name === 'entry.md') {
+        console.log('✓ Found characters entry:', file.webkitRelativePath);
+        codexFiles['characters'].push(file);
+      } else if (file.webkitRelativePath.includes('locations/') && file.name === 'entry.md') {
+        console.log('✓ Found locations entry:', file.webkitRelativePath);
+        codexFiles['locations'].push(file);
+      } else if (file.webkitRelativePath.includes('objects/') && file.name === 'entry.md') {
+        console.log('✓ Found objects entry:', file.webkitRelativePath);
+        codexFiles['objects'].push(file);
+      } else if (file.webkitRelativePath.includes('other/') && file.name === 'entry.md') {
+        console.log('✓ Found other entry:', file.webkitRelativePath);
+        codexFiles['other'].push(file);
+      } else if (file.name.endsWith('.md')) {
+        console.log('⚠️ Found unmatched .md file:', file.webkitRelativePath);
+      }
+    });
+    console.log('=== End Folder Import Analysis ===');
+    console.log('Codex files found:', {
+      characters: codexFiles['characters'].length,
+      locations: codexFiles['locations'].length,
+      objects: codexFiles['objects'].length,
+      other: codexFiles['other'].length
+    });
+
+    if (!novelFile) {
+      throw new Error('novel.md file not found in the uploaded files');
+    }
+
+    // Parse novel content
+    const novelContent = await this.readFileAsText(novelFile);
+    result.story = await this.parseNovelStructure(novelContent);
+
+    // Parse codex entries
+    for (const [category, files] of Object.entries(codexFiles)) {
+      for (const file of files) {
+        try {
+          const entryContent = await this.readFileAsText(file);
+          const entry = this.parseCodexEntry(entryContent, file.webkitRelativePath, category);
+          if (entry) {
+            (result.codexEntries as any)[category].push(entry);
+          }
+        } catch (error) {
+          result.warnings.push(`Failed to parse ${file.name}: ${error}`);
+        }
+      }
+    }
+
+    return result;
+  }
+
+  private async readFileAsText(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target?.result as string);
+      reader.onerror = (e) => reject(e);
+      reader.readAsText(file);
+    });
+  }
+
+  private async parseNovelStructure(content: string): Promise<Story> {
+    const lines = content.split('\n');
+    const story: Story = {
+      id: this.generateId(),
+      title: 'Imported Story',
+      chapters: [],
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+
+    let currentChapter: Chapter | null = null;
+    let currentScene: Scene | null = null;
+    let sceneContent = '';
+    let sceneSummary = '';
+    let isInSummary = false;
+    let sceneOrder = 0;
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+
+      // Extract story title from first line
+      if (i === 0 && line.startsWith('# ')) {
+        story.title = line.substring(2).trim();
+        continue;
+      }
+
+      // Chapter detection
+      if (line.startsWith('### Chapter ')) {
+        // Save previous scene if exists
+        if (currentScene && currentChapter) {
+          currentScene.content = sceneContent.trim();
+          if (sceneSummary) {
+            currentScene.summary = sceneSummary.trim();
+          }
+          currentChapter.scenes.push(currentScene);
+        }
+
+        // Create new chapter
+        const chapterTitle = line.substring(4).trim();
+        currentChapter = {
+          id: this.generateId(),
+          title: chapterTitle,
+          order: story.chapters.length,
+          scenes: [],
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+        story.chapters.push(currentChapter);
+        sceneOrder = 0;
+        continue;
+      }
+
+      // Scene separator detection
+      if (line === '---') {
+        // Save previous scene if exists
+        if (currentScene && currentChapter) {
+          currentScene.content = sceneContent.trim();
+          if (sceneSummary) {
+            currentScene.summary = sceneSummary.trim();
+          }
+          currentChapter.scenes.push(currentScene);
+        }
+
+        // Start collecting summary for next scene
+        isInSummary = true;
+        sceneSummary = '';
+        sceneContent = '';
+        continue;
+      }
+
+      // Scene break detection
+      if (line === '* * *') {
+        // Save current scene
+        if (currentScene && currentChapter) {
+          currentScene.content = sceneContent.trim();
+          if (sceneSummary) {
+            currentScene.summary = sceneSummary.trim();
+          }
+          currentChapter.scenes.push(currentScene);
+        }
+
+        // Start new scene
+        currentScene = {
+          id: this.generateId(),
+          title: `Scene ${sceneOrder + 1}`,
+          content: '',
+          order: sceneOrder++,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+        sceneContent = '';
+        isInSummary = false;
+        continue;
+      }
+
+      // Content collection
+      if (isInSummary) {
+        if (line.trim() !== '') {
+          sceneSummary += line + '\n';
+        } else if (sceneSummary.trim() !== '') {
+          // End of summary, start new scene
+          currentScene = {
+            id: this.generateId(),
+            title: `Scene ${sceneOrder + 1}`,
+            content: '',
+            summary: sceneSummary.trim(),
+            order: sceneOrder++,
+            createdAt: new Date(),
+            updatedAt: new Date()
+          };
+          isInSummary = false;
+          sceneSummary = '';
+        }
+      } else if (currentScene || currentChapter) {
+        if (!currentScene && currentChapter) {
+          // Create first scene if none exists
+          currentScene = {
+            id: this.generateId(),
+            title: `Scene ${sceneOrder + 1}`,
+            content: '',
+            order: sceneOrder++,
+            createdAt: new Date(),
+            updatedAt: new Date()
+          };
+        }
+        sceneContent += line + '\n';
+      }
+    }
+
+    // Save final scene
+    if (currentScene && currentChapter) {
+      currentScene.content = sceneContent.trim();
+      if (sceneSummary) {
+        currentScene.summary = sceneSummary.trim();
+      }
+      currentChapter.scenes.push(currentScene);
+    }
+
+    return story;
+  }
+
+  private parseCodexEntry(content: string, filePath: string, category: string): CodexEntry | null {
+    try {
+      // Extract YAML frontmatter
+      const yamlMatch = content.match(/^---\n([\s\S]*?)\n---/);
+      if (!yamlMatch) {
+        console.warn(`No YAML frontmatter found in ${filePath}`);
+        return null;
+      }
+
+      const yamlContent = yamlMatch[1];
+      const markdownContent = content.substring(yamlMatch[0].length).trim();
+
+      // Parse YAML using js-yaml library
+      const parsedYaml = yaml.load(yamlContent) as any;
+      if (!parsedYaml) {
+        console.warn(`Failed to parse YAML in ${filePath}`);
+        return null;
+      }
+
+      // Extract fields (if they exist)
+      const fields = parsedYaml.fields || {};
+      
+      // Map to our codex entry format
+      const codexEntry: CodexEntry = {
+        id: this.generateId(),
+        categoryId: '', // Will be set when creating categories
+        title: parsedYaml.name || 'Unnamed Entry',
+        content: markdownContent,
+        tags: Array.isArray(parsedYaml.tags) ? parsedYaml.tags : [],
+        metadata: {
+          originalType: parsedYaml.type,
+          originalId: this.extractIdFromPath(filePath),
+          color: parsedYaml.color,
+          aliases: Array.isArray(parsedYaml.aliases) ? parsedYaml.aliases : [],
+          alwaysIncludeInContext: parsedYaml.alwaysIncludeInContext,
+          doNotTrack: parsedYaml.doNotTrack,
+          noAutoInclude: parsedYaml.noAutoInclude
+        },
+        order: 0,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
+      // Handle Story Role field
+      if (fields['Story Role']) {
+        const storyRole = Array.isArray(fields['Story Role']) 
+          ? fields['Story Role'][0] 
+          : fields['Story Role'];
+        codexEntry.metadata!['storyRole'] = storyRole;
+      }
+
+      // Convert other fields to custom fields
+      const customFields: any[] = [];
+      Object.entries(fields).forEach(([key, value]) => {
+        if (key !== 'Story Role') {
+          customFields.push({
+            id: this.generateId(),
+            name: key,
+            value: Array.isArray(value) ? value.join(', ') : String(value)
+          });
+        }
+      });
+
+      if (customFields.length > 0) {
+        codexEntry.metadata!['customFields'] = customFields;
+      }
+
+      console.log(`Successfully parsed codex entry: ${codexEntry.title} (${category})`);
+      return codexEntry;
+      
+    } catch (error) {
+      console.error(`Error parsing codex entry ${filePath}:`, error);
+      return null;
+    }
+  }
+
+  private extractIdFromPath(path: string): string {
+    const parts = path.split('/');
+    const folderName = parts[parts.length - 2];
+    return folderName || 'unknown';
+  }
+
+  async importToStory(importResult: NovelCrafterImportResult): Promise<string> {
+    // Create the story
+    const newStory = this.storyService.createStory();
+    
+    // Update story with imported data
+    newStory.title = importResult.story.title;
+    newStory.chapters = importResult.story.chapters;
+    this.storyService.updateStory(newStory);
+    
+    const storyId = newStory.id;
+
+    // Create codex and categories
+    const codex = this.codexService.getOrCreateCodex(storyId);
+    
+    // Map categories
+    const categoryMapping: { [key: string]: string } = {};
+    
+    // Characters -> Charaktere
+    if (importResult.codexEntries.characters.length > 0) {
+      let charCategory = codex.categories.find(c => c.title === 'Charaktere');
+      if (!charCategory) {
+        this.codexService.addCategory(storyId, {
+          title: 'Charaktere',
+          icon: '👤',
+          description: 'Imported characters from NovelCrafter'
+        });
+        charCategory = this.codexService.getOrCreateCodex(storyId).categories.find(c => c.title === 'Charaktere')!;
+      }
+      categoryMapping['characters'] = charCategory.id;
+    }
+
+    // Locations -> Orte
+    if (importResult.codexEntries.locations.length > 0) {
+      let locCategory = codex.categories.find(c => c.title === 'Orte');
+      if (!locCategory) {
+        this.codexService.addCategory(storyId, {
+          title: 'Orte',
+          icon: '🏰',
+          description: 'Imported locations from NovelCrafter'
+        });
+        locCategory = this.codexService.getOrCreateCodex(storyId).categories.find(c => c.title === 'Orte')!;
+      }
+      categoryMapping['locations'] = locCategory.id;
+    }
+
+    // Objects -> Gegenstände
+    if (importResult.codexEntries.objects.length > 0) {
+      let objCategory = codex.categories.find(c => c.title === 'Gegenstände');
+      if (!objCategory) {
+        this.codexService.addCategory(storyId, {
+          title: 'Gegenstände',
+          icon: '⚔️',
+          description: 'Imported objects from NovelCrafter'
+        });
+        objCategory = this.codexService.getOrCreateCodex(storyId).categories.find(c => c.title === 'Gegenstände')!;
+      }
+      categoryMapping['objects'] = objCategory.id;
+    }
+
+    // Other -> Notizen
+    if (importResult.codexEntries.other.length > 0) {
+      let noteCategory = codex.categories.find(c => c.title === 'Notizen');
+      if (!noteCategory) {
+        this.codexService.addCategory(storyId, {
+          title: 'Notizen',
+          icon: '📝',
+          description: 'Imported notes from NovelCrafter'
+        });
+        noteCategory = this.codexService.getOrCreateCodex(storyId).categories.find(c => c.title === 'Notizen')!;
+      }
+      categoryMapping['other'] = noteCategory.id;
+    }
+
+    // Add entries to categories
+    Object.entries(importResult.codexEntries).forEach(([category, entries]) => {
+      const categoryId = categoryMapping[category];
+      if (categoryId) {
+        entries.forEach(entry => {
+          entry.categoryId = categoryId;
+          this.codexService.addEntry(storyId, categoryId, {
+            title: entry.title,
+            content: entry.content
+          });
+          
+          // Update the entry with metadata
+          const updatedCodex = this.codexService.getOrCreateCodex(storyId);
+          const cat = updatedCodex.categories.find(c => c.id === categoryId);
+          if (cat) {
+            const addedEntry = cat.entries[cat.entries.length - 1];
+            addedEntry.metadata = entry.metadata;
+            addedEntry.tags = entry.tags;
+            this.codexService.updateEntry(storyId, categoryId, addedEntry.id, addedEntry);
+          }
+        });
+      }
+    });
+
+    return storyId;
+  }
+
+  private isCodexEntry(relativePath: string, fileName: string, category: string): boolean {
+    const pathLower = relativePath.toLowerCase();
+    const categoryLower = category.toLowerCase();
+    const categoryPlural = categoryLower + 's';
+    const categorySingular = categoryLower.replace(/s$/, '');
+    
+    // Check if it's a markdown file - expand beyond just 'entry.md'
+    if (!fileName.endsWith('.md')) {
+      return false;
+    }
+    
+    // Multiple patterns to check:
+    // 1. /characters/, /locations/, /objects/, /other/ (current pattern)
+    // 2. /codex/characters/, /codex/locations/, etc.
+    // 3. /character/, /location/, /object/ (singular)
+    // 4. Any path that contains the category name
+    
+    const patterns = [
+      `/${categoryPlural}/`,       // /characters/
+      `/${categorySingular}/`,     // /character/
+      `/codex/${categoryPlural}/`, // /codex/characters/
+      `/codex/${categorySingular}/`, // /codex/character/
+      `/${categoryLower}/`,        // generic match
+    ];
+    
+    // Special handling for 'other' category
+    if (category === 'other') {
+      patterns.push('/notes/', '/misc/', '/miscellaneous/', '/others/');
+    }
+    
+    // Check if path matches any of the patterns
+    const pathMatches = patterns.some(pattern => pathLower.includes(pattern));
+    
+    // Also check if it's specifically an 'entry.md' file (preferred)
+    const isEntryFile = fileName === 'entry.md';
+    
+    // Accept any .md file in matching paths
+    return pathMatches;
+  }
+
+  private generateId(): string {
+    return 'import-' + Math.random().toString(36).substring(2, 11);
+  }
+}

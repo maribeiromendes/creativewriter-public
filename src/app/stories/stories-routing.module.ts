@@ -3,6 +3,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { StoryEditorComponent } from './components/story-editor.component';
 import { StorySettingsComponent } from './components/story-settings.component';
 import { CodexComponent } from './components/codex.component';
+import { NovelCrafterImportComponent } from './components/novelcrafter-import.component';
 
 const routes: Routes = [
   {
@@ -16,6 +17,10 @@ const routes: Routes = [
   {
     path: 'codex/:id',
     component: CodexComponent
+  },
+  {
+    path: 'import/novelcrafter',
+    component: NovelCrafterImportComponent
   }
 ];
 
