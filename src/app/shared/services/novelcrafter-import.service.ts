@@ -246,6 +246,7 @@ export class NovelCrafterImportService {
   }
 
   private async parseNovelStructure(content: string): Promise<Story> {
+    console.log('=== Novel Structure Parsing ===');
     const lines = content.split('\n');
     const story: Story = {
       id: this.generateId(),
@@ -257,32 +258,53 @@ export class NovelCrafterImportService {
 
     let currentChapter: Chapter | null = null;
     let currentScene: Scene | null = null;
-    let sceneContent = '';
-    let sceneSummary = '';
-    let isInSummary = false;
+    let sceneBuffer: string[] = [];
+    let summaryBuffer: string[] = [];
+    let parsingState: 'content' | 'story' | 'summary' = 'content';
     let sceneOrder = 0;
+
+    const saveCurrentScene = () => {
+      if (currentScene && currentChapter) {
+        // Fix: summaryBuffer contains the actual scene summary, sceneBuffer contains the story content
+        currentScene.summary = summaryBuffer.join('\n').trim();
+        currentScene.content = sceneBuffer.join('\n').trim();
+        
+        // Only save scenes that have content or summary
+        if (currentScene.content || currentScene.summary) {
+          currentChapter.scenes.push(currentScene);
+          console.log(`✓ Saved scene: "${currentScene.title}" - Summary: ${currentScene.summary.length} chars, Content: ${currentScene.content.length} chars`);
+        } else {
+          console.log(`⚠️ Skipping empty scene: "${currentScene.title}"`);
+        }
+        
+        sceneBuffer = [];
+        summaryBuffer = [];
+      }
+    };
 
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
+      
+      console.log(`Line ${i}: "${line}" (state: ${parsingState})`);
 
       // Extract story title from first line
       if (i === 0 && line.startsWith('# ')) {
         story.title = line.substring(2).trim();
+        console.log(`✓ Story title: "${story.title}"`);
+        continue;
+      }
+
+      // Skip other headers like "by Author" and "## Act 1"
+      if (line.startsWith('by ') || line.startsWith('## ')) {
+        console.log(`⚠️ Skipping header: "${line}"`);
         continue;
       }
 
       // Chapter detection
       if (line.startsWith('### Chapter ')) {
-        // Save previous scene if exists
-        if (currentScene && currentChapter) {
-          currentScene.content = sceneContent.trim();
-          if (sceneSummary) {
-            currentScene.summary = sceneSummary.trim();
-          }
-          currentChapter.scenes.push(currentScene);
-        }
-
-        // Create new chapter
+        console.log(`✓ Chapter detected: "${line}"`);
+        saveCurrentScene();
+        
         const chapterTitle = line.substring(4).trim();
         currentChapter = {
           id: this.generateId(),
@@ -294,39 +316,25 @@ export class NovelCrafterImportService {
         };
         story.chapters.push(currentChapter);
         sceneOrder = 0;
+        currentScene = null;
+        parsingState = 'content';
         continue;
       }
 
-      // Scene separator detection
+      // Story start marker - content starts after this
       if (line === '---') {
-        // Save previous scene if exists
-        if (currentScene && currentChapter) {
-          currentScene.content = sceneContent.trim();
-          if (sceneSummary) {
-            currentScene.summary = sceneSummary.trim();
-          }
-          currentChapter.scenes.push(currentScene);
-        }
-
-        // Start collecting summary for next scene
-        isInSummary = true;
-        sceneSummary = '';
-        sceneContent = '';
+        console.log('✓ Story marker detected');
+        // Don't save current scene yet, just switch to story parsing
+        parsingState = 'story';
         continue;
       }
 
-      // Scene break detection
+      // Scene separator - summary starts after this
       if (line === '* * *') {
-        // Save current scene
-        if (currentScene && currentChapter) {
-          currentScene.content = sceneContent.trim();
-          if (sceneSummary) {
-            currentScene.summary = sceneSummary.trim();
-          }
-          currentChapter.scenes.push(currentScene);
-        }
-
-        // Start new scene
+        console.log('✓ Scene separator detected - starting new scene');
+        saveCurrentScene();
+        
+        // Create new scene for next summary/content pair
         currentScene = {
           id: this.generateId(),
           title: `Scene ${sceneOrder + 1}`,
@@ -335,32 +343,25 @@ export class NovelCrafterImportService {
           createdAt: new Date(),
           updatedAt: new Date()
         };
-        sceneContent = '';
-        isInSummary = false;
+        
+        parsingState = 'summary';
         continue;
       }
 
-      // Content collection
-      if (isInSummary) {
+      // Collect content based on current state
+      if (parsingState === 'story' && currentScene) {
+        sceneBuffer.push(line);
         if (line.trim() !== '') {
-          sceneSummary += line + '\n';
-        } else if (sceneSummary.trim() !== '') {
-          // End of summary, start new scene
-          currentScene = {
-            id: this.generateId(),
-            title: `Scene ${sceneOrder + 1}`,
-            content: '',
-            summary: sceneSummary.trim(),
-            order: sceneOrder++,
-            createdAt: new Date(),
-            updatedAt: new Date()
-          };
-          isInSummary = false;
-          sceneSummary = '';
+          console.log(`  Adding to story: "${line.substring(0, 50)}..."`);
         }
-      } else if (currentScene || currentChapter) {
-        if (!currentScene && currentChapter) {
-          // Create first scene if none exists
+      } else if (parsingState === 'summary' && currentScene) {
+        if (line.trim() !== '') {
+          summaryBuffer.push(line);
+          console.log(`  Adding to summary: "${line}"`);
+        }
+      } else if (parsingState === 'content' && currentChapter && line.trim() !== '') {
+        // Handle content before any --- marker (first scene in chapter)
+        if (!currentScene) {
           currentScene = {
             id: this.generateId(),
             title: `Scene ${sceneOrder + 1}`,
@@ -369,19 +370,35 @@ export class NovelCrafterImportService {
             createdAt: new Date(),
             updatedAt: new Date()
           };
+          console.log(`✓ Created first scene in chapter automatically`);
         }
-        sceneContent += line + '\n';
+        
+        // This content goes into summary buffer since it's the scene description
+        summaryBuffer.push(line);
+        console.log(`  Adding to summary (first scene): "${line}"`);
       }
     }
 
     // Save final scene
-    if (currentScene && currentChapter) {
-      currentScene.content = sceneContent.trim();
-      if (sceneSummary) {
-        currentScene.summary = sceneSummary.trim();
-      }
-      currentChapter.scenes.push(currentScene);
-    }
+    saveCurrentScene();
+
+    // Fix scene order within each chapter
+    story.chapters.forEach(chapter => {
+      chapter.scenes.forEach((scene, index) => {
+        scene.order = index + 1;
+        scene.title = `Scene ${index + 1}`;
+      });
+    });
+
+    console.log(`=== Parsing Complete ===`);
+    console.log(`Story: "${story.title}"`);
+    console.log(`Chapters: ${story.chapters.length}`);
+    story.chapters.forEach((chapter, i) => {
+      console.log(`  Chapter ${i + 1}: "${chapter.title}" (${chapter.scenes.length} scenes)`);
+      chapter.scenes.forEach((scene, j) => {
+        console.log(`    Scene ${j + 1}: "${scene.title}" - Summary: ${scene.summary?.length || 0} chars, Content: ${scene.content.length} chars`);
+      });
+    });
 
     return story;
   }
