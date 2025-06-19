@@ -41,19 +41,30 @@ import { Story, StorySettings, DEFAULT_STORY_SETTINGS } from '../models/story.in
         </div>
 
         <div class="settings-section">
-          <h3>Beat Template</h3>
+          <h3>Beat Generation Template</h3>
           <p class="section-description">
-            Dieses Template wird verwendet, wenn die AI neue Beats generiert. Verwenden Sie {{ '{prompt}' }} als Platzhalter für den Benutzer-Prompt.
+            Template-Struktur für Beat-Generierung mit Kontext. Verfügbare Platzhalter:
           </p>
+          <div class="template-placeholders">
+            <div class="placeholder-grid">
+              <span class="placeholder-item">{{ '{SystemMessage}' }}</span>
+              <span class="placeholder-item">{{ '{codexEntries}' }}</span>
+              <span class="placeholder-item">{{ '{summariesOfScenesBefore}' }}</span>
+              <span class="placeholder-item">{{ '{sceneFullText}' }}</span>
+              <span class="placeholder-item">{{ '{wordCount}' }}</span>
+              <span class="placeholder-item">{{ '{prompt}' }}</span>
+              <span class="placeholder-item">{{ '{writingStyle}' }}</span>
+            </div>
+          </div>
           <textarea
-            class="settings-textarea"
-            [(ngModel)]="settings.beatTemplate"
+            class="settings-textarea large"
+            [(ngModel)]="settings.beatGenerationTemplate"
             (ngModelChange)="onSettingsChange()"
             placeholder="Geben Sie das Beat-Template ein..."
-            rows="6"
+            rows="12"
           ></textarea>
-          <div class="char-count">{{ settings.beatTemplate.length }} Zeichen</div>
-          <div class="template-hint" *ngIf="!settings.beatTemplate.includes('{prompt}')">
+          <div class="char-count">{{ settings.beatGenerationTemplate.length }} Zeichen</div>
+          <div class="template-hint" *ngIf="!settings.beatGenerationTemplate.includes('{prompt}')">
             ⚠️ Das Template sollte {{ '{prompt}' }} enthalten, um den Benutzer-Prompt einzufügen.
           </div>
         </div>
@@ -397,6 +408,47 @@ import { Story, StorySettings, DEFAULT_STORY_SETTINGS } from '../models/story.in
 
     input[type="radio"] {
       display: none;
+    }
+
+    .template-placeholders {
+      margin: 1rem 0;
+      padding: 1rem;
+      background: #2a2a2a;
+      border-radius: 6px;
+      border: 1px solid #404040;
+    }
+
+    .placeholder-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 0.5rem;
+    }
+
+    .placeholder-item {
+      background: #1a1a1a;
+      border: 1px solid #495057;
+      padding: 0.5rem;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.85rem;
+      color: #ffc107;
+      text-align: center;
+    }
+
+    .settings-textarea.large {
+      min-height: 200px;
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 768px) {
+      .placeholder-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .settings-textarea.large {
+        min-height: 150px;
+        font-size: 0.85rem;
+      }
     }
   `]
 })

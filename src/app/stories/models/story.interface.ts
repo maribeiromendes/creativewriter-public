@@ -20,7 +20,7 @@ export interface Chapter {
 
 export interface StorySettings {
   systemMessage: string;
-  beatTemplate: string;
+  beatGenerationTemplate: string; // Advanced template for beat generation
   useFullStoryContext: boolean; // true = full story, false = summaries only
   beatInstruction: 'continue' | 'stay'; // continue = "Setze die Geschichte fort", stay = "Bleibe im Moment"
 }
@@ -39,7 +39,21 @@ export interface Story {
 
 export const DEFAULT_STORY_SETTINGS: StorySettings = {
   systemMessage: 'Du bist ein kreativer Schreibassistent, der beim Verfassen von Geschichten hilft. Behalte den Stil und Ton der bisherigen Geschichte bei.',
-  beatTemplate: 'Schreibe den nächsten Beat der Geschichte basierend auf folgendem Prompt: {prompt}\n\nAchte darauf, dass der Beat nahtlos an die vorherige Handlung anknüpft und die Charaktere konsistent bleiben. Schreibe {wordcount} Wörter.',
+  beatGenerationTemplate: `{SystemMessage}
+
+Beziehe den folgenden Glossar von Charakteren/Orten/Gegenständen/Überlieferungen mit ein:
+{codexEntries}
+
+Was bisher passiert ist:
+{summariesOfScenesBefore}
+
+Was gerade passiert ist:
+{sceneFullText}
+
+Schrebeibe {wordCount} Wörter welche die Geschichte fortsetzen mit folgenden Aufgaben:
+{prompt}
+
+{writingStyle}`,
   useFullStoryContext: false,
   beatInstruction: 'continue'
 };

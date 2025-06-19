@@ -92,6 +92,14 @@ export class StoryService {
         ...DEFAULT_STORY_SETTINGS,
         ...migrated.settings
       };
+      
+      // Migrate old beatTemplate to beatGenerationTemplate if needed
+      if ((migrated.settings as any).beatTemplate && !migrated.settings.beatGenerationTemplate) {
+        migrated.settings.beatGenerationTemplate = DEFAULT_STORY_SETTINGS.beatGenerationTemplate;
+      }
+      
+      // Remove old beatTemplate field
+      delete (migrated.settings as any).beatTemplate;
     }
 
     // If old story format with content field, migrate to chapter/scene structure

@@ -51,20 +51,21 @@ export class TemplateService {
   }
 
   /**
-   * Load and process beat generation template
+   * Process beat generation template from story settings
    */
-  processBeatTemplate(placeholders: {
-    SystemMessage: string;
-    codexEntries: string;
-    summariesOfScenesBefore: string;
-    sceneFullText: string;
-    wordCount: string;
-    prompt: string;
-    writingStyle: string;
-  }): Observable<string> {
-    return this.loadTemplate('beat-generation.template').pipe(
-      map(template => this.processTemplate(template, placeholders))
-    );
+  processBeatTemplateFromSettings(
+    beatGenerationTemplate: string,
+    placeholders: {
+      SystemMessage: string;
+      codexEntries: string;
+      summariesOfScenesBefore: string;
+      sceneFullText: string;
+      wordCount: string;
+      prompt: string;
+      writingStyle: string;
+    }
+  ): string {
+    return this.processTemplate(beatGenerationTemplate, placeholders);
   }
 
   /**

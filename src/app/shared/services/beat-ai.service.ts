@@ -87,21 +87,7 @@ export class BeatAIService {
     );
   }
 
-  private readonly BEAT_GENERATION_TEMPLATE = `{SystemMessage}
-
-Beziehe den folgenden Glossar von Charakteren/Orten/Gegenständen/Überlieferungen mit ein:
-{codexEntries}
-
-Was bisher passiert ist:
-{summariesOfScenesBefore}
-
-Was gerade passiert ist:
-{sceneFullText}
-
-Schrebeibe {wordCount} Wörter welche die Geschichte fortsetzen mit folgenden Aufgaben:
-{prompt}
-
-{writingStyle}`;
+  // Legacy template - now replaced by story.settings.beatGenerationTemplate
 
   private buildStructuredPromptFromTemplate(userPrompt: string, options: {
     storyId?: string;
@@ -160,8 +146,8 @@ Schrebeibe {wordCount} Wörter welche die Geschichte fortsetzen mit folgenden Au
         : 'Bleibe im Moment'
     };
 
-    // Process template directly without HTTP request
-    let processedTemplate = this.BEAT_GENERATION_TEMPLATE;
+    // Use beatGenerationTemplate from story settings
+    let processedTemplate = story.settings.beatGenerationTemplate;
     
     Object.entries(placeholders).forEach(([key, value]) => {
       const placeholder = `{${key}}`;
