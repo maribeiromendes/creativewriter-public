@@ -243,7 +243,8 @@ export class PromptManagerService {
       const story = this.storyService.getStory(currentStoryId);
       if (story) {
         const flatScenes = this.buildFlatScenesList(story);
-        this.flatScenesSubject.next(flatScenes);
+        // Force update by creating a new array reference to bypass distinctUntilChanged
+        this.flatScenesSubject.next([...flatScenes]);
       }
     }
   }

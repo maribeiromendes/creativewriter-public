@@ -6,6 +6,7 @@ import { StoryService } from '../services/story.service';
 import { OpenRouterApiService } from '../../core/services/openrouter-api.service';
 import { ModelService } from '../../core/services/model.service';
 import { SettingsService } from '../../core/services/settings.service';
+import { PromptManagerService } from '../../shared/services/prompt-manager.service';
 import { ModelOption } from '../../core/models/model.interface';
 import { Subscription } from 'rxjs';
 
@@ -467,7 +468,8 @@ export class StoryStructureComponent implements AfterViewInit {
     private openRouterApiService: OpenRouterApiService,
     private modelService: ModelService,
     private settingsService: SettingsService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private promptManager: PromptManagerService
   ) {}
 
   ngOnInit() {
@@ -520,6 +522,8 @@ export class StoryStructureComponent implements AfterViewInit {
 
   updateChapter(chapter: Chapter): void {
     this.storyService.updateChapter(this.story.id, chapter.id, { title: chapter.title });
+    // Refresh prompt manager when chapter title changes
+    this.promptManager.refresh();
   }
 
   deleteChapter(chapterId: string, event: Event): void {
@@ -555,6 +559,8 @@ export class StoryStructureComponent implements AfterViewInit {
 
   updateScene(chapterId: string, scene: Scene): void {
     this.storyService.updateScene(this.story.id, chapterId, scene.id, { title: scene.title });
+    // Refresh prompt manager when scene title changes
+    this.promptManager.refresh();
   }
 
   deleteScene(chapterId: string, sceneId: string, event: Event): void {
@@ -655,6 +661,8 @@ Die Zusammenfassung soll die wichtigsten Handlungspunkte und Charakterentwicklun
     if (scene) {
       scene.summary = summary;
       this.storyService.updateScene(this.story.id, chapterId, sceneId, { summary });
+      // Refresh prompt manager when scene summary changes
+      this.promptManager.refresh();
     }
   }
   

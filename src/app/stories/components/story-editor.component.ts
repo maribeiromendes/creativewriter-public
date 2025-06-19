@@ -12,6 +12,7 @@ import { ProseMirrorEditorService } from '../../shared/services/prosemirror-edit
 import { EditorView } from 'prosemirror-view';
 import { BeatAI, BeatAIPromptEvent } from '../models/beat-ai.interface';
 import { BeatAIService } from '../../shared/services/beat-ai.service';
+import { PromptManagerService } from '../../shared/services/prompt-manager.service';
 import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/components/image-upload-dialog.component';
 
 @Component({
@@ -562,7 +563,8 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     private storyService: StoryService,
     private proseMirrorService: ProseMirrorEditorService,
     private beatAIService: BeatAIService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private promptManager: PromptManagerService
   ) {}
 
   ngOnInit(): void {
@@ -574,6 +576,10 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
       const existingStory = this.storyService.getStory(storyId);
       if (existingStory) {
         this.story = { ...existingStory };
+        
+        // Initialize prompt manager with current story
+        this.promptManager.setCurrentStory(this.story.id);
+        
         // Auto-select first scene
         if (this.story.chapters && this.story.chapters.length > 0 && 
             this.story.chapters[0].scenes && this.story.chapters[0].scenes.length > 0) {
@@ -652,6 +658,9 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     if (this.activeScene && this.activeChapterId) {
       this.hasUnsavedChanges = true;
       this.saveSubject.next();
+      
+      // Refresh prompt manager when content changes
+      this.promptManager.refresh();
     }
   }
 

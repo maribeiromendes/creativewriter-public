@@ -73,7 +73,8 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
                            [clearable]="false"
                            [searchable]="true"
                            placeholder="Modell auswählen..."
-                           class="model-select">
+                           class="model-select"
+                           appendTo="body">
                 </ng-select>
               </div>
             </div>
@@ -436,6 +437,7 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
       border: 1px solid #404040 !important;
       border-radius: 4px !important;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+      z-index: 9999 !important;
     }
     
     :global(.model-select .ng-dropdown-panel .ng-dropdown-panel-items .ng-option) {
