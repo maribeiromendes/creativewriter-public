@@ -121,34 +121,57 @@ export class PromptManagerService {
   private extractFullTextFromScene(scene: Scene): string {
     if (!scene.content) return '';
 
-    let cleanText = scene.content;
-
-    // Remove beat AI nodes (HTML divs with beat-ai-node class)
-    cleanText = cleanText.replace(/<div[^>]*class="beat-ai-node"[^>]*>.*?<\/div>/gs, '');
+    // Use DOM parser for more reliable HTML parsing
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(scene.content, 'text/html');
     
-    // Remove beat markers like [Beat: description]
-    cleanText = cleanText.replace(/\[Beat:[^\]]*\]/g, '');
+    // Remove all beat AI wrapper elements and their contents
+    const beatWrappers = doc.querySelectorAll('.beat-ai-wrapper, .beat-ai-node');
+    beatWrappers.forEach(element => element.remove());
     
-    // Remove beat metadata comments
-    cleanText = cleanText.replace(/<!--\s*Beat\s*:.*?-->/gs, '');
+    // Remove beat markers and comments
+    const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT);
+    const textNodes: Text[] = [];
+    let node;
+    while (node = walker.nextNode()) {
+      textNodes.push(node as Text);
+    }
     
-    // Remove any remaining beat-related HTML elements
-    cleanText = cleanText.replace(/<div[^>]*beat[^>]*>.*?<\/div>/gis, '');
+    textNodes.forEach(textNode => {
+      // Remove beat markers like [Beat: description]
+      textNode.textContent = textNode.textContent?.replace(/\[Beat:[^\]]*\]/g, '') || '';
+    });
     
-    // Clean up HTML tags and convert to plain text
-    cleanText = cleanText.replace(/<[^>]*>/g, '');
+    // Remove HTML comments
+    const comments = doc.evaluate('//comment()', doc, null, XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE, null);
+    for (let i = 0; i < comments.snapshotLength; i++) {
+      const comment = comments.snapshotItem(i);
+      if (comment && comment.textContent?.includes('Beat')) {
+        comment.parentNode?.removeChild(comment);
+      }
+    }
     
-    // Decode HTML entities
-    cleanText = cleanText.replace(/&nbsp;/g, ' ');
-    cleanText = cleanText.replace(/&amp;/g, '&');
-    cleanText = cleanText.replace(/&lt;/g, '<');
-    cleanText = cleanText.replace(/&gt;/g, '>');
-    cleanText = cleanText.replace(/&quot;/g, '"');
-    cleanText = cleanText.replace(/&#39;/g, "'");
+    // Convert to text while preserving paragraph structure
+    let cleanText = '';
+    const paragraphs = doc.querySelectorAll('p');
     
-    // Remove extra whitespace and empty lines
+    for (const p of paragraphs) {
+      const text = p.textContent?.trim() || '';
+      if (text) {
+        cleanText += text + '\n\n';
+      } else {
+        // Empty paragraph becomes single newline
+        cleanText += '\n';
+      }
+    }
+    
+    // If no paragraphs found, fall back to body text
+    if (!paragraphs.length) {
+      cleanText = doc.body.textContent || '';
+    }
+    
+    // Clean up extra whitespace
     cleanText = cleanText.replace(/\n\s*\n\s*\n/g, '\n\n');
-    cleanText = cleanText.replace(/^\s+|\s+$/gm, ''); // Trim each line
     cleanText = cleanText.trim();
 
     return cleanText;
@@ -245,6 +268,7 @@ export class PromptManagerService {
         const flatScenes = this.buildFlatScenesList(story);
         // Force update by creating a new array reference to bypass distinctUntilChanged
         this.flatScenesSubject.next([...flatScenes]);
+        console.log('PromptManager refreshed with', flatScenes.length, 'scenes');
       }
     }
   }
