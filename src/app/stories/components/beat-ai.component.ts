@@ -55,17 +55,18 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
           <div class="generation-options" *ngIf="beatData.isEditing || !beatData.prompt">
             <div class="options-row">
               <div class="option-group">
-                <label>Wortanzahl</label>
-                <select [(ngModel)]="selectedWordCount" class="word-count-select">
-                  <option [value]="50">~50 Wörter</option>
-                  <option [value]="100">~100 Wörter</option>
-                  <option [value]="200">~200 Wörter</option>
-                  <option [value]="300">~300 Wörter</option>
-                  <option [value]="500">~500 Wörter</option>
-                </select>
+                <ng-select [(ngModel)]="selectedWordCount"
+                           [items]="wordCountOptions"
+                           bindLabel="label"
+                           bindValue="value"
+                           [clearable]="false"
+                           [searchable]="false"
+                           placeholder="Wortanzahl wählen..."
+                           class="model-select"
+                           appendTo="body">
+                </ng-select>
               </div>
               <div class="option-group">
-                <label>AI-Modell</label>
                 <ng-select [(ngModel)]="selectedModel"
                            [items]="availableModels"
                            bindLabel="label"
@@ -171,19 +172,19 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
     }
     
     .beat-prompt-section {
-      padding: 0.3rem;
+      padding: 0.5rem;
       transition: all 0.3s ease;
     }
     
     .beat-prompt-section.collapsed {
-      padding: 0.3rem;
+      padding: 0.5rem;
     }
     
     .beat-header {
       display: flex;
       align-items: center;
       gap: 0.5rem;
-      margin-bottom: 0.75rem;
+      margin-bottom: 0.5rem;
     }
     
     .beat-icon {
@@ -216,7 +217,7 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
     }
     
     .prompt-input-container {
-      margin-top: 0.5rem;
+      margin-top: 0.25rem;
     }
     
     .prompt-input {
@@ -244,8 +245,8 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
     }
     
     .generation-options {
-      margin-top: 0.75rem;
-      margin-bottom: 0.75rem;
+      margin-top: 0.5rem;
+      margin-bottom: 0.5rem;
     }
     
     .options-row {
@@ -264,29 +265,6 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
     .option-group {
       display: flex;
       flex-direction: column;
-      gap: 0.25rem;
-    }
-    
-    .option-group label {
-      font-size: 0.85rem;
-      color: #adb5bd;
-      font-weight: 500;
-    }
-    
-    .word-count-select {
-      padding: 0.75rem;
-      background: #1a1a1a;
-      border: 1px solid #404040;
-      border-radius: 4px;
-      color: #e0e0e0;
-      font-size: 1rem;
-      min-height: 44px; /* iOS minimum touch target */
-    }
-    
-    .word-count-select:focus {
-      outline: none;
-      border-color: #0d6efd;
-      box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.25);
     }
     
     .model-select {
@@ -306,7 +284,7 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
     .prompt-actions {
       display: flex;
       gap: 0.5rem;
-      margin-top: 0.75rem;
+      margin-top: 0.5rem;
       justify-content: flex-end;
       flex-wrap: wrap;
     }
@@ -345,7 +323,7 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
     }
     
     .prompt-display {
-      margin-top: 0.5rem;
+      margin-top: 0.25rem;
     }
     
     .prompt-text {
@@ -356,7 +334,7 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
     }
     
     .generation-status {
-      padding: 0.75rem 1rem;
+      padding: 0.5rem 1rem;
       background: #242424;
       border-top: 1px solid #404040;
       display: flex;
@@ -437,7 +415,7 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
     }
     
     :global(.model-select .ng-select-container .ng-value-container) {
-      padding-left: 0.5rem !important;
+      padding-left: 0.3rem !important;
       background: transparent !important;
     }
     
@@ -510,7 +488,7 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
     }
 
     .preview-header {
-      padding: 1rem 1.5rem;
+      padding: 0.2rem 0.8rem;
       background: #343a40;
       border-bottom: 1px solid #495057;
       display: flex;
@@ -555,7 +533,7 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
       background: #1a1a1a;
       border: 1px solid #404040;
       border-radius: 6px;
-      padding: 1rem;
+      padding: 0.5rem;
       color: #e0e0e0;
       font-family: 'Courier New', monospace;
       font-size: 0.9rem;
@@ -570,7 +548,7 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
       background: #343a40;
       border-top: 1px solid #495057;
       display: flex;
-      gap: 1rem;
+      gap: 0.2rem;
       justify-content: flex-end;
     }
 
@@ -604,16 +582,16 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
     /* Mobile optimizations for Beat AI */
     @media (max-width: 768px) {
       .beat-ai-container {
-        margin: 0.5rem 0;
+        margin: 0.2rem 0;
         border-radius: 6px;
       }
       
       .beat-prompt-section {
-        padding: 0.25rem;
+        padding: 0.4rem;
       }
       
       .beat-header {
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.4rem;
       }
       
       .beat-title {
@@ -622,27 +600,17 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
       
       .prompt-input {
         font-size: 0.9rem;
-        padding: 0.5rem;
+        padding: 0.2rem;
         min-height: 50px;
       }
       
       .generation-options {
-        margin-top: 0.5rem;
-        margin-bottom: 0.5rem;
+        margin-top: 0.4rem;
+        margin-bottom: 0.4rem;
       }
-      
-      .option-group label {
-        font-size: 0.8rem;
-      }
-      
-      .word-count-select {
-        padding: 0.5rem;
-        font-size: 0.9rem;
-        min-height: 40px;
-      }
-      
+                  
       .prompt-actions {
-        margin-top: 0.5rem;
+        margin-top: 0.4rem;
         gap: 0.25rem;
       }
       
@@ -686,9 +654,9 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
       }
       
       .generation-status {
-        padding: 0.5rem 0.75rem;
+        padding: 0.4rem 0.75rem;
         flex-direction: column;
-        gap: 0.5rem;
+        gap: 0.4rem;
         align-items: stretch;
       }
       
@@ -703,6 +671,14 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
     @media (max-width: 480px) {
       .beat-ai-container {
         margin: 0.25rem 0;
+      }
+      
+      .beat-prompt-section {
+        padding: 0.3rem;
+      }
+      
+      .beat-header {
+        margin-bottom: 0.3rem;
       }
       
       .prompt-actions {
@@ -742,6 +718,13 @@ export class BeatAIComponent implements OnInit, OnDestroy {
   selectedWordCount: number = 200;
   selectedModel: string = '';
   availableModels: ModelOption[] = [];
+  wordCountOptions = [
+    { value: 50, label: '~50 Wörter' },
+    { value: 100, label: '~100 Wörter' },
+    { value: 200, label: '~200 Wörter' },
+    { value: 300, label: '~300 Wörter' },
+    { value: 500, label: '~500 Wörter' }
+  ];
   showPreviewModal: boolean = false;
   previewContent: string = '';
   private subscription = new Subscription();
