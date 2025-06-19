@@ -33,6 +33,12 @@ export interface EditorConfig {
 export class ProseMirrorEditorService {
   private editorView: EditorView | null = null;
   private editorSchema: Schema;
+  private currentStoryContext: {
+    storyId?: string;
+    chapterId?: string;
+    sceneId?: string;
+  } = {};
+  private beatNodeViews: Set<BeatAINodeView> = new Set();
   
   public contentUpdate$ = new Subject<string>();
   public slashCommand$ = new Subject<number>();
@@ -136,6 +142,11 @@ export class ProseMirrorEditorService {
   }
 
   createEditor(element: HTMLElement, config: EditorConfig = {}): EditorView {
+    // Store initial story context
+    if (config.storyContext) {
+      this.currentStoryContext = config.storyContext;
+    }
+
     const state = EditorState.create({
       schema: this.editorSchema,
       plugins: [
@@ -169,7 +180,7 @@ export class ProseMirrorEditorService {
           () => {
             config.onBeatFocus?.();
           },
-          config.storyContext
+          this.currentStoryContext
         )
       },
       dispatchTransaction: (transaction: Transaction) => {
@@ -353,11 +364,20 @@ export class ProseMirrorEditorService {
     }
   }
 
+  registerBeatNodeView(nodeView: BeatAINodeView): void {
+    this.beatNodeViews.add(nodeView);
+  }
+
+  unregisterBeatNodeView(nodeView: BeatAINodeView): void {
+    this.beatNodeViews.delete(nodeView);
+  }
+
   destroy(): void {
     if (this.editorView) {
       this.editorView.destroy();
       this.editorView = null;
     }
+    this.beatNodeViews.clear();
   }
 
   private setPlaceholder(placeholder: string): void {
@@ -550,20 +570,34 @@ export class ProseMirrorEditorService {
   }
 
   updateStoryContext(storyContext: { storyId?: string; chapterId?: string; sceneId?: string }): void {
+    
+    // Update stored context for new nodes
+    this.currentStoryContext = storyContext;
+    
     if (!this.editorView) return;
 
-    // Update all existing BeatAI node views with new context
-    this.editorView.state.doc.descendants((node, pos) => {
-      if (node.type.name === 'beatAI') {
-        const nodeView = (this.editorView as any).nodeViews[pos] as BeatAINodeView;
-        if (nodeView && nodeView.componentRef) {
-          nodeView.componentRef.instance.storyId = storyContext.storyId;
-          nodeView.componentRef.instance.chapterId = storyContext.chapterId;
-          nodeView.componentRef.instance.sceneId = storyContext.sceneId;
-          nodeView.componentRef.changeDetectorRef?.detectChanges();
-        }
+    // Update all registered BeatAI node views with new context
+    let nodeViewsUpdated = 0;
+    
+    
+    for (const nodeView of this.beatNodeViews) {
+      if (nodeView && nodeView.componentRef) {
+        
+        // Update the nodeView's context
+        nodeView.storyContext = storyContext;
+        
+        // Update the component instance
+        nodeView.componentRef.instance.storyId = storyContext.storyId;
+        nodeView.componentRef.instance.chapterId = storyContext.chapterId;
+        nodeView.componentRef.instance.sceneId = storyContext.sceneId;
+        
+        // Force Angular to detect the changes
+        nodeView.componentRef.changeDetectorRef?.markForCheck();
+        nodeView.componentRef.changeDetectorRef?.detectChanges();
+        nodeViewsUpdated++;
       }
-    });
+    }
+    
   }
 
   insertImage(imageData: ImageInsertResult, position?: number, replaceSlash: boolean = false): void {

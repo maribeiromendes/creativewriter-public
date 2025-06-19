@@ -1,11 +1,11 @@
 import { Injectable } from '@angular/core';
-import { Observable, Subject, delay, map, scan, timer, catchError, of } from 'rxjs';
+import { Observable, Subject, delay, map, scan, timer, catchError, of, switchMap } from 'rxjs';
 import { BeatAI, BeatAIGenerationEvent, BeatAIPromptEvent } from '../../stories/models/beat-ai.interface';
 import { OpenRouterApiService } from '../../core/services/openrouter-api.service';
 import { SettingsService } from '../../core/services/settings.service';
 import { StoryService } from '../../stories/services/story.service';
 import { CodexService } from '../../stories/services/codex.service';
-import { Story, Scene, Chapter } from '../../stories/models/story.interface';
+import { PromptManagerService } from './prompt-manager.service';
 
 @Injectable({
   providedIn: 'root'
@@ -18,7 +18,8 @@ export class BeatAIService {
     private openRouterApi: OpenRouterApiService,
     private settingsService: SettingsService,
     private storyService: StoryService,
-    private codexService: CodexService
+    private codexService: CodexService,
+    private promptManager: PromptManagerService
   ) {}
 
   generateBeatContent(prompt: string, beatId: string, options: {
@@ -43,15 +44,15 @@ export class BeatAIService {
       isComplete: false
     });
 
-    // Create structured prompt
+    // Create structured prompt using template
     const wordCount = options.wordCount || 200;
-    const structuredPrompt = this.buildStructuredPrompt(prompt, { ...options, wordCount });
-    const enhancedPrompt = structuredPrompt;
     
-    // Calculate max tokens based on word count (roughly 1.3 tokens per word)
-    const maxTokens = Math.ceil(wordCount * 1.3);
+    return this.buildStructuredPromptFromTemplate(prompt, { ...options, wordCount }).pipe(
+      switchMap(enhancedPrompt => {
+        // Calculate max tokens based on word count (roughly 1.3 tokens per word)
+        const maxTokens = Math.ceil(wordCount * 1.3);
 
-    return this.openRouterApi.generateText(enhancedPrompt, {
+        return this.openRouterApi.generateText(enhancedPrompt, {
       model: options.model,
       maxTokens: maxTokens,
       wordCount: wordCount
@@ -82,6 +83,93 @@ export class BeatAIService {
         return this.generateFallbackContent(prompt, beatId);
       })
     );
+      })
+    );
+  }
+
+  private readonly BEAT_GENERATION_TEMPLATE = `{SystemMessage}
+
+Beziehe den folgenden Glossar von Charakteren/Orten/Gegenständen/Überlieferungen mit ein:
+{codexEntries}
+
+Was bisher passiert ist:
+{summariesOfScenesBefore}
+
+Was gerade passiert ist:
+{sceneFullText}
+
+Schrebeibe {wordCount} Wörter welche die Geschichte fortsetzen mit folgenden Aufgaben:
+{prompt}
+
+{writingStyle}`;
+
+  private buildStructuredPromptFromTemplate(userPrompt: string, options: {
+    storyId?: string;
+    chapterId?: string;
+    sceneId?: string;
+    wordCount?: number;
+  }): Observable<string> {
+    if (!options.storyId) {
+      return of(userPrompt);
+    }
+
+    const story = this.storyService.getStory(options.storyId);
+    if (!story || !story.settings) {
+      return of(userPrompt);
+    }
+
+    // Set current story in prompt manager
+    this.promptManager.setCurrentStory(story.id);
+
+    // Get codex entries
+    const codexEntries = this.codexService.getAllCodexEntries(options.storyId);
+    const codexText = codexEntries.length > 0 
+      ? codexEntries.map(categoryData => {
+          const entries = categoryData.entries.map(entry => {
+            let entryText = `**${entry.title}**\n${entry.content || ''}`;
+            if (entry.tags && entry.tags.length > 0) {
+              entryText += `\nTags: ${entry.tags.join(', ')}`;
+            }
+            return entryText;
+          }).join('\n\n');
+          return `### ${categoryData.category}\n${entries}`;
+        }).join('\n\n')
+      : '';
+
+    // Get previous scenes summaries
+    const summariesBefore = options.sceneId 
+      ? this.promptManager.getSummariesBeforeScene(options.sceneId)
+      : '';
+
+    // Get current scene text
+    const sceneText = options.sceneId 
+      ? this.promptManager.getPreviousSceneText(options.sceneId)
+      : '';
+
+
+    // Build template placeholders
+    const placeholders = {
+      SystemMessage: story.settings.systemMessage,
+      codexEntries: codexText,
+      summariesOfScenesBefore: summariesBefore,
+      sceneFullText: sceneText,
+      wordCount: (options.wordCount || 200).toString(),
+      prompt: userPrompt,
+      writingStyle: story.settings.beatInstruction === 'continue' 
+        ? 'Setze die Geschichte fort' 
+        : 'Bleibe im Moment'
+    };
+
+    // Process template directly without HTTP request
+    let processedTemplate = this.BEAT_GENERATION_TEMPLATE;
+    
+    Object.entries(placeholders).forEach(([key, value]) => {
+      const placeholder = `{${key}}`;
+      const regex = new RegExp(placeholder.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
+      processedTemplate = processedTemplate.replace(regex, value || '');
+    });
+
+    return of(processedTemplate);
   }
 
   private generateFallbackContent(prompt: string, beatId: string): Observable<string> {
@@ -129,20 +217,6 @@ export class BeatAIService {
     return names[Math.floor(Math.random() * names.length)];
   }
 
-  private splitIntoChunks(text: string): string[] {
-    const words = text.split(' ');
-    const chunks: string[] = [];
-    
-    for (let i = 0; i < words.length; i++) {
-      if (i === 0) {
-        chunks.push(words[i]);
-      } else {
-        chunks.push(' ' + words[i]);
-      }
-    }
-    
-    return chunks;
-  }
 
   createNewBeat(): BeatAI {
     return {
@@ -157,7 +231,7 @@ export class BeatAIService {
   }
 
   private generateId(): string {
-    return 'beat-' + Math.random().toString(36).substr(2, 9);
+    return 'beat-' + Math.random().toString(36).substring(2, 11);
   }
 
   // Public method to preview the structured prompt
@@ -166,121 +240,8 @@ export class BeatAIService {
     chapterId?: string;
     sceneId?: string;
     wordCount?: number;
-  }): string {
-    return this.buildStructuredPrompt(userPrompt, options);
+  }): Observable<string> {
+    return this.buildStructuredPromptFromTemplate(userPrompt, options);
   }
 
-  private buildStructuredPrompt(userPrompt: string, options: {
-    storyId?: string;
-    chapterId?: string;
-    sceneId?: string;
-    wordCount?: number;
-  }): string {
-    if (!options.storyId) {
-      return userPrompt;
-    }
-
-    const story = this.storyService.getStory(options.storyId);
-    if (!story || !story.settings) {
-      return userPrompt;
-    }
-
-    const parts: string[] = [];
-
-    // 1. System Message
-    parts.push('## System Message');
-    parts.push(story.settings.systemMessage);
-    parts.push('');
-
-    // 2. Codex Entries
-    const codexEntries = this.codexService.getAllCodexEntries(options.storyId);
-    if (codexEntries.length > 0) {
-      parts.push('## Codex');
-      codexEntries.forEach(categoryData => {
-        parts.push(`### ${categoryData.icon || ''} ${categoryData.category}`.trim());
-        categoryData.entries.forEach(entry => {
-          parts.push(`**${entry.title}**`);
-          if (entry.content) {
-            parts.push(entry.content);
-          }
-          if (entry.tags && entry.tags.length > 0) {
-            parts.push(`Tags: ${entry.tags.join(', ')}`);
-          }
-          parts.push('');
-        });
-      });
-    }
-
-    // 3. Story Context (summaries or full content)
-    const storyContext = this.getStoryContext(story, options.chapterId, options.sceneId);
-    if (storyContext) {
-      parts.push('## Bisherige Geschichte');
-      parts.push(storyContext);
-      parts.push('');
-    }
-
-    // 4. Beat Template with user prompt and word count
-    let beatTemplate = story.settings.beatTemplate.replace('{prompt}', userPrompt);
-    
-    // Replace {wordcount} placeholder if present
-    const wordCount = options.wordCount || 200;
-    beatTemplate = beatTemplate.replace('{wordcount}', wordCount.toString());
-    
-    parts.push('## Aufgabe');
-    parts.push(beatTemplate);
-    parts.push('');
-
-    // 5. Beat Instruction
-    const instruction = story.settings.beatInstruction === 'continue' 
-      ? 'Setze die Geschichte fort' 
-      : 'Bleibe im Moment';
-    parts.push('## Anweisung');
-    parts.push(instruction);
-
-    return parts.join('\n');
-  }
-
-  private getStoryContext(story: Story, currentChapterId?: string, currentSceneId?: string): string {
-    if (!story.settings) return '';
-
-    const useFullContext = story.settings.useFullStoryContext;
-    const parts: string[] = [];
-
-    for (const chapter of story.chapters) {
-      // Stop at current chapter/scene
-      if (currentChapterId && chapter.id === currentChapterId) {
-        const currentSceneIndex = currentSceneId 
-          ? chapter.scenes.findIndex(s => s.id === currentSceneId)
-          : chapter.scenes.length;
-        
-        if (currentSceneIndex > 0) {
-          const scenesToInclude = chapter.scenes.slice(0, currentSceneIndex);
-          for (const scene of scenesToInclude) {
-            parts.push(`### ${chapter.title} - ${scene.title}`);
-            if (useFullContext) {
-              parts.push(scene.content || '(Leer)');
-            } else {
-              parts.push(scene.summary || scene.content.substring(0, 200) + '...' || '(Keine Zusammenfassung verfügbar)');
-            }
-            parts.push('');
-          }
-        }
-        break;
-      } else {
-        // Include full chapter
-        parts.push(`### ${chapter.title}`);
-        for (const scene of chapter.scenes) {
-          parts.push(`#### ${scene.title}`);
-          if (useFullContext) {
-            parts.push(scene.content || '(Leer)');
-          } else {
-            parts.push(scene.summary || scene.content.substring(0, 200) + '...' || '(Keine Zusammenfassung verfügbar)');
-          }
-          parts.push('');
-        }
-      }
-    }
-
-    return parts.join('\n');
-  }
 }

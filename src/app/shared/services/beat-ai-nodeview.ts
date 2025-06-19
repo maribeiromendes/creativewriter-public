@@ -3,12 +3,18 @@ import { EditorView, NodeView } from 'prosemirror-view';
 import { Node as ProseMirrorNode } from 'prosemirror-model';
 import { BeatAIComponent } from '../../stories/components/beat-ai.component';
 import { BeatAI, BeatAIPromptEvent } from '../../stories/models/beat-ai.interface';
+import { ProseMirrorEditorService } from './prosemirror-editor.service';
 
 export class BeatAINodeView implements NodeView {
   dom: HTMLElement;
   contentDOM: HTMLElement | null = null;
   componentRef: ComponentRef<BeatAIComponent>; // Make public for context updates
   private beatData: BeatAI;
+  storyContext: {
+    storyId?: string;
+    chapterId?: string;
+    sceneId?: string;
+  };
 
   constructor(
     private node: ProseMirrorNode,
@@ -20,12 +26,18 @@ export class BeatAINodeView implements NodeView {
     private onPromptSubmit: (event: BeatAIPromptEvent) => void,
     private onContentUpdate: (beatData: BeatAI) => void,
     private onBeatFocus?: () => void,
-    private storyContext?: {
+    storyContext?: {
       storyId?: string;
       chapterId?: string;
       sceneId?: string;
     }
   ) {
+    this.storyContext = storyContext || {};
+    
+    // Register with ProseMirrorEditorService
+    const proseMirrorService = this.injector.get(ProseMirrorEditorService);
+    proseMirrorService.registerBeatNodeView(this);
+    
     // Create the DOM element
     this.dom = document.createElement('div');
     this.dom.classList.add('beat-ai-wrapper');
@@ -93,9 +105,6 @@ export class BeatAINodeView implements NodeView {
     return true;
   }
 
-  destroy(): void {
-    this.componentRef.destroy();
-  }
 
   stopEvent(event: Event): boolean {
     // Allow events for interactive elements (inputs, buttons, etc.)
@@ -193,5 +202,16 @@ export class BeatAINodeView implements NodeView {
 
   private generateId(): string {
     return 'beat-' + Math.random().toString(36).substr(2, 9);
+  }
+
+  destroy(): void {
+    // Deregister from ProseMirrorEditorService
+    const proseMirrorService = this.injector.get(ProseMirrorEditorService);
+    proseMirrorService.unregisterBeatNodeView(this);
+    
+    // Clean up component
+    if (this.componentRef) {
+      this.componentRef.destroy();
+    }
   }
 }

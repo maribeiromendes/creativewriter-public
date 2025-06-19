@@ -608,7 +608,7 @@ export class StoryStructureComponent implements AfterViewInit {
     
     this.isGeneratingSummary.add(sceneId);
     
-    const prompt = `Erstelle eine prägnante Zusammenfassung (max. 2-3 Sätze) der folgenden Szene:
+    const prompt = `Erstelle eine Zusammenfassung der folgenden Szene:
 
 Titel: ${scene.title}
 

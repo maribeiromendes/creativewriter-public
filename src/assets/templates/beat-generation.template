@@ -1,0 +1,15 @@
+{SystemMessage}
+
+Beziehe den folgenden Glossar von Charakteren/Orten/Gegenständen/Überlieferungen mit ein:
+{codexEntries}
+
+Was bisher passiert ist:
+{summariesOfScenesBefore}
+
+Was gerade passiert ist:
+{sceneFullText}
+
+Schrebeibe {wordCount} Wörter welche die Geschichte fortsetzen mit folgenden Aufgaben:
+{prompt}
+
+{writingStyle}

@@ -740,6 +740,7 @@ export class BeatAIComponent implements OnInit, OnDestroy {
   generateContent(): void {
     if (!this.currentPrompt.trim() || !this.selectedModel) return;
     
+    
     this.beatData.prompt = this.currentPrompt.trim();
     this.beatData.isEditing = false;
     this.beatData.updatedAt = new Date();
@@ -749,7 +750,10 @@ export class BeatAIComponent implements OnInit, OnDestroy {
       prompt: this.beatData.prompt,
       action: this.beatData.generatedContent ? 'regenerate' : 'generate',
       wordCount: this.selectedWordCount,
-      model: this.selectedModel
+      model: this.selectedModel,
+      storyId: this.storyId,
+      chapterId: this.chapterId,
+      sceneId: this.sceneId
     } as any);
     
     this.contentUpdate.emit(this.beatData);
@@ -763,7 +767,10 @@ export class BeatAIComponent implements OnInit, OnDestroy {
       prompt: this.beatData.prompt,
       action: 'regenerate',
       wordCount: this.selectedWordCount,
-      model: this.selectedModel
+      model: this.selectedModel,
+      storyId: this.storyId,
+      chapterId: this.chapterId,
+      sceneId: this.sceneId
     } as any);
   }
   
@@ -831,16 +838,18 @@ export class BeatAIComponent implements OnInit, OnDestroy {
       return;
     }
 
+
     // Use the context provided via Input properties
     // These will be set by the BeatAINodeView from the story editor context
-    this.previewContent = this.beatAIService.previewPrompt(this.currentPrompt, {
+    this.beatAIService.previewPrompt(this.currentPrompt, {
       storyId: this.storyId,
       chapterId: this.chapterId,
       sceneId: this.sceneId,
       wordCount: this.selectedWordCount
+    }).subscribe(content => {
+      this.previewContent = content;
+      this.showPreviewModal = true;
     });
-    
-    this.showPreviewModal = true;
   }
 
   hidePromptPreview(): void {
