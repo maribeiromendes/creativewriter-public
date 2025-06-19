@@ -12,11 +12,12 @@ import { ProseMirrorEditorService } from '../../shared/services/prosemirror-edit
 import { EditorView } from 'prosemirror-view';
 import { BeatAI, BeatAIPromptEvent } from '../models/beat-ai.interface';
 import { BeatAIService } from '../../shared/services/beat-ai.service';
+import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/components/image-upload-dialog.component';
 
 @Component({
   selector: 'app-story-editor',
   standalone: true,
-  imports: [CommonModule, FormsModule, StoryStructureComponent, SlashCommandDropdownComponent],
+  imports: [CommonModule, FormsModule, StoryStructureComponent, SlashCommandDropdownComponent, ImageUploadDialogComponent],
   template: `
     <div class="editor-container">
       <div class="sidebar-overlay" *ngIf="showSidebar" (click)="closeSidebarOnMobile($event)">
@@ -89,6 +90,12 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
         (commandSelected)="onSlashCommandSelected($event)"
         (dismissed)="hideSlashDropdown()">
       </app-slash-command-dropdown>
+      
+      <app-image-upload-dialog
+        *ngIf="showImageDialog"
+        (imageInserted)="onImageInserted($event)"
+        (cancelled)="hideImageDialog()">
+      </app-image-upload-dialog>
     </div>
   `,
   styles: [`
@@ -541,6 +548,10 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
   slashDropdownPosition = { top: 0, left: 0 };
   slashCursorPosition = 0;
   
+  // Image dialog functionality
+  showImageDialog = false;
+  imageCursorPosition = 0;
+  
   hasUnsavedChanges = false;
   private saveSubject = new Subject<void>();
   private subscription: Subscription = new Subscription();
@@ -836,15 +847,17 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
         this.proseMirrorService.insertBeatAI(this.slashCursorPosition, true);
         break;
       case SlashCommandAction.INSERT_IMAGE:
-        const insertContent = '<p><em>[Bild: Beschreibung hier einfügen]</em></p>';
-        this.proseMirrorService.insertContent(insertContent, this.slashCursorPosition, true);
+        this.showImageDialog = true;
+        this.imageCursorPosition = this.slashCursorPosition;
         break;
     }
     
-    // Focus the editor after a brief delay to ensure the component is ready
-    setTimeout(() => {
-      this.proseMirrorService.focus();
-    }, 100);
+    // Focus the editor after a brief delay to ensure the component is ready (except for image dialog)
+    if (result.action !== SlashCommandAction.INSERT_IMAGE) {
+      setTimeout(() => {
+        this.proseMirrorService.focus();
+      }, 100);
+    }
   }
 
   private handleBeatPromptSubmit(event: BeatAIPromptEvent): void {
@@ -872,5 +885,28 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     this.hasUnsavedChanges = true;
     this.updateWordCount();
     this.saveSubject.next();
+  }
+
+  hideImageDialog(): void {
+    this.showImageDialog = false;
+    // Focus the editor after hiding dialog
+    setTimeout(() => {
+      this.proseMirrorService.focus();
+    }, 100);
+  }
+
+  onImageInserted(imageData: ImageInsertResult): void {
+    if (!this.activeScene || !this.editorView) return;
+    
+    // Hide dialog
+    this.hideImageDialog();
+    
+    // Insert image through ProseMirror service
+    this.proseMirrorService.insertImage(imageData, this.imageCursorPosition, true);
+    
+    // Focus the editor
+    setTimeout(() => {
+      this.proseMirrorService.focus();
+    }, 100);
   }
 }

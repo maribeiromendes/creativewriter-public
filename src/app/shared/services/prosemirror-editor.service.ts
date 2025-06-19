@@ -10,6 +10,7 @@ import { Subject } from 'rxjs';
 import { BeatAINodeView } from './beat-ai-nodeview';
 import { BeatAI, BeatAIPromptEvent, BeatContentInsertEvent } from '../../stories/models/beat-ai.interface';
 import { BeatAIService } from './beat-ai.service';
+import { ImageInsertResult } from '../components/image-upload-dialog.component';
 
 export interface EditorConfig {
   placeholder?: string;
@@ -18,6 +19,7 @@ export interface EditorConfig {
   onBeatPromptSubmit?: (event: BeatAIPromptEvent) => void;
   onBeatContentUpdate?: (beatData: BeatAI) => void;
   onBeatFocus?: () => void;
+  onImageInsertRequest?: (position: number) => void;
   storyContext?: {
     storyId?: string;
     chapterId?: string;
@@ -44,8 +46,35 @@ export class ProseMirrorEditorService {
     // Create schema with basic nodes, list support, and beat AI node
     const baseNodes = addListNodes(schema.spec.nodes, 'paragraph block*', 'block');
     
-    // Add beat AI node to schema
+    // Add image and beat AI nodes to schema
     const extendedNodes = baseNodes.append({
+      image: {
+        attrs: {
+          src: { default: '' },
+          alt: { default: '' },
+          title: { default: null }
+        },
+        inline: false,
+        group: 'block',
+        draggable: true,
+        parseDOM: [{
+          tag: 'img[src]',
+          getAttrs: (dom: any) => ({
+            src: dom.getAttribute('src'),
+            alt: dom.getAttribute('alt') || '',
+            title: dom.getAttribute('title') || null
+          })
+        }],
+        toDOM: (node: any) => [
+          'img',
+          {
+            src: node.attrs.src,
+            alt: node.attrs.alt,
+            title: node.attrs.title,
+            style: 'max-width: 100%; height: auto; display: block; margin: 1rem auto;'
+          }
+        ]
+      },
       beatAI: {
         attrs: {
           id: { default: '' },
@@ -155,7 +184,7 @@ export class ProseMirrorEditorService {
         }
         
         // Check for slash command
-        if (transaction.selection) {
+        if (transaction.docChanged || transaction.selection) {
           this.checkSlashCommand(newState, config.onSlashCommand);
         }
       },
@@ -503,22 +532,17 @@ export class ProseMirrorEditorService {
     const { selection } = state;
     const { from } = selection;
     
-    // Get text before cursor
-    const textBefore = state.doc.textBetween(Math.max(0, from - 10), from);
+    // Get text before cursor (just 1 character)
+    const textBefore = state.doc.textBetween(Math.max(0, from - 1), from);
     
     // Check if we just typed a slash
-    // But don't trigger if we're inside a beat AI node
-    const nodeAtPos = state.doc.resolve(from).parent;
-    const isInBeatNode = nodeAtPos.type.name === 'beatAI';
-    
-    // Allow slash command at beginning of line, after whitespace, or after punctuation
-    if (!isInBeatNode && textBefore.endsWith('/')) {
-      const charBeforeSlash = textBefore.length > 1 ? textBefore[textBefore.length - 2] : '';
-      const allowedPrevChars = charBeforeSlash === '' || 
-                              /\s/.test(charBeforeSlash) || 
-                              /[.!?]/.test(charBeforeSlash);
+    if (textBefore === '/') {
+      // Don't trigger if we're inside a beat AI node
+      const nodeAtPos = state.doc.resolve(from).parent;
+      const isInBeatNode = nodeAtPos.type.name === 'beatAI';
       
-      if (allowedPrevChars) {
+      if (!isInBeatNode) {
+        console.log('Triggering slash command at position:', from);
         this.slashCommand$.next(from);
         onSlashCommand?.(from);
       }
@@ -540,5 +564,60 @@ export class ProseMirrorEditorService {
         }
       }
     });
+  }
+
+  insertImage(imageData: ImageInsertResult, position?: number, replaceSlash: boolean = false): void {
+    if (!this.editorView) return;
+    
+    try {
+      const { state } = this.editorView;
+      const pos = position ?? state.selection.from;
+      
+      // Create image node
+      const imageNode = this.editorSchema.nodes['image'].create({
+        src: imageData.url,
+        alt: imageData.alt,
+        title: imageData.title || null
+      });
+      
+      let tr;
+      if (replaceSlash) {
+        // Find the actual slash position by looking backwards from cursor position
+        let slashPos = pos - 1;
+        let foundSlash = false;
+        
+        // Look backwards up to 10 characters to find the slash
+        for (let i = 1; i <= 10 && slashPos >= 0; i++) {
+          const checkPos = pos - i;
+          const textAtCheck = state.doc.textBetween(checkPos, checkPos + 1);
+          
+          if (textAtCheck === '/') {
+            slashPos = checkPos;
+            foundSlash = true;
+            break;
+          }
+        }
+        
+        if (foundSlash) {
+          // Replace the slash with the image node
+          tr = state.tr.replaceRangeWith(slashPos, slashPos + 1, imageNode);
+        } else {
+          console.warn('No slash found, inserting at current position');
+          tr = state.tr.replaceRangeWith(pos, pos, imageNode);
+        }
+      } else {
+        // Insert at position
+        tr = state.tr.replaceRangeWith(pos, pos, imageNode);
+      }
+      
+      this.editorView.dispatch(tr);
+    } catch (error) {
+      console.error('Failed to insert image:', error);
+    }
+  }
+
+  requestImageInsert(): void {
+    // This will be called by slash commands to request image insertion
+    // The actual dialog will be handled by the component
   }
 }
