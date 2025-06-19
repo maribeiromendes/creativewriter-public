@@ -1,15 +1,16 @@
 import { Component, OnInit, OnDestroy, inject, signal, computed, effect, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { NgSelectModule } from '@ng-select/ng-select';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { CodexService } from '../services/codex.service';
-import { Codex, CodexCategory, CodexEntry } from '../models/codex.interface';
+import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField } from '../models/codex.interface';
 
 @Component({
   selector: 'app-codex',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, NgSelectModule],
   template: `
     <div class="codex-container">
       <!-- Header -->
@@ -75,6 +76,8 @@ import { Codex, CodexCategory, CodexEntry } from '../models/codex.interface';
                 <p class="entry-preview">{{ getContentPreview(entry.content) }}</p>
                 <div class="entry-meta">
                   <span class="category-badge">{{ getCategoryName(entry.categoryId) }}</span>
+                  <span *ngIf="entry.metadata?.['storyRole']" class="story-role-badge">{{ entry.metadata?.['storyRole'] }}</span>
+                  <span *ngFor="let field of entry.metadata?.['customFields']" class="custom-field-badge">{{ field.name }}: {{ field.value }}</span>
                   <span *ngFor="let tag of entry.tags" class="tag">{{ tag }}</span>
                 </div>
               </div>
@@ -101,6 +104,8 @@ import { Codex, CodexCategory, CodexEntry } from '../models/codex.interface';
                   <h3>{{ entry.title }}</h3>
                   <p class="entry-preview">{{ getContentPreview(entry.content) }}</p>
                   <div class="entry-meta">
+                    <span *ngIf="entry.metadata?.['storyRole']" class="story-role-badge">{{ entry.metadata?.['storyRole'] }}</span>
+                    <span *ngFor="let field of entry.metadata?.['customFields']" class="custom-field-badge">{{ field.name }}: {{ getFieldValuePreview(field.value) }}</span>
                     <span *ngFor="let tag of entry.tags" class="tag">{{ tag }}</span>
                     <span class="entry-date">{{ formatDate(entry.updatedAt) }}</span>
                   </div>
@@ -164,6 +169,67 @@ import { Codex, CodexCategory, CodexEntry } from '../models/codex.interface';
                   [src]="editingEntry.imageUrl" 
                   class="entry-image-preview"
                   (error)="editingEntry.imageUrl = ''">
+              </div>
+            </div>
+            
+            <!-- Story role selection for character entries -->
+            <div *ngIf="isCharacterEntry()" class="story-role-section">
+              <label>Story-Rolle:</label>
+              <ng-select 
+                [(ngModel)]="editingEntry.storyRole"
+                [items]="storyRoles"
+                bindLabel="label"
+                bindValue="value"
+                [clearable]="true"
+                [searchable]="false"
+                placeholder="Rolle auswählen..."
+                class="model-select">
+              </ng-select>
+            </div>
+            
+            <!-- Custom fields -->
+            <div class="custom-fields-section">
+              <label>Benutzerdefinierte Felder:</label>
+              
+              <!-- Existing custom fields -->
+              <div *ngFor="let field of editingEntry.customFields" class="custom-field-item">
+                <div class="custom-field-inputs">
+                  <input 
+                    type="text" 
+                    [(ngModel)]="field.name" 
+                    placeholder="Feldname..."
+                    class="custom-field-name">
+                  <textarea 
+                    [(ngModel)]="field.value" 
+                    placeholder="Feldwert..."
+                    class="custom-field-value"
+                    rows="3"></textarea>
+                  <button 
+                    type="button" 
+                    (click)="removeCustomField(field.id)"
+                    class="remove-field-btn">×</button>
+                </div>
+              </div>
+              
+              <!-- Add new custom field -->
+              <div class="add-custom-field">
+                <div class="custom-field-inputs">
+                  <input 
+                    type="text" 
+                    [(ngModel)]="newCustomFieldName" 
+                    placeholder="Neuer Feldname..."
+                    class="custom-field-name">
+                  <textarea 
+                    [(ngModel)]="newCustomFieldValue" 
+                    placeholder="Feldwert..."
+                    class="custom-field-value"
+                    rows="3"></textarea>
+                  <button 
+                    type="button" 
+                    (click)="addCustomField()"
+                    [disabled]="!newCustomFieldName.trim()"
+                    class="add-field-btn">+</button>
+                </div>
               </div>
             </div>
             
@@ -490,6 +556,22 @@ import { Codex, CodexCategory, CodexEntry } from '../models/codex.interface';
       font-size: 0.8rem;
     }
 
+    .story-role-badge {
+      background: #28a745;
+      color: white;
+      padding: 0.25rem 0.5rem;
+      border-radius: 12px;
+      font-size: 0.8rem;
+    }
+
+    .custom-field-badge {
+      background: #6f42c1;
+      color: white;
+      padding: 0.25rem 0.5rem;
+      border-radius: 12px;
+      font-size: 0.8rem;
+    }
+
     .entry-date {
       color: #999;
       font-size: 0.8rem;
@@ -608,7 +690,96 @@ import { Codex, CodexCategory, CodexEntry } from '../models/codex.interface';
       gap: 0.5rem;
     }
 
-    .tags-section label, .image-section label {
+    .story-role-section {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .custom-fields-section {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .custom-field-item {
+      border: 1px solid #555;
+      border-radius: 4px;
+      padding: 0.5rem;
+      background: #333;
+    }
+
+    .custom-field-inputs {
+      display: grid;
+      grid-template-columns: 1fr 2fr auto;
+      gap: 0.5rem;
+      align-items: start;
+    }
+
+    .custom-field-name, .custom-field-value {
+      background: #444;
+      border: 1px solid #666;
+      border-radius: 4px;
+      padding: 0.5rem;
+      color: #e0e0e0;
+      font-size: 0.9rem;
+      font-family: inherit;
+    }
+
+    .custom-field-value {
+      resize: vertical;
+      min-height: 60px;
+    }
+
+    .custom-field-name:focus, .custom-field-value:focus {
+      outline: none;
+      border-color: #007acc;
+    }
+
+    .remove-field-btn, .add-field-btn {
+      background: #dc3545;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      width: 32px;
+      height: 32px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      transition: background 0.2s;
+      align-self: start;
+      margin-top: 2px;
+    }
+
+    .add-field-btn {
+      background: #28a745;
+    }
+
+    .add-field-btn:disabled {
+      background: #6c757d;
+      cursor: not-allowed;
+    }
+
+    .remove-field-btn:hover {
+      background: #c82333;
+    }
+
+    .add-field-btn:hover:not(:disabled) {
+      background: #218838;
+    }
+
+    .add-custom-field {
+      border: 1px dashed #666;
+      border-radius: 4px;
+      padding: 0.5rem;
+      background: #2a2a2a;
+    }
+
+    .tags-section label, .image-section label, .story-role-section label, .custom-fields-section label {
       font-weight: bold;
       color: #ccc;
     }
@@ -733,6 +904,13 @@ export class CodexComponent implements OnInit, OnDestroy {
   newEntry = { title: '', content: '' };
   editingEntry: any = {};
   tagInput = '';
+  
+  // Story roles
+  storyRoles = STORY_ROLES;
+  
+  // Custom fields
+  newCustomFieldName = '';
+  newCustomFieldValue = '';
 
   // Computed values
   sortedCategories = computed(() => {
@@ -806,14 +984,18 @@ export class CodexComponent implements OnInit, OnDestroy {
     this.selectedEntry.set(entry);
     this.editingEntry = {
       ...entry,
-      tags: [...(entry.tags || [])]
+      tags: [...(entry.tags || [])],
+      storyRole: entry.metadata?.['storyRole'] || null,
+      customFields: entry.metadata?.['customFields'] ? [...entry.metadata['customFields']] : []
     };
     this.tagInput = '';
+    this.resetCustomFieldInputs();
   }
 
   closeEntryModal() {
     this.selectedEntry.set(null);
     this.editingEntry = {};
+    this.resetCustomFieldInputs();
   }
 
   addCategory() {
@@ -859,7 +1041,21 @@ export class CodexComponent implements OnInit, OnDestroy {
     const entry = this.selectedEntry();
     if (!storyId || !entry) return;
 
-    this.codexService.updateEntry(storyId, entry.categoryId, entry.id, this.editingEntry);
+    // Prepare the updated entry with story role and custom fields in metadata
+    const updatedEntry = {
+      ...this.editingEntry,
+      metadata: {
+        ...this.editingEntry.metadata,
+        storyRole: this.editingEntry.storyRole,
+        customFields: this.editingEntry.customFields || []
+      }
+    };
+    
+    // Remove temporary fields from top level as they should be in metadata
+    delete updatedEntry.storyRole;
+    delete updatedEntry.customFields;
+
+    this.codexService.updateEntry(storyId, entry.categoryId, entry.id, updatedEntry);
     this.closeEntryModal();
   }
 
@@ -925,6 +1121,49 @@ export class CodexComponent implements OnInit, OnDestroy {
       month: '2-digit',
       year: 'numeric'
     }).format(date);
+  }
+
+  isCharacterEntry(): boolean {
+    const category = this.selectedCategory();
+    return category?.title === 'Charaktere' || false;
+  }
+
+  addCustomField() {
+    const name = this.newCustomFieldName.trim();
+    const value = this.newCustomFieldValue.trim();
+    
+    if (!name) return;
+
+    if (!this.editingEntry.customFields) {
+      this.editingEntry.customFields = [];
+    }
+
+    const newField: CustomField = {
+      id: Date.now().toString(),
+      name: name,
+      value: value
+    };
+
+    this.editingEntry.customFields.push(newField);
+    this.resetCustomFieldInputs();
+  }
+
+  removeCustomField(fieldId: string) {
+    if (this.editingEntry.customFields) {
+      this.editingEntry.customFields = this.editingEntry.customFields.filter((field: CustomField) => field.id !== fieldId);
+    }
+  }
+
+  resetCustomFieldInputs() {
+    this.newCustomFieldName = '';
+    this.newCustomFieldValue = '';
+  }
+
+  getFieldValuePreview(value: string): string {
+    if (!value) return '';
+    // Replace line breaks with spaces and limit length
+    const singleLine = value.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
+    return singleLine.length > 30 ? singleLine.substring(0, 30) + '...' : singleLine;
   }
 
   goBack() {

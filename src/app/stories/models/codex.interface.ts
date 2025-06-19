@@ -11,6 +11,22 @@ export interface CodexEntry {
   updatedAt: Date;
 }
 
+export type StoryRole = 'Protagonist' | 'Nebencharakter' | 'Antagonist' | 'Love-Interest' | 'Hintergrundcharakter';
+
+export const STORY_ROLES: { value: StoryRole; label: string }[] = [
+  { value: 'Protagonist', label: 'Protagonist' },
+  { value: 'Nebencharakter', label: 'Nebencharakter' },
+  { value: 'Antagonist', label: 'Antagonist' },
+  { value: 'Love-Interest', label: 'Love-Interest' },
+  { value: 'Hintergrundcharakter', label: 'Hintergrundcharakter' }
+];
+
+export interface CustomField {
+  id: string;
+  name: string;
+  value: string;
+}
+
 export interface CodexCategory {
   id: string;
   title: string;

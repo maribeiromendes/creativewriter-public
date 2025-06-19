@@ -124,6 +124,15 @@ export class BeatAIService {
       ? codexEntries.map(categoryData => {
           const entries = categoryData.entries.map(entry => {
             let entryText = `**${entry.title}**\n${entry.content || ''}`;
+            if (entry.metadata?.['storyRole'] && categoryData.category === 'Charaktere') {
+              entryText += `\nStory-Rolle: ${entry.metadata['storyRole']}`;
+            }
+            if (entry.metadata?.['customFields'] && entry.metadata['customFields'].length > 0) {
+              const customFieldsText = entry.metadata['customFields']
+                .map((field: any) => `${field.name}: ${field.value}`)
+                .join('\n');
+              entryText += `\n${customFieldsText}`;
+            }
             if (entry.tags && entry.tags.length > 0) {
               entryText += `\nTags: ${entry.tags.join(', ')}`;
             }
