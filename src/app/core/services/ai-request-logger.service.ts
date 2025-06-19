@@ -12,7 +12,7 @@ export interface AIRequestLog {
   response?: string;
   error?: string;
   duration?: number;
-  status: 'pending' | 'success' | 'error';
+  status: 'pending' | 'success' | 'error' | 'aborted';
 }
 
 @Injectable({
@@ -84,6 +84,14 @@ export class AIRequestLoggerService {
       error,
       duration,
       status: 'error'
+    });
+  }
+
+  logAborted(id: string, duration: number): void {
+    this.updateLog(id, {
+      error: 'Request aborted by user',
+      duration,
+      status: 'aborted'
     });
   }
 

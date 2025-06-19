@@ -13,6 +13,7 @@ import { PromptManagerService } from './prompt-manager.service';
 export class BeatAIService {
   private generationSubject = new Subject<BeatAIGenerationEvent>();
   public generation$ = this.generationSubject.asObservable();
+  private activeGenerations = new Map<string, string>(); // beatId -> requestId
 
   constructor(
     private openRouterApi: OpenRouterApiService,
@@ -51,11 +52,16 @@ export class BeatAIService {
       switchMap(enhancedPrompt => {
         // Calculate max tokens based on word count (roughly 1.3 tokens per word)
         const maxTokens = Math.ceil(wordCount * 1.3);
+        const requestId = this.generateRequestId();
+        
+        // Store the active generation
+        this.activeGenerations.set(beatId, requestId);
 
         return this.openRouterApi.generateText(enhancedPrompt, {
       model: options.model,
       maxTokens: maxTokens,
-      wordCount: wordCount
+      wordCount: wordCount,
+      requestId: requestId
     }).pipe(
       map(response => {
         if (response.choices && response.choices.length > 0) {
@@ -68,12 +74,17 @@ export class BeatAIService {
             isComplete: true
           });
           
+          // Clean up active generation
+          this.activeGenerations.delete(beatId);
+          
           return content;
         }
         throw new Error('No content generated');
       }),
       catchError(error => {
         console.error('OpenRouter API error, using fallback:', error);
+        // Clean up active generation
+        this.activeGenerations.delete(beatId);
         // Emit error and fall back to sample content
         this.generationSubject.next({
           beatId,
@@ -228,6 +239,29 @@ export class BeatAIService {
     wordCount?: number;
   }): Observable<string> {
     return this.buildStructuredPromptFromTemplate(userPrompt, options);
+  }
+
+  stopGeneration(beatId: string): void {
+    const requestId = this.activeGenerations.get(beatId);
+    if (requestId) {
+      this.openRouterApi.abortRequest(requestId);
+      this.activeGenerations.delete(beatId);
+      
+      // Emit generation stopped
+      this.generationSubject.next({
+        beatId,
+        chunk: '',
+        isComplete: true
+      });
+    }
+  }
+
+  isGenerating(beatId: string): boolean {
+    return this.activeGenerations.has(beatId);
+  }
+
+  private generateRequestId(): string {
+    return 'beat_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
   }
 
 }

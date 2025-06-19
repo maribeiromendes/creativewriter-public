@@ -26,6 +26,7 @@ import { Subscription } from 'rxjs';
              [class.success]="log.status === 'success'"
              [class.error]="log.status === 'error'"
              [class.pending]="log.status === 'pending'"
+             [class.aborted]="log.status === 'aborted'"
              [class.expanded]="expandedLogs.has(log.id)">
           
           <div class="log-header" (click)="toggleExpand(log.id)">
@@ -35,6 +36,7 @@ import { Subscription } from 'rxjs';
                   <span *ngSwitchCase="'success'">✓</span>
                   <span *ngSwitchCase="'error'">✗</span>
                   <span *ngSwitchCase="'pending'">⏳</span>
+                  <span *ngSwitchCase="'aborted'">⏹</span>
                 </ng-container>
               </span>
             </div>
@@ -178,6 +180,10 @@ import { Subscription } from 'rxjs';
       border-left: 4px solid #ffc107;
     }
 
+    .log-item.aborted {
+      border-left: 4px solid #fd7e14;
+    }
+
     .log-header {
       display: flex;
       align-items: center;
@@ -217,6 +223,11 @@ import { Subscription } from 'rxjs';
     .pending .status-icon {
       background: rgba(255, 193, 7, 0.2);
       color: #ffc107;
+    }
+
+    .aborted .status-icon {
+      background: rgba(253, 126, 20, 0.2);
+      color: #fd7e14;
     }
 
     .log-info {

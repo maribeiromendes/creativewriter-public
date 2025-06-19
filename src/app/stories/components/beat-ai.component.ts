@@ -116,6 +116,12 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
             <span></span><span></span><span></span>
           </div>
         </div>
+        <button 
+          class="stop-btn"
+          (click)="stopGeneration()"
+          title="Generierung stoppen">
+          ⏹️ Stoppen
+        </button>
       </div>
     </div>
 
@@ -353,12 +359,34 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
       padding: 0.75rem 1rem;
       background: #242424;
       border-top: 1px solid #404040;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
     
     .generation-indicator {
       display: flex;
       align-items: center;
       gap: 0.5rem;
+    }
+    
+    .stop-btn {
+      background: #dc3545;
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+    
+    .stop-btn:hover {
+      background: #c82333;
     }
     
     .generating-text {
@@ -656,6 +684,20 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
         padding: 0.4rem 0.8rem;
         font-size: 0.85rem;
       }
+      
+      .generation-status {
+        padding: 0.5rem 0.75rem;
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: stretch;
+      }
+      
+      .stop-btn {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.8rem;
+        align-self: center;
+        min-width: 100px;
+      }
     }
 
     @media (max-width: 480px) {
@@ -857,5 +899,11 @@ export class BeatAIComponent implements OnInit, OnDestroy {
   hidePromptPreview(): void {
     this.showPreviewModal = false;
     this.previewContent = '';
+  }
+
+  stopGeneration(): void {
+    this.beatAIService.stopGeneration(this.beatData.id);
+    this.beatData.isGenerating = false;
+    this.contentUpdate.emit(this.beatData);
   }
 }
