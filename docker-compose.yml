@@ -32,11 +32,10 @@ services:
       - COUCHDB_USER=admin
       - COUCHDB_PASSWORD=password  # Change this in production!
       - COUCHDB_SECRET=mysecret    # Change this in production!
-      - COUCHDB_CONFIG_CORS_ENABLE=true
-      - COUCHDB_CONFIG_CORS_ORIGINS=*
     volumes:
       - /share/Docker/creativewriter/data/couchdb-data:/opt/couchdb/data
       - /share/Docker/creativewriter/data/couchdb-etc:/opt/couchdb/etc/local.d
+      - ./couchdb-cors.ini:/opt/couchdb/etc/local.d/cors.ini
     networks:
       - creativewriter-network
     healthcheck:
