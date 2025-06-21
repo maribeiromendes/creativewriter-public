@@ -1,28 +1,83 @@
 import { Injectable } from '@angular/core';
 import { Story, Chapter, Scene, DEFAULT_STORY_SETTINGS } from '../models/story.interface';
+import { DatabaseService } from '../../core/services/database.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class StoryService {
-  private readonly STORAGE_KEY = 'creative-writer-stories';
+  private db: any;
 
-  constructor() {}
+  constructor(private databaseService: DatabaseService) {
+    this.db = this.databaseService.getDatabase();
+  }
 
-  getAllStories(): Story[] {
-    const stories = localStorage.getItem(this.STORAGE_KEY);
-    if (stories) {
-      return JSON.parse(stories).map((story: any) => this.migrateStory(story));
+  async getAllStories(): Promise<Story[]> {
+    try {
+      const result = await this.db.allDocs({ 
+        include_docs: true,
+        descending: true 
+      });
+      
+      console.log('Raw PouchDB result:', result);
+      
+      const stories = result.rows
+        .map((row: any) => {
+          console.log('Processing row:', row);
+          return row.doc as Story;
+        })
+        .filter((doc: any) => doc && doc.id) // Filter out any design docs
+        .map((story: any) => {
+          console.log('Before migration:', story);
+          const migrated = this.migrateStory(story);
+          console.log('After migration:', migrated);
+          return migrated;
+        });
+        
+      return stories;
+    } catch (error) {
+      console.error('Error fetching stories:', error);
+      return [];
     }
-    return [];
   }
 
-  getStory(id: string): Story | null {
-    const stories = this.getAllStories();
-    return stories.find(story => story.id === id) || null;
+  async getStory(id: string): Promise<Story | null> {
+    try {
+      console.log('Getting story with id:', id);
+      // Try to get by _id first, then by id
+      let doc;
+      try {
+        doc = await this.db.get(id);
+        console.log('Found story by _id:', doc);
+      } catch (error) {
+        if ((error as any).status === 404) {
+          console.log('Story not found by _id, trying id field...');
+          // Try to find by id field
+          const result = await this.db.find({
+            selector: { id: id }
+          });
+          console.log('Find result:', result);
+          if (result.docs && result.docs.length > 0) {
+            doc = result.docs[0];
+            console.log('Found story by id field:', doc);
+          } else {
+            console.log('Story not found');
+            return null;
+          }
+        } else {
+          throw error;
+        }
+      }
+      const migrated = this.migrateStory(doc as Story);
+      console.log('Migrated story:', migrated);
+      return migrated;
+    } catch (error) {
+      console.error('Error getting story:', error);
+      return null;
+    }
   }
 
-  createStory(): Story {
+  async createStory(): Promise<Story> {
     const firstChapter: Chapter = {
       id: this.generateId(),
       title: 'Kapitel 1',
@@ -39,8 +94,10 @@ export class StoryService {
       updatedAt: new Date()
     };
 
+    const storyId = this.generateId();
     const newStory: Story = {
-      id: this.generateId(),
+      _id: storyId,
+      id: storyId,
       title: '',
       chapters: [firstChapter],
       settings: { ...DEFAULT_STORY_SETTINGS },
@@ -48,31 +105,55 @@ export class StoryService {
       updatedAt: new Date()
     };
 
-    const stories = this.getAllStories();
-    stories.unshift(newStory);
-    this.saveStories(stories);
-
-    return newStory;
-  }
-
-  updateStory(updatedStory: Story): void {
-    const stories = this.getAllStories();
-    const index = stories.findIndex(story => story.id === updatedStory.id);
-    
-    if (index !== -1) {
-      stories[index] = { ...updatedStory };
-      this.saveStories(stories);
+    try {
+      const response = await this.db.put(newStory);
+      newStory._rev = response.rev;
+      return newStory;
+    } catch (error) {
+      console.error('Error creating story:', error);
+      throw error;
     }
   }
 
-  deleteStory(id: string): void {
-    const stories = this.getAllStories();
-    const filteredStories = stories.filter(story => story.id !== id);
-    this.saveStories(filteredStories);
+  async updateStory(updatedStory: Story): Promise<void> {
+    try {
+      // Ensure we have the latest revision
+      const currentDoc = await this.db.get(updatedStory._id || updatedStory.id);
+      updatedStory._rev = currentDoc._rev;
+      updatedStory._id = updatedStory._id || updatedStory.id;
+      
+      await this.db.put(updatedStory);
+    } catch (error) {
+      console.error('Error updating story:', error);
+      throw error;
+    }
   }
 
-  private saveStories(stories: Story[]): void {
-    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(stories));
+  async deleteStory(id: string): Promise<void> {
+    try {
+      let doc;
+      try {
+        doc = await this.db.get(id);
+      } catch (error) {
+        if ((error as any).status === 404) {
+          // Try to find by id field
+          const result = await this.db.find({
+            selector: { id: id }
+          });
+          if (result.docs && result.docs.length > 0) {
+            doc = result.docs[0];
+          } else {
+            throw new Error('Story not found');
+          }
+        } else {
+          throw error;
+        }
+      }
+      await this.db.remove(doc);
+    } catch (error) {
+      console.error('Error deleting story:', error);
+      throw error;
+    }
   }
 
   // Migration helper for old stories
@@ -82,6 +163,11 @@ export class StoryService {
       createdAt: new Date(story.createdAt),
       updatedAt: new Date(story.updatedAt)
     };
+
+    // Ensure _id is set
+    if (!migrated._id && migrated.id) {
+      migrated._id = migrated.id;
+    }
 
     // Add default settings if not present or merge missing fields
     if (!migrated.settings) {
@@ -123,7 +209,7 @@ export class StoryService {
       migrated.chapters = [firstChapter];
       delete migrated.content;
       
-      // Save migrated story back to localStorage
+      // Save migrated story back
       setTimeout(() => this.updateStory(migrated), 0);
     }
 
@@ -146,8 +232,8 @@ export class StoryService {
   }
 
   // Chapter operations
-  addChapter(storyId: string, title: string = ''): Chapter {
-    const story = this.getStory(storyId);
+  async addChapter(storyId: string, title: string = ''): Promise<Chapter> {
+    const story = await this.getStory(storyId);
     if (!story) throw new Error('Story not found');
 
     const newChapter: Chapter = {
@@ -168,13 +254,13 @@ export class StoryService {
 
     story.chapters.push(newChapter);
     story.updatedAt = new Date();
-    this.updateStory(story);
+    await this.updateStory(story);
     
     return newChapter;
   }
 
-  updateChapter(storyId: string, chapterId: string, updates: Partial<Chapter>): void {
-    const story = this.getStory(storyId);
+  async updateChapter(storyId: string, chapterId: string, updates: Partial<Chapter>): Promise<void> {
+    const story = await this.getStory(storyId);
     if (!story) return;
 
     const chapterIndex = story.chapters.findIndex(c => c.id === chapterId);
@@ -186,11 +272,11 @@ export class StoryService {
       updatedAt: new Date()
     };
     story.updatedAt = new Date();
-    this.updateStory(story);
+    await this.updateStory(story);
   }
 
-  deleteChapter(storyId: string, chapterId: string): void {
-    const story = this.getStory(storyId);
+  async deleteChapter(storyId: string, chapterId: string): Promise<void> {
+    const story = await this.getStory(storyId);
     if (!story) return;
 
     story.chapters = story.chapters.filter(c => c.id !== chapterId);
@@ -199,12 +285,12 @@ export class StoryService {
       chapter.order = index + 1;
     });
     story.updatedAt = new Date();
-    this.updateStory(story);
+    await this.updateStory(story);
   }
 
   // Scene operations
-  addScene(storyId: string, chapterId: string, title: string = ''): Scene {
-    const story = this.getStory(storyId);
+  async addScene(storyId: string, chapterId: string, title: string = ''): Promise<Scene> {
+    const story = await this.getStory(storyId);
     if (!story) throw new Error('Story not found');
 
     const chapter = story.chapters.find(c => c.id === chapterId);
@@ -222,13 +308,13 @@ export class StoryService {
     chapter.scenes.push(newScene);
     chapter.updatedAt = new Date();
     story.updatedAt = new Date();
-    this.updateStory(story);
+    await this.updateStory(story);
     
     return newScene;
   }
 
-  updateScene(storyId: string, chapterId: string, sceneId: string, updates: Partial<Scene>): void {
-    const story = this.getStory(storyId);
+  async updateScene(storyId: string, chapterId: string, sceneId: string, updates: Partial<Scene>): Promise<void> {
+    const story = await this.getStory(storyId);
     if (!story) return;
 
     const chapter = story.chapters.find(c => c.id === chapterId);
@@ -244,11 +330,11 @@ export class StoryService {
     };
     chapter.updatedAt = new Date();
     story.updatedAt = new Date();
-    this.updateStory(story);
+    await this.updateStory(story);
   }
 
-  deleteScene(storyId: string, chapterId: string, sceneId: string): void {
-    const story = this.getStory(storyId);
+  async deleteScene(storyId: string, chapterId: string, sceneId: string): Promise<void> {
+    const story = await this.getStory(storyId);
     if (!story) return;
 
     const chapter = story.chapters.find(c => c.id === chapterId);
@@ -261,11 +347,11 @@ export class StoryService {
     });
     chapter.updatedAt = new Date();
     story.updatedAt = new Date();
-    this.updateStory(story);
+    await this.updateStory(story);
   }
 
-  getScene(storyId: string, chapterId: string, sceneId: string): Scene | null {
-    const story = this.getStory(storyId);
+  async getScene(storyId: string, chapterId: string, sceneId: string): Promise<Scene | null> {
+    const story = await this.getStory(storyId);
     if (!story) return null;
 
     const chapter = story.chapters.find(c => c.id === chapterId);

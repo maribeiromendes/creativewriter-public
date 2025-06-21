@@ -567,18 +567,18 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     private promptManager: PromptManagerService
   ) {}
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
     // Check if we're on mobile and start with sidebar hidden
     this.checkMobileAndHideSidebar();
     
     const storyId = this.route.snapshot.paramMap.get('id');
     if (storyId) {
-      const existingStory = this.storyService.getStory(storyId);
+      const existingStory = await this.storyService.getStory(storyId);
       if (existingStory) {
         this.story = { ...existingStory };
         
         // Initialize prompt manager with current story
-        this.promptManager.setCurrentStory(this.story.id);
+        await this.promptManager.setCurrentStory(this.story.id);
         
         // Auto-select first scene
         if (this.story.chapters && this.story.chapters.length > 0 && 
@@ -587,6 +587,16 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
           this.activeSceneId = this.story.chapters[0].scenes[0].id;
           this.activeScene = this.story.chapters[0].scenes[0];
         }
+        
+        // Trigger change detection to ensure template is updated
+        this.cdr.detectChanges();
+        
+        // Initialize editor after story is loaded and view is available
+        setTimeout(() => {
+          if (this.editorContainer) {
+            this.initializeProseMirrorEditor();
+          }
+        }, 0);
       } else {
         // Wenn Story nicht gefunden wird, zur Übersicht zurück
         this.router.navigate(['/']);
@@ -609,7 +619,8 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    this.initializeProseMirrorEditor();
+    // Editor will be initialized after story data is loaded in ngOnInit
+    // This ensures proper timing
   }
 
   ngOnDestroy(): void {
@@ -623,10 +634,10 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     this.subscription.unsubscribe();
   }
 
-  onSceneSelected(event: {chapterId: string, sceneId: string}): void {
+  async onSceneSelected(event: {chapterId: string, sceneId: string}): Promise<void> {
     this.activeChapterId = event.chapterId;
     this.activeSceneId = event.sceneId;
-    this.activeScene = this.storyService.getScene(this.story.id, event.chapterId, event.sceneId);
+    this.activeScene = await this.storyService.getScene(this.story.id, event.chapterId, event.sceneId);
     this.updateEditorContent();
     
     // Update story context for all Beat AI components
@@ -664,14 +675,14 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
-  private saveStory(): void {
+  private async saveStory(): Promise<void> {
     // Only save story title and active scene content - don't overwrite entire story structure
     this.story.updatedAt = new Date();
     
     // Save story title only
-    const currentStory = this.storyService.getStory(this.story.id);
+    const currentStory = await this.storyService.getStory(this.story.id);
     if (currentStory) {
-      this.storyService.updateStory({
+      await this.storyService.updateStory({
         ...currentStory,
         title: this.story.title,
         updatedAt: new Date()
@@ -680,7 +691,7 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     
     // Save active scene changes
     if (this.activeScene && this.activeChapterId) {
-      this.storyService.updateScene(
+      await this.storyService.updateScene(
         this.story.id, 
         this.activeChapterId, 
         this.activeScene.id, 
@@ -694,40 +705,40 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     this.hasUnsavedChanges = false;
     
     // Refresh story data to get latest structure
-    const updatedStory = this.storyService.getStory(this.story.id);
+    const updatedStory = await this.storyService.getStory(this.story.id);
     if (updatedStory) {
       this.story = updatedStory;
       // Refresh active scene reference
       if (this.activeChapterId && this.activeSceneId) {
-        this.activeScene = this.storyService.getScene(this.story.id, this.activeChapterId, this.activeSceneId);
+        this.activeScene = await this.storyService.getScene(this.story.id, this.activeChapterId, this.activeSceneId);
       }
     }
   }
 
-  goBack(): void {
+  async goBack(): Promise<void> {
     if (this.hasUnsavedChanges) {
-      this.saveStory();
+      await this.saveStory();
     }
     this.router.navigate(['/']);
   }
 
-  goToCodex(): void {
+  async goToCodex(): Promise<void> {
     if (this.hasUnsavedChanges) {
-      this.saveStory();
+      await this.saveStory();
     }
     this.router.navigate(['/stories/codex', this.story.id]);
   }
 
-  goToSettings(): void {
+  async goToSettings(): Promise<void> {
     if (this.hasUnsavedChanges) {
-      this.saveStory();
+      await this.saveStory();
     }
     this.router.navigate(['/stories/settings', this.story.id]);
   }
 
-  goToAILogs(): void {
+  async goToAILogs(): Promise<void> {
     if (this.hasUnsavedChanges) {
-      this.saveStory();
+      await this.saveStory();
     }
     this.router.navigate(['/ai-logs']);
   }

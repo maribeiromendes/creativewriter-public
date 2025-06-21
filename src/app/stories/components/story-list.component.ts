@@ -222,12 +222,12 @@ export class StoryListComponent implements OnInit {
     this.loadStories();
   }
 
-  loadStories(): void {
-    this.stories = this.storyService.getAllStories();
+  async loadStories(): Promise<void> {
+    this.stories = await this.storyService.getAllStories();
   }
 
-  createNewStory(): void {
-    const newStory = this.storyService.createStory();
+  async createNewStory(): Promise<void> {
+    const newStory = await this.storyService.createStory();
     this.router.navigate(['/stories/editor', newStory.id]);
   }
 
@@ -247,11 +247,11 @@ export class StoryListComponent implements OnInit {
     this.router.navigate(['/stories/import/novelcrafter']);
   }
 
-  deleteStory(event: Event, storyId: string): void {
+  async deleteStory(event: Event, storyId: string): Promise<void> {
     event.stopPropagation();
     if (confirm('Möchten Sie diese Geschichte wirklich löschen?')) {
-      this.storyService.deleteStory(storyId);
-      this.loadStories();
+      await this.storyService.deleteStory(storyId);
+      await this.loadStories();
     }
   }
 

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Observable, Subject, delay, map, scan, timer, catchError, of, switchMap } from 'rxjs';
+import { Observable, Subject, delay, map, scan, timer, catchError, of, switchMap, from } from 'rxjs';
 import { BeatAI, BeatAIGenerationEvent, BeatAIPromptEvent } from '../../stories/models/beat-ai.interface';
 import { OpenRouterApiService } from '../../core/services/openrouter-api.service';
 import { SettingsService } from '../../core/services/settings.service';
@@ -110,72 +110,81 @@ export class BeatAIService {
       return of(userPrompt);
     }
 
-    const story = this.storyService.getStory(options.storyId);
-    if (!story || !story.settings) {
-      return of(userPrompt);
-    }
+    return from(this.storyService.getStory(options.storyId)).pipe(
+      switchMap((story: any) => {
+        if (!story || typeof story === 'string' || !story.settings) {
+          return of(userPrompt);
+        }
 
-    // Set current story in prompt manager
-    this.promptManager.setCurrentStory(story.id);
+        // Set current story in prompt manager
+        return from(this.promptManager.setCurrentStory(story.id)).pipe(
+          map(() => story)
+        );
+      }),
+      switchMap((story: any) => {
+        if (!story || typeof story === 'string' || !story.settings) {
+          return of(userPrompt);
+        }
 
-    // Get codex entries
-    const codexEntries = this.codexService.getAllCodexEntries(options.storyId);
-    const codexText = codexEntries.length > 0 
-      ? codexEntries.map(categoryData => {
-          const entries = categoryData.entries.map(entry => {
-            let entryText = `**${entry.title}**\n${entry.content || ''}`;
-            if (entry.metadata?.['storyRole'] && categoryData.category === 'Charaktere') {
-              entryText += `\nStory-Rolle: ${entry.metadata['storyRole']}`;
-            }
-            if (entry.metadata?.['customFields'] && entry.metadata['customFields'].length > 0) {
-              const customFieldsText = entry.metadata['customFields']
-                .map((field: any) => `${field.name}: ${field.value}`)
-                .join('\n');
-              entryText += `\n${customFieldsText}`;
-            }
-            if (entry.tags && entry.tags.length > 0) {
-              entryText += `\nTags: ${entry.tags.join(', ')}`;
-            }
-            return entryText;
-          }).join('\n\n');
-          return `### ${categoryData.category}\n${entries}`;
-        }).join('\n\n')
-      : '';
+        // Get codex entries
+        const codexEntries = this.codexService.getAllCodexEntries(options.storyId!);
+        const codexText = codexEntries.length > 0 
+          ? codexEntries.map(categoryData => {
+              const entries = categoryData.entries.map(entry => {
+                let entryText = `**${entry.title}**\n${entry.content || ''}`;
+                if (entry.metadata?.['storyRole'] && categoryData.category === 'Charaktere') {
+                  entryText += `\nStory-Rolle: ${entry.metadata['storyRole']}`;
+                }
+                if (entry.metadata?.['customFields'] && entry.metadata['customFields'].length > 0) {
+                  const customFieldsText = entry.metadata['customFields']
+                    .map((field: any) => `${field.name}: ${field.value}`)
+                    .join('\n');
+                  entryText += `\n${customFieldsText}`;
+                }
+                if (entry.tags && entry.tags.length > 0) {
+                  entryText += `\nTags: ${entry.tags.join(', ')}`;
+                }
+                return entryText;
+              }).join('\n\n');
+              return `### ${categoryData.category}\n${entries}`;
+            }).join('\n\n')
+          : '';
 
-    // Get previous scenes summaries
-    const summariesBefore = options.sceneId 
-      ? this.promptManager.getSummariesBeforeScene(options.sceneId)
-      : '';
+        // Get previous scenes summaries
+        const summariesBefore = options.sceneId 
+          ? this.promptManager.getSummariesBeforeScene(options.sceneId)
+          : '';
 
-    // Get current scene text
-    const sceneText = options.sceneId 
-      ? this.promptManager.getPreviousSceneText(options.sceneId)
-      : '';
+        // Get current scene text
+        const sceneText = options.sceneId 
+          ? this.promptManager.getPreviousSceneText(options.sceneId)
+          : '';
 
+        // Build template placeholders
+        const placeholders = {
+          SystemMessage: story.settings.systemMessage,
+          codexEntries: codexText,
+          summariesOfScenesBefore: summariesBefore,
+          sceneFullText: sceneText,
+          wordCount: (options.wordCount || 200).toString(),
+          prompt: userPrompt,
+          writingStyle: story.settings.beatInstruction === 'continue' 
+            ? 'Setze die Geschichte fort' 
+            : 'Bleibe im Moment'
+        };
 
-    // Build template placeholders
-    const placeholders = {
-      SystemMessage: story.settings.systemMessage,
-      codexEntries: codexText,
-      summariesOfScenesBefore: summariesBefore,
-      sceneFullText: sceneText,
-      wordCount: (options.wordCount || 200).toString(),
-      prompt: userPrompt,
-      writingStyle: story.settings.beatInstruction === 'continue' 
-        ? 'Setze die Geschichte fort' 
-        : 'Bleibe im Moment'
-    };
+        // Use beatGenerationTemplate from story settings
+        let processedTemplate = story.settings.beatGenerationTemplate;
+        
+        Object.entries(placeholders).forEach(([key, value]) => {
+          const placeholder = `{${key}}`;
+          const regex = new RegExp(placeholder.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
+          processedTemplate = processedTemplate.replace(regex, value || '');
+        });
 
-    // Use beatGenerationTemplate from story settings
-    let processedTemplate = story.settings.beatGenerationTemplate;
-    
-    Object.entries(placeholders).forEach(([key, value]) => {
-      const placeholder = `{${key}}`;
-      const regex = new RegExp(placeholder.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
-      processedTemplate = processedTemplate.replace(regex, value || '');
-    });
-
-    return of(processedTemplate);
+        return of(processedTemplate);
+      })
+    );
   }
 
   private generateFallbackContent(prompt: string, beatId: string): Observable<string> {

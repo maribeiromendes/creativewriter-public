@@ -487,12 +487,12 @@ export class NovelCrafterImportService {
 
   async importToStory(importResult: NovelCrafterImportResult): Promise<string> {
     // Create the story
-    const newStory = this.storyService.createStory();
+    const newStory = await this.storyService.createStory();
     
     // Update story with imported data
     newStory.title = importResult.story.title;
     newStory.chapters = importResult.story.chapters;
-    this.storyService.updateStory(newStory);
+    await this.storyService.updateStory(newStory);
     
     const storyId = newStory.id;
 

@@ -464,10 +464,10 @@ export class StorySettingsComponent implements OnInit {
     private storyService: StoryService
   ) {}
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
     const storyId = this.route.snapshot.paramMap.get('id');
     if (storyId) {
-      this.story = this.storyService.getStory(storyId);
+      this.story = await this.storyService.getStory(storyId);
       if (this.story) {
         // Load existing settings or use defaults
         this.settings = this.story.settings 
@@ -485,12 +485,12 @@ export class StorySettingsComponent implements OnInit {
       JSON.stringify(this.settings) !== JSON.stringify(this.originalSettings);
   }
 
-  saveSettings(): void {
+  async saveSettings(): Promise<void> {
     if (!this.story) return;
 
     // Update story with new settings
     this.story.settings = { ...this.settings };
-    this.storyService.updateStory(this.story);
+    await this.storyService.updateStory(this.story);
     
     this.originalSettings = { ...this.settings };
     this.hasUnsavedChanges = false;

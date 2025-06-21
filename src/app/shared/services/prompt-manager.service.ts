@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { map, distinctUntilChanged } from 'rxjs/operators';
+import { BehaviorSubject, Observable, from } from 'rxjs';
+import { map, distinctUntilChanged, switchMap } from 'rxjs/operators';
 import { Story, Scene, Chapter } from '../../stories/models/story.interface';
 import { StoryService } from '../../stories/services/story.service';
 
@@ -37,10 +37,11 @@ export class PromptManagerService {
   private initializeStoryWatching(): void {
     // Watch for story ID changes and update flat scenes
     this.currentStoryId$.pipe(
-      map(currentStoryId => {
-        if (!currentStoryId) return [];
-        const story = this.storyService.getStory(currentStoryId);
-        return story ? this.buildFlatScenesList(story) : [];
+      switchMap(currentStoryId => {
+        if (!currentStoryId) return from(Promise.resolve([]));
+        return from(this.storyService.getStory(currentStoryId)).pipe(
+          map(story => story ? this.buildFlatScenesList(story) : [])
+        );
       }),
       distinctUntilChanged((prev, curr) => 
         JSON.stringify(prev) === JSON.stringify(curr)
@@ -53,12 +54,12 @@ export class PromptManagerService {
   /**
    * Set the current story to watch
    */
-  setCurrentStory(storyId: string | null): void {
+  async setCurrentStory(storyId: string | null): Promise<void> {
     this.currentStoryIdSubject.next(storyId);
     
     // Force immediate update
     if (storyId) {
-      const story = this.storyService.getStory(storyId);
+      const story = await this.storyService.getStory(storyId);
       if (story) {
         const flatScenes = this.buildFlatScenesList(story);
         this.flatScenesSubject.next(flatScenes);
@@ -259,11 +260,11 @@ export class PromptManagerService {
   /**
    * Force refresh of current story data
    */
-  refresh(): void {
+  async refresh(): Promise<void> {
     const currentStoryId = this.currentStoryIdSubject.value;
     if (currentStoryId) {
       // Force reload from StoryService
-      const story = this.storyService.getStory(currentStoryId);
+      const story = await this.storyService.getStory(currentStoryId);
       if (story) {
         const flatScenes = this.buildFlatScenesList(story);
         // Force update by creating a new array reference to bypass distinctUntilChanged

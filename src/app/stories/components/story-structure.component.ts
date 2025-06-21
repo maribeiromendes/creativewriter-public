@@ -508,10 +508,10 @@ export class StoryStructureComponent implements AfterViewInit {
     }
   }
 
-  addChapter(): void {
-    this.storyService.addChapter(this.story.id);
+  async addChapter(): Promise<void> {
+    await this.storyService.addChapter(this.story.id);
     // Refresh story data
-    const updatedStory = this.storyService.getStory(this.story.id);
+    const updatedStory = await this.storyService.getStory(this.story.id);
     if (updatedStory) {
       this.story = updatedStory;
       // Auto-expand new chapter
@@ -520,13 +520,13 @@ export class StoryStructureComponent implements AfterViewInit {
     }
   }
 
-  updateChapter(chapter: Chapter): void {
-    this.storyService.updateChapter(this.story.id, chapter.id, { title: chapter.title });
+  async updateChapter(chapter: Chapter): Promise<void> {
+    await this.storyService.updateChapter(this.story.id, chapter.id, { title: chapter.title });
     // Refresh prompt manager when chapter title changes
     this.promptManager.refresh();
   }
 
-  deleteChapter(chapterId: string, event: Event): void {
+  async deleteChapter(chapterId: string, event: Event): Promise<void> {
     event.stopPropagation();
     if (this.story.chapters.length <= 1) {
       alert('Eine Geschichte muss mindestens ein Kapitel haben.');
@@ -534,8 +534,8 @@ export class StoryStructureComponent implements AfterViewInit {
     }
     
     if (confirm('Kapitel wirklich löschen? Alle Szenen gehen verloren.')) {
-      this.storyService.deleteChapter(this.story.id, chapterId);
-      const updatedStory = this.storyService.getStory(this.story.id);
+      await this.storyService.deleteChapter(this.story.id, chapterId);
+      const updatedStory = await this.storyService.getStory(this.story.id);
       if (updatedStory) {
         this.story = updatedStory;
         this.expandedChapters.delete(chapterId);
@@ -543,9 +543,9 @@ export class StoryStructureComponent implements AfterViewInit {
     }
   }
 
-  addScene(chapterId: string): void {
-    this.storyService.addScene(this.story.id, chapterId);
-    const updatedStory = this.storyService.getStory(this.story.id);
+  async addScene(chapterId: string): Promise<void> {
+    await this.storyService.addScene(this.story.id, chapterId);
+    const updatedStory = await this.storyService.getStory(this.story.id);
     if (updatedStory) {
       this.story = updatedStory;
       // Auto-select new scene
@@ -557,13 +557,13 @@ export class StoryStructureComponent implements AfterViewInit {
     }
   }
 
-  updateScene(chapterId: string, scene: Scene): void {
-    this.storyService.updateScene(this.story.id, chapterId, scene.id, { title: scene.title });
+  async updateScene(chapterId: string, scene: Scene): Promise<void> {
+    await this.storyService.updateScene(this.story.id, chapterId, scene.id, { title: scene.title });
     // Refresh prompt manager when scene title changes
     this.promptManager.refresh();
   }
 
-  deleteScene(chapterId: string, sceneId: string, event: Event): void {
+  async deleteScene(chapterId: string, sceneId: string, event: Event): Promise<void> {
     event.stopPropagation();
     const chapter = this.story.chapters.find(c => c.id === chapterId);
     if (chapter && chapter.scenes.length <= 1) {
@@ -572,8 +572,8 @@ export class StoryStructureComponent implements AfterViewInit {
     }
     
     if (confirm('Szene wirklich löschen?')) {
-      this.storyService.deleteScene(this.story.id, chapterId, sceneId);
-      const updatedStory = this.storyService.getStory(this.story.id);
+      await this.storyService.deleteScene(this.story.id, chapterId, sceneId);
+      const updatedStory = await this.storyService.getStory(this.story.id);
       if (updatedStory) {
         this.story = updatedStory;
       }
@@ -628,15 +628,15 @@ Die Zusammenfassung soll die wichtigsten Handlungspunkte und Charakterentwicklun
       maxTokens: 150,
       temperature: 0.3
     }).subscribe({
-      next: (response) => {
+      next: async (response) => {
         if (response.choices && response.choices.length > 0) {
           const summary = response.choices[0].message.content.trim();
-          this.updateSceneSummary(chapterId, sceneId, summary);
+          await this.updateSceneSummary(chapterId, sceneId, summary);
           
           // Update the scene summary generated timestamp
           if (scene) {
             scene.summaryGeneratedAt = new Date();
-            this.storyService.updateScene(this.story.id, chapterId, sceneId, {
+            await this.storyService.updateScene(this.story.id, chapterId, sceneId, {
               summary: summary,
               summaryGeneratedAt: scene.summaryGeneratedAt
             });
@@ -654,13 +654,13 @@ Die Zusammenfassung soll die wichtigsten Handlungspunkte und Charakterentwicklun
     });
   }
   
-  updateSceneSummary(chapterId: string, sceneId: string, summary: string): void {
+  async updateSceneSummary(chapterId: string, sceneId: string, summary: string): Promise<void> {
     const chapter = this.story.chapters.find(c => c.id === chapterId);
     const scene = chapter?.scenes.find(s => s.id === sceneId);
     
     if (scene) {
       scene.summary = summary;
-      this.storyService.updateScene(this.story.id, chapterId, sceneId, { summary });
+      await this.storyService.updateScene(this.story.id, chapterId, sceneId, { summary });
       // Refresh prompt manager when scene summary changes
       this.promptManager.refresh();
     }

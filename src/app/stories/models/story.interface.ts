@@ -26,6 +26,8 @@ export interface StorySettings {
 }
 
 export interface Story {
+  _id?: string;
+  _rev?: string;
   id: string;
   title: string;
   chapters: Chapter[];
