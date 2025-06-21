@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
+import { AuthService } from './auth.service';
 
 declare var PouchDB: any;
 
@@ -24,13 +25,38 @@ export class DatabaseService {
 
   public syncStatus$: Observable<SyncStatus> = this.syncStatusSubject.asObservable();
 
-  constructor() {
+  constructor(private authService: AuthService) {
     // PouchDB is loaded globally from CDN
     if (typeof PouchDB === 'undefined') {
       throw new Error('PouchDB is not loaded. Please check index.html');
     }
     
-    this.db = new PouchDB('creative-writer-stories');
+    // Initialize with default database (will be updated when user logs in)
+    this.initializeDatabase('creative-writer-stories');
+    
+    // Subscribe to user changes to switch databases
+    this.authService.currentUser$.subscribe(user => {
+      this.handleUserChange(user);
+    });
+
+    // Setup online/offline detection
+    window.addEventListener('online', () => this.updateOnlineStatus(true));
+    window.addEventListener('offline', () => this.updateOnlineStatus(false));
+  }
+
+  private initializeDatabase(dbName: string): void {
+    console.log('Initializing database:', dbName);
+    
+    // Close existing connections
+    if (this.db) {
+      this.db.close();
+    }
+    if (this.syncHandler) {
+      this.syncHandler.cancel();
+      this.syncHandler = null;
+    }
+    
+    this.db = new PouchDB(dbName);
     
     // Create indexes for better query performance
     this.db.createIndex({
@@ -46,12 +72,20 @@ export class DatabaseService {
       console.warn('Could not create id index:', err);
     });
 
-    // Setup online/offline detection
-    window.addEventListener('online', () => this.updateOnlineStatus(true));
-    window.addEventListener('offline', () => this.updateOnlineStatus(false));
-
-    // Auto-setup sync if remote URL is available
+    // Setup sync for the new database
     this.setupSync();
+  }
+
+  private async handleUserChange(user: any): Promise<void> {
+    if (user) {
+      const userDbName = this.authService.getUserDatabaseName();
+      if (userDbName) {
+        this.initializeDatabase(userDbName);
+      }
+    } else {
+      // User logged out - switch to anonymous/demo database
+      this.initializeDatabase('creative-writer-stories-anonymous');
+    }
   }
 
   getDatabase(): any {
@@ -95,14 +129,17 @@ export class DatabaseService {
     const hostname = window.location.hostname;
     const protocol = window.location.protocol;
     
+    // Get the current database name (user-specific)
+    const dbName = this.db ? this.db.name : 'creative-writer-stories-anonymous';
+    
     // For development
     if (hostname === 'localhost' || hostname === '127.0.0.1') {
-      return `${protocol}//${hostname}:5984/creative-writer-stories`;
+      return `${protocol}//${hostname}:5984/${dbName}`;
     }
     
     // For production (assume same host, different port)
     if (hostname && hostname !== 'localhost') {
-      return `${protocol}//${hostname}:5984/creative-writer-stories`;
+      return `${protocol}//${hostname}:5984/${dbName}`;
     }
     
     return null;

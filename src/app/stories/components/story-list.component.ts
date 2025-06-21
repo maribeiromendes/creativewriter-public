@@ -4,16 +4,22 @@ import { CommonModule } from '@angular/common';
 import { StoryService } from '../services/story.service';
 import { Story } from '../models/story.interface';
 import { SyncStatusComponent } from '../../shared/components/sync-status.component';
+import { LoginComponent } from '../../shared/components/login.component';
+import { AuthService, User } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-story-list',
   standalone: true,
-  imports: [CommonModule, SyncStatusComponent],
+  imports: [CommonModule, SyncStatusComponent, LoginComponent],
   template: `
     <div class="story-list-container">
       <div class="header">
         <h1>Meine Geschichten</h1>
         <div class="header-actions">
+          <div class="user-info" *ngIf="currentUser">
+            <span class="user-greeting">👋 {{ currentUser.displayName || currentUser.username }}</span>
+            <button class="logout-btn" (click)="logout()" title="Abmelden">Abmelden</button>
+          </div>
           <app-sync-status [showActions]="true"></app-sync-status>
           <button class="ai-logger-btn" (click)="goToAILogger()" title="AI Request Logger">📊 AI Logs</button>
           <button class="settings-btn" (click)="goToSettings()" title="Einstellungen">⚙️</button>
@@ -47,6 +53,9 @@ import { SyncStatusComponent } from '../../shared/components/sync-status.compone
           <p>Beginne mit dem Schreiben deiner ersten Geschichte!</p>
         </div>
       </ng-template>
+      
+      <!-- Login Modal -->
+      <app-login></app-login>
     </div>
   `,
   styles: [`
@@ -70,7 +79,39 @@ import { SyncStatusComponent } from '../../shared/components/sync-status.compone
     
     .header-actions {
       display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    
+    .user-info {
+      display: flex;
+      align-items: center;
       gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .user-greeting {
+      color: #f8f9fa;
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+    
+    .logout-btn {
+      background: rgba(220, 53, 69, 0.8);
+      color: white;
+      border: none;
+      padding: 0.25rem 0.5rem;
+      border-radius: 12px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    
+    .logout-btn:hover {
+      background: rgba(220, 53, 69, 1);
     }
     
     .ai-logger-btn,
@@ -214,14 +255,29 @@ import { SyncStatusComponent } from '../../shared/components/sync-status.compone
 })
 export class StoryListComponent implements OnInit {
   stories: Story[] = [];
+  currentUser: User | null = null;
 
   constructor(
     private storyService: StoryService,
-    private router: Router
+    private router: Router,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
     this.loadStories();
+    
+    // Subscribe to user changes
+    this.authService.currentUser$.subscribe(user => {
+      this.currentUser = user;
+      // Reload stories when user changes (different database)
+      this.loadStories();
+    });
+  }
+
+  logout(): void {
+    if (confirm('Möchten Sie sich wirklich abmelden? Lokale Änderungen bleiben erhalten.')) {
+      this.authService.logout();
+    }
   }
 
   async loadStories(): Promise<void> {
