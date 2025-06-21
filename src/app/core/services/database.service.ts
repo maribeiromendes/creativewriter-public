@@ -44,48 +44,63 @@ export class DatabaseService {
     window.addEventListener('offline', () => this.updateOnlineStatus(false));
   }
 
-  private initializeDatabase(dbName: string): void {
+  private async initializeDatabase(dbName: string): Promise<void> {
     console.log('Initializing database:', dbName);
     
-    // Close existing connections
+    // Stop sync first
+    await this.stopSync();
+    
+    // Close existing database safely
     if (this.db) {
-      this.db.close();
+      try {
+        await this.db.close();
+      } catch (error) {
+        console.warn('Error closing database:', error);
+      }
     }
-    if (this.syncHandler) {
-      this.syncHandler.cancel();
-      this.syncHandler = null;
-    }
+    
+    // Small delay to ensure cleanup
+    await new Promise(resolve => setTimeout(resolve, 100));
     
     this.db = new PouchDB(dbName);
     
     // Create indexes for better query performance
-    this.db.createIndex({
-      index: { fields: ['createdAt'] }
-    }).catch((err: any) => {
+    try {
+      await this.db.createIndex({
+        index: { fields: ['createdAt'] }
+      });
+    } catch (err: any) {
       console.warn('Could not create createdAt index:', err);
-    });
+    }
     
-    // Create index for id field (for backward compatibility)
-    this.db.createIndex({
-      index: { fields: ['id'] }
-    }).catch((err: any) => {
+    try {
+      await this.db.createIndex({
+        index: { fields: ['id'] }
+      });
+    } catch (err: any) {
       console.warn('Could not create id index:', err);
-    });
+    }
 
     // Setup sync for the new database
-    this.setupSync();
+    await this.setupSync();
   }
 
-  private async handleUserChange(user: any): Promise<void> {
-    if (user) {
-      const userDbName = this.authService.getUserDatabaseName();
-      if (userDbName) {
-        this.initializeDatabase(userDbName);
+  private handleUserChange(user: any): void {
+    // Use setTimeout to avoid immediate database switching during constructor
+    setTimeout(async () => {
+      if (user) {
+        const userDbName = this.authService.getUserDatabaseName();
+        if (userDbName && userDbName !== (this.db?.name)) {
+          await this.initializeDatabase(userDbName);
+        }
+      } else {
+        // User logged out - switch to anonymous/demo database
+        const anonymousDb = 'creative-writer-stories-anonymous';
+        if (this.db?.name !== anonymousDb) {
+          await this.initializeDatabase(anonymousDb);
+        }
       }
-    } else {
-      // User logged out - switch to anonymous/demo database
-      this.initializeDatabase('creative-writer-stories-anonymous');
-    }
+    }, 100);
   }
 
   getDatabase(): any {
@@ -192,7 +207,11 @@ export class DatabaseService {
 
   async stopSync(): Promise<void> {
     if (this.syncHandler) {
-      this.syncHandler.cancel();
+      try {
+        this.syncHandler.cancel();
+      } catch (error) {
+        console.warn('Error canceling sync:', error);
+      }
       this.syncHandler = null;
     }
     this.updateSyncStatus({ isSync: false });
