@@ -10,6 +10,7 @@ import { SlashCommandResult, SlashCommandAction } from '../models/slash-command.
 import { Subscription, debounceTime, Subject } from 'rxjs';
 import { ProseMirrorEditorService } from '../../shared/services/prosemirror-editor.service';
 import { EditorView } from 'prosemirror-view';
+import { Selection, TextSelection } from 'prosemirror-state';
 import { BeatAI, BeatAIPromptEvent } from '../models/beat-ai.interface';
 import { BeatAIService } from '../../shared/services/beat-ai.service';
 import { PromptManagerService } from '../../shared/services/prompt-manager.service';
@@ -580,12 +581,15 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
         // Initialize prompt manager with current story
         await this.promptManager.setCurrentStory(this.story.id);
         
-        // Auto-select first scene
-        if (this.story.chapters && this.story.chapters.length > 0 && 
-            this.story.chapters[0].scenes && this.story.chapters[0].scenes.length > 0) {
-          this.activeChapterId = this.story.chapters[0].id;
-          this.activeSceneId = this.story.chapters[0].scenes[0].id;
-          this.activeScene = this.story.chapters[0].scenes[0];
+        // Auto-select last scene in last chapter
+        if (this.story.chapters && this.story.chapters.length > 0) {
+          const lastChapter = this.story.chapters[this.story.chapters.length - 1];
+          if (lastChapter.scenes && lastChapter.scenes.length > 0) {
+            const lastScene = lastChapter.scenes[lastChapter.scenes.length - 1];
+            this.activeChapterId = lastChapter.id;
+            this.activeSceneId = lastScene.id;
+            this.activeScene = lastScene;
+          }
         }
         
         // Trigger change detection to ensure template is updated
@@ -820,6 +824,46 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     if (this.editorView && this.activeScene) {
       this.proseMirrorService.setContent(this.activeScene.content || '');
       this.updateWordCount();
+      // Scroll to end of content after setting content
+      setTimeout(() => {
+        this.scrollToEndOfContent();
+      }, 100);
+    }
+  }
+
+  private scrollToEndOfContent(): void {
+    if (!this.editorView) return;
+    
+    try {
+      const { state } = this.editorView;
+      const doc = state.doc;
+      const endPos = doc.content.size;
+      
+      // Set cursor to end of document
+      const endSelection = TextSelection.create(doc, endPos);
+      const tr = state.tr.setSelection(endSelection);
+      this.editorView.dispatch(tr);
+      
+      // Scroll the editor view to show the cursor
+      this.editorView.focus();
+      
+      // Scroll the DOM element to the bottom
+      setTimeout(() => {
+        if (this.editorView) {
+          const editorElement = this.editorView.dom as HTMLElement;
+          if (editorElement) {
+            editorElement.scrollTop = editorElement.scrollHeight;
+          }
+          
+          // Also scroll the parent container if needed
+          const contentEditor = editorElement?.closest('.content-editor') as HTMLElement;
+          if (contentEditor) {
+            contentEditor.scrollTop = contentEditor.scrollHeight;
+          }
+        }
+      }, 50);
+    } catch (error) {
+      console.warn('Failed to scroll to end of content:', error);
     }
   }
 
