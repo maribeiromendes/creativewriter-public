@@ -9,6 +9,8 @@ services:
       - "3080:80"  # Change port as needed for your NAS
     environment:
       - TZ=Europe/Berlin  # Adjust timezone as needed
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/health"]
       interval: 30s
@@ -17,12 +19,39 @@ services:
       start_period: 40s
     networks:
       - creativewriter-network
+    depends_on:
+      - couchdb
+
+  couchdb:
+    image: couchdb:3.3
+    container_name: creativewriter-couchdb
+    restart: unless-stopped
+    ports:
+      - "5984:5984"  # CouchDB accessible from browser
+    environment:
+      - COUCHDB_USER=admin
+      - COUCHDB_PASSWORD=password  # Change this in production!
+      - COUCHDB_SECRET=mysecret    # Change this in production!
+      - COUCHDB_CONFIG_CORS_ENABLE=true
+      - COUCHDB_CONFIG_CORS_ORIGINS=*
+    volumes:
+      - /share/Docker/creativewriter/data/couchdb-data:/opt/couchdb/data
+      - /share/Docker/creativewriter/data/couchdb-etc:/opt/couchdb/etc/local.d
+    networks:
+      - creativewriter-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5984/_up"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
 
 networks:
   creativewriter-network:
     driver: bridge
 
-# Optional: Add volume for nginx logs if needed
-# volumes:
-#   nginx-logs:
-#     driver: local
+volumes:
+  couchdb-data:
+    driver: local
+  couchdb-etc:
+    driver: local

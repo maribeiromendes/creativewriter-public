@@ -3,16 +3,18 @@ import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { StoryService } from '../services/story.service';
 import { Story } from '../models/story.interface';
+import { SyncStatusComponent } from '../../shared/components/sync-status.component';
 
 @Component({
   selector: 'app-story-list',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, SyncStatusComponent],
   template: `
     <div class="story-list-container">
       <div class="header">
         <h1>Meine Geschichten</h1>
         <div class="header-actions">
+          <app-sync-status [showActions]="true"></app-sync-status>
           <button class="ai-logger-btn" (click)="goToAILogger()" title="AI Request Logger">📊 AI Logs</button>
           <button class="settings-btn" (click)="goToSettings()" title="Einstellungen">⚙️</button>
         </div>
