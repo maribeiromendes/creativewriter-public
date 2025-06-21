@@ -9,11 +9,12 @@ export class StoryService {
   private db: any;
 
   constructor(private databaseService: DatabaseService) {
-    this.db = this.databaseService.getDatabase();
+    // Note: this.db will be set asynchronously in each method
   }
 
   async getAllStories(): Promise<Story[]> {
     try {
+      this.db = await this.databaseService.getDatabase();
       const result = await this.db.allDocs({ 
         include_docs: true,
         descending: true 
@@ -43,6 +44,7 @@ export class StoryService {
 
   async getStory(id: string): Promise<Story | null> {
     try {
+      this.db = await this.databaseService.getDatabase();
       console.log('Getting story with id:', id);
       // Try to get by _id first, then by id
       let doc;
@@ -78,6 +80,7 @@ export class StoryService {
   }
 
   async createStory(): Promise<Story> {
+    this.db = await this.databaseService.getDatabase();
     const firstChapter: Chapter = {
       id: this.generateId(),
       title: 'Kapitel 1',
@@ -117,6 +120,7 @@ export class StoryService {
 
   async updateStory(updatedStory: Story): Promise<void> {
     try {
+      this.db = await this.databaseService.getDatabase();
       // Ensure we have the latest revision
       const currentDoc = await this.db.get(updatedStory._id || updatedStory.id);
       updatedStory._rev = currentDoc._rev;
@@ -131,6 +135,7 @@ export class StoryService {
 
   async deleteStory(id: string): Promise<void> {
     try {
+      this.db = await this.databaseService.getDatabase();
       let doc;
       try {
         doc = await this.db.get(id);
@@ -209,8 +214,7 @@ export class StoryService {
       migrated.chapters = [firstChapter];
       delete migrated.content;
       
-      // Save migrated story back
-      setTimeout(() => this.updateStory(migrated), 0);
+      // Migration will be automatically saved when story is next updated
     }
 
     // Ensure chapters have proper date objects
@@ -233,6 +237,7 @@ export class StoryService {
 
   // Chapter operations
   async addChapter(storyId: string, title: string = ''): Promise<Chapter> {
+    this.db = await this.databaseService.getDatabase();
     const story = await this.getStory(storyId);
     if (!story) throw new Error('Story not found');
 
@@ -260,6 +265,7 @@ export class StoryService {
   }
 
   async updateChapter(storyId: string, chapterId: string, updates: Partial<Chapter>): Promise<void> {
+    this.db = await this.databaseService.getDatabase();
     const story = await this.getStory(storyId);
     if (!story) return;
 
@@ -276,6 +282,7 @@ export class StoryService {
   }
 
   async deleteChapter(storyId: string, chapterId: string): Promise<void> {
+    this.db = await this.databaseService.getDatabase();
     const story = await this.getStory(storyId);
     if (!story) return;
 
@@ -290,6 +297,7 @@ export class StoryService {
 
   // Scene operations
   async addScene(storyId: string, chapterId: string, title: string = ''): Promise<Scene> {
+    this.db = await this.databaseService.getDatabase();
     const story = await this.getStory(storyId);
     if (!story) throw new Error('Story not found');
 
@@ -314,6 +322,7 @@ export class StoryService {
   }
 
   async updateScene(storyId: string, chapterId: string, sceneId: string, updates: Partial<Scene>): Promise<void> {
+    this.db = await this.databaseService.getDatabase();
     const story = await this.getStory(storyId);
     if (!story) return;
 
@@ -334,6 +343,7 @@ export class StoryService {
   }
 
   async deleteScene(storyId: string, chapterId: string, sceneId: string): Promise<void> {
+    this.db = await this.databaseService.getDatabase();
     const story = await this.getStory(storyId);
     if (!story) return;
 
@@ -351,6 +361,7 @@ export class StoryService {
   }
 
   async getScene(storyId: string, chapterId: string, sceneId: string): Promise<Scene | null> {
+    this.db = await this.databaseService.getDatabase();
     const story = await this.getStory(storyId);
     if (!story) return null;
 

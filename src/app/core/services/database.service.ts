@@ -18,6 +18,7 @@ export class DatabaseService {
   private db: any;
   private remoteDb: any;
   private syncHandler: any;
+  private initializationPromise: Promise<void> | null = null;
   private syncStatusSubject = new BehaviorSubject<SyncStatus>({
     isOnline: navigator.onLine,
     isSync: false
@@ -32,7 +33,7 @@ export class DatabaseService {
     }
     
     // Initialize with default database (will be updated when user logs in)
-    this.initializeDatabase('creative-writer-stories');
+    this.initializationPromise = this.initializeDatabase('creative-writer-stories');
     
     // Subscribe to user changes to switch databases
     this.authService.currentUser$.subscribe(user => {
@@ -91,19 +92,30 @@ export class DatabaseService {
       if (user) {
         const userDbName = this.authService.getUserDatabaseName();
         if (userDbName && userDbName !== (this.db?.name)) {
-          await this.initializeDatabase(userDbName);
+          this.initializationPromise = this.initializeDatabase(userDbName);
+          await this.initializationPromise;
         }
       } else {
         // User logged out - switch to anonymous/demo database
         const anonymousDb = 'creative-writer-stories-anonymous';
         if (this.db?.name !== anonymousDb) {
-          await this.initializeDatabase(anonymousDb);
+          this.initializationPromise = this.initializeDatabase(anonymousDb);
+          await this.initializationPromise;
         }
       }
     }, 100);
   }
 
-  getDatabase(): any {
+  async getDatabase(): Promise<any> {
+    // Wait for initialization to complete
+    if (this.initializationPromise) {
+      await this.initializationPromise;
+    }
+    return this.db;
+  }
+
+  // Synchronous getter for backwards compatibility (use with caution)
+  getDatabaseSync(): any {
     return this.db;
   }
 
