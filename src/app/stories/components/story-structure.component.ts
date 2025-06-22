@@ -1,6 +1,16 @@
 import { Component, Input, Output, EventEmitter, AfterViewInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import {
+  IonContent, IonList, IonItem, IonLabel, IonButton, IonIcon, IonInput,
+  IonChip, IonTextarea, IonSelect, IonSelectOption,
+  IonButtons, IonHeader, IonToolbar, IonTitle, IonBadge
+} from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import { 
+  chevronForward, chevronDown, add, trash, createOutline,
+  flashOutline, documentTextOutline, timeOutline
+} from 'ionicons/icons';
 import { Story, Chapter, Scene } from '../models/story.interface';
 import { StoryService } from '../services/story.service';
 import { OpenRouterApiService } from '../../core/services/openrouter-api.service';
@@ -13,441 +23,307 @@ import { Subscription } from 'rxjs';
 @Component({
   selector: 'app-story-structure',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [
+    CommonModule, FormsModule,
+    IonContent, IonList, IonItem, IonLabel, IonButton, IonIcon, IonInput,
+    IonChip, IonTextarea, IonSelect, IonSelectOption,
+    IonButtons, IonHeader, IonToolbar, IonTitle, IonBadge
+  ],
   template: `
     <div class="story-structure">
-      <div class="structure-header">
-        <h3>{{ story.title || 'Unbenannte Geschichte' }}</h3>
-        <button class="add-chapter-btn" (click)="addChapter()">+ Kapitel</button>
-      </div>
+      <ion-header class="structure-header">
+        <ion-toolbar color="dark">
+          <ion-title size="small">{{ story.title || 'Unbenannte Geschichte' }}</ion-title>
+          <ion-buttons slot="end">
+            <ion-button size="small" (click)="addChapter()">
+              <ion-icon name="add" slot="icon-only"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
       
-      <div class="chapters-list">
-        <div *ngFor="let chapter of story.chapters; trackBy: trackChapter" 
-             class="chapter-item" 
-             [class.expanded]="expandedChapters.has(chapter.id)">
-          
-          <div class="chapter-header" (click)="toggleChapter(chapter.id)">
-            <span class="expand-icon">{{ expandedChapters.has(chapter.id) ? '▼' : '▶' }}</span>
-            <input 
-              type="text" 
-              [(ngModel)]="chapter.title" 
-              (blur)="updateChapter(chapter)"
-              (click)="$event.stopPropagation()"
-              class="chapter-title-input"
-            />
-            <button class="delete-btn" (click)="deleteChapter(chapter.id, $event)">×</button>
-          </div>
-          
-          <div class="scenes-list" *ngIf="expandedChapters.has(chapter.id)">
-            <div *ngFor="let scene of chapter.scenes; trackBy: trackScene" 
-                 class="scene-item"
-                 [class.active]="isActiveScene(chapter.id, scene.id)"
-                 [class.expanded]="expandedScenes.has(scene.id)">
-              
-              <div class="scene-header" (click)="selectScene(chapter.id, scene.id)">
-                <input 
-                  type="text" 
-                  [(ngModel)]="scene.title" 
-                  (blur)="updateScene(chapter.id, scene)"
-                  (click)="$event.stopPropagation()"
-                  class="scene-title-input"
-                />
-                <span class="word-count">{{ getWordCount(scene.content) }}</span>
-                <button 
-                  class="expand-scene-btn" 
-                  (click)="toggleSceneDetails(scene.id, $event)"
-                  title="Zusammenfassung anzeigen"
-                  [class.has-summary]="scene.summary">
-                  {{ expandedScenes.has(scene.id) ? '▼' : '▶' }}
-                </button>
-                <button class="delete-btn" (click)="deleteScene(chapter.id, scene.id, $event)">×</button>
-              </div>
-              
-              <div class="scene-details" *ngIf="expandedScenes.has(scene.id)">
-                <div class="scene-summary-section">
-                  <div class="summary-header">
-                    <span class="summary-label">Zusammenfassung</span>
-                    <button 
-                      class="generate-summary-btn"
-                      (click)="generateSceneSummary(chapter.id, scene.id)"
-                      [disabled]="isGeneratingSummary.has(scene.id) || !selectedModel || !scene.content.trim()"
-                      title="Zusammenfassung mit AI generieren">
-                      {{ isGeneratingSummary.has(scene.id) ? '⏳' : '🤖' }}
-                    </button>
-                  </div>
-                  
-                  <div class="model-selection">
-                    <select 
-                      [(ngModel)]="selectedModel"
-                      class="model-select-simple">
-                      <option value="" disabled>AI-Modell wählen...</option>
-                      <option *ngFor="let model of availableModels" [value]="model.id">
-                        {{ model.label }}
-                      </option>
-                    </select>
-                  </div>
-                  
-                  <div class="summary-content">
-                    <textarea 
-                      [(ngModel)]="scene.summary"
-                      (blur)="updateSceneSummary(chapter.id, scene.id, scene.summary || '')"
-                      (input)="autoResizeTextarea($event)"
-                      [attr.data-scene-id]="scene.id"
-                      placeholder="Hier wird die AI-generierte Zusammenfassung der Szene angezeigt..."
-                      class="summary-textarea"
-                      rows="2">
-                    </textarea>
-                    <div class="summary-info" *ngIf="scene.summaryGeneratedAt">
-                      <small>Generiert: {{ scene.summaryGeneratedAt | date:'short' }}</small>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+      <ion-content color="dark" class="structure-content">
+        <ion-list class="chapters-list">
+          <div *ngFor="let chapter of story.chapters; trackBy: trackChapter" 
+               class="chapter-item">
             
-            <button class="add-scene-btn" (click)="addScene(chapter.id)">+ Szene</button>
+            <ion-item button detail="false" (click)="toggleChapter(chapter.id)" class="chapter-header">
+              <ion-icon 
+                [name]="expandedChapters.has(chapter.id) ? 'chevron-down' : 'chevron-forward'" 
+                slot="start" 
+                class="expand-icon">
+              </ion-icon>
+              <ion-input 
+                [(ngModel)]="chapter.title" 
+                (ionBlur)="updateChapter(chapter)"
+                (click)="$event.stopPropagation()"
+                class="chapter-title-input"
+                placeholder="Kapitel Titel"
+              ></ion-input>
+              <ion-button 
+                fill="clear" 
+                color="danger" 
+                slot="end" 
+                (click)="deleteChapter(chapter.id, $event)">
+                <ion-icon name="trash" slot="icon-only"></ion-icon>
+              </ion-button>
+            </ion-item>
+            
+            <div class="scenes-list" *ngIf="expandedChapters.has(chapter.id)">
+              <ion-list>
+                <ng-container *ngFor="let scene of chapter.scenes; trackBy: trackScene">
+                  <ion-item 
+                    button
+                    detail="false"
+                    [class.active-scene]="isActiveScene(chapter.id, scene.id)"
+                    (click)="selectScene(chapter.id, scene.id)"
+                    class="scene-item">
+                    
+                    <ion-input 
+                      [(ngModel)]="scene.title" 
+                      (ionBlur)="updateScene(chapter.id, scene)"
+                      (click)="$event.stopPropagation()"
+                      class="scene-title-input"
+                      placeholder="Szenen Titel"
+                    ></ion-input>
+                    
+                    <ion-badge slot="end" color="medium">{{ getWordCount(scene.content) }} W.</ion-badge>
+                    
+                    <ion-button 
+                      fill="clear" 
+                      slot="end"
+                      [color]="scene.summary ? 'success' : 'medium'"
+                      (click)="toggleSceneDetails(scene.id, $event)"
+                      class="expand-scene-btn">
+                      <ion-icon 
+                        [name]="expandedScenes.has(scene.id) ? 'chevron-down' : 'chevron-forward'" 
+                        slot="icon-only">
+                      </ion-icon>
+                    </ion-button>
+                    
+                    <ion-button 
+                      fill="clear" 
+                      color="danger" 
+                      slot="end" 
+                      (click)="deleteScene(chapter.id, scene.id, $event)">
+                      <ion-icon name="trash" slot="icon-only"></ion-icon>
+                    </ion-button>
+                  </ion-item>
+                  
+                  <div class="scene-details" *ngIf="expandedScenes.has(scene.id)">
+                    <ion-item class="scene-summary-section">
+                      <ion-label position="stacked">
+                        <div class="summary-header">
+                          <span>Zusammenfassung</span>
+                          <ion-button 
+                            size="small"
+                            fill="solid"
+                            [color]="isGeneratingSummary.has(scene.id) ? 'medium' : 'success'"
+                            (click)="generateSceneSummary(chapter.id, scene.id)"
+                            [disabled]="isGeneratingSummary.has(scene.id) || !selectedModel || !scene.content.trim()">
+                            <ion-icon 
+                              [name]="isGeneratingSummary.has(scene.id) ? 'time-outline' : 'flash-outline'" 
+                              slot="icon-only">
+                            </ion-icon>
+                          </ion-button>
+                        </div>
+                      </ion-label>
+                      
+                      <ion-select 
+                        [(ngModel)]="selectedModel"
+                        placeholder="AI-Modell wählen..."
+                        interface="popover"
+                        class="model-select">
+                        <ion-select-option *ngFor="let model of availableModels" [value]="model.id">
+                          {{ model.label }}
+                        </ion-select-option>
+                      </ion-select>
+                      
+                      <ion-textarea 
+                        [(ngModel)]="scene.summary"
+                        (ionBlur)="updateSceneSummary(chapter.id, scene.id, scene.summary || '')"
+                        (ionInput)="autoResizeTextarea($event)"
+                        [attr.data-scene-id]="scene.id"
+                        placeholder="Hier wird die AI-generierte Zusammenfassung der Szene angezeigt..."
+                        class="summary-textarea"
+                        rows="2"
+                        auto-grow="true">
+                      </ion-textarea>
+                      
+                      <ion-chip *ngIf="scene.summaryGeneratedAt" color="medium" class="summary-info">
+                        <ion-icon name="time-outline"></ion-icon>
+                        <ion-label>{{ scene.summaryGeneratedAt | date:'short' }}</ion-label>
+                      </ion-chip>
+                    </ion-item>
+                  </div>
+                </ng-container>
+              </ion-list>
+              
+              <ion-button 
+                expand="block" 
+                fill="outline" 
+                color="primary" 
+                class="add-scene-btn" 
+                (click)="addScene(chapter.id)">
+                <ion-icon name="add" slot="start"></ion-icon>
+                Neue Szene
+              </ion-button>
+            </div>
           </div>
-        </div>
-      </div>
+        </ion-list>
+      </ion-content>
     </div>
   `,
   styles: [`
     .story-structure {
       width: 280px;
       height: 100vh;
-      background: #2d2d2d;
-      border-right: 1px solid #404040;
-      overflow-y: auto;
-      padding: 0.2rem;
+      background: var(--ion-color-dark);
+      border-right: 1px solid var(--ion-color-dark-shade);
+      display: flex;
+      flex-direction: column;
     }
     
     .structure-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 0.2rem;
-      padding-bottom: 0.2rem;
-      border-bottom: 1px solid #404040;
+      --background: var(--ion-color-dark-shade);
+      --border-width: 0 0 1px 0;
+      --border-color: var(--ion-color-dark-tint);
     }
     
-    .structure-header h3 {
-      margin: 0;
-      color: #f8f9fa;
+    .structure-header ion-title {
       font-size: 1.1rem;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      max-width: 200px;
     }
     
-    .add-chapter-btn {
-      background: #0d6efd;
-      color: white;
-      border: none;
-      padding: 0.5rem 0.75rem;
-      border-radius: 4px;
-      font-size: 0.8rem;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    
-    .add-chapter-btn:hover {
-      background: #0b5ed7;
+    .structure-content {
+      --background: var(--ion-color-dark);
     }
     
     .chapters-list {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
+      background: transparent;
     }
     
     .chapter-item {
-      border: 1px solid #404040;
-      border-radius: 6px;
+      margin-bottom: 0.5rem;
+      border: 1px solid var(--ion-color-dark-shade);
+      border-radius: 8px;
       overflow: hidden;
     }
     
     .chapter-header {
-      display: flex;
-      align-items: center;
-      padding: 0.2rem;
-      background: #3a3a3a;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    
-    .chapter-header:hover {
-      background: #444;
+      --background: var(--ion-color-dark-shade);
+      --background-hover: var(--ion-color-dark-tint);
+      --color: var(--ion-color-light);
     }
     
     .expand-icon {
-      color: #adb5bd;
-      margin-right: 0.5rem;
-      font-size: 0.8rem;
-      width: 12px;
+      color: var(--ion-color-medium);
+      font-size: 1rem;
     }
     
     .chapter-title-input {
-      flex: 1;
-      background: transparent;
-      border: none;
-      color: #f8f9fa;
+      --color: var(--ion-color-light);
+      --placeholder-color: var(--ion-color-medium);
       font-weight: 500;
       font-size: 0.9rem;
-      padding: 0.25rem;
-      margin-right: 0.5rem;
-    }
-    
-    .chapter-title-input:focus {
-      outline: 1px solid #0d6efd;
-      border-radius: 3px;
     }
     
     .scenes-list {
-      background: #2a2a2a;
-      padding: 0.3rem;
+      background: var(--ion-color-dark);
+      padding: 0.5rem;
+    }
+    
+    .scenes-list ion-list {
+      background: transparent;
     }
     
     .scene-item {
-      margin-bottom: 0.1rem;
-      background: #404040;
-      border-radius: 4px;
-      overflow: hidden;
-      transition: background 0.2s;
+      --background: var(--ion-color-dark-tint);
+      --background-hover: var(--ion-color-medium-tint);
+      --border-radius: 4px;
+      margin-bottom: 0.25rem;
     }
     
-    .scene-item:hover {
-      background: #4a4a4a;
-    }
-    
-    .scene-item.active {
-      background: #0d6efd;
-    }
-    
-    .scene-header {
-      display: flex;
-      align-items: center;
-      padding: 0.2rem;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    
-    .scene-item.expanded .scene-header {
-      border-bottom: 1px solid #555;
+    .scene-item.active-scene {
+      --background: var(--ion-color-primary);
+      --color: var(--ion-color-primary-contrast);
     }
     
     .scene-title-input {
-      flex: 1;
-      background: transparent;
-      border: none;
-      color: #e0e0e0;
+      --color: var(--ion-color-light);
+      --placeholder-color: var(--ion-color-medium);
       font-size: 0.85rem;
-      padding: 0.15rem;
-      margin-right: 0.2rem;
     }
     
-    .scene-item.active .scene-title-input {
-      color: white;
-    }
-    
-    .scene-title-input:focus {
-      outline: 1px solid #0d6efd;
-      border-radius: 3px;
-    }
-    
-    .word-count {
-      font-size: 0.7rem;
-      color: #6c757d;
-      margin-right: 0.2rem;
-      white-space: nowrap;
-    }
-    
-    .scene-item.active .word-count {
-      color: #b3d9ff;
+    .scene-item.active-scene .scene-title-input {
+      --color: var(--ion-color-primary-contrast);
     }
     
     .expand-scene-btn {
-      background: transparent;
-      border: none;
-      color: #6c757d;
-      cursor: pointer;
-      font-size: 0.8rem;
-      padding: 0.25rem;
-      margin-left: 0.25rem;
-      border-radius: 3px;
-      transition: all 0.2s;
+      --padding-start: 4px;
+      --padding-end: 4px;
     }
     
-    .expand-scene-btn:hover {
-      background: #555;
-      color: #adb5bd;
-    }
-    
-    .scene-item.active .expand-scene-btn {
-      color: #b3d9ff;
-    }
-    
-    .expand-scene-btn.has-summary {
-      color: #28a745;
-    }
-    
-    .scene-item.active .expand-scene-btn.has-summary {
-      color: #90ee90;
-    }
-    
-    .delete-btn {
-      background: transparent;
-      border: none;
-      color: #dc3545;
-      cursor: pointer;
-      font-size: 1.2rem;
-      padding: 0.22rem;
-      border-radius: 3px;
-      transition: background 0.2s;
-      opacity: 0.7;
-    }
-    
-    .delete-btn:hover {
-      background: #dc3545;
-      color: white;
-      opacity: 1;
+    .scene-item.active-scene ion-badge {
+      --background: var(--ion-color-primary-contrast);
+      --color: var(--ion-color-primary);
     }
     
     .scene-details {
-      padding: 0.2rem;
-      background: #353535;
-      border-top: 1px solid #555;
+      background: var(--ion-color-dark);
+      padding: 0.5rem;
     }
     
     .scene-summary-section {
-      display: flex;
-      flex-direction: column;
-      gap: 0.2rem;
+      --background: var(--ion-color-dark-shade);
+      --padding-start: 8px;
+      --padding-end: 8px;
+      margin: 0;
     }
     
     .summary-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 0.2rem;
-    }
-    
-    .summary-label {
-      font-size: 0.8rem;
-      color: #adb5bd;
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+      color: var(--ion-color-medium);
       font-weight: 500;
     }
     
-    .model-selection {
-      margin-bottom: 0.5rem;
-    }
-    
-    .model-select-simple {
+    .model-select {
       width: 100%;
-      font-size: 0.7rem;
-      background: #2a2a2a;
-      border: 1px solid #555;
-      border-radius: 3px;
-      color: #e0e0e0;
-      padding: 0.2rem;
-      height: 28px;
-    }
-    
-    .model-select-simple:focus {
-      outline: none;
-      border-color: #0d6efd;
-      box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.25);
-    }
-    
-    .model-select-simple option {
-      background: #2a2a2a;
-      color: #e0e0e0;
-    }
-    
-    .generate-summary-btn {
-      background: #28a745;
-      border: none;
-      color: white;
-      padding: 0.25rem;
-      border-radius: 3px;
-      cursor: pointer;
-      font-size: 0.75rem;
-      transition: all 0.2s;
-      min-width: 28px;
-      height: 28px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    
-    .generate-summary-btn:hover:not(:disabled) {
-      background: #218838;
-    }
-    
-    .generate-summary-btn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-    
-    .summary-content {
-      display: flex;
-      flex-direction: column;
-      gap: 0.25rem;
+      margin-bottom: 0.5rem;
+      --placeholder-color: var(--ion-color-medium);
     }
     
     .summary-textarea {
-      width: 100%;
-      background: #2a2a2a;
-      border: 1px solid #555;
-      border-radius: 3px;
-      padding: 0.2rem;
-      color: #e0e0e0;
-      font-family: inherit;
-      font-size: 0.75rem;
-      line-height: 1.3;
-      resize: none;
-      min-height: 32px;
-      overflow-y: hidden;
-      transition: height 0.2s ease;
-    }
-    
-    .summary-textarea:focus {
-      outline: none;
-      border-color: #0d6efd;
-      box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.25);
-    }
-    
-    .summary-textarea::placeholder {
-      color: #6c757d;
+      --background: var(--ion-color-dark);
+      --color: var(--ion-color-light);
+      --placeholder-color: var(--ion-color-medium);
+      --padding-start: 8px;
+      --padding-end: 8px;
+      font-size: 0.85rem;
+      margin-top: 0.5rem;
     }
     
     .summary-info {
-      text-align: right;
-    }
-    
-    .summary-info small {
-      color: #6c757d;
-      font-size: 0.7rem;
+      margin-top: 0.5rem;
+      float: right;
     }
     
     .add-scene-btn {
-      width: 100%;
-      background: transparent;
-      border: 1px dashed #6c757d;
-      color: #adb5bd;
-      padding: 0.2rem;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 0.8rem;
-      transition: all 0.2s;
-      margin-top: 0.4rem;
+      margin: 0.5rem;
+      --border-style: dashed;
+      --border-width: 1px;
     }
-    
-    .add-scene-btn:hover {
-      border-color: #0d6efd;
-      color: #0d6efd;
+
+    /* Mobile adjustments */
+    @media (max-width: 768px) {
+      .story-structure {
+        width: 100%;
+        max-width: 320px;
+      }
     }
-    
   `]
 })
 export class StoryStructureComponent implements AfterViewInit {
@@ -470,7 +346,12 @@ export class StoryStructureComponent implements AfterViewInit {
     private settingsService: SettingsService,
     private cdr: ChangeDetectorRef,
     private promptManager: PromptManagerService
-  ) {}
+  ) {
+    addIcons({ 
+      chevronForward, chevronDown, add, trash, createOutline,
+      flashOutline, documentTextOutline, timeOutline
+    });
+  }
 
   ngOnInit() {
     // Auto-expand first chapter
