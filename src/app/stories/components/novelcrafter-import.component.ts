@@ -8,13 +8,14 @@ import { NovelCrafterImportService, NovelCrafterImportResult } from '../../share
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="import-container">
-      <div class="import-header">
-        <h2>NovelCrafter Story Import</h2>
-        <p>Import your NovelCrafter story including chapters, scenes, and codex entries.</p>
-      </div>
+    <div class="import-page">
+      <div class="import-container">
+        <div class="import-header">
+          <h2>NovelCrafter Story Import</h2>
+          <p>Import your NovelCrafter story including chapters, scenes, and codex entries.</p>
+        </div>
 
-      <div class="import-content">
+        <div class="import-content">
         <!-- File Selection -->
         <div *ngIf="!isImporting() && !importResult()" class="file-selection">
           <div class="import-options">
@@ -184,17 +185,27 @@ import { NovelCrafterImportService, NovelCrafterImportResult } from '../../share
         </div>
       </div>
     </div>
+    </div>
   `,
   styles: [`
+    .import-page {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: #1a1a1a;
+      overflow-y: auto;
+    }
+
     .import-container {
       max-width: 800px;
       margin: 2rem auto;
       padding: 2rem;
-      padding-bottom: 4rem; /* Extra space for scrolling */
+      padding-bottom: 4rem;
       background: #1a1a1a;
       color: #e0e0e0;
       border-radius: 8px;
-      min-height: 100vh; /* Ensure container fills viewport */
     }
 
     .import-header {

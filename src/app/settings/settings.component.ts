@@ -26,8 +26,9 @@ import { NgSelectModule } from '@ng-select/ng-select';
     IonChip, IonItem, IonLabel
   ],
   template: `
-    <ion-header>
-      <ion-toolbar color="dark">
+    <div class="ion-page">
+      <ion-header>
+        <ion-toolbar color="dark">
         <ion-buttons slot="start">
           <ion-button (click)="goBack()">
             <ion-icon name="arrow-back" slot="icon-only"></ion-icon>
@@ -238,6 +239,7 @@ import { NgSelectModule } from '@ng-select/ng-select';
         </div>
       </div>
     </ion-content>
+    </div>
   `,
   styles: [`
     ion-content {
