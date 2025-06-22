@@ -190,9 +190,11 @@ import { NovelCrafterImportService, NovelCrafterImportResult } from '../../share
       max-width: 800px;
       margin: 2rem auto;
       padding: 2rem;
+      padding-bottom: 4rem; /* Extra space for scrolling */
       background: #1a1a1a;
       color: #e0e0e0;
       border-radius: 8px;
+      min-height: 100vh; /* Ensure container fills viewport */
     }
 
     .import-header {
