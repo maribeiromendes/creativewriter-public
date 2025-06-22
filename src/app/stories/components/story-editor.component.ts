@@ -2,6 +2,15 @@ import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit, Cha
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { 
+  IonHeader, IonToolbar, IonButtons, IonButton, IonIcon, IonTitle, 
+  IonContent, IonInput, IonChip, IonLabel
+} from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import { 
+  arrowBack, bookOutline, book, settingsOutline, statsChartOutline,
+  saveOutline, checkmarkCircleOutline, menuOutline
+} from 'ionicons/icons';
 import { StoryService } from '../services/story.service';
 import { Story, Scene } from '../models/story.interface';
 import { StoryStructureComponent } from './story-structure.component';
@@ -19,71 +28,102 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
 @Component({
   selector: 'app-story-editor',
   standalone: true,
-  imports: [CommonModule, FormsModule, StoryStructureComponent, SlashCommandDropdownComponent, ImageUploadDialogComponent],
+  imports: [
+    CommonModule, FormsModule, 
+    IonHeader, IonToolbar, IonButtons, IonButton, IonIcon, IonTitle,
+    IonContent, IonInput, IonChip, IonLabel,
+    StoryStructureComponent, SlashCommandDropdownComponent, ImageUploadDialogComponent
+  ],
   template: `
-    <div class="editor-container">
-      <div class="sidebar-overlay" *ngIf="showSidebar" (click)="closeSidebarOnMobile($event)">
-        <app-story-structure 
-          [story]="story" 
-          [activeChapterId]="activeChapterId"
-          [activeSceneId]="activeSceneId"
-          (sceneSelected)="onSceneSelected($event)">
-        </app-story-structure>
-      </div>
-      
-      <div class="editor-main">
-        <div class="editor-header">
-          <div class="header-left">
-            <button class="back-btn" (click)="goBack()">← Zurück zur Übersicht</button>
-            <button class="toggle-sidebar-btn" (click)="toggleSidebar()" title="Struktur anzeigen/verbergen">
-              {{ showSidebar ? '📖' : '📑' }}
-            </button>
-          </div>
-          <div class="story-info">
-            <button class="codex-btn" (click)="goToCodex()" title="Codex">📚</button>
-            <button class="settings-btn" (click)="goToSettings()" title="Story-Einstellungen">⚙️</button>
-            <button class="ai-logs-btn" (click)="goToAILogs()" title="AI Request Logs">📊</button>
-            <span class="scene-info" *ngIf="activeScene">
-              {{ getCurrentChapterTitle() }} - {{ activeScene.title }}
-            </span>
-            <span class="word-count">{{ wordCount }} Wörter</span>
-            <span class="save-status" [class.saved]="!hasUnsavedChanges">
-              {{ hasUnsavedChanges ? 'Nicht gespeichert' : 'Gespeichert' }}
-            </span>
-          </div>
-        </div>
+    <div class="ion-page">
+      <ion-header>
+        <ion-toolbar color="dark">
+          <ion-buttons slot="start">
+            <ion-button (click)="goBack()">
+              <ion-icon name="arrow-back" slot="icon-only"></ion-icon>
+            </ion-button>
+            <ion-button (click)="toggleSidebar()">
+              <ion-icon [name]="showSidebar ? 'book' : 'book-outline'" slot="icon-only"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+          
+          <ion-title *ngIf="activeScene">
+            {{ getCurrentChapterTitle() }} - {{ activeScene.title }}
+          </ion-title>
+          
+          <ion-buttons slot="end">
+            <ion-button (click)="goToCodex()">
+              <ion-icon name="book-outline" slot="icon-only"></ion-icon>
+            </ion-button>
+            <ion-button (click)="goToSettings()">
+              <ion-icon name="settings-outline" slot="icon-only"></ion-icon>
+            </ion-button>
+            <ion-button (click)="goToAILogs()">
+              <ion-icon name="stats-chart-outline" slot="icon-only"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
         
-        <div class="editor-content">
-          <div class="editor-inner">
-            <input 
-              type="text" 
-              class="title-input" 
-              placeholder="Titel deiner Geschichte..." 
-              [(ngModel)]="story.title"
-              (ngModelChange)="onStoryTitleChange()"
-            />
-            
-            <div class="scene-editor" *ngIf="activeScene">
-              <input 
-                type="text" 
-                class="scene-title-input" 
-                placeholder="Szenen-Titel..." 
-                [(ngModel)]="activeScene.title"
-                (ngModelChange)="onSceneTitleChange()"
-              />
-              
-              <div 
-                #editorContainer
-                class="content-editor"
-              ></div>
-            </div>
-            
-            <div class="no-scene" *ngIf="!activeScene">
-              <p>Wähle eine Szene aus der Struktur, um zu beginnen.</p>
+        <ion-toolbar color="dark" class="status-toolbar">
+          <ion-chip slot="start" [color]="hasUnsavedChanges ? 'warning' : 'success'">
+            <ion-icon [name]="hasUnsavedChanges ? 'save-outline' : 'checkmark-circle-outline'"></ion-icon>
+            <ion-label>{{ hasUnsavedChanges ? 'Nicht gespeichert' : 'Gespeichert' }}</ion-label>
+          </ion-chip>
+          <ion-chip slot="end" color="medium">
+            <ion-label>{{ wordCount }} Wörter</ion-label>
+          </ion-chip>
+        </ion-toolbar>
+      </ion-header>
+      
+      <ion-content color="dark">
+        <div class="editor-container">
+          <div class="sidebar-overlay" *ngIf="showSidebar" (click)="closeSidebarOnMobile($event)">
+            <app-story-structure 
+              [story]="story" 
+              [activeChapterId]="activeChapterId"
+              [activeSceneId]="activeSceneId"
+              (sceneSelected)="onSceneSelected($event)">
+            </app-story-structure>
+          </div>
+          
+          <div class="editor-main">
+            <div class="editor-content">
+              <div class="editor-inner">
+                <ion-input 
+                  type="text" 
+                  class="title-input" 
+                  placeholder="Titel deiner Geschichte..." 
+                  [(ngModel)]="story.title"
+                  (ngModelChange)="onStoryTitleChange()"
+                  fill="outline"
+                  color="light"
+                ></ion-input>
+                
+                <div class="scene-editor" *ngIf="activeScene">
+                  <ion-input 
+                    type="text" 
+                    class="scene-title-input" 
+                    placeholder="Szenen-Titel..." 
+                    [(ngModel)]="activeScene.title"
+                    (ngModelChange)="onSceneTitleChange()"
+                    fill="outline"
+                    color="medium"
+                  ></ion-input>
+                  
+                  <div 
+                    #editorContainer
+                    class="content-editor"
+                  ></div>
+                </div>
+                
+                <div class="no-scene" *ngIf="!activeScene">
+                  <p>Wähle eine Szene aus der Struktur, um zu beginnen.</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </ion-content>
       
       <app-slash-command-dropdown
         *ngIf="showSlashDropdown"
@@ -101,10 +141,36 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
     </div>
   `,
   styles: [`
-    .editor-container {
+    .ion-page {
+      background-color: #1a1a1a;
       height: 100vh;
       display: flex;
-      background: #1a1a1a;
+      flex-direction: column;
+    }
+    
+    ion-header {
+      --ion-toolbar-background: #2d2d2d;
+      --ion-toolbar-color: #f8f9fa;
+    }
+    
+    .status-toolbar {
+      --min-height: 48px;
+      --padding-top: 8px;
+      --padding-bottom: 8px;
+    }
+    
+    .status-toolbar ion-chip {
+      --background: transparent;
+      font-size: 0.9rem;
+    }
+    
+    ion-content {
+      --background: #1a1a1a;
+    }
+    
+    .editor-container {
+      height: 100%;
+      display: flex;
       position: relative;
     }
     
@@ -112,76 +178,6 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
       flex: 1;
       display: flex;
       flex-direction: column;
-    }
-    
-    .editor-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 1rem 2rem;
-      background: #2d2d2d;
-      border-bottom: 1px solid #404040;
-    }
-
-    .header-left {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-    
-    .back-btn {
-      background: #6c757d;
-      color: white;
-      border: none;
-      padding: 0.5rem 1rem;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-    
-    .back-btn:hover {
-      background: #5a6268;
-    }
-    
-    .story-info {
-      display: flex;
-      gap: 2rem;
-      font-size: 0.9rem;
-      align-items: center;
-    }
-    
-    .toggle-sidebar-btn,
-    .codex-btn, 
-    .settings-btn, 
-    .ai-logs-btn {
-      background: #495057;
-      border: none;
-      padding: 0.4rem 0.6rem;
-      border-radius: 6px;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: background 0.3s;
-      margin-right: 0.5rem;
-    }
-    
-    .toggle-sidebar-btn:hover,
-    .codex-btn:hover, 
-    .settings-btn:hover, 
-    .ai-logs-btn:hover {
-      background: #343a40;
-    }
-    
-    .word-count {
-      color: #adb5bd;
-    }
-    
-    .save-status {
-      color: #dc3545;
-      font-weight: 500;
-    }
-    
-    .save-status.saved {
-      color: #28a745;
     }
     
     .editor-content {
@@ -215,24 +211,16 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
     }
     
     .title-input {
+      --background: #2d2d2d;
+      --color: #f8f9fa;
+      --placeholder-color: #6c757d;
+      --padding-start: 16px;
+      --padding-end: 16px;
+      --padding-top: 16px;
+      --padding-bottom: 16px;
       font-size: 1.8rem;
       font-weight: bold;
-      border: none;
-      outline: none;
-      padding: 1rem 0;
       margin-bottom: 1rem;
-      border-bottom: 2px solid transparent;
-      transition: border-color 0.3s;
-      background: transparent;
-      color: #f8f9fa;
-    }
-    
-    .title-input:focus {
-      border-bottom-color: #0d6efd;
-    }
-    
-    .title-input::placeholder {
-      color: #6c757d;
     }
     
     .scene-editor {
@@ -242,30 +230,16 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
     }
     
     .scene-title-input {
+      --background: #2d2d2d;
+      --color: #e0e0e0;
+      --placeholder-color: #6c757d;
+      --padding-start: 16px;
+      --padding-end: 16px;
+      --padding-top: 12px;
+      --padding-bottom: 12px;
       font-size: 1.3rem;
       font-weight: 500;
-      border: none;
-      outline: none;
-      padding: 0.75rem 0;
       margin-bottom: 1rem;
-      border-bottom: 1px solid transparent;
-      transition: border-color 0.3s;
-      background: transparent;
-      color: #e0e0e0;
-    }
-    
-    .scene-title-input:focus {
-      border-bottom-color: #6c757d;
-    }
-    
-    .scene-title-input::placeholder {
-      color: #6c757d;
-    }
-    
-    .scene-info {
-      color: #adb5bd;
-      font-size: 0.9rem;
-      margin-right: 1rem;
     }
     
     .no-scene {
@@ -399,45 +373,14 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
 
     /* Mobile Responsiveness */
     @media (max-width: 768px) {
-      .editor-header {
-        padding: 0.75rem 1rem;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-      }
-
-      .header-left {
-        order: 1;
-        flex: 1;
-      }
-
-      .story-info {
-        order: 2;
-        width: 100%;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-        margin-top: 0.5rem;
-      }
-
-      .toggle-sidebar-btn,
-      .codex-btn, 
-      .settings-btn, 
-      .ai-logs-btn {
+      ion-title {
         font-size: 0.9rem;
-        padding: 0.3rem 0.5rem;
-        margin-right: 0.25rem;
       }
-
-      .scene-info {
-        font-size: 0.8rem;
-        order: 1;
-        width: 100%;
-        margin-bottom: 0.25rem;
-      }
-
-      .word-count, .save-status {
+      
+      .status-toolbar ion-chip {
         font-size: 0.8rem;
       }
-
+      
       .editor-content {
         padding: 1rem 0.75rem;
       }
@@ -456,43 +399,24 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
     }
 
     @media (max-width: 480px) {
-      .editor-header {
-        padding: 0.5rem;
-      }
-
-      .back-btn {
-        font-size: 0.8rem;
-        padding: 0.3rem 0.6rem;
-      }
-
-      .toggle-sidebar-btn,
-      .codex-btn, 
-      .settings-btn, 
-      .ai-logs-btn {
-        font-size: 0.8rem;
-        padding: 0.25rem 0.4rem;
-      }
-
-      .story-info {
+      ion-title {
         font-size: 0.8rem;
       }
-
-      .scene-info {
-        font-size: 0.75rem;
+      
+      .status-toolbar {
+        --min-height: 40px;
       }
-
+      
       .editor-content {
         padding: 0.75rem 0.5rem;
       }
 
       .title-input {
         font-size: 1.3rem;
-        padding: 0.75rem 0;
       }
 
       .scene-title-input {
         font-size: 1rem;
-        padding: 0.5rem 0;
       }
     }
 
@@ -566,7 +490,12 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     private beatAIService: BeatAIService,
     private cdr: ChangeDetectorRef,
     private promptManager: PromptManagerService
-  ) {}
+  ) {
+    addIcons({ 
+      arrowBack, bookOutline, book, settingsOutline, statsChartOutline,
+      saveOutline, checkmarkCircleOutline, menuOutline
+    });
+  }
 
   async ngOnInit(): Promise<void> {
     // Check if we're on mobile and start with sidebar hidden

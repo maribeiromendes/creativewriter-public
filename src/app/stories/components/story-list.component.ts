@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonChip, IonIcon, IonButton } from '@ionic/angular/standalone';
+import { IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonChip, IonIcon, IonButton, IonFab, IonFabButton } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { add, download, settings, analytics, trash } from 'ionicons/icons';
 import { StoryService } from '../services/story.service';
@@ -13,7 +13,7 @@ import { AuthService, User } from '../../core/services/auth.service';
 @Component({
   selector: 'app-story-list',
   standalone: true,
-  imports: [CommonModule, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonChip, IonIcon, IonButton, SyncStatusComponent, LoginComponent],
+  imports: [CommonModule, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonChip, IonIcon, IonButton, IonFab, IonFabButton, SyncStatusComponent, LoginComponent],
   template: `
     <div class="story-list-container">
       <div class="header">
@@ -21,21 +21,31 @@ import { AuthService, User } from '../../core/services/auth.service';
         <div class="header-actions">
           <div class="user-info" *ngIf="currentUser">
             <span class="user-greeting">👋 {{ currentUser.displayName || currentUser.username }}</span>
-            <button class="logout-btn" (click)="logout()" title="Abmelden">Abmelden</button>
+            <ion-button size="small" fill="clear" color="danger" (click)="logout()">
+              Abmelden
+            </ion-button>
           </div>
           <app-sync-status [showActions]="true"></app-sync-status>
-          <button class="ai-logger-btn" (click)="goToAILogger()" title="AI Request Logger">📊 AI Logs</button>
-          <button class="settings-btn" (click)="goToSettings()" title="Einstellungen">⚙️</button>
+          <ion-button size="default" fill="clear" color="medium" (click)="goToAILogger()">
+            <ion-icon name="analytics" slot="start"></ion-icon>
+            AI Logs
+          </ion-button>
+          <ion-button size="default" fill="clear" color="medium" (click)="goToSettings()">
+            <ion-icon name="settings" slot="start"></ion-icon>
+            Einstellungen
+          </ion-button>
         </div>
       </div>
       
       <div class="action-buttons">
-        <button class="new-story-btn" (click)="createNewStory()">
+        <ion-button expand="block" size="large" color="primary" (click)="createNewStory()">
+          <ion-icon name="add" slot="start"></ion-icon>
           Neue Geschichte schreiben
-        </button>
-        <button class="import-btn" (click)="importNovelCrafter()">
-          📥 NovelCrafter Import
-        </button>
+        </ion-button>
+        <ion-button expand="block" size="large" fill="outline" color="medium" (click)="importNovelCrafter()">
+          <ion-icon name="download" slot="start"></ion-icon>
+          NovelCrafter Import
+        </ion-button>
       </div>
       
       <div class="stories-grid" *ngIf="stories.length > 0; else noStories">
@@ -68,6 +78,13 @@ import { AuthService, User } from '../../core/services/auth.service';
           <p>Beginne mit dem Schreiben deiner ersten Geschichte!</p>
         </div>
       </ng-template>
+      
+      <!-- Mobile FAB -->
+      <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+        <ion-fab-button color="primary" (click)="createNewStory()">
+          <ion-icon name="add"></ion-icon>
+        </ion-fab-button>
+      </ion-fab>
       
       <!-- Login Modal -->
       <app-login></app-login>
@@ -114,38 +131,6 @@ import { AuthService, User } from '../../core/services/auth.service';
       font-weight: 500;
     }
     
-    .logout-btn {
-      background: rgba(220, 53, 69, 0.8);
-      color: white;
-      border: none;
-      padding: 0.25rem 0.5rem;
-      border-radius: 12px;
-      font-size: 0.8rem;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    
-    .logout-btn:hover {
-      background: rgba(220, 53, 69, 1);
-    }
-    
-    .ai-logger-btn,
-    .settings-btn {
-      background: #6c757d;
-      color: white;
-      border: none;
-      padding: 0.5rem 0.75rem;
-      border-radius: 6px;
-      font-size: 0.9rem;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-    
-    .ai-logger-btn:hover,
-    .settings-btn:hover {
-      background: #5a6268;
-    }
-    
     .action-buttons {
       display: flex;
       gap: 1rem;
@@ -153,39 +138,24 @@ import { AuthService, User } from '../../core/services/auth.service';
       max-width: 600px;
       flex-wrap: wrap;
     }
-
-    .new-story-btn {
-      padding: 1rem 2rem;
-      background: #0d6efd;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-size: 1.1rem;
-      cursor: pointer;
-      transition: background 0.3s;
+    
+    .action-buttons ion-button {
       flex: 1;
       min-width: 200px;
     }
     
-    .new-story-btn:hover {
-      background: #0b5ed7;
-    }
-
-    .import-btn {
-      padding: 1rem 2rem;
-      background: #6f42c1;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-size: 1.1rem;
-      cursor: pointer;
-      transition: background 0.3s;
-      flex: 1;
-      min-width: 200px;
+    /* Hide FAB on desktop, show action buttons */
+    @media (min-width: 768px) {
+      ion-fab {
+        display: none;
+      }
     }
     
-    .import-btn:hover {
-      background: #5a2d91;
+    /* Hide action buttons on mobile, show FAB */
+    @media (max-width: 767px) {
+      .action-buttons {
+        display: none;
+      }
     }
     
     .stories-grid {
