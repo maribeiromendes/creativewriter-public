@@ -249,6 +249,7 @@ import { NgSelectModule } from '@ng-select/ng-select';
       max-width: 800px;
       margin: 0 auto;
       padding: 1rem;
+      padding-bottom: 4rem; /* Extra space for bottom buttons */
     }
 
     ion-card {
