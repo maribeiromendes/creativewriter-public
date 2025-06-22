@@ -322,6 +322,48 @@ import { Subscription } from 'rxjs';
       .story-structure {
         width: 100%;
         max-width: 320px;
+        height: 100vh;
+        overflow-y: auto;
+      }
+      
+      .structure-content {
+        overflow-y: auto;
+        height: calc(100vh - 56px); /* Subtract header height */
+        -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+      }
+      
+      .chapters-list {
+        padding-bottom: 2rem; /* Extra padding at bottom */
+      }
+      
+      .scenes-list {
+        max-height: none; /* Remove any height restrictions */
+      }
+      
+      .scene-details {
+        max-height: none; /* Remove any height restrictions */
+      }
+    }
+
+    /* Force scrollbar visibility on touch devices */
+    @media (max-width: 768px) and (pointer: coarse) {
+      .structure-content::-webkit-scrollbar {
+        width: 6px;
+        display: block;
+      }
+      
+      .structure-content::-webkit-scrollbar-track {
+        background: var(--ion-color-dark-shade);
+        border-radius: 3px;
+      }
+      
+      .structure-content::-webkit-scrollbar-thumb {
+        background: var(--ion-color-medium);
+        border-radius: 3px;
+      }
+      
+      .structure-content::-webkit-scrollbar-thumb:hover {
+        background: var(--ion-color-medium-tint);
       }
     }
   `]
