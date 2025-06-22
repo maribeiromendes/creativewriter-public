@@ -3,6 +3,13 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
+import { 
+  IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
+  IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonInput, IonToggle,
+  IonChip, IonItem, IonLabel
+} from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import { arrowBack, analytics, warning, checkmarkCircle } from 'ionicons/icons';
 import { SettingsService } from '../core/services/settings.service';
 import { ModelService } from '../core/services/model.service';
 import { Settings } from '../core/models/settings.interface';
@@ -12,404 +19,291 @@ import { NgSelectModule } from '@ng-select/ng-select';
 @Component({
   selector: 'app-settings',
   standalone: true,
-  imports: [CommonModule, FormsModule, NgSelectModule],
+  imports: [
+    CommonModule, FormsModule, NgSelectModule,
+    IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
+    IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonInput, IonToggle,
+    IonChip, IonItem, IonLabel
+  ],
   template: `
-    <div class="settings-container">
-      <div class="settings-header">
-        <button class="back-btn" (click)="goBack()">← Zurück</button>
-        <h1>Einstellungen</h1>
-        <div class="header-actions">
-          <button class="ai-logs-btn" (click)="goToAILogs()" title="AI Request Logs">📊 AI Logs</button>
-          <div class="save-status" [class.saved]="!hasUnsavedChanges">
-            {{ hasUnsavedChanges ? 'Nicht gespeichert' : 'Gespeichert' }}
-          </div>
-        </div>
-      </div>
+    <ion-header>
+      <ion-toolbar color="dark">
+        <ion-buttons slot="start">
+          <ion-button (click)="goBack()">
+            <ion-icon name="arrow-back" slot="icon-only"></ion-icon>
+          </ion-button>
+        </ion-buttons>
+        <ion-title>Einstellungen</ion-title>
+        <ion-buttons slot="end">
+          <ion-button fill="clear" color="medium" (click)="goToAILogs()" title="AI Request Logs">
+            <ion-icon name="analytics" slot="start"></ion-icon>
+            AI Logs
+          </ion-button>
+          <ion-chip [color]="hasUnsavedChanges ? 'warning' : 'success'">
+            <ion-icon [name]="hasUnsavedChanges ? 'warning' : 'checkmark-circle'" slot="start"></ion-icon>
+            <ion-label>{{ hasUnsavedChanges ? 'Nicht gespeichert' : 'Gespeichert' }}</ion-label>
+          </ion-chip>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
 
+    <ion-content color="dark">
       <div class="settings-content">
         <!-- OpenRouter Settings -->
-        <div class="settings-section">
-          <h2>OpenRouter API</h2>
-          <div class="settings-group">
-            <label class="toggle-label">
-              <input 
-                type="checkbox" 
+        <ion-card>
+          <ion-card-header>
+            <ion-card-title>OpenRouter API</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <ion-item>
+              <ion-label>OpenRouter aktivieren</ion-label>
+              <ion-toggle 
                 [(ngModel)]="settings.openRouter.enabled"
                 (ngModelChange)="onProviderToggle('openRouter')"
-              />
-              <span class="toggle-slider"></span>
-              <span class="toggle-text">OpenRouter aktivieren</span>
-            </label>
-          </div>
+                slot="end">
+              </ion-toggle>
+            </ion-item>
 
-          <div class="settings-group" [class.disabled]="!settings.openRouter.enabled">
-            <label>API Key</label>
-            <input 
-              type="password"
-              [(ngModel)]="settings.openRouter.apiKey"
-              (ngModelChange)="onApiKeyChange('openRouter')"
-              placeholder="sk-or-v1-..."
-              [disabled]="!settings.openRouter.enabled"
-            />
-            <small>Ihren OpenRouter API Key finden Sie unter openrouter.ai/keys</small>
-          </div>
-
-          <div class="settings-group" [class.disabled]="!settings.openRouter.enabled">
-            <div class="model-header">
-              <label>Model</label>
-              <button 
-                type="button" 
-                class="load-models-btn"
-                (click)="loadModels()" 
-                [disabled]="!settings.openRouter.enabled || !settings.openRouter.apiKey || loadingModels"
-                title="Modelle von OpenRouter laden"
-              >
-                {{ loadingModels ? 'Laden...' : 'Modelle laden' }}
-              </button>
-            </div>
-            <ng-select [(ngModel)]="settings.openRouter.model"
-                       [items]="openRouterModels"
-                       bindLabel="label"
-                       bindValue="id"
-                       [searchable]="true"
-                       [clearable]="true"
-                       [disabled]="!settings.openRouter.enabled"
-                       placeholder="Modell auswählen oder suchen..."
-                       (ngModelChange)="onSettingsChange()"
-                       [loading]="loadingModels"
-                       [virtualScroll]="true">
-            </ng-select>
-            <small *ngIf="modelLoadError" class="error-text">{{ modelLoadError }}</small>
-            <small *ngIf="!modelLoadError && openRouterModels.length > 0">{{ openRouterModels.length }} Modelle verfügbar. Preise in EUR pro 1M Tokens.</small>
-            <small *ngIf="!modelLoadError && openRouterModels.length === 0 && settings.openRouter.enabled">Klicken Sie "Modelle laden" um verfügbare Modelle anzuzeigen.</small>
-          </div>
-
-          <div class="settings-row" [class.disabled]="!settings.openRouter.enabled">
-            <div class="settings-group">
-              <label>Temperature</label>
-              <input 
-                type="number"
-                [(ngModel)]="settings.openRouter.temperature"
-                (ngModelChange)="onSettingsChange()"
-                min="0"
-                max="2"
-                step="0.1"
+            <ion-item [class.disabled]="!settings.openRouter.enabled">
+              <ion-input
+                type="password"
+                [(ngModel)]="settings.openRouter.apiKey"
+                (ngModelChange)="onApiKeyChange('openRouter')"
+                placeholder="sk-or-v1-..."
                 [disabled]="!settings.openRouter.enabled"
-              />
-            </div>
+                label="API Key"
+                labelPlacement="stacked"
+                helperText="Ihren OpenRouter API Key finden Sie unter openrouter.ai/keys">
+              </ion-input>
+            </ion-item>
 
-            <div class="settings-group">
-              <label>Top P</label>
-              <input 
-                type="number"
-                [(ngModel)]="settings.openRouter.topP"
-                (ngModelChange)="onSettingsChange()"
-                min="0"
-                max="1"
-                step="0.1"
-                [disabled]="!settings.openRouter.enabled"
-              />
+            <ion-item [class.disabled]="!settings.openRouter.enabled">
+              <div class="model-selection-container">
+                <div class="model-header">
+                  <ion-label>Model</ion-label>
+                  <ion-button 
+                    size="small"
+                    fill="outline"
+                    (click)="loadModels()" 
+                    [disabled]="!settings.openRouter.enabled || !settings.openRouter.apiKey || loadingModels"
+                    title="Modelle von OpenRouter laden">
+                    {{ loadingModels ? 'Laden...' : 'Modelle laden' }}
+                  </ion-button>
+                </div>
+                <ng-select [(ngModel)]="settings.openRouter.model"
+                           [items]="openRouterModels"
+                           bindLabel="label"
+                           bindValue="id"
+                           [searchable]="true"
+                           [clearable]="true"
+                           [disabled]="!settings.openRouter.enabled"
+                           placeholder="Modell auswählen oder suchen..."
+                           (ngModelChange)="onSettingsChange()"
+                           [loading]="loadingModels"
+                           [virtualScroll]="true">
+                </ng-select>
+                <div class="model-info">
+                  <p *ngIf="modelLoadError" class="error-text">{{ modelLoadError }}</p>
+                  <p *ngIf="!modelLoadError && openRouterModels.length > 0" class="info-text">
+                    {{ openRouterModels.length }} Modelle verfügbar. Preise in EUR pro 1M Tokens.
+                  </p>
+                  <p *ngIf="!modelLoadError && openRouterModels.length === 0 && settings.openRouter.enabled" class="info-text">
+                    Klicken Sie "Modelle laden" um verfügbare Modelle anzuzeigen.
+                  </p>
+                </div>
+              </div>
+            </ion-item>
+
+            <div class="settings-row" [class.disabled]="!settings.openRouter.enabled">
+              <ion-item>
+                <ion-input
+                  type="number"
+                  [(ngModel)]="settings.openRouter.temperature"
+                  (ngModelChange)="onSettingsChange()"
+                  min="0"
+                  max="2"
+                  step="0.1"
+                  [disabled]="!settings.openRouter.enabled"
+                  label="Temperature"
+                  labelPlacement="stacked">
+                </ion-input>
+              </ion-item>
+              <ion-item>
+                <ion-input
+                  type="number"
+                  [(ngModel)]="settings.openRouter.topP"
+                  (ngModelChange)="onSettingsChange()"
+                  min="0"
+                  max="1"
+                  step="0.1"
+                  [disabled]="!settings.openRouter.enabled"
+                  label="Top P"
+                  labelPlacement="stacked">
+                </ion-input>
+              </ion-item>
             </div>
-          </div>
-        </div>
+          </ion-card-content>
+        </ion-card>
 
         <!-- Replicate Settings -->
-        <div class="settings-section">
-          <h2>Replicate API</h2>
-          <div class="settings-group">
-            <label class="toggle-label">
-              <input 
-                type="checkbox" 
+        <ion-card>
+          <ion-card-header>
+            <ion-card-title>Replicate API</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <ion-item>
+              <ion-label>Replicate aktivieren</ion-label>
+              <ion-toggle 
                 [(ngModel)]="settings.replicate.enabled"
                 (ngModelChange)="onProviderToggle('replicate')"
-              />
-              <span class="toggle-slider"></span>
-              <span class="toggle-text">Replicate aktivieren</span>
-            </label>
-          </div>
+                slot="end">
+              </ion-toggle>
+            </ion-item>
 
-          <div class="settings-group" [class.disabled]="!settings.replicate.enabled">
-            <label>API Key</label>
-            <input 
-              type="password"
-              [(ngModel)]="settings.replicate.apiKey"
-              (ngModelChange)="onApiKeyChange('replicate')"
-              placeholder="r8_..."
-              [disabled]="!settings.replicate.enabled"
-            />
-            <small>Ihren Replicate API Key finden Sie unter replicate.com/account/api-tokens</small>
-          </div>
+            <ion-item [class.disabled]="!settings.replicate.enabled">
+              <ion-input
+                type="password"
+                [(ngModel)]="settings.replicate.apiKey"
+                (ngModelChange)="onApiKeyChange('replicate')"
+                placeholder="r8_..."
+                [disabled]="!settings.replicate.enabled"
+                label="API Key"
+                labelPlacement="stacked"
+                helperText="Ihren Replicate API Key finden Sie unter replicate.com/account/api-tokens">
+              </ion-input>
+            </ion-item>
 
-          <div class="settings-group" [class.disabled]="!settings.replicate.enabled">
-            <div class="model-header">
-              <label>Model</label>
-              <button 
-                type="button" 
-                class="load-models-btn"
-                (click)="loadModels()" 
-                [disabled]="!settings.replicate.enabled || !settings.replicate.apiKey || loadingModels"
-                title="Modelle von Replicate laden"
-              >
-                {{ loadingModels ? 'Laden...' : 'Modelle laden' }}
-              </button>
-            </div>
-            <ng-select [(ngModel)]="settings.replicate.model"
-                       [items]="replicateModels"
-                       bindLabel="label"
-                       bindValue="id"
-                       [searchable]="true"
-                       [clearable]="true"
-                       [disabled]="!settings.replicate.enabled"
-                       placeholder="Modell auswählen oder suchen..."
-                       (ngModelChange)="onSettingsChange()"
-                       [loading]="loadingModels"
-                       [virtualScroll]="true">
-            </ng-select>
-            <small *ngIf="modelLoadError" class="error-text">{{ modelLoadError }}</small>
-            <small *ngIf="!modelLoadError && replicateModels.length > 0">{{ replicateModels.length }} Modelle verfügbar. Preise geschätzt in EUR pro 1M Tokens.</small>
-            <small *ngIf="!modelLoadError && replicateModels.length === 0 && settings.replicate.enabled">Klicken Sie "Modelle laden" um verfügbare Modelle anzuzeigen.</small>
-            <small *ngIf="!settings.replicate.enabled">Format: owner/model-name (z.B. meta/llama-2-70b-chat)</small>
-          </div>
+            <ion-item [class.disabled]="!settings.replicate.enabled">
+              <div class="model-selection-container">
+                <div class="model-header">
+                  <ion-label>Model</ion-label>
+                  <ion-button 
+                    size="small"
+                    fill="outline"
+                    (click)="loadModels()" 
+                    [disabled]="!settings.replicate.enabled || !settings.replicate.apiKey || loadingModels"
+                    title="Modelle von Replicate laden">
+                    {{ loadingModels ? 'Laden...' : 'Modelle laden' }}
+                  </ion-button>
+                </div>
+                <ng-select [(ngModel)]="settings.replicate.model"
+                           [items]="replicateModels"
+                           bindLabel="label"
+                           bindValue="id"
+                           [searchable]="true"
+                           [clearable]="true"
+                           [disabled]="!settings.replicate.enabled"
+                           placeholder="Modell auswählen oder suchen..."
+                           (ngModelChange)="onSettingsChange()"
+                           [loading]="loadingModels"
+                           [virtualScroll]="true">
+                </ng-select>
+                <div class="model-info">
+                  <p *ngIf="modelLoadError" class="error-text">{{ modelLoadError }}</p>
+                  <p *ngIf="!modelLoadError && replicateModels.length > 0" class="info-text">
+                    {{ replicateModels.length }} Modelle verfügbar. Preise geschätzt in EUR pro 1M Tokens.
+                  </p>
+                  <p *ngIf="!modelLoadError && replicateModels.length === 0 && settings.replicate.enabled" class="info-text">
+                    Klicken Sie "Modelle laden" um verfügbare Modelle anzuzeigen.
+                  </p>
+                  <p *ngIf="!settings.replicate.enabled" class="info-text">
+                    Format: owner/model-name (z.B. meta/llama-2-70b-chat)
+                  </p>
+                </div>
+              </div>
+            </ion-item>
 
-          <div class="settings-group" [class.disabled]="!settings.replicate.enabled">
-            <label>Version (optional)</label>
-            <input 
-              type="text"
-              [(ngModel)]="settings.replicate.version"
-              (ngModelChange)="onSettingsChange()"
-              placeholder="Lassen Sie leer für die neueste Version"
-              [disabled]="!settings.replicate.enabled"
-            />
-          </div>
-        </div>
+            <ion-item [class.disabled]="!settings.replicate.enabled">
+              <ion-input
+                type="text"
+                [(ngModel)]="settings.replicate.version"
+                (ngModelChange)="onSettingsChange()"
+                placeholder="Lassen Sie leer für die neueste Version"
+                [disabled]="!settings.replicate.enabled"
+                label="Version (optional)"
+                labelPlacement="stacked">
+              </ion-input>
+            </ion-item>
+          </ion-card-content>
+        </ion-card>
 
         <!-- Actions -->
         <div class="settings-actions">
-          <button class="btn btn-primary" (click)="saveSettings()" [disabled]="!hasUnsavedChanges">
+          <ion-button expand="block" color="primary" (click)="saveSettings()" [disabled]="!hasUnsavedChanges">
             Einstellungen speichern
-          </button>
-          <button class="btn btn-secondary" (click)="resetSettings()">
+          </ion-button>
+          <ion-button expand="block" fill="outline" color="medium" (click)="resetSettings()">
             Auf Standard zurücksetzen
-          </button>
+          </ion-button>
         </div>
       </div>
-    </div>
+    </ion-content>
   `,
   styles: [`
-    .settings-container {
-      min-height: 100vh;
-      background: #1a1a1a;
-      color: #e0e0e0;
-    }
-
-    .settings-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 1.5rem 2rem;
-      background: #2d2d2d;
-      border-bottom: 1px solid #404040;
-    }
-
-    .header-actions {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-    }
-
-    .settings-header h1 {
-      margin: 0;
-      font-size: 1.8rem;
-      color: #f8f9fa;
-    }
-
-    .back-btn,
-    .ai-logs-btn {
-      background: #6c757d;
-      color: white;
-      border: none;
-      padding: 0.5rem 1rem;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: background 0.3s;
-      font-size: 0.9rem;
-    }
-
-    .back-btn:hover,
-    .ai-logs-btn:hover {
-      background: #5a6268;
-    }
-
-    .save-status {
-      color: #dc3545;
-      font-size: 0.9rem;
-      font-weight: 500;
-    }
-
-    .save-status.saved {
-      color: #28a745;
+    ion-content {
+      --background: #1a1a1a;
+      --color: #e0e0e0;
     }
 
     .settings-content {
       max-width: 800px;
       margin: 0 auto;
-      padding: 2rem;
+      padding: 1rem;
     }
 
-    .settings-section {
-      background: #2d2d2d;
-      border-radius: 8px;
-      padding: 2rem;
-      margin-bottom: 2rem;
+    ion-card {
+      margin-bottom: 1rem;
+      --background: #2d2d2d;
+      --color: #e0e0e0;
     }
 
-    .settings-section h2 {
-      margin: 0 0 1.5rem 0;
+    ion-card-title {
       color: #f8f9fa;
-      font-size: 1.4rem;
-      padding-bottom: 1rem;
-      border-bottom: 1px solid #404040;
+      font-size: 1.2rem;
     }
 
-    .settings-group {
-      margin-bottom: 1.5rem;
+    ion-item {
+      --background: transparent;
+      --color: #e0e0e0;
+      --border-color: rgba(255, 255, 255, 0.1);
     }
 
-    .settings-group.disabled {
+    ion-item.disabled {
       opacity: 0.5;
     }
 
-    .settings-group label {
-      display: block;
-      margin-bottom: 0.5rem;
-      color: #adb5bd;
-      font-weight: 500;
+    ion-input {
+      --color: #e0e0e0;
+      --placeholder-color: #6c757d;
     }
 
-    .settings-group input[type="text"],
-    .settings-group input[type="password"],
-    .settings-group input[type="number"],
-    .settings-group select {
-      width: 100%;
-      padding: 0.75rem;
-      background: #1a1a1a;
-      border: 1px solid #404040;
-      border-radius: 6px;
-      color: #e0e0e0;
-      font-size: 1rem;
-    }
-
-    .settings-group input:focus,
-    .settings-group select:focus {
-      outline: none;
-      border-color: #0d6efd;
-      box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.25);
-    }
-
-    .settings-group input:disabled,
-    .settings-group select:disabled {
-      cursor: not-allowed;
-      background: #242424;
-    }
-
-    .settings-group small {
-      display: block;
-      margin-top: 0.25rem;
-      color: #6c757d;
-      font-size: 0.85rem;
+    ion-toggle {
+      --background: #404040;
+      --background-checked: var(--ion-color-primary);
+      --handle-background: #ffffff;
+      --handle-background-checked: #ffffff;
     }
 
     .settings-row {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 1rem;
+      gap: 0;
     }
 
     .settings-row.disabled {
       opacity: 0.5;
     }
 
-    .toggle-label {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      cursor: pointer;
-    }
-
-    .toggle-label input[type="checkbox"] {
-      display: none;
-    }
-
-    .toggle-slider {
-      position: relative;
-      width: 48px;
-      height: 24px;
-      background: #404040;
-      border-radius: 24px;
-      transition: background 0.3s;
-    }
-
-    .toggle-slider::after {
-      content: '';
-      position: absolute;
-      top: 2px;
-      left: 2px;
-      width: 20px;
-      height: 20px;
-      background: white;
-      border-radius: 50%;
-      transition: transform 0.3s;
-    }
-
-    .toggle-label input:checked + .toggle-slider {
-      background: #0d6efd;
-    }
-
-    .toggle-label input:checked + .toggle-slider::after {
-      transform: translateX(24px);
-    }
-
-    .toggle-text {
-      font-weight: 500;
-    }
-
     .settings-actions {
       display: flex;
+      flex-direction: column;
       gap: 1rem;
-      margin-top: 2rem;
+      margin-top: 1rem;
+      padding: 0 1rem;
     }
 
-    .btn {
-      padding: 0.75rem 1.5rem;
-      border: none;
-      border-radius: 6px;
-      font-size: 1rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.3s;
-    }
-
-    .btn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-
-    .btn-primary {
-      background: #0d6efd;
-      color: white;
-    }
-
-    .btn-primary:hover:not(:disabled) {
-      background: #0b5ed7;
-    }
-
-    .btn-secondary {
-      background: #6c757d;
-      color: white;
-    }
-
-    .btn-secondary:hover {
-      background: #5a6268;
+    .model-selection-container {
+      width: 100%;
     }
     
     .model-header {
@@ -417,45 +311,33 @@ import { NgSelectModule } from '@ng-select/ng-select';
       justify-content: space-between;
       align-items: center;
       margin-bottom: 0.5rem;
+      width: 100%;
     }
-    
-    .load-models-btn {
-      background: #0d6efd;
-      color: white;
-      border: none;
-      padding: 0.25rem 0.75rem;
-      border-radius: 4px;
+
+    .model-info {
+      margin-top: 0.5rem;
+    }
+
+    .model-info p {
+      margin: 0.25rem 0;
       font-size: 0.85rem;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-    
-    .load-models-btn:hover:not(:disabled) {
-      background: #0b5ed7;
-    }
-    
-    .load-models-btn:disabled {
-      background: #6c757d;
-      cursor: not-allowed;
     }
     
     .error-text {
-      color: #dc3545 !important;
+      color: var(--ion-color-danger) !important;
       font-weight: 500;
     }
-    
-    .settings-group select option {
-      background: #2d2d2d;
-      color: #e0e0e0;
-      padding: 0.5rem;
+
+    .info-text {
+      color: #6c757d;
     }
     
-    /* ng-select custom styling */
-    .settings-group :global(.ng-select) {
+    /* ng-select custom styling for dark theme */
+    :global(.ng-select) {
       font-size: 1rem;
     }
     
-    .settings-group :global(.ng-select.ng-select-single .ng-select-container) {
+    :global(.ng-select.ng-select-single .ng-select-container) {
       height: auto !important;
       min-height: 45px !important;
       background: #1a1a1a !important;
@@ -463,44 +345,44 @@ import { NgSelectModule } from '@ng-select/ng-select';
       border-radius: 6px !important;
     }
     
-    .settings-group :global(.ng-select .ng-select-container .ng-value-container) {
+    :global(.ng-select .ng-select-container .ng-value-container) {
       background: #1a1a1a !important;
       padding-left: 0.75rem !important;
     }
     
-    .settings-group :global(.ng-select .ng-select-container .ng-value-container .ng-input > input) {
+    :global(.ng-select .ng-select-container .ng-value-container .ng-input > input) {
       color: #e0e0e0 !important;
       background: transparent !important;
     }
     
-    .settings-group :global(.ng-select .ng-select-container .ng-value-container .ng-placeholder) {
+    :global(.ng-select .ng-select-container .ng-value-container .ng-placeholder) {
       color: #6c757d !important;
     }
     
-    .settings-group :global(.ng-select .ng-select-container .ng-value-container .ng-value) {
+    :global(.ng-select .ng-select-container .ng-value-container .ng-value) {
       color: #e0e0e0 !important;
       background: transparent !important;
     }
     
-    .settings-group :global(.ng-select .ng-arrow-wrapper) {
+    :global(.ng-select .ng-arrow-wrapper) {
       width: 25px;
     }
     
-    .settings-group :global(.ng-select .ng-arrow-wrapper .ng-arrow) {
+    :global(.ng-select .ng-arrow-wrapper .ng-arrow) {
       border-color: #adb5bd transparent transparent;
     }
     
-    .settings-group :global(.ng-select.ng-select-focused .ng-select-container) {
-      border-color: #0d6efd;
+    :global(.ng-select.ng-select-focused .ng-select-container) {
+      border-color: var(--ion-color-primary);
       box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.25);
     }
     
-    .settings-group :global(.ng-select.ng-select-disabled .ng-select-container) {
-      background: #242424;
+    :global(.ng-select.ng-select-disabled .ng-select-container) {
+      background: #242424 !important;
       cursor: not-allowed;
     }
     
-    .settings-group :global(.ng-dropdown-panel) {
+    :global(.ng-dropdown-panel) {
       background: #2d2d2d !important;
       border: 1px solid #404040 !important;
       border-radius: 6px !important;
@@ -508,65 +390,51 @@ import { NgSelectModule } from '@ng-select/ng-select';
       z-index: 1050 !important;
     }
     
-    .settings-group :global(.ng-dropdown-panel .ng-dropdown-panel-items) {
+    :global(.ng-dropdown-panel .ng-dropdown-panel-items) {
       background: #2d2d2d !important;
     }
     
-    .settings-group :global(.ng-dropdown-panel .ng-dropdown-panel-items .ng-option) {
+    :global(.ng-dropdown-panel .ng-dropdown-panel-items .ng-option) {
       color: #e0e0e0 !important;
       background: #2d2d2d !important;
       padding: 0.75rem !important;
       border-bottom: 1px solid #404040;
     }
     
-    .settings-group :global(.ng-dropdown-panel .ng-dropdown-panel-items .ng-option:last-child) {
+    :global(.ng-dropdown-panel .ng-dropdown-panel-items .ng-option:last-child) {
       border-bottom: none;
     }
     
-    .settings-group :global(.ng-dropdown-panel .ng-dropdown-panel-items .ng-option.ng-option-highlighted) {
+    :global(.ng-dropdown-panel .ng-dropdown-panel-items .ng-option.ng-option-highlighted) {
       background: #383838 !important;
       color: #f8f9fa !important;
     }
     
-    .settings-group :global(.ng-dropdown-panel .ng-dropdown-panel-items .ng-option.ng-option-selected) {
-      background: #0d6efd !important;
+    :global(.ng-dropdown-panel .ng-dropdown-panel-items .ng-option.ng-option-selected) {
+      background: var(--ion-color-primary) !important;
       color: white !important;
     }
     
-    .settings-group :global(.ng-dropdown-panel .ng-dropdown-panel-items .ng-option.ng-option-selected.ng-option-highlighted) {
-      background: #0b5ed7 !important;
+    :global(.ng-dropdown-panel .ng-dropdown-panel-items .ng-option.ng-option-selected.ng-option-highlighted) {
+      background: var(--ion-color-primary-shade) !important;
       color: white !important;
     }
-    
-    .model-option {
-      padding: 0.25rem 0;
-    }
-    
-    .model-name {
-      font-weight: 500;
-      margin-bottom: 0.25rem;
-      color: #f8f9fa;
-    }
-    
-    .model-details {
-      font-size: 0.85rem;
-      color: #adb5bd;
-      margin-bottom: 0.25rem;
-    }
-    
-    .model-details .cost {
-      color: #28a745;
-      font-weight: 500;
-    }
-    
-    .model-details .context {
-      color: #6c757d;
-    }
-    
-    .model-description {
-      font-size: 0.8rem;
-      color: #6c757d;
-      line-height: 1.3;
+
+    /* Mobile responsive adjustments */
+    @media (max-width: 768px) {
+      .settings-content {
+        padding: 0.5rem;
+      }
+
+      .settings-row {
+        grid-template-columns: 1fr;
+      }
+
+      .model-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+      }
     }
   `]
 })
@@ -588,6 +456,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
     private modelService: ModelService
   ) {
     this.settings = this.settingsService.getSettings();
+    // Register Ionic icons
+    addIcons({ arrowBack, analytics, warning, checkmarkCircle });
   }
 
   ngOnInit(): void {
