@@ -1,20 +1,24 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+import { DatabaseService } from '../../core/services/database.service';
 
 export interface StoredImage {
+  _id: string;
   id: string;
   name: string;
   base64Data: string;
   mimeType: string;
   size: number;
   createdAt: Date;
+  type: 'image';
 }
 
 @Injectable({
   providedIn: 'root'
 })
 export class ImageService {
-  private readonly STORAGE_KEY = 'creative-writer-images';
-  private readonly MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
+  private readonly MAX_IMAGE_SIZE = 2 * 1024 * 1024; // Reduced to 2MB
+  private readonly MAX_IMAGES = 20; // Max number of images to keep
+  private databaseService = inject(DatabaseService);
 
   constructor() {}
 
@@ -24,7 +28,7 @@ export class ImageService {
   async uploadImage(file: File): Promise<string> {
     // Validate file size
     if (file.size > this.MAX_IMAGE_SIZE) {
-      throw new Error('Datei ist zu groß. Maximale Größe: 5MB');
+      throw new Error(`Datei ist zu groß. Maximale Größe: ${this.formatFileSize(this.MAX_IMAGE_SIZE)}`);
     }
 
     // Validate file type
@@ -33,27 +37,35 @@ export class ImageService {
     }
 
     try {
+      // Clean up old images first to make space
+      await this.cleanupImages();
+
       // Convert file to base64
       const base64Data = await this.fileToBase64(file);
       
       // Create image record
       const imageId = this.generateImageId();
       const storedImage: StoredImage = {
+        _id: `image_${imageId}`,
         id: imageId,
         name: file.name,
         base64Data,
         mimeType: file.type,
         size: file.size,
-        createdAt: new Date()
+        createdAt: new Date(),
+        type: 'image'
       };
 
-      // Store in localStorage
-      this.storeImage(storedImage);
+      // Store in PouchDB
+      await this.storeImage(storedImage);
 
       // Return data URL for immediate use
       return this.getImageDataUrl(storedImage);
     } catch (error) {
       console.error('Fehler beim Hochladen des Bildes:', error);
+      if (error instanceof Error) {
+        throw error;
+      }
       throw new Error('Fehler beim Hochladen des Bildes');
     }
   }
@@ -61,17 +73,18 @@ export class ImageService {
   /**
    * Get all stored images
    */
-  getAllImages(): StoredImage[] {
+  async getAllImages(): Promise<StoredImage[]> {
     try {
-      const stored = localStorage.getItem(this.STORAGE_KEY);
-      if (!stored) return [];
+      const db = await this.databaseService.getDatabase();
+      const result = await db.find({
+        selector: { type: 'image' },
+        sort: [{ createdAt: 'desc' }]
+      });
       
-      const images = JSON.parse(stored) as StoredImage[];
-      // Convert date strings back to Date objects
-      return images.map(img => ({
-        ...img,
-        createdAt: new Date(img.createdAt)
-      }));
+      return result.docs.map((doc: any) => ({
+        ...doc,
+        createdAt: new Date(doc.createdAt)
+      })) as StoredImage[];
     } catch (error) {
       console.error('Fehler beim Laden der Bilder:', error);
       return [];
@@ -81,20 +94,31 @@ export class ImageService {
   /**
    * Get a specific image by ID
    */
-  getImage(id: string): StoredImage | null {
-    const images = this.getAllImages();
-    return images.find(img => img.id === id) || null;
+  async getImage(id: string): Promise<StoredImage | null> {
+    try {
+      const db = await this.databaseService.getDatabase();
+      const doc = await db.get(`image_${id}`) as any;
+      return {
+        ...doc,
+        createdAt: new Date(doc.createdAt)
+      } as StoredImage;
+    } catch (error) {
+      if ((error as any).status === 404) {
+        return null;
+      }
+      console.error('Fehler beim Laden des Bildes:', error);
+      return null;
+    }
   }
 
   /**
    * Delete an image
    */
-  deleteImage(id: string): boolean {
+  async deleteImage(id: string): Promise<boolean> {
     try {
-      const images = this.getAllImages();
-      const filteredImages = images.filter(img => img.id !== id);
-      
-      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(filteredImages));
+      const db = await this.databaseService.getDatabase();
+      const doc = await db.get(`image_${id}`);
+      await db.remove(doc);
       return true;
     } catch (error) {
       console.error('Fehler beim Löschen des Bildes:', error);
@@ -110,34 +134,20 @@ export class ImageService {
   }
 
   /**
-   * Clean up old or large images to manage storage space
+   * Clean up old images to manage storage space
    */
-  cleanupImages(): void {
-    const images = this.getAllImages();
-    
-    // Sort by creation date, oldest first
-    images.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
-    
-    // Calculate total storage usage
-    let totalSize = images.reduce((sum, img) => sum + img.size, 0);
-    
-    // Remove old images if total size exceeds 50MB
-    const MAX_TOTAL_SIZE = 50 * 1024 * 1024;
-    const imagesToKeep: StoredImage[] = [];
-    
-    for (let i = images.length - 1; i >= 0; i--) {
-      if (totalSize <= MAX_TOTAL_SIZE) break;
-      totalSize -= images[i].size;
-    }
-    
-    // Keep remaining images
-    for (let i = Math.max(0, images.length - 1); i >= 0; i--) {
-      imagesToKeep.unshift(images[i]);
-      if (imagesToKeep.reduce((sum, img) => sum + img.size, 0) >= MAX_TOTAL_SIZE) break;
-    }
-    
+  async cleanupImages(): Promise<void> {
     try {
-      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(imagesToKeep));
+      const images = await this.getAllImages();
+      
+      // If we have more than MAX_IMAGES, remove the oldest ones
+      if (images.length >= this.MAX_IMAGES) {
+        const imagesToDelete = images.slice(this.MAX_IMAGES - 1);
+        
+        for (const image of imagesToDelete) {
+          await this.deleteImage(image.id);
+        }
+      }
     } catch (error) {
       console.error('Fehler beim Bereinigen der Bilder:', error);
     }
@@ -146,8 +156,8 @@ export class ImageService {
   /**
    * Get storage statistics
    */
-  getStorageStats(): { count: number; totalSize: number; formattedSize: string } {
-    const images = this.getAllImages();
+  async getStorageStats(): Promise<{ count: number; totalSize: number; formattedSize: string }> {
+    const images = await this.getAllImages();
     const totalSize = images.reduce((sum, img) => sum + img.size, 0);
     
     return {
@@ -176,22 +186,19 @@ export class ImageService {
     });
   }
 
-  private storeImage(image: StoredImage): void {
+  private async storeImage(image: StoredImage): Promise<void> {
     try {
-      const images = this.getAllImages();
-      images.push(image);
-      
-      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(images));
+      const db = await this.databaseService.getDatabase();
+      await db.put(image);
     } catch (error) {
-      if (error instanceof Error && error.name === 'QuotaExceededError') {
+      if (error instanceof Error && (error.name === 'QuotaExceededError' || error.message.includes('storage quota'))) {
         // Try to clean up space and retry
-        this.cleanupImages();
+        await this.cleanupImages();
         try {
-          const images = this.getAllImages();
-          images.push(image);
-          localStorage.setItem(this.STORAGE_KEY, JSON.stringify(images));
+          const db = await this.databaseService.getDatabase();
+          await db.put(image);
         } catch (retryError) {
-          throw new Error('Nicht genügend Speicherplatz verfügbar');
+          throw new Error('Nicht genügend Speicherplatz verfügbar. Versuchen Sie, alte Bilder zu löschen.');
         }
       } else {
         throw error;
