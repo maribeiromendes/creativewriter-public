@@ -3,10 +3,10 @@ import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { 
   IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonChip, IonIcon, IonButton, 
-  IonFab, IonFabButton, IonHeader, IonToolbar, IonTitle, IonButtons, IonContent
+  IonFab, IonFabButton, IonFabList, IonHeader, IonToolbar, IonTitle, IonButtons, IonContent
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { add, download, settings, analytics, trash } from 'ionicons/icons';
+import { add, download, settings, analytics, trash, create } from 'ionicons/icons';
 import { StoryService } from '../services/story.service';
 import { Story } from '../models/story.interface';
 import { SyncStatusComponent } from '../../shared/components/sync-status.component';
@@ -19,7 +19,7 @@ import { AuthService, User } from '../../core/services/auth.service';
   imports: [
     CommonModule, 
     IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonChip, IonIcon, IonButton, 
-    IonFab, IonFabButton, IonHeader, IonToolbar, IonTitle, IonButtons, IonContent,
+    IonFab, IonFabButton, IonFabList, IonHeader, IonToolbar, IonTitle, IonButtons, IonContent,
     SyncStatusComponent, LoginComponent
   ],
   template: `
@@ -102,9 +102,17 @@ import { AuthService, User } from '../../core/services/auth.service';
       
       <!-- Mobile FAB -->
       <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-        <ion-fab-button color="primary" (click)="createNewStory()">
+        <ion-fab-button color="primary">
           <ion-icon name="add"></ion-icon>
         </ion-fab-button>
+        <ion-fab-list side="top">
+          <ion-fab-button color="primary" (click)="createNewStory()">
+            <ion-icon name="create"></ion-icon>
+          </ion-fab-button>
+          <ion-fab-button color="secondary" (click)="importNovelCrafter()">
+            <ion-icon name="download"></ion-icon>
+          </ion-fab-button>
+        </ion-fab-list>
       </ion-fab>
       
       <!-- Login Modal -->
@@ -297,7 +305,7 @@ export class StoryListComponent implements OnInit {
     private authService: AuthService
   ) {
     // Register Ionic icons
-    addIcons({ add, download, settings, analytics, trash });
+    addIcons({ add, download, settings, analytics, trash, create });
   }
 
   ngOnInit(): void {
