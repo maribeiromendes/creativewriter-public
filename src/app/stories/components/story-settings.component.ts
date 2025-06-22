@@ -2,452 +2,314 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import {
+  IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
+  IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonItem, IonLabel,
+  IonTextarea, IonCheckbox, IonRadio, IonRadioGroup, IonChip, IonNote,
+  IonText, IonGrid, IonRow, IonCol
+} from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import { 
+  arrowBack, saveOutline, refreshOutline, checkmarkCircleOutline,
+  warningOutline, informationCircleOutline, codeSlashOutline
+} from 'ionicons/icons';
 import { StoryService } from '../services/story.service';
 import { Story, StorySettings, DEFAULT_STORY_SETTINGS } from '../models/story.interface';
 
 @Component({
   selector: 'app-story-settings',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [
+    CommonModule, FormsModule,
+    IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
+    IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonItem, IonLabel,
+    IonTextarea, IonCheckbox, IonRadio, IonRadioGroup, IonChip, IonNote,
+    IonText, IonGrid, IonRow, IonCol
+  ],
   template: `
-    <div class="settings-container">
-      <div class="settings-header">
-        <button class="back-btn" (click)="goBack()">← Zurück zum Editor</button>
-        <h1>Story-Einstellungen</h1>
-        <div class="save-status" [class.saved]="!hasUnsavedChanges">
-          {{ hasUnsavedChanges ? 'Nicht gespeichert' : 'Gespeichert' }}
-        </div>
-      </div>
+    <ion-header>
+      <ion-toolbar color="dark">
+        <ion-buttons slot="start">
+          <ion-button (click)="goBack()">
+            <ion-icon name="arrow-back" slot="icon-only"></ion-icon>
+          </ion-button>
+        </ion-buttons>
+        <ion-title>Story-Einstellungen</ion-title>
+        <ion-buttons slot="end">
+          <ion-chip [color]="hasUnsavedChanges ? 'warning' : 'success'">
+            <ion-icon [name]="hasUnsavedChanges ? 'warning-outline' : 'checkmark-circle-outline'"></ion-icon>
+            <ion-label>{{ hasUnsavedChanges ? 'Nicht gespeichert' : 'Gespeichert' }}</ion-label>
+          </ion-chip>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
 
-      <div class="settings-content" *ngIf="story">
-        <div class="story-info">
-          <h2>{{ story.title || 'Unbenannte Geschichte' }}</h2>
-          <p class="story-meta">Erstellt: {{ story.createdAt | date:'short' }} | Zuletzt bearbeitet: {{ story.updatedAt | date:'short' }}</p>
-        </div>
+    <ion-content color="dark" *ngIf="story">
+      <ion-card class="story-info-card">
+        <ion-card-header>
+          <ion-card-title>{{ story.title || 'Unbenannte Geschichte' }}</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          <ion-note>
+            Erstellt: {{ story.createdAt | date:'short' }} | Zuletzt bearbeitet: {{ story.updatedAt | date:'short' }}
+          </ion-note>
+        </ion-card-content>
+      </ion-card>
 
-        <div class="settings-section">
-          <h3>AI System Message</h3>
-          <p class="section-description">
-            Diese Nachricht definiert den Kontext und die Persönlichkeit des AI-Assistenten für diese Geschichte.
-          </p>
-          <textarea
-            class="settings-textarea"
+      <ion-card class="settings-section">
+        <ion-card-header>
+          <ion-card-title>AI System Message</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          <ion-text color="medium">
+            <p>Diese Nachricht definiert den Kontext und die Persönlichkeit des AI-Assistenten für diese Geschichte.</p>
+          </ion-text>
+          <ion-textarea
             [(ngModel)]="settings.systemMessage"
-            (ngModelChange)="onSettingsChange()"
+            (ionInput)="onSettingsChange()"
             placeholder="Geben Sie die System-Nachricht ein..."
             rows="6"
-          ></textarea>
-          <div class="char-count">{{ settings.systemMessage.length }} Zeichen</div>
-        </div>
+            class="settings-textarea"
+            auto-grow="true">
+          </ion-textarea>
+          <ion-note class="char-count">{{ settings.systemMessage.length }} Zeichen</ion-note>
+        </ion-card-content>
+      </ion-card>
 
-        <div class="settings-section">
-          <h3>Beat Generation Template</h3>
-          <p class="section-description">
-            Template-Struktur für Beat-Generierung mit Kontext. Verfügbare Platzhalter:
-          </p>
+      <ion-card class="settings-section">
+        <ion-card-header>
+          <ion-card-title>Beat Generation Template</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          <ion-text color="medium">
+            <p>Template-Struktur für Beat-Generierung mit Kontext. Verfügbare Platzhalter:</p>
+          </ion-text>
+          
           <div class="template-placeholders">
-            <div class="placeholder-grid">
-              <span class="placeholder-item">{{ '{SystemMessage}' }}</span>
-              <span class="placeholder-item">{{ '{codexEntries}' }}</span>
-              <span class="placeholder-item">{{ '{summariesOfScenesBefore}' }}</span>
-              <span class="placeholder-item">{{ '{sceneFullText}' }}</span>
-              <span class="placeholder-item">{{ '{wordCount}' }}</span>
-              <span class="placeholder-item">{{ '{prompt}' }}</span>
-              <span class="placeholder-item">{{ '{writingStyle}' }}</span>
-            </div>
+            <ion-grid>
+              <ion-row>
+                <ion-col size="12" size-md="6" size-lg="4" *ngFor="let placeholder of placeholders">
+                  <ion-chip color="warning" class="placeholder-chip">
+                    <ion-icon name="code-slash-outline"></ion-icon>
+                    <ion-label>{{ placeholder }}</ion-label>
+                  </ion-chip>
+                </ion-col>
+              </ion-row>
+            </ion-grid>
           </div>
-          <textarea
-            class="settings-textarea large"
+          
+          <ion-textarea
             [(ngModel)]="settings.beatGenerationTemplate"
-            (ngModelChange)="onSettingsChange()"
+            (ionInput)="onSettingsChange()"
             placeholder="Geben Sie das Beat-Template ein..."
             rows="12"
-          ></textarea>
-          <div class="char-count">{{ settings.beatGenerationTemplate.length }} Zeichen</div>
-          <div class="template-hint" *ngIf="!settings.beatGenerationTemplate.includes('{prompt}')">
-            ⚠️ Das Template sollte {{ '{prompt}' }} enthalten, um den Benutzer-Prompt einzufügen.
-          </div>
-        </div>
-
-        <div class="settings-section">
-          <h3>Beat AI Konfiguration</h3>
-          <p class="section-description">
-            Konfiguration für die Beat AI Generierung.
-          </p>
+            class="settings-textarea large"
+            auto-grow="true">
+          </ion-textarea>
           
-          <div class="setting-group">
-            <label class="setting-label">
-              <input
-                type="checkbox"
-                [(ngModel)]="settings.useFullStoryContext"
-                (ngModelChange)="onSettingsChange()"
-              />
-              <span class="checkmark"></span>
-              Vollständigen Story-Kontext verwenden
-            </label>
-            <p class="setting-description">
-              Wenn aktiviert, wird der vollständige Text aller Szenen als Kontext verwendet. 
-              Andernfalls werden nur Zusammenfassungen verwendet (falls verfügbar).
-            </p>
-          </div>
+          <ion-note class="char-count">{{ settings.beatGenerationTemplate.length }} Zeichen</ion-note>
+          
+          <ion-item *ngIf="!settings.beatGenerationTemplate.includes('{prompt}')" class="template-warning">
+            <ion-icon name="warning-outline" color="warning" slot="start"></ion-icon>
+            <ion-label color="warning">
+              Das Template sollte {{ '{prompt}' }} enthalten, um den Benutzer-Prompt einzufügen.
+            </ion-label>
+          </ion-item>
+        </ion-card-content>
+      </ion-card>
 
-          <div class="setting-group">
-            <label class="setting-label-text">Beat Anweisung</label>
-            <p class="setting-description">
-              Standardanweisung für die Beat AI Generierung.
-            </p>
-            <div class="radio-group">
-              <label class="radio-label">
-                <input
-                  type="radio"
-                  name="beatInstruction"
-                  value="continue"
-                  [(ngModel)]="settings.beatInstruction"
-                  (ngModelChange)="onSettingsChange()"
-                />
-                <span class="radio-mark"></span>
-                Setze die Geschichte fort
-              </label>
-              <label class="radio-label">
-                <input
-                  type="radio"
-                  name="beatInstruction"
-                  value="stay"
-                  [(ngModel)]="settings.beatInstruction"
-                  (ngModelChange)="onSettingsChange()"
-                />
-                <span class="radio-mark"></span>
-                Bleibe im Moment
-              </label>
-            </div>
-          </div>
-        </div>
+      <ion-card class="settings-section">
+        <ion-card-header>
+          <ion-card-title>Beat AI Konfiguration</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          <ion-text color="medium">
+            <p>Konfiguration für die Beat AI Generierung.</p>
+          </ion-text>
+          
+          <ion-item class="setting-item">
+            <ion-checkbox
+              [(ngModel)]="settings.useFullStoryContext"
+              (ionChange)="onSettingsChange()"
+              slot="start">
+            </ion-checkbox>
+            <ion-label>
+              <h3>Vollständigen Story-Kontext verwenden</h3>
+              <p>Wenn aktiviert, wird der vollständige Text aller Szenen als Kontext verwendet. Andernfalls werden nur Zusammenfassungen verwendet (falls verfügbar).</p>
+            </ion-label>
+          </ion-item>
 
-        <div class="settings-actions">
-          <button class="btn btn-primary" (click)="saveSettings()" [disabled]="!hasUnsavedChanges">
-            Einstellungen speichern
-          </button>
-          <button class="btn btn-secondary" (click)="resetToDefaults()">
-            Auf Standard zurücksetzen
-          </button>
-        </div>
+          <ion-item class="radio-section">
+            <ion-label>
+              <h3>Beat Anweisung</h3>
+              <p>Standardanweisung für die Beat AI Generierung.</p>
+            </ion-label>
+          </ion-item>
+          
+          <ion-radio-group
+            [(ngModel)]="settings.beatInstruction"
+            (ionChange)="onSettingsChange()">
+            <ion-item>
+              <ion-radio slot="start" value="continue"></ion-radio>
+              <ion-label>Setze die Geschichte fort</ion-label>
+            </ion-item>
+            <ion-item>
+              <ion-radio slot="start" value="stay"></ion-radio>
+              <ion-label>Bleibe im Moment</ion-label>
+            </ion-item>
+          </ion-radio-group>
+        </ion-card-content>
+      </ion-card>
+
+      <div class="settings-actions">
+        <ion-button 
+          expand="block" 
+          color="primary" 
+          (click)="saveSettings()" 
+          [disabled]="!hasUnsavedChanges"
+          class="save-button">
+          <ion-icon name="save-outline" slot="start"></ion-icon>
+          Einstellungen speichern
+        </ion-button>
+        
+        <ion-button 
+          expand="block" 
+          fill="outline" 
+          color="medium" 
+          (click)="resetToDefaults()"
+          class="reset-button">
+          <ion-icon name="refresh-outline" slot="start"></ion-icon>
+          Auf Standard zurücksetzen
+        </ion-button>
       </div>
+    </ion-content>
 
-      <div class="no-story" *ngIf="!story">
-        <p>Geschichte nicht gefunden.</p>
+    <ion-content color="dark" *ngIf="!story">
+      <div class="no-story">
+        <ion-text color="medium">
+          <p>Geschichte nicht gefunden.</p>
+        </ion-text>
       </div>
-    </div>
+    </ion-content>
   `,
   styles: [`
-    .settings-container {
-      min-height: 100vh;
-      background: #1a1a1a;
-      color: #e0e0e0;
+    ion-content {
+      --background: var(--ion-color-dark);
+      --padding-start: 16px;
+      --padding-end: 16px;
+      --padding-top: 16px;
+      --padding-bottom: 16px;
     }
 
-    .settings-header {
-      display: flex;
-      align-items: center;
-      gap: 2rem;
-      padding: 1.5rem 2rem;
-      background: #2d2d2d;
-      border-bottom: 1px solid #404040;
-    }
-
-    .settings-header h1 {
-      flex: 1;
-      margin: 0;
-      font-size: 1.8rem;
-      color: #f8f9fa;
-    }
-
-    .back-btn {
-      background: #6c757d;
-      color: white;
-      border: none;
-      padding: 0.5rem 1rem;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-
-    .back-btn:hover {
-      background: #5a6268;
-    }
-
-    .save-status {
-      color: #dc3545;
-      font-size: 0.9rem;
-      font-weight: 500;
-    }
-
-    .save-status.saved {
-      color: #28a745;
-    }
-
-    .settings-content {
-      max-width: 800px;
-      margin: 0 auto;
-      padding: 2rem;
-    }
-
-    .story-info {
-      background: #2d2d2d;
-      border-radius: 8px;
-      padding: 1.5rem;
-      margin-bottom: 2rem;
-    }
-
-    .story-info h2 {
-      margin: 0 0 0.5rem 0;
-      color: #f8f9fa;
-    }
-
-    .story-meta {
-      margin: 0;
-      color: #adb5bd;
-      font-size: 0.9rem;
+    .story-info-card {
+      --background: var(--ion-color-dark-shade);
+      margin-bottom: 1rem;
     }
 
     .settings-section {
-      background: #2d2d2d;
-      border-radius: 8px;
-      padding: 2rem;
-      margin-bottom: 2rem;
+      --background: var(--ion-color-dark-shade);
+      margin-bottom: 1rem;
+      max-width: 800px;
+      margin-left: auto;
+      margin-right: auto;
     }
 
-    .settings-section h3 {
-      margin: 0 0 0.5rem 0;
-      color: #f8f9fa;
-      font-size: 1.3rem;
+    .setting-item {
+      --background: transparent;
+      --padding-start: 0;
+      --padding-end: 0;
+      margin: 1rem 0;
     }
 
-    .section-description {
-      color: #adb5bd;
-      margin: 0 0 1rem 0;
-      font-size: 0.95rem;
+    .radio-section {
+      --background: transparent;
+      --padding-start: 0;
+      --padding-end: 0;
+      margin-bottom: 0.5rem;
     }
 
     .settings-textarea {
-      width: 100%;
-      padding: 1rem;
-      background: #1a1a1a;
-      border: 1px solid #404040;
-      border-radius: 6px;
-      color: #e0e0e0;
+      --background: var(--ion-color-dark);
+      --color: var(--ion-color-light);
+      --placeholder-color: var(--ion-color-medium);
+      --padding-start: 16px;
+      --padding-end: 16px;
+      --padding-top: 16px;
+      --padding-bottom: 16px;
       font-family: 'Courier New', monospace;
       font-size: 0.95rem;
-      line-height: 1.5;
-      resize: vertical;
-      min-height: 120px;
+      margin-top: 1rem;
     }
 
-    .settings-textarea:focus {
-      outline: none;
-      border-color: #0d6efd;
-      box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.25);
+    .settings-textarea.large {
+      min-height: 200px;
     }
 
     .char-count {
+      display: block;
       text-align: right;
-      color: #6c757d;
-      font-size: 0.85rem;
       margin-top: 0.5rem;
     }
 
-    .template-hint {
-      color: #ffc107;
-      font-size: 0.9rem;
-      margin-top: 0.5rem;
-      padding: 0.5rem;
-      background: rgba(255, 193, 7, 0.1);
-      border-radius: 4px;
+    .template-warning {
+      --background: rgba(255, 193, 7, 0.1);
+      margin-top: 1rem;
     }
 
     .settings-actions {
       display: flex;
+      flex-direction: column;
       gap: 1rem;
-      margin-top: 2rem;
+      margin: 2rem auto;
+      max-width: 800px;
+      padding: 0 1rem;
     }
 
-    .btn {
-      padding: 0.75rem 1.5rem;
-      border: none;
-      border-radius: 6px;
-      font-size: 1rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.3s;
+    .save-button {
+      --background: var(--ion-color-primary);
     }
 
-    .btn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-
-    .btn-primary {
-      background: #0d6efd;
-      color: white;
-    }
-
-    .btn-primary:hover:not(:disabled) {
-      background: #0b5ed7;
-    }
-
-    .btn-secondary {
-      background: #6c757d;
-      color: white;
-    }
-
-    .btn-secondary:hover {
-      background: #5a6268;
+    .reset-button {
+      --color: var(--ion-color-medium);
+      --border-color: var(--ion-color-medium);
     }
 
     .no-story {
       text-align: center;
       padding: 3rem;
-      color: #adb5bd;
     }
 
-    .setting-group {
-      margin: 1.5rem 0;
-    }
-
-    .setting-label {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      cursor: pointer;
-      font-weight: 500;
-      color: #f8f9fa;
-      margin-bottom: 0.5rem;
-    }
-
-    .setting-label-text {
-      display: block;
-      font-weight: 500;
-      color: #f8f9fa;
-      margin-bottom: 0.5rem;
-    }
-
-    .setting-description {
-      color: #adb5bd;
-      font-size: 0.9rem;
-      margin: 0.5rem 0 1rem 0;
-      line-height: 1.4;
-    }
-
-    .checkmark {
-      width: 20px;
-      height: 20px;
-      border: 2px solid #6c757d;
-      border-radius: 4px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.3s;
-    }
-
-    input[type="checkbox"]:checked + .checkmark {
-      background: #0d6efd;
-      border-color: #0d6efd;
-    }
-
-    input[type="checkbox"]:checked + .checkmark::after {
-      content: '✓';
-      color: white;
-      font-size: 12px;
-      font-weight: bold;
-    }
-
-    input[type="checkbox"] {
-      display: none;
-    }
-
-    .radio-group {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
-
-    .radio-label {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      cursor: pointer;
-      color: #e0e0e0;
-      transition: color 0.3s;
-    }
-
-    .radio-label:hover {
-      color: #f8f9fa;
-    }
-
-    .radio-mark {
-      width: 18px;
-      height: 18px;
-      border: 2px solid #6c757d;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.3s;
-    }
-
-    input[type="radio"]:checked + .radio-mark {
-      border-color: #0d6efd;
-    }
-
-    input[type="radio"]:checked + .radio-mark::after {
-      content: '';
-      width: 8px;
-      height: 8px;
-      background: #0d6efd;
-      border-radius: 50%;
-    }
-
-    input[type="radio"] {
-      display: none;
+    ion-radio-group ion-item {
+      --background: transparent;
+      --padding-start: 0;
+      --padding-end: 0;
     }
 
     .template-placeholders {
       margin: 1rem 0;
       padding: 1rem;
-      background: #2a2a2a;
-      border-radius: 6px;
-      border: 1px solid #404040;
+      background: var(--ion-color-dark);
+      border-radius: 8px;
+      border: 1px solid var(--ion-color-dark-tint);
     }
 
-    .placeholder-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 0.5rem;
-    }
-
-    .placeholder-item {
-      background: #1a1a1a;
-      border: 1px solid #495057;
-      padding: 0.5rem;
-      border-radius: 4px;
+    .placeholder-chip {
+      width: 100%;
+      justify-content: center;
+      margin-bottom: 0.5rem;
+      --background: transparent;
+      --color: var(--ion-color-warning);
       font-family: 'Courier New', monospace;
       font-size: 0.85rem;
-      color: #ffc107;
-      text-align: center;
-    }
-
-    .settings-textarea.large {
-      min-height: 200px;
-      font-size: 0.9rem;
     }
 
     @media (max-width: 768px) {
-      .placeholder-grid {
-        grid-template-columns: 1fr;
+      .settings-actions {
+        padding: 0 0.5rem;
       }
       
       .settings-textarea.large {
         min-height: 150px;
-        font-size: 0.85rem;
       }
     }
   `]
@@ -457,12 +319,27 @@ export class StorySettingsComponent implements OnInit {
   settings: StorySettings = { ...DEFAULT_STORY_SETTINGS };
   hasUnsavedChanges = false;
   private originalSettings!: StorySettings;
+  
+  placeholders = [
+    '{SystemMessage}',
+    '{codexEntries}',
+    '{summariesOfScenesBefore}',
+    '{sceneFullText}',
+    '{wordCount}',
+    '{prompt}',
+    '{writingStyle}'
+  ];
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private storyService: StoryService
-  ) {}
+  ) {
+    addIcons({ 
+      arrowBack, saveOutline, refreshOutline, checkmarkCircleOutline,
+      warningOutline, informationCircleOutline, codeSlashOutline
+    });
+  }
 
   async ngOnInit(): Promise<void> {
     const storyId = this.route.snapshot.paramMap.get('id');
