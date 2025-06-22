@@ -1,294 +1,196 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import {
+  IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
+  IonList, IonItem, IonLabel, IonBadge, IonChip, IonCard,
+  IonCardContent, IonText, IonNote
+} from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import { 
+  arrowBack, trash, chevronForward, chevronDown, checkmarkCircle,
+  closeCircle, timeOutline, pauseCircle, documentTextOutline,
+  codeSlashOutline, warningOutline
+} from 'ionicons/icons';
 import { AIRequestLoggerService, AIRequestLog } from '../../core/services/ai-request-logger.service';
 import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-ai-request-logger',
   standalone: true,
-  imports: [CommonModule],
+  imports: [
+    CommonModule,
+    IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
+    IonList, IonItem, IonLabel, IonBadge, IonChip, IonCard,
+    IonCardContent, IonText, IonNote
+  ],
   template: `
-    <div class="logger-container">
-      <div class="logger-header">
-        <button class="back-btn" (click)="goBack()">← Zurück</button>
-        <h1>AI Request Logger</h1>
-        <div class="header-actions">
-          <span class="log-count">{{ logs.length }} Logs</span>
-          <button class="clear-btn" (click)="clearLogs()" [disabled]="logs.length === 0">
-            🗑️ Logs löschen
-          </button>
-        </div>
-      </div>
+    <ion-header>
+      <ion-toolbar color="dark">
+        <ion-buttons slot="start">
+          <ion-button (click)="goBack()">
+            <ion-icon name="arrow-back" slot="icon-only"></ion-icon>
+          </ion-button>
+        </ion-buttons>
+        <ion-title>AI Request Logger</ion-title>
+        <ion-buttons slot="end">
+          <ion-chip color="medium">
+            <ion-label>{{ logs.length }} Logs</ion-label>
+          </ion-chip>
+          <ion-button color="danger" (click)="clearLogs()" [disabled]="logs.length === 0">
+            <ion-icon name="trash" slot="icon-only"></ion-icon>
+          </ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
 
-      <div class="logs-container">
-        <div class="log-item" *ngFor="let log of logs" 
-             [class.success]="log.status === 'success'"
-             [class.error]="log.status === 'error'"
-             [class.pending]="log.status === 'pending'"
-             [class.aborted]="log.status === 'aborted'"
-             [class.expanded]="expandedLogs.has(log.id)">
+    <ion-content color="dark">
+      <ion-list class="logs-list">
+        <ion-card *ngFor="let log of logs" 
+                  [class.success-card]="log.status === 'success'"
+                  [class.error-card]="log.status === 'error'"
+                  [class.pending-card]="log.status === 'pending'"
+                  [class.aborted-card]="log.status === 'aborted'">
           
-          <div class="log-header" (click)="toggleExpand(log.id)">
-            <div class="log-status">
-              <span class="status-icon">
-                <ng-container [ngSwitch]="log.status">
-                  <span *ngSwitchCase="'success'">✓</span>
-                  <span *ngSwitchCase="'error'">✗</span>
-                  <span *ngSwitchCase="'pending'">⏳</span>
-                  <span *ngSwitchCase="'aborted'">⏹</span>
-                </ng-container>
-              </span>
-            </div>
+          <ion-item button detail="false" (click)="toggleExpand(log.id)" class="log-header">
+            <ion-icon 
+              [name]="getStatusIcon(log.status)" 
+              [color]="getStatusColor(log.status)"
+              slot="start"
+              class="status-icon">
+            </ion-icon>
             
-            <div class="log-info">
-              <div class="log-main">
-                <span class="log-time">{{ formatTime(log.timestamp) }}</span>
-                <span class="log-model">{{ log.model }}</span>
-                <span class="log-endpoint">{{ log.endpoint }}</span>
-              </div>
-              <div class="log-meta">
-                <span class="meta-item">📝 {{ log.wordCount }} Wörter</span>
-                <span class="meta-item">🎯 {{ log.maxTokens }} Tokens</span>
-                <span class="meta-item" *ngIf="log.duration">⏱️ {{ log.duration }}ms</span>
-              </div>
-            </div>
+            <ion-label>
+              <h2>
+                <ion-text color="light">{{ formatTime(log.timestamp) }}</ion-text>
+                <ion-badge color="primary" class="model-badge">{{ log.model }}</ion-badge>
+              </h2>
+              <p>
+                <ion-note>{{ log.endpoint }}</ion-note>
+              </p>
+              <p>
+                <ion-chip color="medium" class="meta-chip">
+                  <ion-icon name="document-text-outline"></ion-icon>
+                  <ion-label>{{ log.wordCount }} Wörter</ion-label>
+                </ion-chip>
+                <ion-chip color="medium" class="meta-chip">
+                  <ion-icon name="code-slash-outline"></ion-icon>
+                  <ion-label>{{ log.maxTokens }} Tokens</ion-label>
+                </ion-chip>
+                <ion-chip color="medium" class="meta-chip" *ngIf="log.duration">
+                  <ion-icon name="time-outline"></ion-icon>
+                  <ion-label>{{ log.duration }}ms</ion-label>
+                </ion-chip>
+              </p>
+            </ion-label>
             
-            <button class="expand-btn">
-              {{ expandedLogs.has(log.id) ? '▼' : '▶' }}
-            </button>
-          </div>
+            <ion-icon 
+              [name]="expandedLogs.has(log.id) ? 'chevron-down' : 'chevron-forward'"
+              slot="end">
+            </ion-icon>
+          </ion-item>
           
-          <div class="log-details" *ngIf="expandedLogs.has(log.id)">
+          <ion-card-content *ngIf="expandedLogs.has(log.id)" class="log-details">
             <div class="detail-section">
-              <h3>Prompt:</h3>
-              <pre class="prompt-content">{{ log.prompt }}</pre>
+              <ion-text color="medium">
+                <h3>Prompt:</h3>
+              </ion-text>
+              <pre class="content-pre prompt-content">{{ log.prompt }}</pre>
             </div>
             
             <div class="detail-section" *ngIf="log.response">
-              <h3>Response:</h3>
-              <pre class="response-content">{{ log.response }}</pre>
+              <ion-text color="medium">
+                <h3>Response:</h3>
+              </ion-text>
+              <pre class="content-pre response-content">{{ log.response }}</pre>
             </div>
             
-            <div class="detail-section error-section" *ngIf="log.error">
-              <h3>Error:</h3>
-              <pre class="error-content">{{ log.error }}</pre>
+            <div class="detail-section" *ngIf="log.error">
+              <ion-text color="danger">
+                <h3>Error:</h3>
+              </ion-text>
+              <pre class="content-pre error-content">{{ log.error }}</pre>
             </div>
-          </div>
-        </div>
+          </ion-card-content>
+        </ion-card>
         
-        <div class="no-logs" *ngIf="logs.length === 0">
-          <p>Noch keine AI-Requests geloggt.</p>
-        </div>
-      </div>
-    </div>
+        <ion-card *ngIf="logs.length === 0" class="no-logs-card">
+          <ion-card-content class="ion-text-center">
+            <ion-text color="medium">
+              <p>Noch keine AI-Requests geloggt.</p>
+            </ion-text>
+          </ion-card-content>
+        </ion-card>
+      </ion-list>
+    </ion-content>
   `,
   styles: [`
-    .logger-container {
-      min-height: 100vh;
-      background: #1a1a1a;
-      color: #e0e0e0;
+    ion-content {
+      --background: var(--ion-color-dark);
     }
 
-    .logger-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 1rem 2rem;
-      background: #2d2d2d;
-      border-bottom: 1px solid #404040;
-      position: sticky;
-      top: 0;
-      z-index: 10;
-    }
-
-    .logger-header h1 {
-      margin: 0;
-      font-size: 1.5rem;
-      color: #f8f9fa;
-    }
-
-    .back-btn {
-      background: #6c757d;
-      color: white;
-      border: none;
-      padding: 0.5rem 1rem;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-
-    .back-btn:hover {
-      background: #5a6268;
-    }
-
-    .header-actions {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-    }
-
-    .log-count {
-      color: #adb5bd;
-      font-size: 0.9rem;
-    }
-
-    .clear-btn {
-      background: #dc3545;
-      color: white;
-      border: none;
-      padding: 0.5rem 1rem;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: background 0.3s;
-      font-size: 0.9rem;
-    }
-
-    .clear-btn:hover:not(:disabled) {
-      background: #c82333;
-    }
-
-    .clear-btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    .logs-container {
+    .logs-list {
+      background: transparent;
       padding: 1rem;
       max-width: 1200px;
       margin: 0 auto;
     }
 
-    .log-item {
-      background: #2d2d2d;
-      border: 1px solid #404040;
-      border-radius: 8px;
-      margin-bottom: 0.75rem;
-      overflow: hidden;
-      transition: all 0.3s;
+    ion-card {
+      --background: var(--ion-color-dark-shade);
+      border: 1px solid var(--ion-color-dark-tint);
+      margin-bottom: 1rem;
     }
 
-    .log-item.success {
-      border-left: 4px solid #28a745;
+    ion-card.success-card {
+      border-left: 4px solid var(--ion-color-success);
     }
 
-    .log-item.error {
-      border-left: 4px solid #dc3545;
+    ion-card.error-card {
+      border-left: 4px solid var(--ion-color-danger);
     }
 
-    .log-item.pending {
-      border-left: 4px solid #ffc107;
+    ion-card.pending-card {
+      border-left: 4px solid var(--ion-color-warning);
     }
 
-    .log-item.aborted {
-      border-left: 4px solid #fd7e14;
+    ion-card.aborted-card {
+      border-left: 4px solid var(--ion-color-warning-shade);
     }
 
     .log-header {
-      display: flex;
-      align-items: center;
-      padding: 1rem;
-      cursor: pointer;
-      user-select: none;
-    }
-
-    .log-header:hover {
-      background: #343a40;
-    }
-
-    .log-status {
-      margin-right: 1rem;
+      --background: transparent;
+      --background-hover: var(--ion-color-dark-tint);
+      --padding-start: 16px;
+      --padding-end: 16px;
+      --inner-padding-end: 0;
     }
 
     .status-icon {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 30px;
-      height: 30px;
-      border-radius: 50%;
-      font-weight: bold;
+      font-size: 1.5rem;
+      margin-right: 0.5rem;
     }
 
-    .success .status-icon {
-      background: rgba(40, 167, 69, 0.2);
-      color: #28a745;
-    }
-
-    .error .status-icon {
-      background: rgba(220, 53, 69, 0.2);
-      color: #dc3545;
-    }
-
-    .pending .status-icon {
-      background: rgba(255, 193, 7, 0.2);
-      color: #ffc107;
-    }
-
-    .aborted .status-icon {
-      background: rgba(253, 126, 20, 0.2);
-      color: #fd7e14;
-    }
-
-    .log-info {
-      flex: 1;
-    }
-
-    .log-main {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      margin-bottom: 0.25rem;
-    }
-
-    .log-time {
-      font-weight: 500;
-      color: #f8f9fa;
-    }
-
-    .log-model {
-      background: #0d6efd;
-      color: white;
-      padding: 0.2rem 0.5rem;
-      border-radius: 4px;
+    .model-badge {
+      margin-left: 0.5rem;
       font-size: 0.85rem;
     }
 
-    .log-endpoint {
-      color: #6c757d;
-      font-size: 0.85rem;
-      font-family: 'Courier New', monospace;
+    .meta-chip {
+      margin-right: 0.5rem;
+      --background: transparent;
+      --color: var(--ion-color-medium);
+      font-size: 0.8rem;
+      height: 24px;
     }
 
-    .log-meta {
-      display: flex;
-      gap: 1rem;
-      font-size: 0.85rem;
-      color: #adb5bd;
-    }
-
-    .meta-item {
-      display: flex;
-      align-items: center;
-      gap: 0.25rem;
-    }
-
-    .expand-btn {
-      background: none;
-      border: none;
-      color: #6c757d;
-      font-size: 1rem;
-      cursor: pointer;
-      padding: 0.5rem;
-      transition: color 0.3s;
-    }
-
-    .expand-btn:hover {
-      color: #adb5bd;
+    .meta-chip ion-icon {
+      font-size: 0.9rem;
+      margin-right: 0.25rem;
     }
 
     .log-details {
-      padding: 0 1rem 1rem 4rem;
+      padding: 0 1rem 1rem 1rem;
       animation: slideDown 0.3s ease-out;
     }
 
@@ -314,15 +216,12 @@ import { Subscription } from 'rxjs';
     .detail-section h3 {
       margin: 0 0 0.5rem 0;
       font-size: 0.9rem;
-      color: #adb5bd;
       font-weight: 600;
     }
 
-    .prompt-content,
-    .response-content,
-    .error-content {
-      background: #1a1a1a;
-      border: 1px solid #404040;
+    .content-pre {
+      background: var(--ion-color-dark);
+      border: 1px solid var(--ion-color-dark-tint);
       border-radius: 6px;
       padding: 1rem;
       font-family: 'Courier New', monospace;
@@ -333,49 +232,50 @@ import { Subscription } from 'rxjs';
       margin: 0;
       max-height: 400px;
       overflow-y: auto;
-    }
-
-    .error-section h3 {
-      color: #dc3545;
+      color: var(--ion-color-light);
     }
 
     .error-content {
-      border-color: #dc3545;
-      color: #f8d7da;
+      border-color: var(--ion-color-danger);
+      color: var(--ion-color-danger-tint);
     }
 
-    .no-logs {
-      text-align: center;
+    .no-logs-card {
+      margin-top: 2rem;
+    }
+
+    .no-logs-card ion-card-content {
       padding: 4rem 2rem;
-      color: #6c757d;
-      font-size: 1.1rem;
     }
 
     /* Scrollbar styling */
-    .prompt-content::-webkit-scrollbar,
-    .response-content::-webkit-scrollbar,
-    .error-content::-webkit-scrollbar {
+    .content-pre::-webkit-scrollbar {
       width: 8px;
     }
 
-    .prompt-content::-webkit-scrollbar-track,
-    .response-content::-webkit-scrollbar-track,
-    .error-content::-webkit-scrollbar-track {
-      background: #2d2d2d;
+    .content-pre::-webkit-scrollbar-track {
+      background: var(--ion-color-dark-shade);
       border-radius: 4px;
     }
 
-    .prompt-content::-webkit-scrollbar-thumb,
-    .response-content::-webkit-scrollbar-thumb,
-    .error-content::-webkit-scrollbar-thumb {
-      background: #495057;
+    .content-pre::-webkit-scrollbar-thumb {
+      background: var(--ion-color-medium);
       border-radius: 4px;
     }
 
-    .prompt-content::-webkit-scrollbar-thumb:hover,
-    .response-content::-webkit-scrollbar-thumb:hover,
-    .error-content::-webkit-scrollbar-thumb:hover {
-      background: #6c757d;
+    .content-pre::-webkit-scrollbar-thumb:hover {
+      background: var(--ion-color-medium-shade);
+    }
+
+    /* Mobile responsiveness */
+    @media (max-width: 768px) {
+      .logs-list {
+        padding: 0.5rem;
+      }
+      
+      .meta-chip {
+        font-size: 0.7rem;
+      }
     }
   `]
 })
@@ -387,7 +287,13 @@ export class AIRequestLoggerComponent implements OnInit, OnDestroy {
   constructor(
     private loggerService: AIRequestLoggerService,
     private router: Router
-  ) {}
+  ) {
+    addIcons({ 
+      arrowBack, trash, chevronForward, chevronDown, checkmarkCircle,
+      closeCircle, timeOutline, pauseCircle, documentTextOutline,
+      codeSlashOutline, warningOutline
+    });
+  }
 
   ngOnInit(): void {
     this.subscription.add(
@@ -435,5 +341,25 @@ export class AIRequestLoggerComponent implements OnInit, OnDestroy {
 
   goBack(): void {
     this.router.navigate(['/']);
+  }
+
+  getStatusIcon(status: string): string {
+    switch (status) {
+      case 'success': return 'checkmark-circle';
+      case 'error': return 'close-circle';
+      case 'pending': return 'time-outline';
+      case 'aborted': return 'pause-circle';
+      default: return 'help-circle';
+    }
+  }
+
+  getStatusColor(status: string): string {
+    switch (status) {
+      case 'success': return 'success';
+      case 'error': return 'danger';
+      case 'pending': return 'warning';
+      case 'aborted': return 'warning';
+      default: return 'medium';
+    }
   }
 }
