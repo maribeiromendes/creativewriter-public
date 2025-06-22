@@ -1,7 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonChip, IonIcon, IonButton, IonFab, IonFabButton } from '@ionic/angular/standalone';
+import { 
+  IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonChip, IonIcon, IonButton, 
+  IonFab, IonFabButton, IonHeader, IonToolbar, IonTitle, IonButtons, IonContent
+} from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { add, download, settings, analytics, trash } from 'ionicons/icons';
 import { StoryService } from '../services/story.service';
@@ -13,29 +16,47 @@ import { AuthService, User } from '../../core/services/auth.service';
 @Component({
   selector: 'app-story-list',
   standalone: true,
-  imports: [CommonModule, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonChip, IonIcon, IonButton, IonFab, IonFabButton, SyncStatusComponent, LoginComponent],
+  imports: [
+    CommonModule, 
+    IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonChip, IonIcon, IonButton, 
+    IonFab, IonFabButton, IonHeader, IonToolbar, IonTitle, IonButtons, IonContent,
+    SyncStatusComponent, LoginComponent
+  ],
   template: `
-    <div class="story-list-container">
-      <div class="header">
-        <h1>Meine Geschichten</h1>
-        <div class="header-actions">
-          <div class="user-info" *ngIf="currentUser">
-            <span class="user-greeting">👋 {{ currentUser.displayName || currentUser.username }}</span>
-            <ion-button size="small" fill="clear" color="danger" (click)="logout()">
-              Abmelden
-            </ion-button>
-          </div>
-          <app-sync-status [showActions]="true"></app-sync-status>
-          <ion-button size="default" fill="clear" color="medium" (click)="goToAILogger()">
+    <ion-header>
+      <ion-toolbar color="dark">
+        <ion-title>Meine Geschichten</ion-title>
+        <ion-buttons slot="end" class="header-buttons">
+          <ion-button fill="clear" color="medium" (click)="goToAILogger()" class="desktop-only">
             <ion-icon name="analytics" slot="start"></ion-icon>
             AI Logs
           </ion-button>
-          <ion-button size="default" fill="clear" color="medium" (click)="goToSettings()">
+          <ion-button fill="clear" color="medium" (click)="goToSettings()" class="desktop-only">
             <ion-icon name="settings" slot="start"></ion-icon>
             Einstellungen
           </ion-button>
+          <ion-button fill="clear" color="medium" (click)="goToAILogger()" class="mobile-only">
+            <ion-icon name="analytics" slot="icon-only"></ion-icon>
+          </ion-button>
+          <ion-button fill="clear" color="medium" (click)="goToSettings()" class="mobile-only">
+            <ion-icon name="settings" slot="icon-only"></ion-icon>
+          </ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+      
+      <ion-toolbar color="dark" *ngIf="currentUser" class="user-toolbar">
+        <div class="user-info">
+          <span class="user-greeting">👋 {{ currentUser.displayName || currentUser.username }}</span>
+          <ion-button size="small" fill="clear" color="danger" (click)="logout()">
+            Abmelden
+          </ion-button>
         </div>
-      </div>
+        <app-sync-status [showActions]="true" slot="end"></app-sync-status>
+      </ion-toolbar>
+    </ion-header>
+
+    <ion-content color="dark">
+      <div class="story-list-container">
       
       <div class="action-buttons">
         <ion-button expand="block" size="large" color="primary" (click)="createNewStory()">
@@ -88,31 +109,24 @@ import { AuthService, User } from '../../core/services/auth.service';
       
       <!-- Login Modal -->
       <app-login></app-login>
-    </div>
+      </div>
+    </ion-content>
   `,
   styles: [`
+    ion-content {
+      --background: #1a1a1a;
+    }
+    
     .story-list-container {
       max-width: 1200px;
       margin: 0 auto;
       padding: 2rem;
     }
     
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 2rem;
-    }
-    
-    h1 {
-      color: #e0e0e0;
-      margin: 0;
-    }
-    
-    .header-actions {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
+    .user-toolbar {
+      --min-height: 48px;
+      --padding-top: 8px;
+      --padding-bottom: 8px;
     }
     
     .user-info {
@@ -123,12 +137,21 @@ import { AuthService, User } from '../../core/services/auth.service';
       background: rgba(255, 255, 255, 0.1);
       border-radius: 20px;
       border: 1px solid rgba(255, 255, 255, 0.2);
+      margin-left: 16px;
     }
     
     .user-greeting {
       color: #f8f9fa;
       font-size: 0.9rem;
       font-weight: 500;
+    }
+    
+    .desktop-only {
+      display: inline-flex;
+    }
+    
+    .mobile-only {
+      display: none;
     }
     
     .action-buttons {
@@ -155,6 +178,50 @@ import { AuthService, User } from '../../core/services/auth.service';
     @media (max-width: 767px) {
       .action-buttons {
         display: none;
+      }
+      
+      .desktop-only {
+        display: none;
+      }
+      
+      .mobile-only {
+        display: inline-flex;
+      }
+      
+      .user-info {
+        width: 90%;
+        justify-content: center;
+        margin: 0 auto;
+      }
+      
+      .user-greeting {
+        font-size: 0.8rem;
+      }
+      
+      .user-toolbar {
+        --padding-start: 8px;
+        --padding-end: 8px;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .story-list-container {
+        padding: 1rem 0.5rem;
+      }
+      
+      .user-info {
+        width: 95%;
+        padding: 0.4rem 0.8rem;
+      }
+      
+      .user-greeting {
+        font-size: 0.75rem;
+      }
+      
+      .stories-grid {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+        padding: 0;
       }
     }
     
