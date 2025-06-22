@@ -330,6 +330,7 @@ import { NovelCrafterImportService, NovelCrafterImportResult } from '../../share
       background: #2a2a2a;
       border-radius: 8px;
       padding: 2rem;
+      padding-bottom: 4rem; /* Extra space for scrolling */
     }
 
     .preview-section {
