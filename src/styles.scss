@@ -1,3 +1,12 @@
+/* Ionic CSS */
+@import '@ionic/angular/css/core.css';
+@import '@ionic/angular/css/normalize.css';
+@import '@ionic/angular/css/structure.css';
+@import '@ionic/angular/css/typography.css';
+
+/* Ionic Dark Theme */
+@import '@ionic/angular/css/palettes/dark.always.css';
+
 /* Global Dark Mode Styles */
 
 * {

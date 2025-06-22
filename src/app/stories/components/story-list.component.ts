@@ -1,6 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonChip, IonIcon, IonButton } from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import { add, download, settings, analytics, trash } from 'ionicons/icons';
 import { StoryService } from '../services/story.service';
 import { Story } from '../models/story.interface';
 import { SyncStatusComponent } from '../../shared/components/sync-status.component';
@@ -10,7 +13,7 @@ import { AuthService, User } from '../../core/services/auth.service';
 @Component({
   selector: 'app-story-list',
   standalone: true,
-  imports: [CommonModule, SyncStatusComponent, LoginComponent],
+  imports: [CommonModule, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonChip, IonIcon, IonButton, SyncStatusComponent, LoginComponent],
   template: `
     <div class="story-list-container">
       <div class="header">
@@ -36,15 +39,27 @@ import { AuthService, User } from '../../core/services/auth.service';
       </div>
       
       <div class="stories-grid" *ngIf="stories.length > 0; else noStories">
-        <div class="story-card" *ngFor="let story of stories" (click)="openStory(story.id)">
-          <h3>{{ story.title || 'Unbenannte Geschichte' }}</h3>
-          <p class="story-preview">{{ getStoryPreview(story) }}</p>
-          <div class="story-meta">
-            <span class="word-count">{{ getWordCount(story) }} Wörter</span>
-            <span class="last-modified">{{ story.updatedAt | date:'short' }}</span>
-          </div>
-          <button class="delete-btn" (click)="deleteStory($event, story.id)">Löschen</button>
-        </div>
+        <ion-card class="story-card" *ngFor="let story of stories" (click)="openStory(story.id)" button>
+          <ion-card-header>
+            <div class="card-header-content">
+              <ion-card-title>{{ story.title || 'Unbenannte Geschichte' }}</ion-card-title>
+              <ion-button fill="clear" size="small" color="danger" (click)="deleteStory($event, story.id)">
+                <ion-icon name="trash" slot="icon-only"></ion-icon>
+              </ion-button>
+            </div>
+          </ion-card-header>
+          <ion-card-content>
+            <p class="story-preview">{{ getStoryPreview(story) }}</p>
+            <div class="story-chips">
+              <ion-chip color="medium">
+                <span>{{ getWordCount(story) }} Wörter</span>
+              </ion-chip>
+              <ion-chip color="medium">
+                <span>{{ story.updatedAt | date:'short' }}</span>
+              </ion-chip>
+            </div>
+          </ion-card-content>
+        </ion-card>
       </div>
       
       <ng-template #noStories>
@@ -175,70 +190,52 @@ import { AuthService, User } from '../../core/services/auth.service';
     
     .stories-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 1.5rem;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1rem;
+      padding: 0 8px;
     }
     
     .story-card {
-      background: #2d2d2d;
-      border: 1px solid #404040;
-      border-radius: 12px;
-      padding: 1.5rem;
-      cursor: pointer;
-      transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
-      position: relative;
+      margin: 0;
+      transition: transform 0.2s ease;
     }
     
     .story-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-      border-color: #0d6efd;
+      transform: translateY(-4px);
     }
     
-    .story-card h3 {
-      margin: 0 0 1rem 0;
-      color: #f8f9fa;
+    .card-header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      width: 100%;
+    }
+    
+    .card-header-content ion-card-title {
+      flex: 1;
+      margin-right: 8px;
+      font-size: 1.1rem;
     }
     
     .story-preview {
-      color: #adb5bd;
+      color: var(--ion-color-medium);
       line-height: 1.4;
-      margin-bottom: 1rem;
+      margin: 0 0 12px 0;
       overflow: hidden;
       display: -webkit-box;
       -webkit-line-clamp: 3;
       -webkit-box-orient: vertical;
-    }
-    
-    .story-meta {
-      display: flex;
-      justify-content: space-between;
       font-size: 0.9rem;
-      color: #6c757d;
-      margin-bottom: 1rem;
     }
     
-    .delete-btn {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      background: #dc3545;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      padding: 0.25rem 0.5rem;
-      font-size: 0.8rem;
-      cursor: pointer;
-      opacity: 0;
-      transition: opacity 0.2s, background 0.2s;
+    .story-chips {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
     }
     
-    .story-card:hover .delete-btn {
-      opacity: 1;
-    }
-    
-    .delete-btn:hover {
-      background: #c82333;
+    .story-chips ion-chip {
+      font-size: 0.75rem;
     }
     
     .no-stories {
@@ -261,7 +258,10 @@ export class StoryListComponent implements OnInit {
     private storyService: StoryService,
     private router: Router,
     private authService: AuthService
-  ) {}
+  ) {
+    // Register Ionic icons
+    addIcons({ add, download, settings, analytics, trash });
+  }
 
   ngOnInit(): void {
     this.loadStories();
