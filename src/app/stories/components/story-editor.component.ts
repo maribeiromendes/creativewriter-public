@@ -281,6 +281,7 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
     
     .content-editor :global(.prosemirror-editor p) {
       margin: 0 0 1.5rem 0;
+      text-indent: 2rem;
     }
     
     .content-editor :global(.prosemirror-editor p:last-child) {
