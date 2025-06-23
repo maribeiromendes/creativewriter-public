@@ -255,7 +255,7 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
       flex: 1;
       border: none;
       outline: none;
-      font-size: 1.1rem;
+      font-size: 0.8rem;
       line-height: 1.8;
       font-family: Georgia, serif;
       padding: 1rem 0;
@@ -269,7 +269,7 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
       border: none;
       background: transparent;
       color: #e0e0e0;
-      font-size: 1.1rem;
+      font-size: 0.8rem;
       line-height: 1.8;
       font-family: Georgia, serif;
       min-height: 200px;
@@ -304,15 +304,15 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
     }
     
     .content-editor :global(.prosemirror-editor h1) {
-      font-size: 1.5rem;
+      font-size: 1.2rem;
     }
     
     .content-editor :global(.prosemirror-editor h2) {
-      font-size: 1.3rem;
+      font-size: 1.0rem;
     }
     
     .content-editor :global(.prosemirror-editor h3) {
-      font-size: 1.1rem;
+      font-size: 0.9rem;
     }
     
     .content-editor :global(.prosemirror-editor strong) {
