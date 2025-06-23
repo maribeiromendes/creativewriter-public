@@ -266,8 +266,12 @@ export class NovelCrafterImportService {
     const saveCurrentScene = () => {
       if (currentScene && currentChapter) {
         // Fix: summaryBuffer contains the actual scene summary, sceneBuffer contains the story content
+        // Preserve paragraph breaks by joining with newlines and converting double newlines to proper paragraph breaks
         currentScene.summary = summaryBuffer.join('\n').trim();
         currentScene.content = sceneBuffer.join('\n').trim();
+        
+        // Convert single blank lines to double newlines for proper paragraph separation
+        currentScene.content = currentScene.content.replace(/\n\n/g, '\n\n');
         
         // Only save scenes that have content or summary
         if (currentScene.content || currentScene.summary) {
@@ -350,16 +354,18 @@ export class NovelCrafterImportService {
 
       // Collect content based on current state
       if (parsingState === 'story' && currentScene) {
+        // Preserve empty lines to maintain paragraph breaks
         sceneBuffer.push(line);
         if (line.trim() !== '') {
           console.log(`  Adding to story: "${line.substring(0, 50)}..."`);
         }
       } else if (parsingState === 'summary' && currentScene) {
+        // For summaries, preserve empty lines as well
+        summaryBuffer.push(line);
         if (line.trim() !== '') {
-          summaryBuffer.push(line);
           console.log(`  Adding to summary: "${line}"`);
         }
-      } else if (parsingState === 'content' && currentChapter && line.trim() !== '') {
+      } else if (parsingState === 'content' && currentChapter) {
         // Handle content before any --- marker (first scene in chapter)
         if (!currentScene) {
           currentScene = {

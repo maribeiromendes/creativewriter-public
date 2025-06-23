@@ -218,8 +218,20 @@ export class ProseMirrorEditorService {
     
     try {
       const div = document.createElement('div');
-      div.innerHTML = content || '<p></p>';
       
+      // Check if content looks like plain text (no HTML tags)
+      if (content && !content.includes('<') && !content.includes('>')) {
+        // Convert plain text to HTML paragraphs
+        const paragraphs = content
+          .split(/\n\n+/) // Split on double newlines (or more)
+          .filter(para => para.trim()) // Remove empty paragraphs
+          .map(para => `<p>${para.replace(/\n/g, '<br>')}</p>`) // Convert single newlines to <br>
+          .join('');
+        
+        div.innerHTML = paragraphs || '<p></p>';
+      } else {
+        div.innerHTML = content || '<p></p>';
+      }
       
       const doc = DOMParser.fromSchema(this.editorSchema).parse(div);
       const state = EditorState.create({
