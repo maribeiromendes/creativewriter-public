@@ -6,7 +6,7 @@ import {
   IonFab, IonFabButton, IonFabList, IonHeader, IonToolbar, IonTitle, IonButtons, IonContent
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { add, download, settings, analytics, trash, create } from 'ionicons/icons';
+import { add, download, settings, analytics, trash, create, image } from 'ionicons/icons';
 import { StoryService } from '../services/story.service';
 import { Story } from '../models/story.interface';
 import { SyncStatusComponent } from '../../shared/components/sync-status.component';
@@ -66,6 +66,10 @@ import { AuthService, User } from '../../core/services/auth.service';
         <ion-button expand="block" size="large" fill="outline" color="medium" (click)="importNovelCrafter()">
           <ion-icon name="download" slot="start"></ion-icon>
           NovelCrafter Import
+        </ion-button>
+        <ion-button expand="block" size="large" fill="outline" color="secondary" (click)="goToImageGeneration()">
+          <ion-icon name="image" slot="start"></ion-icon>
+          Bildgenerierung
         </ion-button>
       </div>
       
@@ -305,7 +309,7 @@ export class StoryListComponent implements OnInit {
     private authService: AuthService
   ) {
     // Register Ionic icons
-    addIcons({ add, download, settings, analytics, trash, create });
+    addIcons({ add, download, settings, analytics, trash, create, image });
   }
 
   ngOnInit(): void {
@@ -348,6 +352,10 @@ export class StoryListComponent implements OnInit {
 
   importNovelCrafter(): void {
     this.router.navigate(['/stories/import/novelcrafter']);
+  }
+
+  goToImageGeneration(): void {
+    this.router.navigate(['/stories/image-generation']);
   }
 
   async deleteStory(event: Event, storyId: string): Promise<void> {

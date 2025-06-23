@@ -4,6 +4,7 @@ import { StoryEditorComponent } from './components/story-editor.component';
 import { StorySettingsComponent } from './components/story-settings.component';
 import { CodexComponent } from './components/codex.component';
 import { NovelCrafterImportComponent } from './components/novelcrafter-import.component';
+import { ImageGenerationComponent } from './components/image-generation.component';
 
 const routes: Routes = [
   {
@@ -21,6 +22,10 @@ const routes: Routes = [
   {
     path: 'import/novelcrafter',
     component: NovelCrafterImportComponent
+  },
+  {
+    path: 'image-generation',
+    component: ImageGenerationComponent
   }
 ];
 
