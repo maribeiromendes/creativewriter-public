@@ -166,30 +166,30 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
     
     ion-content {
       --background: #1a1a1a;
+      --overflow: auto;
+    }
+    
+    ion-content::part(scroll) {
+      display: flex;
+      flex-direction: column;
     }
     
     .editor-container {
-      height: 100%;
       display: flex;
       position: relative;
+      min-height: 100%;
     }
     
     .editor-main {
       flex: 1;
       display: flex;
       flex-direction: column;
-      min-height: 0; /* Important for nested flex containers */
     }
     
     .editor-content {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
       padding: 2rem 1rem;
       width: 100%;
       box-sizing: border-box;
-      overflow-y: auto;
-      min-height: 0; /* Important for proper scrolling */
     }
 
     /* Optimal reading width container */
@@ -197,7 +197,7 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
       max-width: 650px;
       margin: 0 auto;
       width: 100%;
-      padding-bottom: 2rem; /* Extra space at bottom for better scrolling */
+      padding-bottom: 4rem; /* Extra space at bottom for better scrolling */
     }
 
     /* Different max-widths for different screens */
@@ -279,6 +279,7 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
       word-wrap: break-word;
       -webkit-font-variant-ligatures: none;
       font-variant-ligatures: none;
+      padding-bottom: 50vh; /* Ensure we can scroll past the last line */
     }
     
     .content-editor :global(.prosemirror-editor p) {
@@ -390,6 +391,7 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
 
       .editor-inner {
         max-width: 100%;
+        padding-bottom: 6rem; /* More space on mobile */
       }
 
       .title-input {
