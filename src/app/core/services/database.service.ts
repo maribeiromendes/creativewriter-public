@@ -155,21 +155,29 @@ export class DatabaseService {
     // Try to determine CouchDB URL based on current location
     const hostname = window.location.hostname;
     const protocol = window.location.protocol;
+    const port = window.location.port;
     
     // Get the current database name (user-specific)
     const dbName = this.db ? this.db.name : 'creative-writer-stories-anonymous';
     
-    // For development
-    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    // Check if we're running with nginx reverse proxy (through /_db/ path)
+    const baseUrl = port ? `${protocol}//${hostname}:${port}` : `${protocol}//${hostname}`;
+    
+    // For development with direct CouchDB access
+    if ((hostname === 'localhost' || hostname === '127.0.0.1') && !this.isReverseProxySetup()) {
       return `${protocol}//${hostname}:5984/${dbName}`;
     }
     
-    // For production (assume same host, different port)
-    if (hostname && hostname !== 'localhost') {
-      return `${protocol}//${hostname}:5984/${dbName}`;
-    }
-    
-    return null;
+    // For production or reverse proxy setup - use /_db/ prefix
+    return `${baseUrl}/_db/${dbName}`;
+  }
+
+  private isReverseProxySetup(): boolean {
+    // Check if we can detect reverse proxy setup by testing for nginx-specific headers
+    // or by checking if the current port is not 5984 (standard CouchDB port)
+    const port = window.location.port;
+    // If running on port 3080 (nginx proxy port) or any non-5984 port, assume reverse proxy
+    return port === '3080' || (port !== '5984' && port !== '');
   }
 
   private startSync(): void {

@@ -1,22 +1,29 @@
 version: '3.8'
 
 services:
+  nginx:
+    image: nginx:alpine
+    container_name: creativewriter-nginx
+    restart: unless-stopped
+    ports:
+      - "3080:80"  # Single port for both webapp and CouchDB
+    volumes:
+      - /share/Docker/creativewriter/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - creativewriter
+      - couchdb
+    networks:
+      - creativewriter-network
+
   creativewriter:
     image: ghcr.io/marcodroll/creativewriter2:latest
     container_name: creativewriter
     restart: unless-stopped
-    ports:
-      - "3080:80"  # Change port as needed for your NAS
+    # No ports exposed directly - only through nginx
     environment:
       - TZ=Europe/Berlin  # Adjust timezone as needed
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
     networks:
       - creativewriter-network
     depends_on:
@@ -26,31 +33,17 @@ services:
     image: couchdb:3.3
     container_name: creativewriter-couchdb
     restart: unless-stopped
-    ports:
-      - "5984:5984"  # CouchDB accessible from browser
+    # No ports exposed directly - only through nginx
     environment:
       - COUCHDB_USER=admin
       - COUCHDB_PASSWORD=password  # Change this in production!
       - COUCHDB_SECRET=mysecret    # Change this in production!
     volumes:
       - /share/Docker/creativewriter/data/couchdb-data:/opt/couchdb/data
-      - /share/Docker/creativewriter/data/couchdb-etc:/opt/couchdb/etc/local.d
-      - ./couchdb-cors.ini:/opt/couchdb/etc/local.d/cors.ini
+      - /share/Docker/creativewriter/data/log/couchdb_log:/opt/couchdb/var/log
     networks:
       - creativewriter-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5984/_up"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
 
 networks:
   creativewriter-network:
     driver: bridge
-
-volumes:
-  couchdb-data:
-    driver: local
-  couchdb-etc:
-    driver: local
