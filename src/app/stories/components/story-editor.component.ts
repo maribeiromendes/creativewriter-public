@@ -178,6 +178,7 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
       flex: 1;
       display: flex;
       flex-direction: column;
+      min-height: 0; /* Important for nested flex containers */
     }
     
     .editor-content {
@@ -188,6 +189,7 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
       width: 100%;
       box-sizing: border-box;
       overflow-y: auto;
+      min-height: 0; /* Important for proper scrolling */
     }
 
     /* Optimal reading width container */
@@ -195,6 +197,7 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
       max-width: 650px;
       margin: 0 auto;
       width: 100%;
+      padding-bottom: 2rem; /* Extra space at bottom for better scrolling */
     }
 
     /* Different max-widths for different screens */
@@ -224,9 +227,9 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
     }
     
     .scene-editor {
-      flex: 1;
       display: flex;
       flex-direction: column;
+      min-height: 0; /* Allow shrinking */
     }
     
     .scene-title-input {
@@ -252,7 +255,6 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
     }
     
     .content-editor {
-      flex: 1;
       border: none;
       outline: none;
       font-size: 0.8rem;
@@ -261,7 +263,7 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
       padding: 1rem 0;
       background: transparent;
       color: #e0e0e0;
-      overflow-y: auto;
+      min-height: 300px; /* Minimum height for editor */
     }
     
     .content-editor :global(.prosemirror-editor) {
