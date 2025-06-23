@@ -624,10 +624,10 @@ export class SettingsComponent implements OnInit, OnDestroy {
   goToAILogs(): void {
     if (this.hasUnsavedChanges) {
       if (confirm('Sie haben ungespeicherte Änderungen. Möchten Sie die Seite wirklich verlassen?')) {
-        this.router.navigate(['/ai-logs']);
+        this.router.navigate(['/logs']);
       }
     } else {
-      this.router.navigate(['/ai-logs']);
+      this.router.navigate(['/logs']);
     }
   }
 }

@@ -343,7 +343,7 @@ export class StoryListComponent implements OnInit {
   }
 
   goToAILogger(): void {
-    this.router.navigate(['/ai-logs']);
+    this.router.navigate(['/logs']);
   }
 
   importNovelCrafter(): void {
