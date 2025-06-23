@@ -200,6 +200,7 @@ import { Subscription } from 'rxjs';
     
     .chapters-list {
       background: transparent;
+      padding-top: 0.5rem; /* Add top padding to prevent header overlap */
     }
     
     .chapter-item {
@@ -333,6 +334,7 @@ import { Subscription } from 'rxjs';
       }
       
       .chapters-list {
+        padding-top: 0.75rem; /* Extra top padding on mobile */
         padding-bottom: 2rem; /* Extra padding at bottom */
       }
       
