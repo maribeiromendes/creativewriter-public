@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { v4 as uuidv4 } from 'uuid';
 import { Codex, CodexCategory, CodexEntry, DEFAULT_CODEX_CATEGORIES } from '../models/codex.interface';
+import { DatabaseService } from '../../core/services/database.service';
 
 @Injectable({
   providedIn: 'root'
@@ -10,11 +11,101 @@ export class CodexService {
   private readonly STORAGE_KEY = 'creative-writer-codex';
   private codexMap = new Map<string, Codex>();
   private codexSubject = new BehaviorSubject<Map<string, Codex>>(new Map());
+  private db: any;
+  private isInitialized = false;
   
   codex$ = this.codexSubject.asObservable();
 
-  constructor() {
-    this.loadFromStorage();
+  constructor(private databaseService: DatabaseService) {
+    this.initializeService();
+  }
+
+  private async initializeService(): Promise<void> {
+    try {
+      this.db = await this.databaseService.getDatabase();
+      await this.migrateFromLocalStorage();
+      await this.loadFromDatabase();
+      this.isInitialized = true;
+    } catch (error) {
+      console.error('Error initializing codex service:', error);
+      // Fallback to localStorage if database fails
+      this.loadFromStorage();
+    }
+  }
+
+  private async waitForInitialization(): Promise<void> {
+    if (this.isInitialized) return;
+    
+    // Wait for initialization with timeout
+    const timeout = 5000;
+    const start = Date.now();
+    
+    while (!this.isInitialized && (Date.now() - start) < timeout) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+    
+    if (!this.isInitialized) {
+      throw new Error('Codex service initialization timeout');
+    }
+  }
+
+  private async migrateFromLocalStorage(): Promise<void> {
+    try {
+      const stored = localStorage.getItem(this.STORAGE_KEY);
+      if (!stored) return;
+
+      console.log('Migrating codex data from localStorage to CouchDB...');
+      const codexArray: Codex[] = JSON.parse(stored);
+      
+      for (const codex of codexArray) {
+        const deserializedCodex = this.deserializeCodex(codex);
+        const docId = `codex_${deserializedCodex.storyId}`;
+        
+        try {
+          await this.db.get(docId);
+          console.log(`Codex for story ${deserializedCodex.storyId} already exists in database`);
+        } catch (error: any) {
+          if (error.status === 404) {
+            await this.db.put({
+              _id: docId,
+              type: 'codex',
+              ...deserializedCodex
+            });
+            console.log(`Migrated codex for story ${deserializedCodex.storyId}`);
+          }
+        }
+      }
+      
+      // Clear localStorage after successful migration
+      localStorage.removeItem(this.STORAGE_KEY);
+      console.log('Migration completed, localStorage cleared');
+      
+    } catch (error) {
+      console.error('Error during migration:', error);
+    }
+  }
+
+  private async loadFromDatabase(): Promise<void> {
+    try {
+      const result = await this.db.allDocs({
+        include_docs: true,
+        startkey: 'codex_',
+        endkey: 'codex_\ufff0'
+      });
+      
+      this.codexMap.clear();
+      
+      for (const row of result.rows) {
+        if (row.doc && row.doc.type === 'codex') {
+          const codex = this.deserializeCodex(row.doc);
+          this.codexMap.set(codex.storyId, codex);
+        }
+      }
+      
+      this.codexSubject.next(new Map(this.codexMap));
+    } catch (error) {
+      console.error('Error loading codex from database:', error);
+    }
   }
 
   private loadFromStorage(): void {
@@ -35,7 +126,46 @@ export class CodexService {
     }
   }
 
-  private saveToStorage(): void {
+  private async saveToDatabase(codex: Codex): Promise<void> {
+    try {
+      if (!this.isInitialized) {
+        await this.waitForInitialization();
+      }
+      
+      const docId = `codex_${codex.storyId}`;
+      
+      try {
+        const existingDoc = await this.db.get(docId);
+        await this.db.put({
+          ...existingDoc,
+          ...codex,
+          _id: docId,
+          type: 'codex'
+        });
+      } catch (error: any) {
+        if (error.status === 404) {
+          await this.db.put({
+            _id: docId,
+            type: 'codex',
+            ...codex
+          });
+        } else {
+          throw error;
+        }
+      }
+      
+      // Update local map and notify subscribers
+      this.codexMap.set(codex.storyId, codex);
+      this.codexSubject.next(new Map(this.codexMap));
+      
+    } catch (error) {
+      console.error('Error saving codex to database:', error);
+      // Fallback to localStorage
+      this.saveToStorageFallback();
+    }
+  }
+
+  private saveToStorageFallback(): void {
     try {
       const codexArray = Array.from(this.codexMap.values());
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(codexArray));
@@ -65,18 +195,22 @@ export class CodexService {
   }
 
   // Create or get codex for a story
-  getOrCreateCodex(storyId: string): Codex {
+  async getOrCreateCodex(storyId: string): Promise<Codex> {
+    if (!this.isInitialized) {
+      await this.waitForInitialization();
+    }
+    
     let codex = this.codexMap.get(storyId);
     
     if (!codex) {
-      codex = this.createCodex(storyId);
+      codex = await this.createCodex(storyId);
     }
     
     return codex;
   }
 
   // Create new codex with default categories
-  private createCodex(storyId: string): Codex {
+  private async createCodex(storyId: string): Promise<Codex> {
     const now = new Date();
     const codex: Codex = {
       id: uuidv4(),
@@ -96,8 +230,7 @@ export class CodexService {
       updatedAt: now
     };
 
-    this.codexMap.set(storyId, codex);
-    this.saveToStorage();
+    await this.saveToDatabase(codex);
     return codex;
   }
 
@@ -107,8 +240,8 @@ export class CodexService {
   }
 
   // Add category
-  addCategory(storyId: string, category: Partial<CodexCategory>): CodexCategory {
-    const codex = this.getOrCreateCodex(storyId);
+  async addCategory(storyId: string, category: Partial<CodexCategory>): Promise<CodexCategory> {
+    const codex = await this.getOrCreateCodex(storyId);
     const now = new Date();
     
     const newCategory: CodexCategory = {
@@ -129,13 +262,12 @@ export class CodexService {
       updatedAt: now
     };
     
-    this.codexMap.set(storyId, updatedCodex);
-    this.saveToStorage();
+    await this.saveToDatabase(updatedCodex);
     return newCategory;
   }
 
   // Update category
-  updateCategory(storyId: string, categoryId: string, updates: Partial<CodexCategory>): void {
+  async updateCategory(storyId: string, categoryId: string, updates: Partial<CodexCategory>): Promise<void> {
     const codex = this.codexMap.get(storyId);
     if (!codex) return;
 
@@ -145,11 +277,11 @@ export class CodexService {
     Object.assign(category, updates, { updatedAt: new Date() });
     codex.updatedAt = new Date();
     
-    this.saveToStorage();
+    await this.saveToDatabase(codex);
   }
 
   // Delete category
-  deleteCategory(storyId: string, categoryId: string): void {
+  async deleteCategory(storyId: string, categoryId: string): Promise<void> {
     const codex = this.codexMap.get(storyId);
     if (!codex) return;
 
@@ -162,13 +294,12 @@ export class CodexService {
       updatedAt: now
     };
     
-    this.codexMap.set(storyId, updatedCodex);
-    this.saveToStorage();
+    await this.saveToDatabase(updatedCodex);
   }
 
   // Add entry to category
-  addEntry(storyId: string, categoryId: string, entry: Partial<CodexEntry>): CodexEntry {
-    const codex = this.getOrCreateCodex(storyId);
+  async addEntry(storyId: string, categoryId: string, entry: Partial<CodexEntry>): Promise<CodexEntry> {
+    const codex = await this.getOrCreateCodex(storyId);
     const category = codex.categories.find((c: CodexCategory) => c.id === categoryId);
     
     if (!category) {
@@ -203,13 +334,12 @@ export class CodexService {
       updatedAt: now
     };
     
-    this.codexMap.set(storyId, updatedCodex);
-    this.saveToStorage();
+    await this.saveToDatabase(updatedCodex);
     return newEntry;
   }
 
   // Update entry
-  updateEntry(storyId: string, categoryId: string, entryId: string, updates: Partial<CodexEntry>): void {
+  async updateEntry(storyId: string, categoryId: string, entryId: string, updates: Partial<CodexEntry>): Promise<void> {
     const codex = this.codexMap.get(storyId);
     if (!codex) return;
 
@@ -223,11 +353,11 @@ export class CodexService {
     category.updatedAt = new Date();
     codex.updatedAt = new Date();
     
-    this.saveToStorage();
+    await this.saveToDatabase(codex);
   }
 
   // Delete entry
-  deleteEntry(storyId: string, categoryId: string, entryId: string): void {
+  async deleteEntry(storyId: string, categoryId: string, entryId: string): Promise<void> {
     const codex = this.codexMap.get(storyId);
     if (!codex) return;
 
@@ -250,12 +380,11 @@ export class CodexService {
       updatedAt: now
     };
     
-    this.codexMap.set(storyId, updatedCodex);
-    this.saveToStorage();
+    await this.saveToDatabase(updatedCodex);
   }
 
   // Reorder categories
-  reorderCategories(storyId: string, categoryIds: string[]): void {
+  async reorderCategories(storyId: string, categoryIds: string[]): Promise<void> {
     const codex = this.codexMap.get(storyId);
     if (!codex) return;
 
@@ -272,11 +401,11 @@ export class CodexService {
     codex.categories = reorderedCategories;
     codex.updatedAt = new Date();
     
-    this.saveToStorage();
+    await this.saveToDatabase(codex);
   }
 
   // Reorder entries within a category
-  reorderEntries(storyId: string, categoryId: string, entryIds: string[]): void {
+  async reorderEntries(storyId: string, categoryId: string, entryIds: string[]): Promise<void> {
     const codex = this.codexMap.get(storyId);
     if (!codex) return;
 
@@ -297,13 +426,36 @@ export class CodexService {
     category.updatedAt = new Date();
     codex.updatedAt = new Date();
     
-    this.saveToStorage();
+    await this.saveToDatabase(codex);
   }
 
   // Delete entire codex for a story
-  deleteCodex(storyId: string): void {
-    this.codexMap.delete(storyId);
-    this.saveToStorage();
+  async deleteCodex(storyId: string): Promise<void> {
+    try {
+      if (!this.isInitialized) {
+        await this.waitForInitialization();
+      }
+      
+      const docId = `codex_${storyId}`;
+      
+      try {
+        const doc = await this.db.get(docId);
+        await this.db.remove(doc);
+      } catch (error: any) {
+        if (error.status !== 404) {
+          throw error;
+        }
+      }
+      
+      this.codexMap.delete(storyId);
+      this.codexSubject.next(new Map(this.codexMap));
+      
+    } catch (error) {
+      console.error('Error deleting codex from database:', error);
+      // Fallback: remove from local map only
+      this.codexMap.delete(storyId);
+      this.saveToStorageFallback();
+    }
   }
 
   // Search entries across all categories

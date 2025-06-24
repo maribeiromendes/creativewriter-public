@@ -965,13 +965,17 @@ export class CodexComponent implements OnInit, OnDestroy {
     this.subscriptions.unsubscribe();
   }
 
-  private loadCodex(storyId: string) {
-    const codex = this.codexService.getOrCreateCodex(storyId);
-    this.codex.set(codex);
-    
-    // Auto-select first category if none selected
-    if (codex.categories.length > 0 && !this.selectedCategoryId()) {
-      this.selectedCategoryId.set(codex.categories[0].id);
+  private async loadCodex(storyId: string) {
+    try {
+      const codex = await this.codexService.getOrCreateCodex(storyId);
+      this.codex.set(codex);
+      
+      // Auto-select first category if none selected
+      if (codex.categories.length > 0 && !this.selectedCategoryId()) {
+        this.selectedCategoryId.set(codex.categories[0].id);
+      }
+    } catch (error) {
+      console.error('Error loading codex:', error);
     }
   }
 
@@ -998,13 +1002,17 @@ export class CodexComponent implements OnInit, OnDestroy {
     this.resetCustomFieldInputs();
   }
 
-  addCategory() {
+  async addCategory() {
     const storyId = this.storyId();
     if (!storyId || !this.newCategory.title.trim()) return;
 
-    this.codexService.addCategory(storyId, this.newCategory);
-    this.newCategory = { title: '', icon: '', description: '' };
-    this.showAddCategoryModal = false;
+    try {
+      await this.codexService.addCategory(storyId, this.newCategory);
+      this.newCategory = { title: '', icon: '', description: '' };
+      this.showAddCategoryModal = false;
+    } catch (error) {
+      console.error('Error adding category:', error);
+    }
   }
 
   editCategory(category: CodexCategory) {
@@ -1012,61 +1020,77 @@ export class CodexComponent implements OnInit, OnDestroy {
     this.categoryMenuId.set(null);
   }
 
-  deleteCategory(categoryId: string) {
+  async deleteCategory(categoryId: string) {
     const storyId = this.storyId();
     if (!storyId) return;
 
     if (confirm('Kategorie und alle Einträge löschen?')) {
-      this.codexService.deleteCategory(storyId, categoryId);
-      if (this.selectedCategoryId() === categoryId) {
-        const codex = this.codex();
-        this.selectedCategoryId.set(codex?.categories[0]?.id || null);
+      try {
+        await this.codexService.deleteCategory(storyId, categoryId);
+        if (this.selectedCategoryId() === categoryId) {
+          const codex = this.codex();
+          this.selectedCategoryId.set(codex?.categories[0]?.id || null);
+        }
+      } catch (error) {
+        console.error('Error deleting category:', error);
       }
     }
     this.categoryMenuId.set(null);
   }
 
-  addEntry() {
+  async addEntry() {
     const storyId = this.storyId();
     const categoryId = this.selectedCategoryId();
     if (!storyId || !categoryId || !this.newEntry.title.trim()) return;
 
-    this.codexService.addEntry(storyId, categoryId, this.newEntry);
-    this.newEntry = { title: '', content: '' };
-    this.showAddEntryModal = false;
+    try {
+      await this.codexService.addEntry(storyId, categoryId, this.newEntry);
+      this.newEntry = { title: '', content: '' };
+      this.showAddEntryModal = false;
+    } catch (error) {
+      console.error('Error adding entry:', error);
+    }
   }
 
-  saveEntry() {
+  async saveEntry() {
     const storyId = this.storyId();
     const entry = this.selectedEntry();
     if (!storyId || !entry) return;
 
-    // Prepare the updated entry with story role and custom fields in metadata
-    const updatedEntry = {
-      ...this.editingEntry,
-      metadata: {
-        ...this.editingEntry.metadata,
-        storyRole: this.editingEntry.storyRole,
-        customFields: this.editingEntry.customFields || []
-      }
-    };
-    
-    // Remove temporary fields from top level as they should be in metadata
-    delete updatedEntry.storyRole;
-    delete updatedEntry.customFields;
+    try {
+      // Prepare the updated entry with story role and custom fields in metadata
+      const updatedEntry = {
+        ...this.editingEntry,
+        metadata: {
+          ...this.editingEntry.metadata,
+          storyRole: this.editingEntry.storyRole,
+          customFields: this.editingEntry.customFields || []
+        }
+      };
+      
+      // Remove temporary fields from top level as they should be in metadata
+      delete updatedEntry.storyRole;
+      delete updatedEntry.customFields;
 
-    this.codexService.updateEntry(storyId, entry.categoryId, entry.id, updatedEntry);
-    this.closeEntryModal();
+      await this.codexService.updateEntry(storyId, entry.categoryId, entry.id, updatedEntry);
+      this.closeEntryModal();
+    } catch (error) {
+      console.error('Error saving entry:', error);
+    }
   }
 
-  deleteEntry() {
+  async deleteEntry() {
     const storyId = this.storyId();
     const entry = this.selectedEntry();
     if (!storyId || !entry) return;
 
     if (confirm('Eintrag löschen?')) {
-      this.codexService.deleteEntry(storyId, entry.categoryId, entry.id);
-      this.closeEntryModal();
+      try {
+        await this.codexService.deleteEntry(storyId, entry.categoryId, entry.id);
+        this.closeEntryModal();
+      } catch (error) {
+        console.error('Error deleting entry:', error);
+      }
     }
   }
 

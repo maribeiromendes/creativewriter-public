@@ -503,7 +503,7 @@ export class NovelCrafterImportService {
     const storyId = newStory.id;
 
     // Create codex and categories
-    const codex = this.codexService.getOrCreateCodex(storyId);
+    const codex = await this.codexService.getOrCreateCodex(storyId);
     
     // Map categories
     const categoryMapping: { [key: string]: string } = {};
@@ -512,12 +512,11 @@ export class NovelCrafterImportService {
     if (importResult.codexEntries.characters.length > 0) {
       let charCategory = codex.categories.find(c => c.title === 'Charaktere');
       if (!charCategory) {
-        this.codexService.addCategory(storyId, {
+        charCategory = await this.codexService.addCategory(storyId, {
           title: 'Charaktere',
           icon: '👤',
           description: 'Imported characters from NovelCrafter'
         });
-        charCategory = this.codexService.getOrCreateCodex(storyId).categories.find(c => c.title === 'Charaktere')!;
       }
       categoryMapping['characters'] = charCategory.id;
     }
@@ -526,12 +525,11 @@ export class NovelCrafterImportService {
     if (importResult.codexEntries.locations.length > 0) {
       let locCategory = codex.categories.find(c => c.title === 'Orte');
       if (!locCategory) {
-        this.codexService.addCategory(storyId, {
+        locCategory = await this.codexService.addCategory(storyId, {
           title: 'Orte',
           icon: '🏰',
           description: 'Imported locations from NovelCrafter'
         });
-        locCategory = this.codexService.getOrCreateCodex(storyId).categories.find(c => c.title === 'Orte')!;
       }
       categoryMapping['locations'] = locCategory.id;
     }
@@ -540,12 +538,11 @@ export class NovelCrafterImportService {
     if (importResult.codexEntries.objects.length > 0) {
       let objCategory = codex.categories.find(c => c.title === 'Gegenstände');
       if (!objCategory) {
-        this.codexService.addCategory(storyId, {
+        objCategory = await this.codexService.addCategory(storyId, {
           title: 'Gegenstände',
           icon: '⚔️',
           description: 'Imported objects from NovelCrafter'
         });
-        objCategory = this.codexService.getOrCreateCodex(storyId).categories.find(c => c.title === 'Gegenstände')!;
       }
       categoryMapping['objects'] = objCategory.id;
     }
@@ -554,39 +551,35 @@ export class NovelCrafterImportService {
     if (importResult.codexEntries.other.length > 0) {
       let noteCategory = codex.categories.find(c => c.title === 'Notizen');
       if (!noteCategory) {
-        this.codexService.addCategory(storyId, {
+        noteCategory = await this.codexService.addCategory(storyId, {
           title: 'Notizen',
           icon: '📝',
           description: 'Imported notes from NovelCrafter'
         });
-        noteCategory = this.codexService.getOrCreateCodex(storyId).categories.find(c => c.title === 'Notizen')!;
       }
       categoryMapping['other'] = noteCategory.id;
     }
 
     // Add entries to categories
-    Object.entries(importResult.codexEntries).forEach(([category, entries]) => {
+    for (const [category, entries] of Object.entries(importResult.codexEntries)) {
       const categoryId = categoryMapping[category];
       if (categoryId) {
-        entries.forEach(entry => {
+        for (const entry of entries) {
           entry.categoryId = categoryId;
-          this.codexService.addEntry(storyId, categoryId, {
+          const addedEntry = await this.codexService.addEntry(storyId, categoryId, {
             title: entry.title,
             content: entry.content
           });
           
           // Update the entry with metadata
-          const updatedCodex = this.codexService.getOrCreateCodex(storyId);
-          const cat = updatedCodex.categories.find(c => c.id === categoryId);
-          if (cat) {
-            const addedEntry = cat.entries[cat.entries.length - 1];
-            addedEntry.metadata = entry.metadata;
-            addedEntry.tags = entry.tags;
-            this.codexService.updateEntry(storyId, categoryId, addedEntry.id, addedEntry);
-          }
-        });
+          await this.codexService.updateEntry(storyId, categoryId, addedEntry.id, {
+            ...addedEntry,
+            metadata: entry.metadata,
+            tags: entry.tags
+          });
+        }
       }
-    });
+    }
 
     return storyId;
   }
