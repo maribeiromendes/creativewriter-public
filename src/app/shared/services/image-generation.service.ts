@@ -117,7 +117,7 @@ export class ImageGenerationService {
     this.jobsSubject.next([...currentJobs, job]);
 
     const request: ImageGenerationRequest = {
-      model: `${model.owner}/${model.id}:${model.version}`,
+      model: `${model.id}:${model.version}`,
       input
     };
 

@@ -50,6 +50,7 @@ app.all('/api/replicate/*', async (req, res) => {
   } catch (error) {
     console.error('Proxy error:', error.message);
     if (error.response) {
+      console.error('Replicate API error response:', JSON.stringify(error.response.data, null, 2));
       res.status(error.response.status).json(error.response.data);
     } else {
       res.status(500).json({ error: 'Proxy error', message: error.message });
