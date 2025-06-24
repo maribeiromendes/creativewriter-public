@@ -9,7 +9,7 @@ import {
 import { addIcons } from 'ionicons';
 import { 
   chevronForward, chevronDown, add, trash, createOutline,
-  flashOutline, documentTextOutline, timeOutline
+  flashOutline, documentTextOutline, timeOutline, sparklesOutline
 } from 'ionicons/icons';
 import { Story, Chapter, Scene } from '../models/story.interface';
 import { StoryService } from '../services/story.service';
@@ -86,6 +86,20 @@ import { Subscription } from 'rxjs';
                       class="scene-title-input"
                       placeholder="Szenen Titel"
                     ></ion-input>
+                    
+                    <ion-button 
+                      fill="clear" 
+                      size="small"
+                      slot="end"
+                      [color]="isGeneratingTitle.has(scene.id) ? 'medium' : 'primary'"
+                      (click)="generateSceneTitle(chapter.id, scene.id, $event)"
+                      [disabled]="isGeneratingTitle.has(scene.id) || !selectedModel || !scene.content.trim()"
+                      class="ai-title-btn">
+                      <ion-icon 
+                        [name]="isGeneratingTitle.has(scene.id) ? 'time-outline' : 'sparkles-outline'" 
+                        slot="icon-only">
+                      </ion-icon>
+                    </ion-button>
                     
                     <ion-badge slot="end" color="medium">{{ getWordCount(scene.content) }} W.</ion-badge>
                     
@@ -395,6 +409,7 @@ export class StoryStructureComponent implements AfterViewInit {
   expandedChapters = new Set<string>();
   expandedScenes = new Set<string>();
   isGeneratingSummary = new Set<string>();
+  isGeneratingTitle = new Set<string>();
   selectedModel: string = '';
   availableModels: ModelOption[] = [];
   private subscription = new Subscription();
@@ -409,7 +424,7 @@ export class StoryStructureComponent implements AfterViewInit {
   ) {
     addIcons({ 
       chevronForward, chevronDown, add, trash, createOutline,
-      flashOutline, documentTextOutline, timeOutline
+      flashOutline, documentTextOutline, timeOutline, sparklesOutline
     });
   }
 
@@ -591,6 +606,59 @@ Die Zusammenfassung soll die wichtigsten Handlungspunkte und Charakterentwicklun
         console.error('Error generating scene summary:', error);
         alert('Fehler beim Generieren der Zusammenfassung. Bitte versuchen Sie es erneut.');
         this.isGeneratingSummary.delete(sceneId);
+      }
+    });
+  }
+  
+  generateSceneTitle(chapterId: string, sceneId: string, event: Event): void {
+    event.stopPropagation();
+    
+    const chapter = this.story.chapters.find(c => c.id === chapterId);
+    const scene = chapter?.scenes.find(s => s.id === sceneId);
+    
+    if (!scene || !scene.content.trim() || !this.selectedModel) {
+      return;
+    }
+    
+    this.isGeneratingTitle.add(sceneId);
+    
+    const prompt = `Erstelle einen kurzen, prägnanten Titel für die folgende Szene. Der Titel soll maximal 3 Wörter lang sein und den Kern der Szene erfassen.
+
+Szenencontent:
+${scene.content}
+
+Antworte nur mit dem Titel, ohne weitere Erklärungen oder Anführungszeichen.`;
+
+    this.openRouterApiService.generateText(prompt, {
+      model: this.selectedModel,
+      maxTokens: 20,
+      temperature: 0.3
+    }).subscribe({
+      next: async (response) => {
+        if (response.choices && response.choices.length > 0) {
+          let title = response.choices[0].message.content.trim();
+          
+          // Remove quotes if present
+          title = title.replace(/^["']|["']$/g, '');
+          
+          // Limit to 3 words
+          const words = title.split(/\s+/);
+          if (words.length > 3) {
+            title = words.slice(0, 3).join(' ');
+          }
+          
+          // Update scene title
+          if (scene) {
+            scene.title = title;
+            await this.updateScene(chapterId, scene);
+          }
+        }
+        this.isGeneratingTitle.delete(sceneId);
+      },
+      error: (error) => {
+        console.error('Error generating scene title:', error);
+        alert('Fehler beim Generieren des Titels. Bitte versuchen Sie es erneut.');
+        this.isGeneratingTitle.delete(sceneId);
       }
     });
   }
