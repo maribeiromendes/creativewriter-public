@@ -277,9 +277,9 @@ import { Subscription } from 'rxjs';
     @media (max-width: 768px) {
       .story-structure {
         position: fixed;
-        top: 0;
+        top: 112px; /* Below the global header (56px + 56px for two toolbars) */
         left: 0;
-        height: 100vh;
+        height: calc(100vh - 112px);
         width: 100vw;
         z-index: 1000;
       }
@@ -548,7 +548,7 @@ import { Subscription } from 'rxjs';
       
       .structure-content {
         overflow-y: auto;
-        height: calc(100vh - 56px); /* Subtract header height */
+        height: calc(100vh - 168px); /* Subtract both global header (112px) and sidebar header (56px) */
         -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
       }
       
