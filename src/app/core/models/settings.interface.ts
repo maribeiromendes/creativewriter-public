@@ -1,6 +1,7 @@
 export interface Settings {
   openRouter: OpenRouterSettings;
   replicate: ReplicateSettings;
+  sceneTitleGeneration: SceneTitleGenerationSettings;
   updatedAt: Date;
 }
 
@@ -19,6 +20,15 @@ export interface ReplicateSettings {
   enabled: boolean;
 }
 
+export interface SceneTitleGenerationSettings {
+  maxWords: number;
+  style: 'descriptive' | 'concise' | 'action' | 'emotional';
+  language: 'german' | 'english';
+  includeGenre: boolean;
+  temperature: number;
+  customInstruction: string;
+}
+
 export const DEFAULT_SETTINGS: Settings = {
   openRouter: {
     apiKey: '',
@@ -32,6 +42,14 @@ export const DEFAULT_SETTINGS: Settings = {
     model: '',
     version: '',
     enabled: false
+  },
+  sceneTitleGeneration: {
+    maxWords: 3,
+    style: 'concise',
+    language: 'german',
+    includeGenre: false,
+    temperature: 0.3,
+    customInstruction: ''
   },
   updatedAt: new Date()
 };

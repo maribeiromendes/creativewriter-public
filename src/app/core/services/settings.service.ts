@@ -33,6 +33,10 @@ export class SettingsService {
             ...DEFAULT_SETTINGS.replicate,
             ...parsed.replicate
           },
+          sceneTitleGeneration: {
+            ...DEFAULT_SETTINGS.sceneTitleGeneration,
+            ...parsed.sceneTitleGeneration
+          },
           updatedAt: new Date(parsed.updatedAt || new Date())
         };
       }
@@ -86,6 +90,21 @@ export class SettingsService {
       ...currentSettings,
       replicate: {
         ...currentSettings.replicate,
+        ...settings
+      },
+      updatedAt: new Date()
+    };
+    
+    this.saveSettings(updatedSettings);
+    this.settingsSubject.next(updatedSettings);
+  }
+
+  updateSceneTitleGenerationSettings(settings: Partial<Settings['sceneTitleGeneration']>): void {
+    const currentSettings = this.settingsSubject.value;
+    const updatedSettings = {
+      ...currentSettings,
+      sceneTitleGeneration: {
+        ...currentSettings.sceneTitleGeneration,
         ...settings
       },
       updatedAt: new Date()

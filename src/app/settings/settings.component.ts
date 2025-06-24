@@ -6,7 +6,7 @@ import { Subscription } from 'rxjs';
 import { 
   IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
   IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonInput, IonToggle,
-  IonChip, IonItem, IonLabel
+  IonChip, IonItem, IonLabel, IonSelect, IonSelectOption, IonRange, IonTextarea
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { arrowBack, analytics, warning, checkmarkCircle } from 'ionicons/icons';
@@ -23,7 +23,7 @@ import { NgSelectModule } from '@ng-select/ng-select';
     CommonModule, FormsModule, NgSelectModule,
     IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
     IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonInput, IonToggle,
-    IonChip, IonItem, IonLabel
+    IonChip, IonItem, IonLabel, IonSelect, IonSelectOption, IonRange, IonTextarea
   ],
   template: `
     <div class="ion-page">
@@ -224,6 +224,91 @@ import { NgSelectModule } from '@ng-select/ng-select';
                 label="Version (optional)"
                 labelPlacement="stacked">
               </ion-input>
+            </ion-item>
+          </ion-card-content>
+        </ion-card>
+
+        <!-- Scene Title Generation Settings -->
+        <ion-card>
+          <ion-card-header>
+            <ion-card-title>Szenentitel-Generierung</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <ion-item>
+              <ion-label>Maximale Wortanzahl</ion-label>
+              <ion-range
+                [(ngModel)]="settings.sceneTitleGeneration.maxWords"
+                (ngModelChange)="onSettingsChange()"
+                min="1"
+                max="8"
+                step="1"
+                snaps="true"
+                ticks="true"
+                slot="end">
+                <ion-label slot="start">1</ion-label>
+                <ion-label slot="end">8</ion-label>
+              </ion-range>
+            </ion-item>
+
+            <ion-item>
+              <ion-label>Stil</ion-label>
+              <ion-select
+                [(ngModel)]="settings.sceneTitleGeneration.style"
+                (ngModelChange)="onSettingsChange()"
+                interface="popover"
+                slot="end">
+                <ion-select-option value="concise">Knapp</ion-select-option>
+                <ion-select-option value="descriptive">Beschreibend</ion-select-option>
+                <ion-select-option value="action">Actionreich</ion-select-option>
+                <ion-select-option value="emotional">Emotional</ion-select-option>
+              </ion-select>
+            </ion-item>
+
+            <ion-item>
+              <ion-label>Sprache</ion-label>
+              <ion-select
+                [(ngModel)]="settings.sceneTitleGeneration.language"
+                (ngModelChange)="onSettingsChange()"
+                interface="popover"
+                slot="end">
+                <ion-select-option value="german">Deutsch</ion-select-option>
+                <ion-select-option value="english">Englisch</ion-select-option>
+              </ion-select>
+            </ion-item>
+
+            <ion-item>
+              <ion-label>Genre berücksichtigen</ion-label>
+              <ion-toggle
+                [(ngModel)]="settings.sceneTitleGeneration.includeGenre"
+                (ngModelChange)="onSettingsChange()"
+                slot="end">
+              </ion-toggle>
+            </ion-item>
+
+            <ion-item>
+              <ion-label>Kreativität (Temperature)</ion-label>
+              <ion-range
+                [(ngModel)]="settings.sceneTitleGeneration.temperature"
+                (ngModelChange)="onSettingsChange()"
+                min="0.1"
+                max="1.0"
+                step="0.1"
+                snaps="true"
+                slot="end">
+                <ion-label slot="start">0.1</ion-label>
+                <ion-label slot="end">1.0</ion-label>
+              </ion-range>
+            </ion-item>
+
+            <ion-item>
+              <ion-label position="stacked">Zusätzliche Anweisungen (optional)</ion-label>
+              <ion-textarea
+                [(ngModel)]="settings.sceneTitleGeneration.customInstruction"
+                (ngModelChange)="onSettingsChange()"
+                placeholder="z.B. 'Verwende keine Artikel' oder 'Fokussiere auf Emotionen'"
+                rows="3"
+                auto-grow="true">
+              </ion-textarea>
             </ion-item>
           </ion-card-content>
         </ion-card>

@@ -77,51 +77,63 @@ import { Subscription } from 'rxjs';
                     detail="false"
                     [class.active-scene]="isActiveScene(chapter.id, scene.id)"
                     (click)="selectScene(chapter.id, scene.id)"
-                    class="scene-item">
+                    class="scene-item multi-line">
                     
-                    <ion-input 
-                      [(ngModel)]="scene.title" 
-                      (ionBlur)="updateScene(chapter.id, scene)"
-                      (click)="$event.stopPropagation()"
-                      class="scene-title-input"
-                      placeholder="Szenen Titel"
-                    ></ion-input>
-                    
-                    <ion-button 
-                      fill="clear" 
-                      size="small"
-                      slot="end"
-                      [color]="isGeneratingTitle.has(scene.id) ? 'medium' : 'primary'"
-                      (click)="generateSceneTitle(chapter.id, scene.id, $event)"
-                      [disabled]="isGeneratingTitle.has(scene.id) || !selectedModel || !scene.content.trim()"
-                      class="ai-title-btn">
-                      <ion-icon 
-                        [name]="isGeneratingTitle.has(scene.id) ? 'time-outline' : 'sparkles-outline'" 
-                        slot="icon-only">
-                      </ion-icon>
-                    </ion-button>
-                    
-                    <ion-badge slot="end" color="medium">{{ getWordCount(scene.content) }} W.</ion-badge>
-                    
-                    <ion-button 
-                      fill="clear" 
-                      slot="end"
-                      [color]="scene.summary ? 'success' : 'medium'"
-                      (click)="toggleSceneDetails(scene.id, $event)"
-                      class="expand-scene-btn">
-                      <ion-icon 
-                        [name]="expandedScenes.has(scene.id) ? 'chevron-down' : 'chevron-forward'" 
-                        slot="icon-only">
-                      </ion-icon>
-                    </ion-button>
-                    
-                    <ion-button 
-                      fill="clear" 
-                      color="danger" 
-                      slot="end" 
-                      (click)="deleteScene(chapter.id, scene.id, $event)">
-                      <ion-icon name="trash" slot="icon-only"></ion-icon>
-                    </ion-button>
+                    <div class="scene-content">
+                      <!-- First line: Scene title with AI button -->
+                      <div class="scene-title-row">
+                        <ion-input 
+                          [(ngModel)]="scene.title" 
+                          (ionBlur)="updateScene(chapter.id, scene)"
+                          (click)="$event.stopPropagation()"
+                          class="scene-title-input"
+                          placeholder="Szenen Titel"
+                          fill="clear"
+                        ></ion-input>
+                        
+                        <ion-button 
+                          fill="clear" 
+                          size="small"
+                          [color]="isGeneratingTitle.has(scene.id) ? 'medium' : 'primary'"
+                          (click)="generateSceneTitle(chapter.id, scene.id, $event)"
+                          [disabled]="isGeneratingTitle.has(scene.id) || !selectedModel || !scene.content.trim()"
+                          class="ai-title-btn">
+                          <ion-icon 
+                            [name]="isGeneratingTitle.has(scene.id) ? 'time-outline' : 'sparkles-outline'" 
+                            slot="icon-only">
+                          </ion-icon>
+                        </ion-button>
+                      </div>
+                      
+                      <!-- Second line: Word count and action buttons -->
+                      <div class="scene-actions-row">
+                        <ion-badge color="medium" class="word-count-badge">
+                          {{ getWordCount(scene.content) }} Wörter
+                        </ion-badge>
+                        
+                        <div class="action-buttons">
+                          <ion-button 
+                            fill="clear" 
+                            size="small"
+                            [color]="scene.summary ? 'success' : 'medium'"
+                            (click)="toggleSceneDetails(scene.id, $event)"
+                            class="expand-scene-btn">
+                            <ion-icon 
+                              [name]="expandedScenes.has(scene.id) ? 'chevron-down' : 'chevron-forward'" 
+                              slot="icon-only">
+                            </ion-icon>
+                          </ion-button>
+                          
+                          <ion-button 
+                            fill="clear" 
+                            size="small"
+                            color="danger" 
+                            (click)="deleteScene(chapter.id, scene.id, $event)">
+                            <ion-icon name="trash" slot="icon-only"></ion-icon>
+                          </ion-button>
+                        </div>
+                      </div>
+                    </div>
                   </ion-item>
                   
                   <div class="scene-details" *ngIf="expandedScenes.has(scene.id)">
@@ -272,6 +284,14 @@ import { Subscription } from 'rxjs';
       --background-hover: var(--ion-color-medium-tint);
       --border-radius: 4px;
       margin-bottom: 0.25rem;
+      --padding-start: 8px;
+      --padding-end: 8px;
+    }
+    
+    .scene-item.multi-line {
+      --padding-top: 8px;
+      --padding-bottom: 8px;
+      min-height: 60px;
     }
     
     .scene-item.active-scene {
@@ -279,20 +299,62 @@ import { Subscription } from 'rxjs';
       --color: var(--ion-color-primary-contrast);
     }
     
+    .scene-content {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      gap: 4px;
+    }
+    
+    .scene-title-row {
+      display: flex;
+      align-items: center;
+      width: 100%;
+    }
+    
     .scene-title-input {
       --color: var(--ion-color-light);
       --placeholder-color: var(--ion-color-medium);
-      font-size: 0.85rem;
+      font-size: 0.9rem;
+      flex: 1;
+      --padding-start: 0;
+      --padding-end: 8px;
     }
     
     .scene-item.active-scene .scene-title-input {
       --color: var(--ion-color-primary-contrast);
     }
     
-    .expand-scene-btn {
+    .ai-title-btn {
+      --padding-start: 4px;
+      --padding-end: 4px;
+      margin-left: 4px;
+    }
+    
+    .scene-actions-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+    }
+    
+    .word-count-badge {
+      font-size: 0.7rem;
+      height: 20px;
+      --padding-horizontal: 6px;
+    }
+    
+    .action-buttons {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+    
+    .action-buttons ion-button {
       --padding-start: 4px;
       --padding-end: 4px;
     }
+    
     
     .scene-item.active-scene ion-badge {
       --background: var(--ion-color-primary-contrast);
@@ -620,19 +682,58 @@ Die Zusammenfassung soll die wichtigsten Handlungspunkte und Charakterentwicklun
       return;
     }
     
+    // Get scene title generation settings
+    const settings = this.settingsService.getSettings();
+    const titleSettings = settings.sceneTitleGeneration;
+    
     this.isGeneratingTitle.add(sceneId);
     
-    const prompt = `Erstelle einen kurzen, prägnanten Titel für die folgende Szene. Der Titel soll maximal 3 Wörter lang sein und den Kern der Szene erfassen.
+    // Build style instructions based on settings
+    let styleInstruction = '';
+    switch (titleSettings.style) {
+      case 'descriptive':
+        styleInstruction = 'Der Titel soll beschreibend und atmosphärisch sein.';
+        break;
+      case 'action':
+        styleInstruction = 'Der Titel soll actionreich und dynamisch sein.';
+        break;
+      case 'emotional':
+        styleInstruction = 'Der Titel soll die emotionale Stimmung der Szene widerspiegeln.';
+        break;
+      case 'concise':
+      default:
+        styleInstruction = 'Der Titel soll knapp und prägnant sein.';
+        break;
+    }
+    
+    const languageInstruction = titleSettings.language === 'english' 
+      ? 'Antworte auf Englisch.' 
+      : 'Antworte auf Deutsch.';
+    
+    const genreInstruction = titleSettings.includeGenre 
+      ? 'Berücksichtige das Genre der Geschichte bei der Titelwahl.' 
+      : '';
+    
+    const customInstruction = titleSettings.customInstruction 
+      ? `\n${titleSettings.customInstruction}` 
+      : '';
+    
+    // Build prompt with settings
+    const prompt = `Erstelle einen kurzen Titel für die folgende Szene. Der Titel soll maximal ${titleSettings.maxWords} Wörter lang sein und den Kern der Szene erfassen.
 
-Szenencontent:
+${styleInstruction}
+${genreInstruction}
+${languageInstruction}${customInstruction}
+
+Szenencontent (nur diese eine Szene):
 ${scene.content}
 
 Antworte nur mit dem Titel, ohne weitere Erklärungen oder Anführungszeichen.`;
 
     this.openRouterApiService.generateText(prompt, {
       model: this.selectedModel,
-      maxTokens: 20,
-      temperature: 0.3
+      maxTokens: Math.max(20, titleSettings.maxWords * 4), // Allow more tokens for longer titles
+      temperature: titleSettings.temperature
     }).subscribe({
       next: async (response) => {
         if (response.choices && response.choices.length > 0) {
@@ -641,10 +742,10 @@ Antworte nur mit dem Titel, ohne weitere Erklärungen oder Anführungszeichen.`;
           // Remove quotes if present
           title = title.replace(/^["']|["']$/g, '');
           
-          // Limit to 3 words
+          // Limit to configured max words
           const words = title.split(/\s+/);
-          if (words.length > 3) {
-            title = words.slice(0, 3).join(' ');
+          if (words.length > titleSettings.maxWords) {
+            title = words.slice(0, titleSettings.maxWords).join(' ');
           }
           
           // Update scene title
