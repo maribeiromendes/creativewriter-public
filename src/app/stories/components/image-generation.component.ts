@@ -221,12 +221,21 @@ import { Subscription } from 'rxjs';
   styles: [`
     .ion-page {
       background-color: #1a1a1a;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    ion-content {
+      --background: #1a1a1a;
+      --overflow: auto;
     }
 
     .container {
       padding: 1rem;
       max-width: 1200px;
       margin: 0 auto;
+      padding-bottom: 4rem; /* Extra space for scrolling */
     }
 
     ion-card {
@@ -305,8 +314,9 @@ import { Subscription } from 'rxjs';
     .job-image ion-img {
       border-radius: 8px;
       width: 100%;
-      max-height: 200px;
-      object-fit: cover;
+      max-height: 300px;
+      object-fit: contain;
+      background-color: #000;
     }
 
     .job-image ion-button {
@@ -336,11 +346,32 @@ import { Subscription } from 'rxjs';
     @media (max-width: 768px) {
       .container {
         padding: 0.5rem;
+        padding-bottom: 6rem; /* More space on mobile */
       }
       
       ion-card {
         margin-bottom: 0.5rem;
       }
+
+      .job-image ion-img {
+        max-height: 250px;
+      }
+    }
+
+    /* Ensure grid doesn't break scrolling */
+    ion-grid {
+      padding: 0;
+    }
+
+    ion-row, ion-col {
+      padding: 0;
+      margin: 0;
+    }
+
+    /* Fix potential scroll issues with absolute positioned elements */
+    .job-card {
+      position: relative;
+      overflow: visible;
     }
   `]
 })
