@@ -834,9 +834,39 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     // Get the DOM position of the cursor
     const coords = this.editorView.coordsAtPos(from);
     
+    // Calculate dropdown dimensions (approximate)
+    const dropdownHeight = 200; // Estimated height based on content
+    const gap = 5;
+    
+    // Get viewport height
+    const viewportHeight = window.innerHeight;
+    
+    // Check if there's enough space below the cursor
+    const spaceBelow = viewportHeight - coords.bottom;
+    const spaceAbove = coords.top;
+    
+    let top: number;
+    
+    if (spaceBelow >= dropdownHeight + gap) {
+      // Enough space below - position below cursor
+      top = coords.bottom + gap;
+    } else if (spaceAbove >= dropdownHeight + gap) {
+      // Not enough space below but enough above - position above cursor
+      top = coords.top - dropdownHeight - gap;
+    } else {
+      // Not enough space in either direction - position where it fits better
+      if (spaceBelow > spaceAbove) {
+        // More space below - position below but at bottom edge
+        top = Math.max(0, viewportHeight - dropdownHeight - 10);
+      } else {
+        // More space above - position above but at top edge
+        top = 10;
+      }
+    }
+    
     // Calculate dropdown position relative to viewport
     this.slashDropdownPosition = {
-      top: coords.bottom + 5, // Position below cursor with small gap
+      top: top,
       left: coords.left
     };
     
