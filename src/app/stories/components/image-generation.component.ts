@@ -119,7 +119,7 @@ import { Subscription } from 'rxjs';
                     [(ngModel)]="parameters[input.name]"
                     [min]="input.minimum || 0"
                     [max]="input.maximum || 100"
-                    [step]="input.type === 'integer' ? 1 : 0.1"
+                    [step]="getStepSize(input)"
                     color="primary"
                     [pin]="true">
                     <ion-label slot="start">{{ input.minimum || 0 }}</ion-label>
@@ -649,6 +649,16 @@ export class ImageGenerationComponent implements OnInit, OnDestroy {
 
   goBack(): void {
     this.router.navigate(['/']);
+  }
+
+  getStepSize(input: ModelInput): number {
+    // Use step size of 8 for width and height to ensure divisibility by 8
+    if (input.name === 'width' || input.name === 'height') {
+      return 8;
+    }
+    
+    // Default step sizes for other inputs
+    return input.type === 'integer' ? 1 : 0.1;
   }
 
   private showToastMessage(message: string): void {

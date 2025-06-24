@@ -44,7 +44,7 @@ export class ImageGenerationService {
           name: 'width',
           type: 'integer',
           description: 'Width of output image',
-          default: 1024,
+          default: 512,
           minimum: 256,
           maximum: 2048
         },
@@ -52,7 +52,7 @@ export class ImageGenerationService {
           name: 'height',
           type: 'integer',
           description: 'Height of output image',
-          default: 1024,
+          default: 512,
           minimum: 256,
           maximum: 2048
         },
@@ -135,12 +135,16 @@ export class ImageGenerationService {
           this.updateJobStatus(job.id, 'processing');
           
           // Poll for completion
-          return this.pollPrediction(response.id).pipe(
+          return this.pollPrediction(response.id, job.id).pipe(
             map(finalResponse => {
+              console.log('Final response received:', finalResponse.status, finalResponse);
+              
               if (finalResponse.status === 'succeeded') {
                 const outputs: string[] = Array.isArray(finalResponse.output) 
                   ? finalResponse.output.filter((url): url is string => !!url) // Filter out undefined values
                   : [finalResponse.output].filter((url): url is string => !!url);
+                
+                console.log('Processing outputs:', outputs);
                 
                 // Store all images in a single job
                 this.updateJob(job.id, {
@@ -194,17 +198,21 @@ export class ImageGenerationService {
       );
   }
 
-  private pollPrediction(predictionId: string): Observable<ImageGenerationResponse> {
+  private pollPrediction(predictionId: string, jobId: string): Observable<ImageGenerationResponse> {
     return interval(2000).pipe(
       switchMap(() => this.http.get<ImageGenerationResponse>(`${this.apiUrl}/predictions/${predictionId}`)),
-      takeWhile(response => 
-        response.status === 'starting' || response.status === 'processing', 
-        true
-      ),
       map(response => {
-        console.log('Prediction status:', response.status);
+        // Update job status in real-time
+        if (response.status === 'processing' || response.status === 'starting') {
+          this.updateJobStatus(jobId, 'processing');
+        }
+        
         return response;
-      })
+      }),
+      takeWhile(response => {
+        const shouldContinue = response.status === 'starting' || response.status === 'processing';
+        return shouldContinue;
+      }, true)
     );
   }
 
