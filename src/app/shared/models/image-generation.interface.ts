@@ -20,7 +20,7 @@ export interface ModelInput {
 }
 
 export interface ImageGenerationRequest {
-  model: string;
+  version: string;
   input: Record<string, any>;
 }
 
