@@ -190,7 +190,33 @@ import { Subscription } from 'rxjs';
                         <ion-progress-bar type="indeterminate" color="primary"></ion-progress-bar>
                       </div>
 
-                      <div class="job-image" *ngIf="job.imageUrl">
+                      <!-- Multiple images gallery -->
+                      <div class="job-images" *ngIf="job.imageUrls && job.imageUrls.length > 1">
+                        <div class="images-header">
+                          <span class="image-count">{{ job.imageUrls.length }} Bilder generiert</span>
+                        </div>
+                        <div class="images-grid">
+                          <div 
+                            class="image-item" 
+                            *ngFor="let imageUrl of job.imageUrls; let i = index"
+                          >
+                            <ion-img 
+                              [src]="imageUrl" 
+                              [alt]="job.prompt + ' - Bild ' + (i + 1)"
+                              (click)="viewImage(imageUrl)"
+                              class="thumbnail-image">
+                            </ion-img>
+                            <div class="image-overlay">
+                              <ion-button fill="clear" size="small" (click)="downloadImage(imageUrl, job.prompt + '_' + (i + 1))">
+                                <ion-icon name="download-outline" slot="icon-only"></ion-icon>
+                              </ion-button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Single image (fallback) -->
+                      <div class="job-image" *ngIf="job.imageUrl && (!job.imageUrls || job.imageUrls.length <= 1)">
                         <ion-img 
                           [src]="job.imageUrl" 
                           [alt]="job.prompt"
@@ -311,6 +337,71 @@ import { Subscription } from 'rxjs';
       margin: 0.5rem 0;
     }
 
+    /* Multiple images gallery */
+    .job-images {
+      margin-top: 0.5rem;
+    }
+
+    .images-header {
+      margin-bottom: 0.5rem;
+    }
+
+    .image-count {
+      color: #0d6efd;
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+
+    .images-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 0.5rem;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .image-item {
+      position: relative;
+      aspect-ratio: 1;
+    }
+
+    .image-item ion-img {
+      border-radius: 6px;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      background-color: #1a1a1a;
+      border: 1px solid #404040;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .image-item ion-img:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      border-color: #0d6efd;
+    }
+
+    .image-overlay {
+      position: absolute;
+      top: 0.25rem;
+      right: 0.25rem;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .image-item:hover .image-overlay {
+      opacity: 1;
+    }
+
+    .image-overlay ion-button {
+      --background: rgba(0, 0, 0, 0.8);
+      --color: white;
+      width: 32px;
+      height: 32px;
+    }
+
+    /* Single image (existing styles) */
     .job-image {
       position: relative;
       margin-top: 0.5rem;
@@ -369,6 +460,16 @@ import { Subscription } from 'rxjs';
 
       .job-image ion-img {
         height: 180px;
+      }
+
+      .images-grid {
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+        max-height: 300px;
+      }
+
+      .image-overlay ion-button {
+        width: 28px;
+        height: 28px;
       }
     }
 

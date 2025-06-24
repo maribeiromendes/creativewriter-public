@@ -137,47 +137,19 @@ export class ImageGenerationService {
           return this.pollPrediction(response.id).pipe(
             map(finalResponse => {
               if (finalResponse.status === 'succeeded') {
-                const outputs = Array.isArray(finalResponse.output) 
-                  ? finalResponse.output 
-                  : [finalResponse.output];
+                const outputs: string[] = Array.isArray(finalResponse.output) 
+                  ? finalResponse.output.filter((url): url is string => !!url) // Filter out undefined values
+                  : [finalResponse.output].filter((url): url is string => !!url);
                 
-                // Create separate jobs for each generated image
-                if (outputs.length > 1) {
-                  // Update the original job with the first image
-                  this.updateJob(job.id, {
-                    status: 'completed',
-                    completedAt: new Date(),
-                    imageUrl: outputs[0]
-                  });
-                  
-                  // Create additional jobs for the remaining images
-                  const additionalJobs: ImageGenerationJob[] = outputs.slice(1).map((imageUrl, index) => ({
-                    id: this.generateJobId(),
-                    model: job.model,
-                    prompt: job.prompt,
-                    parameters: job.parameters,
-                    status: 'completed',
-                    createdAt: new Date(job.createdAt.getTime() + index + 1), // Slight time offset
-                    completedAt: new Date(),
-                    imageUrl: imageUrl
-                  }));
-                  
-                  // Add additional jobs to the list
-                  const currentJobs = this.jobsSubject.value;
-                  this.jobsSubject.next([...currentJobs, ...additionalJobs]);
-                  this.saveJobsToStorage();
-                  
-                  return { ...job, status: 'completed', imageUrl: outputs[0] } as ImageGenerationJob;
-                } else {
-                  // Single image case
-                  this.updateJob(job.id, {
-                    status: 'completed',
-                    completedAt: new Date(),
-                    imageUrl: outputs[0]
-                  });
-                  
-                  return { ...job, status: 'completed', imageUrl: outputs[0] } as ImageGenerationJob;
-                }
+                // Store all images in a single job
+                this.updateJob(job.id, {
+                  status: 'completed',
+                  completedAt: new Date(),
+                  imageUrl: outputs[0], // Keep first image for backward compatibility
+                  imageUrls: outputs // Store all images
+                });
+                
+                return { ...job, status: 'completed', imageUrl: outputs[0], imageUrls: outputs } as ImageGenerationJob;
               } else if (finalResponse.status === 'failed') {
                 this.updateJob(job.id, {
                   status: 'failed',

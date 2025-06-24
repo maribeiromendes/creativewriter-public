@@ -44,5 +44,6 @@ export interface ImageGenerationJob {
   createdAt: Date;
   completedAt?: Date;
   imageUrl?: string;
+  imageUrls?: string[]; // For multiple images
   error?: string;
 }
