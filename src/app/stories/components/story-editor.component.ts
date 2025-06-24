@@ -443,6 +443,17 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
       display: contents; /* Allows sticky positioning to work */
     }
 
+    /* Tablet Sidebar - reduced width */
+    @media (max-width: 1024px) and (min-width: 769px) {
+      .editor-main {
+        margin-left: 240px; /* Match reduced sidebar width */
+      }
+      
+      .editor-container:not(.sidebar-visible) .editor-main {
+        margin-left: 0;
+      }
+    }
+    
     /* Mobile Sidebar Overlay */
     @media (max-width: 768px) {
       .sidebar-overlay {
@@ -465,6 +476,26 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
         border-radius: 8px;
         border: 1px solid #404040;
+      }
+    }
+    
+    /* Large mobile devices - wider sidebar */
+    @media (min-width: 481px) and (max-width: 768px) {
+      .sidebar-overlay :global(app-story-structure .story-structure) {
+        width: min(85vw, 360px);
+      }
+    }
+    
+    /* Small mobile devices - full width sidebar */
+    @media (max-width: 480px) {
+      .sidebar-overlay {
+        padding-top: 1rem;
+      }
+      
+      .sidebar-overlay :global(app-story-structure .story-structure) {
+        width: min(95vw, 320px);
+        height: calc(100vh - 2rem);
+        border-radius: 4px;
       }
     }
   `]
@@ -499,6 +530,14 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
   hasUnsavedChanges = false;
   private saveSubject = new Subject<void>();
   private subscription: Subscription = new Subscription();
+  
+  // Touch/swipe gesture properties
+  private touchStartX = 0;
+  private touchStartY = 0;
+  private touchEndX = 0;
+  private touchEndY = 0;
+  private minSwipeDistance = 50;
+  private maxVerticalDistance = 100;
 
   constructor(
     private route: ActivatedRoute,
@@ -567,6 +606,9 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     window.addEventListener('resize', () => {
       this.checkMobileAndHideSidebar();
     });
+    
+    // Add touch gesture listeners for mobile
+    this.setupTouchGestures();
   }
 
   ngAfterViewInit(): void {
@@ -583,6 +625,9 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
       this.proseMirrorService.destroy();
     }
     this.subscription.unsubscribe();
+    
+    // Remove touch gesture listeners
+    this.removeTouchGestures();
   }
 
   async onSceneSelected(event: {chapterId: string, sceneId: string}): Promise<void> {
@@ -706,9 +751,16 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
 
   private checkMobileAndHideSidebar(): void {
     const isMobile = window.innerWidth <= 768;
+    const isTablet = window.innerWidth <= 1024 && window.innerWidth > 768;
+    
     if (isMobile && this.showSidebar) {
       this.showSidebar = false;
     } else if (!isMobile && !this.showSidebar) {
+      this.showSidebar = true;
+    }
+    
+    // On tablets, allow toggling but start with sidebar visible
+    if (isTablet && !this.showSidebar) {
       this.showSidebar = true;
     }
   }
@@ -717,6 +769,68 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     // Close sidebar when clicking on overlay background (not the sidebar itself)
     if (event.target === event.currentTarget && window.innerWidth <= 768) {
       this.showSidebar = false;
+    }
+  }
+  
+  private setupTouchGestures(): void {
+    // Only setup gestures on mobile devices
+    if (window.innerWidth > 768) return;
+    
+    document.addEventListener('touchstart', this.handleTouchStart.bind(this), { passive: true });
+    document.addEventListener('touchend', this.handleTouchEnd.bind(this), { passive: true });
+  }
+  
+  private removeTouchGestures(): void {
+    document.removeEventListener('touchstart', this.handleTouchStart.bind(this));
+    document.removeEventListener('touchend', this.handleTouchEnd.bind(this));
+  }
+  
+  private handleTouchStart(event: TouchEvent): void {
+    // Only enable gestures on mobile devices, not tablets
+    if (window.innerWidth > 768) return;
+    
+    const touch = event.touches[0];
+    this.touchStartX = touch.clientX;
+    this.touchStartY = touch.clientY;
+  }
+  
+  private handleTouchEnd(event: TouchEvent): void {
+    // Only enable gestures on mobile devices, not tablets
+    if (window.innerWidth > 768) return;
+    
+    const touch = event.changedTouches[0];
+    this.touchEndX = touch.clientX;
+    this.touchEndY = touch.clientY;
+    
+    this.handleSwipeGesture();
+  }
+  
+  private handleSwipeGesture(): void {
+    const deltaX = this.touchEndX - this.touchStartX;
+    const deltaY = Math.abs(this.touchEndY - this.touchStartY);
+    
+    // Check if it's a horizontal swipe (not vertical scroll)
+    if (deltaY > this.maxVerticalDistance) return;
+    
+    // Check if swipe distance is sufficient
+    if (Math.abs(deltaX) < this.minSwipeDistance) return;
+    
+    // Adjust swipe sensitivity based on screen size
+    const edgeThreshold = window.innerWidth <= 480 ? 30 : 50;
+    const minSwipeDistance = window.innerWidth <= 480 ? 40 : this.minSwipeDistance;
+    
+    // Check if swipe distance is sufficient for this screen size
+    if (Math.abs(deltaX) < minSwipeDistance) return;
+    
+    // Swipe from left edge to open sidebar
+    if (deltaX > 0 && this.touchStartX < edgeThreshold && !this.showSidebar) {
+      this.showSidebar = true;
+      this.cdr.detectChanges();
+    }
+    // Swipe right to left to close sidebar
+    else if (deltaX < 0 && this.showSidebar) {
+      this.showSidebar = false;
+      this.cdr.detectChanges();
     }
   }
 

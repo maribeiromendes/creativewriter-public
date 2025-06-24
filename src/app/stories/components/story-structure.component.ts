@@ -30,12 +30,16 @@ import { Subscription } from 'rxjs';
     IonButtons, IonHeader, IonToolbar, IonTitle, IonBadge
   ],
   template: `
-    <div class="story-structure">
+    <div class="story-structure" role="navigation" aria-label="Story structure">
       <ion-header class="structure-header">
         <ion-toolbar color="dark">
           <ion-title size="small">{{ story.title || 'Unbenannte Geschichte' }}</ion-title>
           <ion-buttons slot="end">
-            <ion-button size="small" (click)="addChapter()">
+            <ion-button 
+              size="small" 
+              (click)="addChapter()"
+              aria-label="Neues Kapitel hinzufügen"
+              [attr.aria-describedby]="'add-chapter-help'">
               <ion-icon name="add" slot="icon-only"></ion-icon>
             </ion-button>
           </ion-buttons>
@@ -43,15 +47,28 @@ import { Subscription } from 'rxjs';
       </ion-header>
       
       <ion-content color="dark" class="structure-content">
-        <ion-list class="chapters-list">
+        <div id="add-chapter-help" class="sr-only">
+          Fügt ein neues Kapitel zur Geschichte hinzu
+        </div>
+        <ion-list class="chapters-list" role="tree" aria-label="Kapitel und Szenen">
           <div *ngFor="let chapter of story.chapters; trackBy: trackChapter" 
                class="chapter-item">
             
-            <ion-item button detail="false" (click)="toggleChapter(chapter.id)" class="chapter-header">
+            <ion-item 
+              button 
+              detail="false" 
+              (click)="toggleChapter(chapter.id)" 
+              (keydown)="onChapterKeyDown($event, chapter.id)"
+              class="chapter-header"
+              role="treeitem"
+              tabindex="0"
+              [attr.aria-expanded]="expandedChapters.has(chapter.id)"
+              [attr.aria-label]="'Kapitel: ' + (chapter.title || 'Ohne Titel') + '. ' + (expandedChapters.has(chapter.id) ? 'Eingeklappt' : 'Ausgeklappt')">
               <ion-icon 
                 [name]="expandedChapters.has(chapter.id) ? 'chevron-down' : 'chevron-forward'" 
                 slot="start" 
-                class="expand-icon">
+                class="expand-icon"
+                [attr.aria-hidden]="true">
               </ion-icon>
               <ion-input 
                 [(ngModel)]="chapter.title" 
@@ -59,25 +76,32 @@ import { Subscription } from 'rxjs';
                 (click)="$event.stopPropagation()"
                 class="chapter-title-input"
                 placeholder="Kapitel Titel"
+                [attr.aria-label]="'Kapitel Titel bearbeiten'"
               ></ion-input>
               <ion-button 
                 fill="clear" 
                 color="danger" 
                 slot="end" 
-                (click)="deleteChapter(chapter.id, $event)">
-                <ion-icon name="trash" slot="icon-only"></ion-icon>
+                (click)="deleteChapter(chapter.id, $event)"
+                [attr.aria-label]="'Kapitel löschen: ' + (chapter.title || 'Ohne Titel')">
+                <ion-icon name="trash" slot="icon-only" [attr.aria-hidden]="true"></ion-icon>
               </ion-button>
             </ion-item>
             
-            <div class="scenes-list" *ngIf="expandedChapters.has(chapter.id)">
-              <ion-list>
+            <div class="scenes-list" *ngIf="expandedChapters.has(chapter.id)" role="group" [attr.aria-label]="'Szenen in Kapitel: ' + (chapter.title || 'Ohne Titel')">
+              <ion-list role="none">
                 <ng-container *ngFor="let scene of chapter.scenes; trackBy: trackScene">
                   <ion-item 
                     button
                     detail="false"
                     [class.active-scene]="isActiveScene(chapter.id, scene.id)"
                     (click)="selectScene(chapter.id, scene.id)"
-                    class="scene-item multi-line">
+                    (keydown)="onSceneKeyDown($event, chapter.id, scene.id)"
+                    class="scene-item multi-line"
+                    role="treeitem"
+                    tabindex="0"
+                    [attr.aria-selected]="isActiveScene(chapter.id, scene.id)"
+                    [attr.aria-label]="'Szene: ' + (scene.title || 'Ohne Titel') + '. ' + (getWordCount(scene.content)) + ' Wörter' + (isActiveScene(chapter.id, scene.id) ? '. Aktuell ausgewählt' : '')">
                     
                     <div class="scene-content">
                       <!-- First line: Scene title with AI button -->
@@ -89,6 +113,7 @@ import { Subscription } from 'rxjs';
                           class="scene-title-input"
                           placeholder="Szenen Titel"
                           fill="clear"
+                          [attr.aria-label]="'Szenen Titel bearbeiten'"
                         ></ion-input>
                         
                         <ion-button 
@@ -97,10 +122,12 @@ import { Subscription } from 'rxjs';
                           [color]="isGeneratingTitle.has(scene.id) ? 'medium' : 'primary'"
                           (click)="generateSceneTitle(chapter.id, scene.id, $event)"
                           [disabled]="isGeneratingTitle.has(scene.id) || !selectedModel || !scene.content.trim()"
-                          class="ai-title-btn">
+                          class="ai-title-btn"
+                          [attr.aria-label]="isGeneratingTitle.has(scene.id) ? 'Titel wird generiert...' : 'AI-Titel für Szene generieren'">
                           <ion-icon 
                             [name]="isGeneratingTitle.has(scene.id) ? 'time-outline' : 'sparkles-outline'" 
-                            slot="icon-only">
+                            slot="icon-only"
+                            [attr.aria-hidden]="true">
                           </ion-icon>
                         </ion-button>
                       </div>
@@ -117,10 +144,13 @@ import { Subscription } from 'rxjs';
                             size="small"
                             [color]="scene.summary ? 'success' : 'medium'"
                             (click)="toggleSceneDetails(scene.id, $event)"
-                            class="expand-scene-btn">
+                            class="expand-scene-btn"
+                            [attr.aria-label]="'Szenen-Details ' + (expandedScenes.has(scene.id) ? 'einklappen' : 'ausklappen')"
+                            [attr.aria-expanded]="expandedScenes.has(scene.id)">
                             <ion-icon 
                               [name]="expandedScenes.has(scene.id) ? 'chevron-down' : 'chevron-forward'" 
-                              slot="icon-only">
+                              slot="icon-only"
+                              [attr.aria-hidden]="true">
                             </ion-icon>
                           </ion-button>
                           
@@ -128,8 +158,9 @@ import { Subscription } from 'rxjs';
                             fill="clear" 
                             size="small"
                             color="danger" 
-                            (click)="deleteScene(chapter.id, scene.id, $event)">
-                            <ion-icon name="trash" slot="icon-only"></ion-icon>
+                            (click)="deleteScene(chapter.id, scene.id, $event)"
+                            [attr.aria-label]="'Szene löschen: ' + (scene.title || 'Ohne Titel')">
+                            <ion-icon name="trash" slot="icon-only" [attr.aria-hidden]="true"></ion-icon>
                           </ion-button>
                         </div>
                       </div>
@@ -146,10 +177,12 @@ import { Subscription } from 'rxjs';
                             fill="solid"
                             [color]="isGeneratingSummary.has(scene.id) ? 'medium' : 'success'"
                             (click)="generateSceneSummary(chapter.id, scene.id)"
-                            [disabled]="isGeneratingSummary.has(scene.id) || !selectedModel || !scene.content.trim()">
+                            [disabled]="isGeneratingSummary.has(scene.id) || !selectedModel || !scene.content.trim()"
+                            [attr.aria-label]="isGeneratingSummary.has(scene.id) ? 'Zusammenfassung wird generiert...' : 'AI-Zusammenfassung für Szene generieren'">
                             <ion-icon 
                               [name]="isGeneratingSummary.has(scene.id) ? 'time-outline' : 'flash-outline'" 
-                              slot="icon-only">
+                              slot="icon-only"
+                              [attr.aria-hidden]="true">
                             </ion-icon>
                           </ion-button>
                         </div>
@@ -159,7 +192,8 @@ import { Subscription } from 'rxjs';
                         [(ngModel)]="selectedModel"
                         placeholder="AI-Modell wählen..."
                         interface="popover"
-                        class="model-select">
+                        class="model-select"
+                        aria-label="AI-Modell für Zusammenfassung auswählen">
                         <ion-select-option *ngFor="let model of availableModels" [value]="model.id">
                           {{ model.label }}
                         </ion-select-option>
@@ -173,7 +207,8 @@ import { Subscription } from 'rxjs';
                         placeholder="Hier wird die AI-generierte Zusammenfassung der Szene angezeigt..."
                         class="summary-textarea"
                         rows="2"
-                        auto-grow="true">
+                        auto-grow="true"
+                        [attr.aria-label]="'Zusammenfassung für Szene: ' + (scene.title || 'Ohne Titel')">
                       </ion-textarea>
                       
                       <ion-chip *ngIf="scene.summaryGeneratedAt" color="medium" class="summary-info">
@@ -190,8 +225,9 @@ import { Subscription } from 'rxjs';
                 fill="outline" 
                 color="primary" 
                 class="add-scene-btn" 
-                (click)="addScene(chapter.id)">
-                <ion-icon name="add" slot="start"></ion-icon>
+                (click)="addScene(chapter.id)"
+                [attr.aria-label]="'Neue Szene zu Kapitel hinzufügen: ' + (chapter.title || 'Ohne Titel')">
+                <ion-icon name="add" slot="start" [attr.aria-hidden]="true"></ion-icon>
                 Neue Szene
               </ion-button>
             </div>
@@ -214,13 +250,27 @@ import { Subscription } from 'rxjs';
       z-index: 100;
     }
 
-    /* Mobile: Keep existing responsive behavior */
+    /* Tablet and small desktop */
+    @media (max-width: 1024px) and (min-width: 769px) {
+      .story-structure {
+        width: 240px; /* Slightly narrower on tablets */
+      }
+    }
+    
+    /* Mobile and tablet portrait */
     @media (max-width: 768px) {
       .story-structure {
         position: relative;
         height: auto;
         width: 100%;
         z-index: auto;
+      }
+    }
+    
+    /* Small mobile devices */
+    @media (max-width: 480px) {
+      .story-structure {
+        max-width: 100vw;
       }
     }
     
@@ -409,7 +459,57 @@ import { Subscription } from 'rxjs';
       --border-style: dashed;
       --border-width: 1px;
     }
+    
+    /* Screen reader only content */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+    
+    /* Keyboard focus improvements */
+    .chapter-header:focus-visible,
+    .scene-item:focus-visible {
+      outline: 2px solid var(--ion-color-primary);
+      outline-offset: 2px;
+      border-radius: 4px;
+    }
+    
+    ion-button:focus-visible {
+      outline: 2px solid var(--ion-color-primary);
+      outline-offset: 2px;
+    }
+    
+    ion-input:focus-visible,
+    ion-textarea:focus-visible,
+    ion-select:focus-visible {
+      outline: 2px solid var(--ion-color-primary);
+      outline-offset: 1px;
+    }
 
+    /* Tablet adjustments */
+    @media (max-width: 1024px) and (min-width: 769px) {
+      .chapter-header {
+        --min-height: 44px;
+      }
+      
+      .scene-item {
+        --min-height: 48px;
+      }
+      
+      .ai-title-btn,
+      .action-buttons ion-button {
+        min-width: 40px;
+        min-height: 40px;
+      }
+    }
+    
     /* Mobile adjustments */
     @media (max-width: 768px) {
       .story-structure {
@@ -437,27 +537,278 @@ import { Subscription } from 'rxjs';
       .scene-details {
         max-height: none; /* Remove any height restrictions */
       }
+      
+      /* Larger touch targets for mobile */
+      .chapter-header {
+        --min-height: 48px; /* Minimum touch target size */
+        --padding-top: 12px;
+        --padding-bottom: 12px;
+      }
+      
+      .scene-item {
+        --min-height: 56px; /* Larger touch target for scenes */
+        --padding-top: 12px;
+        --padding-bottom: 12px;
+      }
+      
+      .scene-item.multi-line {
+        min-height: 72px; /* Even larger for multi-line content */
+      }
+      
+      /* Larger buttons on mobile */
+      .chapter-header ion-button {
+        --padding-start: 8px;
+        --padding-end: 8px;
+        min-width: 44px;
+        min-height: 44px;
+      }
+      
+      .ai-title-btn {
+        --padding-start: 8px;
+        --padding-end: 8px;
+        min-width: 44px;
+        min-height: 44px;
+      }
+      
+      .action-buttons ion-button {
+        --padding-start: 8px;
+        --padding-end: 8px;
+        min-width: 44px;
+        min-height: 44px;
+        margin: 0 2px;
+      }
+      
+      .add-scene-btn {
+        --min-height: 48px;
+        margin: 0.75rem;
+        font-size: 1rem;
+      }
+      
+      /* Larger input fields */
+      .chapter-title-input {
+        --min-height: 44px;
+        font-size: 1rem;
+      }
+      
+      .scene-title-input {
+        --min-height: 44px;
+        font-size: 0.95rem;
+      }
+      
+      /* Better spacing for scene content */
+      .scene-content {
+        gap: 8px;
+      }
+      
+      .scene-title-row {
+        min-height: 44px;
+      }
+      
+      .scene-actions-row {
+        min-height: 44px;
+        padding-top: 4px;
+      }
+    }
+    
+    /* Extra small mobile devices */
+    @media (max-width: 480px) {
+      .story-structure {
+        max-width: 100vw;
+        border-radius: 0; /* Remove border radius on very small screens */
+      }
+      
+      .structure-header ion-title {
+        font-size: 1rem;
+      }
+      
+      .chapters-list {
+        padding: 0.5rem;
+      }
+      
+      .chapter-item {
+        margin-bottom: 0.75rem;
+      }
+      
+      .scenes-list {
+        padding: 0.25rem;
+      }
+      
+      .scene-content {
+        gap: 6px;
+      }
+      
+      .word-count-badge {
+        font-size: 0.65rem;
+        height: 18px;
+      }
+      
+      .summary-textarea {
+        font-size: 0.8rem;
+      }
+      
+      .add-scene-btn {
+        margin: 0.5rem;
+        font-size: 0.9rem;
+      }
+    }
+    
+    /* Large mobile devices and small tablets */
+    @media (min-width: 481px) and (max-width: 768px) {
+      .story-structure {
+        max-width: 360px; /* Slightly wider on larger mobile devices */
+      }
+      
+      .scene-item.multi-line {
+        min-height: 80px; /* More space for content */
+      }
+      
+      .scene-content {
+        gap: 10px;
+      }
     }
 
-    /* Force scrollbar visibility on touch devices */
-    @media (max-width: 768px) and (pointer: coarse) {
+    /* Enhanced scrollbar and touch interactions for all mobile */
+    @media (max-width: 768px) {
       .structure-content::-webkit-scrollbar {
-        width: 6px;
+        width: 8px; /* Slightly wider for easier thumb interaction */
         display: block;
       }
       
       .structure-content::-webkit-scrollbar-track {
         background: var(--ion-color-dark-shade);
-        border-radius: 3px;
+        border-radius: 4px;
+        margin: 4px 0; /* Add margin to track */
       }
       
       .structure-content::-webkit-scrollbar-thumb {
         background: var(--ion-color-medium);
-        border-radius: 3px;
+        border-radius: 4px;
+        min-height: 40px; /* Minimum thumb size for touch */
       }
       
-      .structure-content::-webkit-scrollbar-thumb:hover {
+      .structure-content::-webkit-scrollbar-thumb:active {
         background: var(--ion-color-medium-tint);
+      }
+      
+      /* Improved touch feedback */
+      .chapter-header:active,
+      .scene-item:active {
+        background: var(--ion-color-medium-shade) !important;
+        transition: background-color 0.1s ease;
+      }
+      
+      /* Enhanced touch feedback with ripple effect */
+      .chapter-header,
+      .scene-item {
+        position: relative;
+        overflow: hidden;
+        transition: all 0.2s ease;
+      }
+      
+      .chapter-header::before,
+      .scene-item::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.2) 0%, transparent 70%);
+        opacity: 0;
+        transform: scale(0);
+        transition: opacity 0.3s ease, transform 0.3s ease;
+        pointer-events: none;
+      }
+      
+      .chapter-header:active,
+      .scene-item:active {
+        transform: scale(0.98);
+        background: var(--ion-color-medium-shade) !important;
+      }
+      
+      .chapter-header:active::before,
+      .scene-item:active::before {
+        opacity: 1;
+        transform: scale(1);
+      }
+      
+      /* Loading state animations */
+      .ai-title-btn[disabled],
+      .summary-section ion-button[disabled] {
+        opacity: 0.6;
+        position: relative;
+      }
+      
+      .ai-title-btn[disabled] ion-icon,
+      .summary-section ion-button[disabled] ion-icon {
+        animation: pulse 1.5s ease-in-out infinite;
+      }
+      
+      @keyframes pulse {
+        0%, 100% {
+          opacity: 0.6;
+          transform: scale(1);
+        }
+        50% {
+          opacity: 1;
+          transform: scale(1.1);
+        }
+      }
+      
+      /* Improved button hover/focus states */
+      ion-button:not([disabled]):hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      }
+      
+      ion-button:not([disabled]):active {
+        transform: translateY(0);
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+      }
+    }
+    
+    /* Extra touch feedback for very small screens */
+    @media (max-width: 480px) {
+      .structure-content::-webkit-scrollbar {
+        width: 10px; /* Even wider scrollbar for tiny screens */
+      }
+      
+      .structure-content::-webkit-scrollbar-thumb {
+        min-height: 50px; /* Larger minimum thumb size */
+      }
+      
+      /* Enhanced vibration feedback simulation */
+      .chapter-header:active,
+      .scene-item:active {
+        animation: vibrate 0.1s ease-in-out;
+      }
+      
+      @keyframes vibrate {
+        0%, 100% { transform: translateX(0) scale(0.98); }
+        25% { transform: translateX(-1px) scale(0.98); }
+        75% { transform: translateX(1px) scale(0.98); }
+      }
+      
+      /* Loading spinner for very small screens */
+      .ai-title-btn[disabled]::after,
+      .summary-section ion-button[disabled]::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 12px;
+        height: 12px;
+        margin: -6px 0 0 -6px;
+        border: 2px solid transparent;
+        border-top: 2px solid var(--ion-color-primary);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        z-index: 1;
+      }
+      
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
       }
     }
   `]
@@ -832,6 +1183,40 @@ Antworte nur mit dem Titel, ohne weitere Erklärungen oder Anführungszeichen.`;
     } else if (this.availableModels.length > 0) {
       // Fallback to first available model
       this.selectedModel = this.availableModels[0].id;
+    }
+  }
+  
+  onChapterKeyDown(event: KeyboardEvent, chapterId: string): void {
+    switch (event.key) {
+      case 'Enter':
+      case ' ':
+        event.preventDefault();
+        event.stopPropagation();
+        this.toggleChapter(chapterId);
+        break;
+      case 'ArrowRight':
+        if (!this.expandedChapters.has(chapterId)) {
+          event.preventDefault();
+          this.expandedChapters.add(chapterId);
+        }
+        break;
+      case 'ArrowLeft':
+        if (this.expandedChapters.has(chapterId)) {
+          event.preventDefault();
+          this.expandedChapters.delete(chapterId);
+        }
+        break;
+    }
+  }
+  
+  onSceneKeyDown(event: KeyboardEvent, chapterId: string, sceneId: string): void {
+    switch (event.key) {
+      case 'Enter':
+      case ' ':
+        event.preventDefault();
+        event.stopPropagation();
+        this.selectScene(chapterId, sceneId);
+        break;
     }
   }
 }
