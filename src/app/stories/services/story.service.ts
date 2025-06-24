@@ -27,7 +27,7 @@ export class StoryService {
           console.log('Processing row:', row);
           return row.doc as Story;
         })
-        .filter((doc: any) => doc && doc.id) // Filter out any design docs
+        .filter((doc: any) => doc && doc.id && doc.type !== 'codex') // Filter out design docs and codex entries
         .map((story: any) => {
           console.log('Before migration:', story);
           const migrated = this.migrateStory(story);
