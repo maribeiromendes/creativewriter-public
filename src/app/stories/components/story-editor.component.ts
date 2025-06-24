@@ -177,7 +177,8 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
     .editor-container {
       display: flex;
       position: relative;
-      min-height: 100%;
+      min-height: calc(100vh - 128px); /* Account for headers */
+      align-items: flex-start; /* Allow sidebar to stick */
     }
     
     .editor-main {
@@ -427,7 +428,7 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
 
     /* Sidebar Overlay */
     .sidebar-overlay {
-      display: contents;
+      display: contents; /* Allows sticky positioning to work */
     }
 
     /* Mobile Sidebar Overlay */

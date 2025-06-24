@@ -177,11 +177,23 @@ import { Subscription } from 'rxjs';
   styles: [`
     .story-structure {
       width: 280px;
-      height: 100vh;
       background: var(--ion-color-dark);
       border-right: 1px solid var(--ion-color-dark-shade);
       display: flex;
       flex-direction: column;
+      position: sticky;
+      top: 0;
+      height: calc(100vh - 128px); /* Subtract header height */
+      align-self: flex-start;
+    }
+
+    /* Mobile: Override sticky positioning */
+    @media (max-width: 768px) {
+      .story-structure {
+        position: relative;
+        height: auto;
+        width: 100%;
+      }
     }
     
     .structure-header {
