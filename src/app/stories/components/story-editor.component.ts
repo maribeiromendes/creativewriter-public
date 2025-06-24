@@ -9,7 +9,7 @@ import {
 import { addIcons } from 'ionicons';
 import { 
   arrowBack, bookOutline, book, settingsOutline, statsChartOutline,
-  saveOutline, checkmarkCircleOutline, menuOutline
+  saveOutline, checkmarkCircleOutline, menuOutline, chevronBack, chevronForward
 } from 'ionicons/icons';
 import { StoryService } from '../services/story.service';
 import { Story, Scene } from '../models/story.interface';
@@ -100,6 +100,35 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
                 ></ion-input>
                 
                 <div class="scene-editor" *ngIf="activeScene">
+                  <!-- Scene Navigation - Top -->
+                  <div class="scene-navigation top">
+                    <ion-button 
+                      fill="clear" 
+                      size="small"
+                      (click)="navigateToPreviousScene()"
+                      [disabled]="!hasPreviousScene()"
+                      class="nav-button prev-button"
+                      [attr.aria-label]="'Zur vorherigen Szene'">
+                      <ion-icon name="chevron-back" slot="start"></ion-icon>
+                      Vorherige Szene
+                    </ion-button>
+                    
+                    <div class="scene-info">
+                      <span class="scene-counter">Szene {{ getCurrentSceneIndex() }} von {{ getTotalScenes() }}</span>
+                    </div>
+                    
+                    <ion-button 
+                      fill="clear" 
+                      size="small"
+                      (click)="navigateToNextScene()"
+                      [disabled]="!hasNextScene()"
+                      class="nav-button next-button"
+                      [attr.aria-label]="'Zur nächsten Szene'">
+                      Nächste Szene
+                      <ion-icon name="chevron-forward" slot="end"></ion-icon>
+                    </ion-button>
+                  </div>
+                  
                   <ion-input 
                     type="text" 
                     class="scene-title-input" 
@@ -114,6 +143,31 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
                     #editorContainer
                     class="content-editor"
                   ></div>
+                  
+                  <!-- Scene Navigation - Bottom -->
+                  <div class="scene-navigation bottom">
+                    <ion-button 
+                      fill="clear" 
+                      size="small"
+                      (click)="navigateToPreviousScene()"
+                      [disabled]="!hasPreviousScene()"
+                      class="nav-button prev-button"
+                      [attr.aria-label]="'Zur vorherigen Szene'">
+                      <ion-icon name="chevron-back" slot="start"></ion-icon>
+                      Vorherige Szene
+                    </ion-button>
+                    
+                    <ion-button 
+                      fill="clear" 
+                      size="small"
+                      (click)="navigateToNextScene()"
+                      [disabled]="!hasNextScene()"
+                      class="nav-button next-button"
+                      [attr.aria-label]="'Zur nächsten Szene'">
+                      Nächste Szene
+                      <ion-icon name="chevron-forward" slot="end"></ion-icon>
+                    </ion-button>
+                  </div>
                 </div>
                 
                 <div class="no-scene" *ngIf="!activeScene">
@@ -256,6 +310,61 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
       font-size: 1.3rem;
       font-weight: 500;
       margin-bottom: 1rem;
+    }
+    
+    /* Scene Navigation Styles */
+    .scene-navigation {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 0;
+      border-bottom: 1px solid #404040;
+      margin-bottom: 1rem;
+    }
+    
+    .scene-navigation.bottom {
+      border-bottom: none;
+      border-top: 1px solid #404040;
+      margin-bottom: 0;
+      margin-top: 2rem;
+    }
+    
+    .scene-navigation .nav-button {
+      --color: #e0e0e0;
+      --color-hover: #f8f9fa;
+      font-size: 0.9rem;
+      font-weight: 500;
+      min-width: 140px;
+      transition: all 0.2s ease;
+    }
+    
+    .scene-navigation .nav-button:not([disabled]):hover {
+      --background: rgba(255, 255, 255, 0.1);
+      transform: translateY(-1px);
+    }
+    
+    .scene-navigation .nav-button[disabled] {
+      --color: #6c757d;
+      opacity: 0.5;
+    }
+    
+    .scene-navigation .prev-button {
+      justify-content: flex-start;
+    }
+    
+    .scene-navigation .next-button {
+      justify-content: flex-end;
+    }
+    
+    .scene-info {
+      text-align: center;
+      flex: 1;
+    }
+    
+    .scene-counter {
+      color: #adb5bd;
+      font-size: 0.85rem;
+      font-weight: 500;
     }
     
     .no-scene {
@@ -414,6 +523,20 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
       .scene-title-input {
         font-size: 1.1rem;
       }
+      
+      /* Mobile navigation adjustments */
+      .scene-navigation {
+        padding: 0.75rem 0;
+      }
+      
+      .scene-navigation .nav-button {
+        min-width: 120px;
+        font-size: 0.85rem;
+      }
+      
+      .scene-counter {
+        font-size: 0.8rem;
+      }
     }
 
     @media (max-width: 480px) {
@@ -435,6 +558,31 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
 
       .scene-title-input {
         font-size: 1rem;
+      }
+      
+      /* Small mobile navigation */
+      .scene-navigation {
+        flex-direction: column;
+        gap: 0.5rem;
+        padding: 0.5rem 0;
+      }
+      
+      .scene-navigation .nav-button {
+        min-width: 100px;
+        font-size: 0.8rem;
+        width: 100%;
+        max-width: 200px;
+      }
+      
+      .scene-info {
+        order: -1;
+        margin-bottom: 0.5rem;
+      }
+      
+      .scene-navigation.bottom .scene-info {
+        order: 1;
+        margin-bottom: 0;
+        margin-top: 0.5rem;
       }
     }
 
@@ -550,7 +698,7 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
   ) {
     addIcons({ 
       arrowBack, bookOutline, book, settingsOutline, statsChartOutline,
-      saveOutline, checkmarkCircleOutline, menuOutline
+      saveOutline, checkmarkCircleOutline, menuOutline, chevronBack, chevronForward
     });
   }
 
@@ -1063,5 +1211,106 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     setTimeout(() => {
       this.proseMirrorService.focus();
     }, 100);
+  }
+  
+  // Scene Navigation Methods
+  
+  navigateToPreviousScene(): void {
+    const prevScene = this.getPreviousScene();
+    if (prevScene) {
+      this.selectScene(prevScene.chapterId, prevScene.sceneId);
+    }
+  }
+  
+  navigateToNextScene(): void {
+    const nextScene = this.getNextScene();
+    if (nextScene) {
+      this.selectScene(nextScene.chapterId, nextScene.sceneId);
+    }
+  }
+  
+  hasPreviousScene(): boolean {
+    return this.getPreviousScene() !== null;
+  }
+  
+  hasNextScene(): boolean {
+    return this.getNextScene() !== null;
+  }
+  
+  getCurrentSceneIndex(): number {
+    if (!this.activeChapterId || !this.activeSceneId) return 0;
+    
+    let index = 0;
+    for (const chapter of this.story.chapters) {
+      for (const scene of chapter.scenes) {
+        index++;
+        if (chapter.id === this.activeChapterId && scene.id === this.activeSceneId) {
+          return index;
+        }
+      }
+    }
+    return 0;
+  }
+  
+  getTotalScenes(): number {
+    return this.story.chapters.reduce((total, chapter) => total + chapter.scenes.length, 0);
+  }
+  
+  private getPreviousScene(): {chapterId: string, sceneId: string} | null {
+    if (!this.activeChapterId || !this.activeSceneId) return null;
+    
+    let previousScene: {chapterId: string, sceneId: string} | null = null;
+    
+    for (const chapter of this.story.chapters) {
+      for (const scene of chapter.scenes) {
+        if (chapter.id === this.activeChapterId && scene.id === this.activeSceneId) {
+          return previousScene;
+        }
+        previousScene = { chapterId: chapter.id, sceneId: scene.id };
+      }
+    }
+    
+    return null;
+  }
+  
+  private getNextScene(): {chapterId: string, sceneId: string} | null {
+    if (!this.activeChapterId || !this.activeSceneId) return null;
+    
+    let foundCurrent = false;
+    
+    for (const chapter of this.story.chapters) {
+      for (const scene of chapter.scenes) {
+        if (foundCurrent) {
+          return { chapterId: chapter.id, sceneId: scene.id };
+        }
+        if (chapter.id === this.activeChapterId && scene.id === this.activeSceneId) {
+          foundCurrent = true;
+        }
+      }
+    }
+    
+    return null;
+  }
+  
+  private async selectScene(chapterId: string, sceneId: string): Promise<void> {
+    // Save current scene before switching
+    if (this.hasUnsavedChanges) {
+      await this.saveStory();
+    }
+    
+    this.activeChapterId = chapterId;
+    this.activeSceneId = sceneId;
+    this.activeScene = await this.storyService.getScene(this.story.id, chapterId, sceneId);
+    this.updateEditorContent();
+    
+    // Update story context for all Beat AI components
+    this.proseMirrorService.updateStoryContext({
+      storyId: this.story.id,
+      chapterId: this.activeChapterId,
+      sceneId: this.activeSceneId
+    });
+    
+    // Force change detection
+    this.cdr.detectChanges();
   }
 }
