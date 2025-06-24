@@ -108,6 +108,7 @@ export class ImageGenerationService {
       throw new Error(`Model ${modelId} not found`);
     }
 
+
     const job: ImageGenerationJob = {
       id: this.generateJobId(),
       model: modelId,
@@ -165,13 +166,30 @@ export class ImageGenerationService {
           );
         }),
         catchError(error => {
+          console.error('Full error object:', error);
+          
+          // Extract detailed error message from HTTP response
+          let errorMessage = error.message;
+          if (error.error && typeof error.error === 'object') {
+            // If error.error is an object with detail property (common for validation errors)
+            if (error.error.detail) {
+              errorMessage = error.error.detail;
+            } else if (error.error.message) {
+              errorMessage = error.error.message;
+            }
+          } else if (error.error && typeof error.error === 'string') {
+            errorMessage = error.error;
+          }
+          
           this.updateJob(job.id, {
             status: 'failed',
             completedAt: new Date(),
-            error: error.message
+            error: errorMessage
           });
           
-          throw error;
+          // Create enhanced error object for component
+          const enhancedError = new Error(errorMessage);
+          throw enhancedError;
         })
       );
   }

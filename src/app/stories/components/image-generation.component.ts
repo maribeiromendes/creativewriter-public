@@ -580,8 +580,11 @@ export class ImageGenerationComponent implements OnInit, OnDestroy {
           },
           error: (error) => {
             this.isGenerating = false;
-            this.showToastMessage(`Fehler: ${error.message}`);
             console.error('Generation error:', error);
+            
+            // Show detailed error message
+            let errorMessage = error.message || 'Unbekannter Fehler';
+            this.showToastMessage(`Fehler: ${errorMessage}`);
           }
         })
     );
