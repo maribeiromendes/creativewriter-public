@@ -24,7 +24,7 @@ app.get('/health', (req, res) => {
 app.all('/api/replicate/*', async (req, res) => {
   try {
     const path = req.params[0];
-    const url = `https://api.replicate.com/${path}`;
+    const url = `https://api.replicate.com/v1/${path}`;
     
     console.log(`Proxying ${req.method} request to: ${url}`);
     
