@@ -191,7 +191,12 @@ import { Subscription } from 'rxjs';
                       </div>
 
                       <div class="job-image" *ngIf="job.imageUrl">
-                        <ion-img [src]="job.imageUrl" [alt]="job.prompt"></ion-img>
+                        <ion-img 
+                          [src]="job.imageUrl" 
+                          [alt]="job.prompt"
+                          (click)="viewImage(job.imageUrl)"
+                          class="thumbnail-image">
+                        </ion-img>
                         <ion-button fill="clear" size="small" (click)="downloadImage(job.imageUrl, job.prompt)">
                           <ion-icon name="download-outline" slot="icon-only"></ion-icon>
                         </ion-button>
@@ -314,9 +319,18 @@ import { Subscription } from 'rxjs';
     .job-image ion-img {
       border-radius: 8px;
       width: 100%;
-      max-height: 300px;
+      height: 200px;
       object-fit: contain;
-      background-color: #000;
+      background-color: #1a1a1a;
+      border: 1px solid #404040;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .job-image ion-img:hover {
+      transform: scale(1.02);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      border-color: #0d6efd;
     }
 
     .job-image ion-button {
@@ -354,7 +368,7 @@ import { Subscription } from 'rxjs';
       }
 
       .job-image ion-img {
-        max-height: 250px;
+        height: 180px;
       }
     }
 
@@ -494,6 +508,11 @@ export class ImageGenerationComponent implements OnInit, OnDestroy {
       day: '2-digit',
       month: '2-digit'
     }).format(date);
+  }
+
+  viewImage(url: string): void {
+    // Open image in new tab for full-size viewing
+    window.open(url, '_blank');
   }
 
   downloadImage(url: string, filename: string): void {
