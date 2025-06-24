@@ -413,7 +413,17 @@ export class ImageGenerationComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.availableModels = this.imageGenService.getAvailableModels();
-    if (this.availableModels.length > 0) {
+    
+    // Try to load last prompt and parameters
+    const lastPrompt = this.imageGenService.getLastPrompt();
+    if (lastPrompt && this.availableModels.find(m => m.id === lastPrompt.modelId)) {
+      this.selectedModelId = lastPrompt.modelId;
+      this.onModelChange();
+      // Restore parameters after model change
+      setTimeout(() => {
+        this.parameters = { ...lastPrompt.parameters };
+      }, 0);
+    } else if (this.availableModels.length > 0) {
       this.selectedModelId = this.availableModels[0].id;
       this.onModelChange();
     }
@@ -452,6 +462,9 @@ export class ImageGenerationComponent implements OnInit, OnDestroy {
     if (!this.selectedModel || !this.parameters['prompt'] || this.isGenerating) {
       return;
     }
+
+    // Save current prompt and parameters
+    this.imageGenService.saveLastPrompt(this.selectedModelId, this.parameters);
 
     this.isGenerating = true;
     

@@ -13,6 +13,9 @@ import {
 })
 export class ImageGenerationService {
   private readonly apiUrl = '/api/replicate';
+  private readonly storageKey = 'creative-writer-image-jobs';
+  private readonly lastPromptKey = 'creative-writer-last-prompt';
+  private readonly lastParametersKey = 'creative-writer-last-parameters';
   private jobsSubject = new BehaviorSubject<ImageGenerationJob[]>([]);
   public jobs$ = this.jobsSubject.asObservable();
 
@@ -87,7 +90,9 @@ export class ImageGenerationService {
     }
   ];
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) {
+    this.loadJobsFromStorage();
+  }
 
   getAvailableModels(): ImageGenerationModel[] {
     return this.models;
@@ -115,6 +120,7 @@ export class ImageGenerationService {
     // Add job to the list
     const currentJobs = this.jobsSubject.value;
     this.jobsSubject.next([...currentJobs, job]);
+    this.saveJobsToStorage();
 
     const request: ImageGenerationRequest = {
       version: `${model.id}:${model.version}`,
@@ -188,6 +194,7 @@ export class ImageGenerationService {
       job.id === jobId ? { ...job, status } : job
     );
     this.jobsSubject.next(updatedJobs);
+    this.saveJobsToStorage();
   }
 
   private updateJob(jobId: string, updates: Partial<ImageGenerationJob>): void {
@@ -196,6 +203,7 @@ export class ImageGenerationService {
       job.id === jobId ? { ...job, ...updates } : job
     );
     this.jobsSubject.next(updatedJobs);
+    this.saveJobsToStorage();
   }
 
   private generateJobId(): string {
@@ -208,5 +216,54 @@ export class ImageGenerationService {
 
   clearJobs(): void {
     this.jobsSubject.next([]);
+    this.saveJobsToStorage();
+  }
+
+  saveLastPrompt(modelId: string, parameters: Record<string, any>): void {
+    try {
+      localStorage.setItem(this.lastPromptKey, JSON.stringify({ modelId, parameters }));
+    } catch (error) {
+      console.warn('Failed to save last prompt to localStorage:', error);
+    }
+  }
+
+  getLastPrompt(): { modelId: string; parameters: Record<string, any> } | null {
+    try {
+      const saved = localStorage.getItem(this.lastPromptKey);
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch (error) {
+      console.warn('Failed to load last prompt from localStorage:', error);
+    }
+    return null;
+  }
+
+  private loadJobsFromStorage(): void {
+    try {
+      const saved = localStorage.getItem(this.storageKey);
+      if (saved) {
+        const jobs: ImageGenerationJob[] = JSON.parse(saved);
+        // Convert date strings back to Date objects
+        jobs.forEach(job => {
+          job.createdAt = new Date(job.createdAt);
+          if (job.completedAt) {
+            job.completedAt = new Date(job.completedAt);
+          }
+        });
+        this.jobsSubject.next(jobs);
+      }
+    } catch (error) {
+      console.warn('Failed to load jobs from localStorage:', error);
+    }
+  }
+
+  private saveJobsToStorage(): void {
+    try {
+      const jobs = this.jobsSubject.value;
+      localStorage.setItem(this.storageKey, JSON.stringify(jobs));
+    } catch (error) {
+      console.warn('Failed to save jobs to localStorage:', error);
+    }
   }
 }
