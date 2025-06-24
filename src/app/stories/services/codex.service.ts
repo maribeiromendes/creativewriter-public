@@ -8,7 +8,6 @@ import { DatabaseService } from '../../core/services/database.service';
   providedIn: 'root'
 })
 export class CodexService {
-  private readonly STORAGE_KEY = 'creative-writer-codex';
   private codexMap = new Map<string, Codex>();
   private codexSubject = new BehaviorSubject<Map<string, Codex>>(new Map());
   private db: any;
@@ -23,13 +22,11 @@ export class CodexService {
   private async initializeService(): Promise<void> {
     try {
       this.db = await this.databaseService.getDatabase();
-      await this.migrateFromLocalStorage();
       await this.loadFromDatabase();
       this.isInitialized = true;
     } catch (error) {
       console.error('Error initializing codex service:', error);
-      // Fallback to localStorage if database fails
-      this.loadFromStorage();
+      throw error;
     }
   }
 
@@ -49,41 +46,6 @@ export class CodexService {
     }
   }
 
-  private async migrateFromLocalStorage(): Promise<void> {
-    try {
-      const stored = localStorage.getItem(this.STORAGE_KEY);
-      if (!stored) return;
-
-      console.log('Migrating codex data from localStorage to CouchDB...');
-      const codexArray: Codex[] = JSON.parse(stored);
-      
-      for (const codex of codexArray) {
-        const deserializedCodex = this.deserializeCodex(codex);
-        const docId = `codex_${deserializedCodex.storyId}`;
-        
-        try {
-          await this.db.get(docId);
-          console.log(`Codex for story ${deserializedCodex.storyId} already exists in database`);
-        } catch (error: any) {
-          if (error.status === 404) {
-            await this.db.put({
-              _id: docId,
-              type: 'codex',
-              ...deserializedCodex
-            });
-            console.log(`Migrated codex for story ${deserializedCodex.storyId}`);
-          }
-        }
-      }
-      
-      // Clear localStorage after successful migration
-      localStorage.removeItem(this.STORAGE_KEY);
-      console.log('Migration completed, localStorage cleared');
-      
-    } catch (error) {
-      console.error('Error during migration:', error);
-    }
-  }
 
   private async loadFromDatabase(): Promise<void> {
     try {
@@ -108,23 +70,6 @@ export class CodexService {
     }
   }
 
-  private loadFromStorage(): void {
-    try {
-      const stored = localStorage.getItem(this.STORAGE_KEY);
-      if (stored) {
-        const codexArray: Codex[] = JSON.parse(stored);
-        this.codexMap = new Map(
-          codexArray.map(codex => [
-            codex.storyId,
-            this.deserializeCodex(codex)
-          ])
-        );
-        this.codexSubject.next(this.codexMap);
-      }
-    } catch (error) {
-      console.error('Error loading codex from storage:', error);
-    }
-  }
 
   private async saveToDatabase(codex: Codex): Promise<void> {
     try {
@@ -160,21 +105,10 @@ export class CodexService {
       
     } catch (error) {
       console.error('Error saving codex to database:', error);
-      // Fallback to localStorage
-      this.saveToStorageFallback();
+      throw error;
     }
   }
 
-  private saveToStorageFallback(): void {
-    try {
-      const codexArray = Array.from(this.codexMap.values());
-      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(codexArray));
-      // Create new Map to trigger reactivity
-      this.codexSubject.next(new Map(this.codexMap));
-    } catch (error) {
-      console.error('Error saving codex to storage:', error);
-    }
-  }
 
   private deserializeCodex(codex: any): Codex {
     return {
@@ -452,9 +386,7 @@ export class CodexService {
       
     } catch (error) {
       console.error('Error deleting codex from database:', error);
-      // Fallback: remove from local map only
-      this.codexMap.delete(storyId);
-      this.saveToStorageFallback();
+      throw error;
     }
   }
 
