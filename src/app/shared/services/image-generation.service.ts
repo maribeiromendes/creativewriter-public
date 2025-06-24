@@ -12,7 +12,7 @@ import {
   providedIn: 'root'
 })
 export class ImageGenerationService {
-  private readonly apiUrl = 'http://localhost:3001/api/replicate';
+  private readonly apiUrl = '/api/replicate';
   private jobsSubject = new BehaviorSubject<ImageGenerationJob[]>([]);
   public jobs$ = this.jobsSubject.asObservable();
 
