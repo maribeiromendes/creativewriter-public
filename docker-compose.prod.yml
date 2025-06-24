@@ -46,9 +46,6 @@ services:
       - creativewriter-network
 
   replicate-proxy:
-    build:
-      context: .
-      dockerfile: Dockerfile.proxy
     image: ghcr.io/marcodroll/creativewriter2-proxy:latest
     container_name: creativewriter-replicate-proxy
     restart: unless-stopped
