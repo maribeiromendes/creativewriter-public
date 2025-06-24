@@ -76,7 +76,7 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
       </ion-header>
       
       <ion-content color="dark">
-        <div class="editor-container">
+        <div class="editor-container" [class.sidebar-visible]="showSidebar">
           <div class="sidebar-overlay" *ngIf="showSidebar" (click)="closeSidebarOnMobile($event)">
             <app-story-structure 
               [story]="story" 
@@ -177,14 +177,26 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
     .editor-container {
       display: flex;
       position: relative;
-      min-height: calc(100vh - 128px); /* Account for headers */
-      align-items: flex-start; /* Allow sidebar to stick */
+      min-height: 100vh;
     }
     
     .editor-main {
       flex: 1;
       display: flex;
       flex-direction: column;
+      margin-left: 280px; /* Make space for fixed sidebar */
+    }
+    
+    /* Hide sidebar space when sidebar is hidden */
+    .editor-container:not(.sidebar-visible) .editor-main {
+      margin-left: 0;
+    }
+    
+    /* Mobile: Remove margin and use overlay */
+    @media (max-width: 768px) {
+      .editor-main {
+        margin-left: 0 !important;
+      }
     }
     
     .editor-content {

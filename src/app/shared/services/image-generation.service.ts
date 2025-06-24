@@ -87,6 +87,141 @@ export class ImageGenerationService {
           minimum: 0
         }
       ]
+    },
+    {
+      id: 'lucataco/realistic-vision-v5',
+      name: 'Realistic Vision V5',
+      description: 'Photorealistic uncensored model',
+      version: '23e520565b2ce5b779df730ddd71e7b96be852bfe1bbba6284a083e3610e3e3e',
+      owner: 'lucataco',
+      inputs: [
+        {
+          name: 'prompt',
+          type: 'string',
+          description: 'Input prompt for image generation',
+          required: true
+        },
+        {
+          name: 'negative_prompt',
+          type: 'string',
+          description: 'Negative prompt to avoid certain elements',
+          default: 'cartoon, 3d, disfigured, bad art, deformed, extra limbs, weird colors, duplicate, morbid, mutilated'
+        },
+        {
+          name: 'width',
+          type: 'integer',
+          description: 'Width of output image',
+          default: 512,
+          minimum: 128,
+          maximum: 1024
+        },
+        {
+          name: 'height',
+          type: 'integer',
+          description: 'Height of output image',
+          default: 768,
+          minimum: 128,
+          maximum: 1024
+        },
+        {
+          name: 'num_inference_steps',
+          type: 'integer',
+          description: 'Number of denoising steps',
+          default: 30,
+          minimum: 1,
+          maximum: 50
+        },
+        {
+          name: 'guidance_scale',
+          type: 'number',
+          description: 'Scale for classifier-free guidance',
+          default: 7.5,
+          minimum: 1,
+          maximum: 20
+        },
+        {
+          name: 'num_outputs',
+          type: 'integer',
+          description: 'Number of images to output',
+          default: 1,
+          minimum: 1,
+          maximum: 4
+        },
+        {
+          name: 'seed',
+          type: 'integer',
+          description: 'Random seed for reproducibility',
+          minimum: 0
+        }
+      ]
+    },
+    {
+      id: 'stability-ai/sdxl',
+      name: 'Stable Diffusion XL',
+      description: 'Latest SDXL model with high quality output',
+      version: '7762fd07cf82c948538e41f63f77d685e02b063e37e496e96eefd46c929f9bdc',
+      owner: 'stability-ai',
+      inputs: [
+        {
+          name: 'prompt',
+          type: 'string',
+          description: 'Input prompt for image generation',
+          required: true
+        },
+        {
+          name: 'negative_prompt',
+          type: 'string',
+          description: 'Negative prompt to avoid certain elements',
+          default: ''
+        },
+        {
+          name: 'width',
+          type: 'integer',
+          description: 'Width of output image',
+          default: 1024,
+          minimum: 512,
+          maximum: 2048
+        },
+        {
+          name: 'height',
+          type: 'integer',
+          description: 'Height of output image',
+          default: 1024,
+          minimum: 512,
+          maximum: 2048
+        },
+        {
+          name: 'num_inference_steps',
+          type: 'integer',
+          description: 'Number of denoising steps',
+          default: 25,
+          minimum: 1,
+          maximum: 50
+        },
+        {
+          name: 'guidance_scale',
+          type: 'number',
+          description: 'Scale for classifier-free guidance',
+          default: 7.5,
+          minimum: 1,
+          maximum: 20
+        },
+        {
+          name: 'num_outputs',
+          type: 'integer',
+          description: 'Number of images to output',
+          default: 1,
+          minimum: 1,
+          maximum: 4
+        },
+        {
+          name: 'scheduler',
+          type: 'string',
+          description: 'Scheduler to use',
+          default: 'DPMSolverMultistep',
+          options: ['DDIM', 'DPMSolverMultistep', 'K_EULER', 'K_EULER_ANCESTRAL', 'PNDM', 'KLMS']
+        }
+      ]
     }
   ];
 

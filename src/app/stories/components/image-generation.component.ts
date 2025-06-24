@@ -555,6 +555,9 @@ export class ImageGenerationComponent implements OnInit, OnDestroy {
     this.selectedModel.inputs.forEach(input => {
       if (input.default !== undefined) {
         this.parameters[input.name] = input.default;
+      } else if (input.options && input.options.length > 0) {
+        // Set first option as default if no default specified
+        this.parameters[input.name] = input.options[0];
       }
     });
   }
@@ -655,6 +658,11 @@ export class ImageGenerationComponent implements OnInit, OnDestroy {
     // Use step size of 8 for width and height to ensure divisibility by 8
     if (input.name === 'width' || input.name === 'height') {
       return 8;
+    }
+    
+    // Use 0.5 for guidance_scale for finer control
+    if (input.name === 'guidance_scale') {
+      return 0.5;
     }
     
     // Default step sizes for other inputs

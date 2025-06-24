@@ -181,18 +181,20 @@ import { Subscription } from 'rxjs';
       border-right: 1px solid var(--ion-color-dark-shade);
       display: flex;
       flex-direction: column;
-      position: sticky;
-      top: 0;
-      height: calc(100vh - 128px); /* Subtract header height */
-      align-self: flex-start;
+      position: fixed;
+      top: 128px; /* Below the header */
+      left: 0;
+      height: calc(100vh - 128px);
+      z-index: 100;
     }
 
-    /* Mobile: Override sticky positioning */
+    /* Mobile: Keep existing responsive behavior */
     @media (max-width: 768px) {
       .story-structure {
         position: relative;
         height: auto;
         width: 100%;
+        z-index: auto;
       }
     }
     
@@ -208,6 +210,8 @@ import { Subscription } from 'rxjs';
     
     .structure-content {
       --background: var(--ion-color-dark);
+      flex: 1;
+      overflow-y: auto;
     }
     
     .chapters-list {
