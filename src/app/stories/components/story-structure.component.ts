@@ -9,7 +9,7 @@ import {
 import { addIcons } from 'ionicons';
 import { 
   chevronForward, chevronDown, add, trash, createOutline,
-  flashOutline, documentTextOutline, timeOutline, sparklesOutline
+  flashOutline, documentTextOutline, timeOutline, sparklesOutline, close
 } from 'ionicons/icons';
 import { Story, Chapter, Scene } from '../models/story.interface';
 import { StoryService } from '../services/story.service';
@@ -39,8 +39,16 @@ import { Subscription } from 'rxjs';
               size="small" 
               (click)="addChapter()"
               aria-label="Neues Kapitel hinzufügen"
-              [attr.aria-describedby]="'add-chapter-help'">
+              [attr.aria-describedby]="'add-chapter-help'"
+              class="desktop-only">
               <ion-icon name="add" slot="icon-only"></ion-icon>
+            </ion-button>
+            <ion-button 
+              size="small" 
+              (click)="onCloseSidebar()"
+              aria-label="Struktur-Sidebar schließen"
+              class="mobile-close-btn">
+              <ion-icon name="close" slot="icon-only"></ion-icon>
             </ion-button>
           </ion-buttons>
         </ion-toolbar>
@@ -123,7 +131,9 @@ import { Subscription } from 'rxjs';
                           (click)="generateSceneTitle(chapter.id, scene.id, $event)"
                           [disabled]="isGeneratingTitle.has(scene.id) || !selectedModel || !scene.content.trim()"
                           class="ai-title-btn"
-                          [attr.aria-label]="isGeneratingTitle.has(scene.id) ? 'Titel wird generiert...' : 'AI-Titel für Szene generieren'">
+                          [attr.aria-label]="isGeneratingTitle.has(scene.id) ? 'Titel wird generiert...' : 'AI-Titel für Szene generieren'"
+                          (touchstart)="$event.stopPropagation()"
+                          (touchend)="$event.stopPropagation()">
                           <ion-icon 
                             [name]="isGeneratingTitle.has(scene.id) ? 'time-outline' : 'sparkles-outline'" 
                             slot="icon-only"
@@ -146,7 +156,9 @@ import { Subscription } from 'rxjs';
                             (click)="toggleSceneDetails(scene.id, $event)"
                             class="expand-scene-btn"
                             [attr.aria-label]="'Szenen-Details ' + (expandedScenes.has(scene.id) ? 'einklappen' : 'ausklappen')"
-                            [attr.aria-expanded]="expandedScenes.has(scene.id)">
+                            [attr.aria-expanded]="expandedScenes.has(scene.id)"
+                            (touchstart)="$event.stopPropagation()"
+                            (touchend)="$event.stopPropagation()">
                             <ion-icon 
                               [name]="expandedScenes.has(scene.id) ? 'chevron-down' : 'chevron-forward'" 
                               slot="icon-only"
@@ -159,7 +171,9 @@ import { Subscription } from 'rxjs';
                             size="small"
                             color="danger" 
                             (click)="deleteScene(chapter.id, scene.id, $event)"
-                            [attr.aria-label]="'Szene löschen: ' + (scene.title || 'Ohne Titel')">
+                            [attr.aria-label]="'Szene löschen: ' + (scene.title || 'Ohne Titel')"
+                            (touchstart)="$event.stopPropagation()"
+                            (touchend)="$event.stopPropagation()">
                             <ion-icon name="trash" slot="icon-only" [attr.aria-hidden]="true"></ion-icon>
                           </ion-button>
                         </div>
@@ -178,7 +192,9 @@ import { Subscription } from 'rxjs';
                             [color]="isGeneratingSummary.has(scene.id) ? 'medium' : 'success'"
                             (click)="generateSceneSummary(chapter.id, scene.id)"
                             [disabled]="isGeneratingSummary.has(scene.id) || !selectedModel || !scene.content.trim()"
-                            [attr.aria-label]="isGeneratingSummary.has(scene.id) ? 'Zusammenfassung wird generiert...' : 'AI-Zusammenfassung für Szene generieren'">
+                            [attr.aria-label]="isGeneratingSummary.has(scene.id) ? 'Zusammenfassung wird generiert...' : 'AI-Zusammenfassung für Szene generieren'"
+                            (touchstart)="$event.stopPropagation()"
+                            (touchend)="$event.stopPropagation()">
                             <ion-icon 
                               [name]="isGeneratingSummary.has(scene.id) ? 'time-outline' : 'flash-outline'" 
                               slot="icon-only"
@@ -260,10 +276,21 @@ import { Subscription } from 'rxjs';
     /* Mobile and tablet portrait */
     @media (max-width: 768px) {
       .story-structure {
-        position: relative;
-        height: auto;
-        width: 100%;
-        z-index: auto;
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        width: 100vw;
+        z-index: 1000;
+      }
+      
+      .mobile-close-btn {
+        display: block;
+        --color: #f8f9fa;
+      }
+      
+      .desktop-only {
+        display: none;
       }
     }
     
@@ -566,16 +593,21 @@ import { Subscription } from 'rxjs';
       .ai-title-btn {
         --padding-start: 8px;
         --padding-end: 8px;
-        min-width: 44px;
-        min-height: 44px;
+        min-width: 48px;
+        min-height: 48px;
+        margin-left: 8px;
+        position: relative;
+        z-index: 10;
       }
       
       .action-buttons ion-button {
         --padding-start: 8px;
         --padding-end: 8px;
-        min-width: 44px;
-        min-height: 44px;
+        min-width: 48px;
+        min-height: 48px;
         margin: 0 2px;
+        position: relative;
+        z-index: 10;
       }
       
       .add-scene-btn {
@@ -598,15 +630,18 @@ import { Subscription } from 'rxjs';
       /* Better spacing for scene content */
       .scene-content {
         gap: 8px;
+        position: relative;
       }
       
       .scene-title-row {
-        min-height: 44px;
+        min-height: 48px;
+        align-items: center;
       }
       
       .scene-actions-row {
-        min-height: 44px;
+        min-height: 48px;
         padding-top: 4px;
+        align-items: center;
       }
     }
     
@@ -655,7 +690,7 @@ import { Subscription } from 'rxjs';
     /* Large mobile devices and small tablets */
     @media (min-width: 481px) and (max-width: 768px) {
       .story-structure {
-        max-width: 360px; /* Slightly wider on larger mobile devices */
+        max-width: 100vw; /* Full width on all mobile sizes */
       }
       
       .scene-item.multi-line {
@@ -806,6 +841,27 @@ import { Subscription } from 'rxjs';
         z-index: 1;
       }
       
+      /* Ensure buttons are above other elements */
+      .ai-title-btn,
+      .action-buttons ion-button {
+        position: relative;
+        z-index: 20;
+        pointer-events: auto;
+      }
+      
+      /* Prevent scene item clicks from interfering with button clicks */
+      .scene-item {
+        pointer-events: auto;
+      }
+      
+      .scene-content {
+        pointer-events: none;
+      }
+      
+      .scene-content > * {
+        pointer-events: auto;
+      }
+      
       @keyframes spin {
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
@@ -818,6 +874,7 @@ export class StoryStructureComponent implements AfterViewInit {
   @Input() activeChapterId: string | null = null;
   @Input() activeSceneId: string | null = null;
   @Output() sceneSelected = new EventEmitter<{chapterId: string, sceneId: string}>();
+  @Output() closeSidebar = new EventEmitter<void>();
   
   expandedChapters = new Set<string>();
   expandedScenes = new Set<string>();
@@ -837,7 +894,7 @@ export class StoryStructureComponent implements AfterViewInit {
   ) {
     addIcons({ 
       chevronForward, chevronDown, add, trash, createOutline,
-      flashOutline, documentTextOutline, timeOutline, sparklesOutline
+      flashOutline, documentTextOutline, timeOutline, sparklesOutline, close
     });
   }
 
@@ -1218,5 +1275,9 @@ Antworte nur mit dem Titel, ohne weitere Erklärungen oder Anführungszeichen.`;
         this.selectScene(chapterId, sceneId);
         break;
     }
+  }
+  
+  onCloseSidebar(): void {
+    this.closeSidebar.emit();
   }
 }

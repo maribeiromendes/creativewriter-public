@@ -77,12 +77,13 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
       
       <ion-content color="dark">
         <div class="editor-container" [class.sidebar-visible]="showSidebar">
-          <div class="sidebar-overlay" *ngIf="showSidebar" (click)="closeSidebarOnMobile($event)">
+          <div class="sidebar-overlay" *ngIf="showSidebar">
             <app-story-structure 
               [story]="story" 
               [activeChapterId]="activeChapterId"
               [activeSceneId]="activeSceneId"
-              (sceneSelected)="onSceneSelected($event)">
+              (sceneSelected)="onSceneSelected($event)"
+              (closeSidebar)="onCloseSidebar()">
             </app-story-structure>
           </div>
           
@@ -618,32 +619,35 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
       }
 
       .sidebar-overlay :global(app-story-structure .story-structure) {
-        width: min(90vw, 320px);
-        height: calc(100vh - 4rem);
-        margin: 0 auto;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-        border-radius: 8px;
-        border: 1px solid #404040;
+        width: 100vw;
+        height: 100vh;
+        margin: 0;
+        box-shadow: none;
+        border-radius: 0;
+        border: none;
+        top: 0;
+        left: 0;
+        position: fixed;
       }
     }
     
-    /* Large mobile devices - wider sidebar */
-    @media (min-width: 481px) and (max-width: 768px) {
-      .sidebar-overlay :global(app-story-structure .story-structure) {
-        width: min(85vw, 360px);
-      }
-    }
-    
-    /* Small mobile devices - full width sidebar */
-    @media (max-width: 480px) {
+    /* All mobile devices - full screen sidebar */
+    @media (max-width: 768px) {
       .sidebar-overlay {
-        padding-top: 1rem;
+        padding: 0;
+        background: none;
       }
       
       .sidebar-overlay :global(app-story-structure .story-structure) {
-        width: min(95vw, 320px);
-        height: calc(100vh - 2rem);
-        border-radius: 4px;
+        width: 100vw;
+        height: 100vh;
+        margin: 0;
+        box-shadow: none;
+        border-radius: 0;
+        border: none;
+        position: fixed;
+        top: 0;
+        left: 0;
       }
     }
   `]
@@ -913,11 +917,8 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
-  closeSidebarOnMobile(event: Event): void {
-    // Close sidebar when clicking on overlay background (not the sidebar itself)
-    if (event.target === event.currentTarget && window.innerWidth <= 768) {
-      this.showSidebar = false;
-    }
+  onCloseSidebar(): void {
+    this.showSidebar = false;
   }
   
   private setupTouchGestures(): void {
