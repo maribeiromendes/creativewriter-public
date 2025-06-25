@@ -320,6 +320,7 @@ import { Subscription } from 'rxjs';
     .chapters-list {
       background: transparent;
       padding-top: 0.5rem; /* Add top padding to prevent header overlap */
+      padding-bottom: 6rem; /* Extra bottom padding to ensure last items are reachable */
     }
     
     .chapter-item {
@@ -554,7 +555,7 @@ import { Subscription } from 'rxjs';
       
       .chapters-list {
         padding-top: 0.75rem; /* Extra top padding on mobile */
-        padding-bottom: 2rem; /* Extra padding at bottom */
+        padding-bottom: 8rem; /* Increased padding to ensure last button is reachable */
       }
       
       .scenes-list {
@@ -658,6 +659,7 @@ import { Subscription } from 'rxjs';
       
       .chapters-list {
         padding: 0.5rem;
+        padding-bottom: 8rem; /* Ensure bottom padding on small screens too */
       }
       
       .chapter-item {
