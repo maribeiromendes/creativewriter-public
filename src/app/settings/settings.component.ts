@@ -78,7 +78,7 @@ import { NgSelectModule } from '@ng-select/ng-select';
               </ion-input>
             </ion-item>
 
-            <ion-item [class.disabled]="!settings.openRouter.enabled">
+            <div class="model-selection-wrapper" [class.disabled]="!settings.openRouter.enabled">
               <div class="model-selection-container">
                 <div class="model-header">
                   <ion-label>Model</ion-label>
@@ -100,8 +100,11 @@ import { NgSelectModule } from '@ng-select/ng-select';
                            [disabled]="!settings.openRouter.enabled"
                            placeholder="Modell auswählen oder suchen..."
                            (ngModelChange)="onSettingsChange()"
+                           (open)="onDropdownOpen('openRouter')"
+                           (close)="onDropdownClose('openRouter')"
                            [loading]="loadingModels"
-                           [virtualScroll]="true">
+                           [virtualScroll]="true"
+                           class="ng-select-custom">
                 </ng-select>
                 <div class="model-info">
                   <p *ngIf="modelLoadError" class="error-text">{{ modelLoadError }}</p>
@@ -113,7 +116,7 @@ import { NgSelectModule } from '@ng-select/ng-select';
                   </p>
                 </div>
               </div>
-            </ion-item>
+            </div>
 
             <div class="settings-row" [class.disabled]="!settings.openRouter.enabled">
               <ion-item>
@@ -174,7 +177,7 @@ import { NgSelectModule } from '@ng-select/ng-select';
               </ion-input>
             </ion-item>
 
-            <ion-item [class.disabled]="!settings.replicate.enabled">
+            <div class="model-selection-wrapper" [class.disabled]="!settings.replicate.enabled">
               <div class="model-selection-container">
                 <div class="model-header">
                   <ion-label>Model</ion-label>
@@ -196,8 +199,11 @@ import { NgSelectModule } from '@ng-select/ng-select';
                            [disabled]="!settings.replicate.enabled"
                            placeholder="Modell auswählen oder suchen..."
                            (ngModelChange)="onSettingsChange()"
+                           (open)="onDropdownOpen('replicate')"
+                           (close)="onDropdownClose('replicate')"
                            [loading]="loadingModels"
-                           [virtualScroll]="true">
+                           [virtualScroll]="true"
+                           class="ng-select-custom">
                 </ng-select>
                 <div class="model-info">
                   <p *ngIf="modelLoadError" class="error-text">{{ modelLoadError }}</p>
@@ -212,7 +218,7 @@ import { NgSelectModule } from '@ng-select/ng-select';
                   </p>
                 </div>
               </div>
-            </ion-item>
+            </div>
 
             <ion-item [class.disabled]="!settings.replicate.enabled">
               <ion-input
@@ -321,6 +327,9 @@ import { NgSelectModule } from '@ng-select/ng-select';
           <ion-button expand="block" fill="outline" color="medium" (click)="resetSettings()">
             Auf Standard zurücksetzen
           </ion-button>
+          <ion-button expand="block" fill="outline" color="warning" (click)="testDropdown()">
+            Debug: Test Dropdown
+          </ion-button>
         </div>
       </div>
     </ion-content>
@@ -390,6 +399,17 @@ import { NgSelectModule } from '@ng-select/ng-select';
       padding: 0 1rem;
     }
 
+    .model-selection-wrapper {
+      padding: 1rem;
+      margin: 0.5rem 0;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+    }
+    
+    .model-selection-wrapper.disabled {
+      opacity: 0.5;
+    }
+
     .model-selection-container {
       width: 100%;
     }
@@ -420,9 +440,42 @@ import { NgSelectModule } from '@ng-select/ng-select';
       color: #6c757d;
     }
     
+    .model-option {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+    
+    .model-name {
+      font-weight: 500;
+      color: #e0e0e0;
+    }
+    
+    .model-meta {
+      display: flex;
+      gap: 1rem;
+      font-size: 0.85rem;
+      color: #9ca3af;
+    }
+    
+    .model-cost {
+      color: #10b981;
+    }
+    
+    .model-context {
+      color: #6b7280;
+    }
+    
     /* ng-select custom styling for dark theme */
     :global(.ng-select) {
       font-size: 1rem;
+      position: relative !important;
+      z-index: 1000 !important;
+    }
+    
+    :global(.ng-select-custom) {
+      width: 100% !important;
+      display: block !important;
     }
     
     :global(.ng-select.ng-select-single .ng-select-container) {
@@ -431,6 +484,8 @@ import { NgSelectModule } from '@ng-select/ng-select';
       background: #1a1a1a !important;
       border: 1px solid #404040 !important;
       border-radius: 6px !important;
+      position: relative !important;
+      z-index: 1001 !important;
     }
     
     :global(.ng-select .ng-select-container .ng-value-container) {
@@ -475,7 +530,8 @@ import { NgSelectModule } from '@ng-select/ng-select';
       border: 1px solid #404040 !important;
       border-radius: 6px !important;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
-      z-index: 1050 !important;
+      z-index: 10000 !important;
+      position: fixed !important;
     }
     
     :global(.ng-dropdown-panel .ng-dropdown-panel-items) {
@@ -714,5 +770,22 @@ export class SettingsComponent implements OnInit, OnDestroy {
     } else {
       this.router.navigate(['/logs']);
     }
+  }
+  
+  onDropdownOpen(provider: string): void {
+    console.log(`${provider} dropdown opened`);
+    console.log(`${provider} models available:`, provider === 'openRouter' ? this.openRouterModels.length : this.replicateModels.length);
+  }
+  
+  onDropdownClose(provider: string): void {
+    console.log(`${provider} dropdown closed`);
+  }
+  
+  testDropdown(): void {
+    console.log('Testing dropdown functionality...');
+    console.log('OpenRouter enabled:', this.settings.openRouter.enabled);
+    console.log('OpenRouter models:', this.openRouterModels);
+    console.log('Replicate enabled:', this.settings.replicate.enabled);
+    console.log('Replicate models:', this.replicateModels);
   }
 }
