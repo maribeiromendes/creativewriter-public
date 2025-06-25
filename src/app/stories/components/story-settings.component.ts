@@ -28,7 +28,7 @@ import { Story, StorySettings, DEFAULT_STORY_SETTINGS } from '../models/story.in
   ],
   template: `
     <ion-header>
-      <ion-toolbar color="dark">
+      <ion-toolbar >
         <ion-buttons slot="start">
           <ion-button (click)="goBack()">
             <ion-icon name="arrow-back" slot="icon-only"></ion-icon>
@@ -44,7 +44,7 @@ import { Story, StorySettings, DEFAULT_STORY_SETTINGS } from '../models/story.in
       </ion-toolbar>
     </ion-header>
 
-    <ion-content color="dark" *ngIf="story">
+    <ion-content  *ngIf="story">
       <ion-card class="story-info-card">
         <ion-card-header>
           <ion-card-title>{{ story.title || 'Unbenannte Geschichte' }}</ion-card-title>
@@ -184,7 +184,7 @@ import { Story, StorySettings, DEFAULT_STORY_SETTINGS } from '../models/story.in
       </div>
     </ion-content>
 
-    <ion-content color="dark" *ngIf="!story">
+    <ion-content  *ngIf="!story">
       <div class="no-story">
         <ion-text color="medium">
           <p>Geschichte nicht gefunden.</p>

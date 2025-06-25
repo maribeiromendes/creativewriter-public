@@ -26,7 +26,7 @@ import { Subscription } from 'rxjs';
   ],
   template: `
     <ion-header>
-      <ion-toolbar color="dark">
+      <ion-toolbar >
         <ion-buttons slot="start">
           <ion-button (click)="goBack()">
             <ion-icon name="arrow-back" slot="icon-only"></ion-icon>
@@ -44,7 +44,7 @@ import { Subscription } from 'rxjs';
       </ion-toolbar>
     </ion-header>
 
-    <ion-content color="dark">
+    <ion-content >
       <ion-list class="logs-list">
         <ion-card *ngFor="let log of logs" 
                   [class.success-card]="log.status === 'success'"

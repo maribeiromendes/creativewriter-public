@@ -33,27 +33,27 @@ import { DatabaseService, SyncStatus } from '../../core/services/database.servic
     }
     
     .sync-status.online {
-      background-color: #d4edda;
-      color: #155724;
-      border: 1px solid #c3e6cb;
+      background-color: rgba(40, 167, 69, 0.2);
+      color: #40c463;
+      border: 1px solid rgba(40, 167, 69, 0.4);
     }
     
     .sync-status.offline {
-      background-color: #f8d7da;
-      color: #721c24;
-      border: 1px solid #f5c6cb;
+      background-color: rgba(220, 53, 69, 0.2);
+      color: #ff6b7a;
+      border: 1px solid rgba(220, 53, 69, 0.4);
     }
     
     .sync-status.syncing {
-      background-color: #fff3cd;
-      color: #856404;
-      border: 1px solid #ffeaa7;
+      background-color: rgba(255, 193, 7, 0.2);
+      color: #ffc107;
+      border: 1px solid rgba(255, 193, 7, 0.4);
     }
     
     .sync-status.error {
-      background-color: #f8d7da;
-      color: #721c24;
-      border: 1px solid #f5c6cb;
+      background-color: rgba(220, 53, 69, 0.2);
+      color: #ff6b7a;
+      border: 1px solid rgba(220, 53, 69, 0.4);
     }
     
     .sync-icon {

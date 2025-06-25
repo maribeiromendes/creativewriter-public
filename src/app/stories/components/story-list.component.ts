@@ -24,7 +24,7 @@ import { AuthService, User } from '../../core/services/auth.service';
   ],
   template: `
     <ion-header>
-      <ion-toolbar color="dark">
+      <ion-toolbar>
         <ion-title>Meine Geschichten</ion-title>
         <ion-buttons slot="end" class="header-buttons">
           <ion-button fill="clear" color="medium" (click)="goToAILogger()" class="desktop-only">
@@ -44,7 +44,7 @@ import { AuthService, User } from '../../core/services/auth.service';
         </ion-buttons>
       </ion-toolbar>
       
-      <ion-toolbar color="dark" *ngIf="currentUser" class="user-toolbar">
+      <ion-toolbar *ngIf="currentUser" class="user-toolbar">
         <div class="user-info">
           <span class="user-greeting">👋 {{ currentUser.displayName || currentUser.username }}</span>
           <ion-button size="small" fill="clear" color="danger" (click)="logout()">
@@ -55,7 +55,7 @@ import { AuthService, User } from '../../core/services/auth.service';
       </ion-toolbar>
     </ion-header>
 
-    <ion-content color="dark">
+    <ion-content>
       <div class="story-list-container">
       
       <div class="action-buttons">
@@ -125,6 +125,13 @@ import { AuthService, User } from '../../core/services/auth.service';
     </ion-content>
   `,
   styles: [`
+    :host {
+      display: block;
+      width: 100%;
+      height: 100%;
+      background-color: #1a1a1a;
+    }
+    
     ion-content {
       --background: #1a1a1a;
     }
@@ -133,6 +140,8 @@ import { AuthService, User } from '../../core/services/auth.service';
       max-width: 1200px;
       margin: 0 auto;
       padding: 2rem;
+      background-color: #1a1a1a;
+      min-height: 100vh;
     }
     
     .user-toolbar {

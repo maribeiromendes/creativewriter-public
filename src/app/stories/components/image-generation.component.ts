@@ -36,7 +36,7 @@ import { Subscription } from 'rxjs';
   template: `
     <div class="ion-page">
       <ion-header>
-        <ion-toolbar color="dark">
+        <ion-toolbar >
           <ion-buttons slot="start">
             <ion-button (click)="goBack()">
               <ion-icon name="arrow-back" slot="icon-only"></ion-icon>
@@ -51,10 +51,10 @@ import { Subscription } from 'rxjs';
         </ion-toolbar>
       </ion-header>
       
-      <ion-content color="dark">
+      <ion-content >
         <div class="container">
           <!-- Model Selection -->
-          <ion-card color="dark">
+          <ion-card >
             <ion-card-header>
               <ion-card-title>
                 <ion-icon name="settings-outline"></ion-icon>
@@ -62,7 +62,7 @@ import { Subscription } from 'rxjs';
               </ion-card-title>
             </ion-card-header>
             <ion-card-content>
-              <ion-item color="dark">
+              <ion-item >
                 <ion-label>Modell</ion-label>
                 <ion-select [(ngModel)]="selectedModelId" (ionChange)="onModelChange()">
                   <ion-select-option *ngFor="let model of availableModels" [value]="model.id">
@@ -77,7 +77,7 @@ import { Subscription } from 'rxjs';
           </ion-card>
 
           <!-- Generation Parameters -->
-          <ion-card color="dark" *ngIf="selectedModel">
+          <ion-card  *ngIf="selectedModel">
             <ion-card-header>
               <ion-card-title>
                 <ion-icon name="image-outline"></ion-icon>
@@ -87,7 +87,7 @@ import { Subscription } from 'rxjs';
             <ion-card-content>
               <div *ngFor="let input of selectedModel.inputs" class="parameter-item">
                 <!-- String inputs -->
-                <ion-item color="dark" *ngIf="input.type === 'string' && input.name !== 'prompt'">
+                <ion-item  *ngIf="input.type === 'string' && input.name !== 'prompt'">
                   <ion-label position="stacked">{{ input.description }}</ion-label>
                   <ion-input 
                     [(ngModel)]="parameters[input.name]" 
@@ -97,7 +97,7 @@ import { Subscription } from 'rxjs';
                 </ion-item>
 
                 <!-- Prompt (textarea) -->
-                <ion-item color="dark" *ngIf="input.name === 'prompt'">
+                <ion-item  *ngIf="input.name === 'prompt'">
                   <ion-label position="stacked">{{ input.description }} *</ion-label>
                   <ion-textarea 
                     [(ngModel)]="parameters[input.name]" 
@@ -108,7 +108,7 @@ import { Subscription } from 'rxjs';
                 </ion-item>
 
                 <!-- Number/Integer inputs -->
-                <ion-item color="dark" *ngIf="input.type === 'number' || input.type === 'integer'">
+                <ion-item  *ngIf="input.type === 'number' || input.type === 'integer'">
                   <ion-label position="stacked">
                     {{ input.description }}
                     <span *ngIf="input.minimum !== undefined && input.maximum !== undefined">
@@ -129,13 +129,13 @@ import { Subscription } from 'rxjs';
                 </ion-item>
 
                 <!-- Boolean inputs -->
-                <ion-item color="dark" *ngIf="input.type === 'boolean'">
+                <ion-item  *ngIf="input.type === 'boolean'">
                   <ion-checkbox [(ngModel)]="parameters[input.name]"></ion-checkbox>
                   <ion-label class="ion-margin-start">{{ input.description }}</ion-label>
                 </ion-item>
 
                 <!-- Array/Options inputs -->
-                <ion-item color="dark" *ngIf="input.options && input.options.length > 0">
+                <ion-item  *ngIf="input.options && input.options.length > 0">
                   <ion-label>{{ input.description }}</ion-label>
                   <ion-select [(ngModel)]="parameters[input.name]">
                     <ion-select-option *ngFor="let option of input.options" [value]="option">
@@ -162,7 +162,7 @@ import { Subscription } from 'rxjs';
           </ion-card>
 
           <!-- Generation History -->
-          <ion-card color="dark" *ngIf="jobs.length > 0">
+          <ion-card  *ngIf="jobs.length > 0">
             <ion-card-header>
               <ion-card-title>
                 <ion-icon name="time-outline"></ion-icon>

@@ -32,7 +32,7 @@ import { Subscription } from 'rxjs';
   template: `
     <div class="story-structure" role="navigation" aria-label="Story structure">
       <ion-header class="structure-header">
-        <ion-toolbar color="dark">
+        <ion-toolbar>
           <ion-title size="small">{{ story.title || 'Unbenannte Geschichte' }}</ion-title>
           <ion-buttons slot="end">
             <ion-button 
@@ -54,7 +54,7 @@ import { Subscription } from 'rxjs';
         </ion-toolbar>
       </ion-header>
       
-      <ion-content color="dark" class="structure-content">
+      <ion-content class="structure-content">
         <div id="add-chapter-help" class="sr-only">
           Fügt ein neues Kapitel zur Geschichte hinzu
         </div>

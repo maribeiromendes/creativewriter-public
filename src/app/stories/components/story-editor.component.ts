@@ -37,7 +37,7 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
   template: `
     <div class="ion-page">
       <ion-header>
-        <ion-toolbar color="dark">
+        <ion-toolbar>
           <ion-buttons slot="start">
             <ion-button (click)="goBack()">
               <ion-icon name="arrow-back" slot="icon-only"></ion-icon>
@@ -64,7 +64,7 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
           </ion-buttons>
         </ion-toolbar>
         
-        <ion-toolbar color="dark" class="status-toolbar">
+        <ion-toolbar class="status-toolbar">
           <ion-chip slot="start" [color]="hasUnsavedChanges ? 'warning' : 'success'">
             <ion-icon [name]="hasUnsavedChanges ? 'save-outline' : 'checkmark-circle-outline'"></ion-icon>
             <ion-label>{{ hasUnsavedChanges ? 'Nicht gespeichert' : 'Gespeichert' }}</ion-label>
@@ -75,7 +75,7 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
         </ion-toolbar>
       </ion-header>
       
-      <ion-content color="dark">
+      <ion-content>
         <div class="editor-container" [class.sidebar-visible]="showSidebar">
           <div class="sidebar-overlay" *ngIf="showSidebar">
             <app-story-structure 

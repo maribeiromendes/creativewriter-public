@@ -28,7 +28,7 @@ import { NgSelectModule } from '@ng-select/ng-select';
   template: `
     <div class="ion-page">
       <ion-header>
-        <ion-toolbar color="dark">
+        <ion-toolbar>
         <ion-buttons slot="start">
           <ion-button (click)="goBack()">
             <ion-icon name="arrow-back" slot="icon-only"></ion-icon>
@@ -48,7 +48,7 @@ import { NgSelectModule } from '@ng-select/ng-select';
       </ion-toolbar>
     </ion-header>
 
-    <ion-content color="dark">
+    <ion-content>
       <div class="settings-content">
         <!-- OpenRouter Settings -->
         <ion-card>

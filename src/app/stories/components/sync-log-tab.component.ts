@@ -24,7 +24,7 @@ import { Subscription } from 'rxjs';
     IonButtons, IonToolbar
   ],
   template: `
-    <ion-toolbar color="dark">
+    <ion-toolbar >
       <ion-buttons slot="end">
         <ion-chip color="medium">
           <ion-label>{{ logs.length }} Logs</ion-label>

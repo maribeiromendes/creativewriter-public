@@ -24,7 +24,7 @@ import { SyncLogTabComponent } from './sync-log-tab.component';
   ],
   template: `
     <ion-header>
-      <ion-toolbar color="dark">
+      <ion-toolbar >
         <ion-buttons slot="start">
           <ion-button (click)="goBack()">
             <ion-icon name="arrow-back" slot="icon-only"></ion-icon>
@@ -33,7 +33,7 @@ import { SyncLogTabComponent } from './sync-log-tab.component';
         <ion-title>System Logs</ion-title>
       </ion-toolbar>
       
-      <ion-toolbar color="dark">
+      <ion-toolbar >
         <ion-segment [(ngModel)]="selectedTab" color="primary">
           <ion-segment-button value="ai">
             <ion-label>AI Requests</ion-label>
@@ -45,7 +45,7 @@ import { SyncLogTabComponent } from './sync-log-tab.component';
       </ion-toolbar>
     </ion-header>
 
-    <ion-content color="dark">
+    <ion-content >
       <app-ai-log-tab *ngIf="selectedTab === 'ai'"></app-ai-log-tab>
       <app-sync-log-tab *ngIf="selectedTab === 'sync'"></app-sync-log-tab>
     </ion-content>

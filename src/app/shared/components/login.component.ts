@@ -90,10 +90,11 @@ import { AuthService, User } from '../../core/services/auth.service';
     }
     
     .login-card {
-      background: white;
+      background: #2d2d2d;
       padding: 2rem;
       border-radius: 8px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.1);
       width: 100%;
       max-width: 500px;
       max-height: 90vh;
@@ -102,13 +103,13 @@ import { AuthService, User } from '../../core/services/auth.service';
     
     h2 {
       margin: 0 0 0.5rem 0;
-      color: #333;
+      color: #f8f9fa;
       text-align: center;
     }
     
     .login-subtitle {
       text-align: center;
-      color: #666;
+      color: #adb5bd;
       margin-bottom: 2rem;
       font-size: 0.9rem;
     }
@@ -121,13 +122,15 @@ import { AuthService, User } from '../../core/services/auth.service';
       display: block;
       margin-bottom: 0.5rem;
       font-weight: 500;
-      color: #333;
+      color: #e0e0e0;
     }
     
     input {
       width: 100%;
       padding: 0.75rem;
-      border: 1px solid #ddd;
+      background-color: #1a1a1a;
+      color: #e0e0e0;
+      border: 1px solid #404040;
       border-radius: 4px;
       font-size: 1rem;
       box-sizing: border-box;
@@ -177,8 +180,8 @@ import { AuthService, User } from '../../core/services/auth.service';
       width: 100%;
       padding: 0.5rem;
       background: transparent;
-      color: #666;
-      border: 1px solid #ddd;
+      color: #adb5bd;
+      border: 1px solid #404040;
       border-radius: 4px;
       cursor: pointer;
       margin-top: 1rem;
@@ -186,15 +189,16 @@ import { AuthService, User } from '../../core/services/auth.service';
     }
     
     .skip-btn:hover {
-      background: #f5f5f5;
+      background: #383838;
     }
     
     .error-message {
-      color: #f44336;
+      color: #ff6b6b;
       text-align: center;
       margin-top: 1rem;
       padding: 0.5rem;
-      background: #ffebee;
+      background: rgba(248, 81, 73, 0.1);
+      border: 1px solid rgba(248, 81, 73, 0.3);
       border-radius: 4px;
       font-size: 0.9rem;
     }
@@ -202,22 +206,23 @@ import { AuthService, User } from '../../core/services/auth.service';
     .login-info {
       margin: 2rem 0;
       padding: 1rem;
-      background: #f8f9fa;
+      background: #1a1a1a;
       border-radius: 4px;
       border-left: 4px solid #4CAF50;
+      border: 1px solid rgba(76, 175, 80, 0.3);
     }
     
     .login-info h3 {
       margin: 0 0 0.5rem 0;
       font-size: 0.9rem;
-      color: #333;
+      color: #e0e0e0;
     }
     
     .login-info ul {
       margin: 0;
       padding-left: 1.2rem;
       font-size: 0.85rem;
-      color: #666;
+      color: #adb5bd;
     }
     
     .login-info li {
