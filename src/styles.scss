@@ -180,6 +180,16 @@ button:hover {
   white-space: pre-wrap !important;
 }
 
+.prosemirror-editor:focus {
+  outline: none;
+  border: none;
+  box-shadow: none;
+}
+
+.ProseMirror {
+  padding: 1rem;
+}
+
 /* ng-select Global Dark Theme Override */
 .ng-dropdown-panel {
   background: #2d2d2d !important;

@@ -264,7 +264,7 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
 
     /* Optimal reading width container */
     .editor-inner {
-      max-width: 650px;
+      max-width: 800px;
       margin: 0 auto;
       width: 100%;
       padding-bottom: 4rem; /* Extra space at bottom for better scrolling */
@@ -273,13 +273,13 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
     /* Different max-widths for different screens */
     @media (min-width: 1400px) {
       .editor-inner {
-        max-width: 700px;
+        max-width: 900px;
       }
     }
 
     @media (min-width: 1600px) {
       .editor-inner {
-        max-width: 750px;
+        max-width: 1000px;
       }
     }
     
