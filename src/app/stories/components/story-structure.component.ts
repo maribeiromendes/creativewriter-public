@@ -1039,6 +1039,17 @@ export class StoryStructureComponent implements AfterViewInit {
     }
     
     this.isGeneratingSummary.add(sceneId);
+    this.cdr.detectChanges(); // Force change detection for mobile
+    
+    // Set a timeout to clear busy state if request takes too long
+    const timeoutId = setTimeout(() => {
+      if (this.isGeneratingSummary.has(sceneId)) {
+        console.warn('Scene summary generation timeout reached');
+        this.isGeneratingSummary.delete(sceneId);
+        this.cdr.detectChanges();
+        alert('Die Zusammenfassungs-Generierung dauert zu lange. Bitte versuchen Sie es erneut.');
+      }
+    }, 30000); // 30 second timeout
     
     const prompt = `Erstelle eine Zusammenfassung der folgenden Szene:
 
@@ -1070,12 +1081,16 @@ Die Zusammenfassung soll die wichtigsten Handlungspunkte und Charakterentwicklun
             setTimeout(() => this.resizeTextareaForScene(sceneId), 50);
           }
         }
+        clearTimeout(timeoutId); // Clear timeout on success
         this.isGeneratingSummary.delete(sceneId);
+        this.cdr.detectChanges(); // Force change detection
       },
       error: (error) => {
         console.error('Error generating scene summary:', error);
+        clearTimeout(timeoutId); // Clear timeout on error
         alert('Fehler beim Generieren der Zusammenfassung. Bitte versuchen Sie es erneut.');
         this.isGeneratingSummary.delete(sceneId);
+        this.cdr.detectChanges(); // Force change detection
       }
     });
   }
@@ -1095,6 +1110,17 @@ Die Zusammenfassung soll die wichtigsten Handlungspunkte und Charakterentwicklun
     const titleSettings = settings.sceneTitleGeneration;
     
     this.isGeneratingTitle.add(sceneId);
+    this.cdr.detectChanges(); // Force change detection for mobile
+    
+    // Set a timeout to clear busy state if request takes too long
+    const timeoutId = setTimeout(() => {
+      if (this.isGeneratingTitle.has(sceneId)) {
+        console.warn('Scene title generation timeout reached');
+        this.isGeneratingTitle.delete(sceneId);
+        this.cdr.detectChanges();
+        alert('Die Titel-Generierung dauert zu lange. Bitte versuchen Sie es erneut.');
+      }
+    }, 30000); // 30 second timeout
     
     // Build style instructions based on settings
     let styleInstruction = '';
@@ -1162,12 +1188,16 @@ Antworte nur mit dem Titel, ohne weitere Erklärungen oder Anführungszeichen.`;
             await this.updateScene(chapterId, scene);
           }
         }
+        clearTimeout(timeoutId); // Clear timeout on success
         this.isGeneratingTitle.delete(sceneId);
+        this.cdr.detectChanges(); // Force change detection
       },
       error: (error) => {
         console.error('Error generating scene title:', error);
+        clearTimeout(timeoutId); // Clear timeout on error
         alert('Fehler beim Generieren des Titels. Bitte versuchen Sie es erneut.');
         this.isGeneratingTitle.delete(sceneId);
+        this.cdr.detectChanges(); // Force change detection
       }
     });
   }
