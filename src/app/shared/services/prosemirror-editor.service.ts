@@ -423,11 +423,17 @@ export class ProseMirrorEditorService {
   handleBeatPromptSubmit(event: BeatAIPromptEvent): void {
     if (!this.editorView) return;
     
+    // Handle delete after beat action
+    if (event.action === 'deleteAfter') {
+      this.deleteContentAfterBeat(event.beatId);
+      return;
+    }
+    
     // Start generation process and update prompt
     this.updateBeatNode(event.beatId, { 
       isGenerating: true, 
       generatedContent: '',
-      prompt: event.prompt 
+      prompt: event.prompt || '' 
     });
     
     // Find the beat node position to insert content after it
@@ -435,7 +441,7 @@ export class ProseMirrorEditorService {
     if (beatNodePosition === null) return;
     
     // Generate AI content and insert the final result
-    this.beatAIService.generateBeatContent(event.prompt, event.beatId, {
+    this.beatAIService.generateBeatContent(event.prompt || '', event.beatId, {
       wordCount: event.wordCount,
       model: event.model,
       storyId: event.storyId,
@@ -448,7 +454,7 @@ export class ProseMirrorEditorService {
         this.updateBeatNode(event.beatId, { 
           isGenerating: false,
           generatedContent: content,
-          prompt: event.prompt
+          prompt: event.prompt || ''
         });
       },
       error: (error) => {
@@ -457,7 +463,7 @@ export class ProseMirrorEditorService {
         this.updateBeatNode(event.beatId, { 
           isGenerating: false,
           generatedContent: 'Fehler bei der Generierung. Bitte versuchen Sie es erneut.',
-          prompt: event.prompt
+          prompt: event.prompt || ''
         });
       }
     });
@@ -541,6 +547,30 @@ export class ProseMirrorEditorService {
     }
     
     this.editorView.dispatch(tr);
+  }
+
+  private deleteContentAfterBeat(beatId: string): void {
+    if (!this.editorView) return;
+    
+    const beatPos = this.findBeatNodePosition(beatId);
+    if (beatPos === null) return;
+    
+    const { state } = this.editorView;
+    const beatNode = state.doc.nodeAt(beatPos);
+    if (!beatNode) return;
+    
+    // Position after the beat node
+    const deleteStartPos = beatPos + beatNode.nodeSize;
+    
+    // Delete everything from after the beat to the end of the document
+    const tr = state.tr.delete(deleteStartPos, state.doc.content.size);
+    
+    // Dispatch the transaction
+    this.editorView.dispatch(tr);
+    
+    // Emit content update to trigger save
+    const content = this.getHTMLContent();
+    this.contentUpdate$.next(content);
   }
 
   private isGeneratedContent(node: ProseMirrorNode, beatId: string): boolean {

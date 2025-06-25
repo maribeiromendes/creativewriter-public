@@ -16,8 +16,8 @@ export interface BeatAIGenerationEvent {
 
 export interface BeatAIPromptEvent {
   beatId: string;
-  prompt: string;
-  action: 'generate' | 'regenerate';
+  prompt?: string;
+  action: 'generate' | 'regenerate' | 'deleteAfter';
   wordCount?: number;
   model?: string;
   storyId?: string;

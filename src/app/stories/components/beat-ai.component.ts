@@ -35,6 +35,13 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
               title="Neu generieren">
               🔄
             </button>
+            <button 
+              *ngIf="beatData.generatedContent && !beatData.isGenerating" 
+              class="delete-after-btn"
+              (click)="deleteContentAfterBeat()"
+              title="Text nach diesem Beat löschen">
+              🗑️
+            </button>
           </div>
         </div>
         
@@ -202,7 +209,7 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
       gap: 0.25rem;
     }
     
-    .edit-btn, .regenerate-btn {
+    .edit-btn, .regenerate-btn, .delete-after-btn {
       background: none;
       border: none;
       padding: 0.25rem;
@@ -212,8 +219,12 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
       font-size: 0.9rem;
     }
     
-    .edit-btn:hover, .regenerate-btn:hover {
+    .edit-btn:hover, .regenerate-btn:hover, .delete-after-btn:hover {
       background: #404040;
+    }
+    
+    .delete-after-btn:hover {
+      background: #5c2020;
     }
     
     .prompt-input-container {
@@ -799,6 +810,18 @@ export class BeatAIComponent implements OnInit, OnDestroy {
       chapterId: this.chapterId,
       sceneId: this.sceneId
     } as any);
+  }
+  
+  deleteContentAfterBeat(): void {
+    if (confirm('Möchten Sie wirklich den gesamten Text nach diesem Beat löschen? Diese Aktion kann nicht rückgängig gemacht werden.')) {
+      this.promptSubmit.emit({
+        beatId: this.beatData.id,
+        action: 'deleteAfter',
+        storyId: this.storyId,
+        chapterId: this.chapterId,
+        sceneId: this.sceneId
+      } as any);
+    }
   }
   
   onPromptKeydown(event: any): void {
