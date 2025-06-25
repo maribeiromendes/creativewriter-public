@@ -140,10 +140,12 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
                     color="medium"
                   ></ion-input>
                   
-                  <div 
-                    #editorContainer
-                    class="content-editor"
-                  ></div>
+                  <div class="editor-wrapper">
+                    <div 
+                      #editorContainer
+                      class="content-editor ion-padding"
+                    ></div>
+                  </div>
                   
                   <!-- Scene Navigation - Bottom -->
                   <div class="scene-navigation bottom">
@@ -319,13 +321,10 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
       justify-content: space-between;
       align-items: center;
       padding: 1rem 0;
-      border-bottom: 1px solid #404040;
       margin-bottom: 1rem;
     }
     
     .scene-navigation.bottom {
-      border-bottom: none;
-      border-top: 1px solid #404040;
       margin-bottom: 0;
       margin-top: 2rem;
     }
@@ -377,32 +376,45 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
       font-size: 1.1rem;
     }
     
+    .editor-wrapper {
+      background: var(--ion-color-step-50, rgba(255, 255, 255, 0.05));
+      border-radius: var(--ion-border-radius, 8px);
+      border: 1px solid var(--ion-color-step-150, rgba(255, 255, 255, 0.1));
+      margin: var(--ion-padding, 16px) 0;
+      box-shadow: var(--ion-box-shadow, 0 2px 8px rgba(0, 0, 0, 0.1));
+      transition: all 0.2s ease;
+    }
+    
+    .editor-wrapper:hover {
+      border-color: var(--ion-color-step-200, rgba(255, 255, 255, 0.15));
+      box-shadow: var(--ion-box-shadow-hover, 0 4px 12px rgba(0, 0, 0, 0.15));
+    }
+    
     .content-editor {
       border: none;
       outline: none;
-      font-size: 0.8rem;
+      font-size: 1rem;
       line-height: 1.8;
-      font-family: Georgia, serif;
-      padding: 1rem 0;
+      font-family: var(--ion-font-family, Georgia, serif);
       background: transparent;
-      color: #e0e0e0;
-      min-height: 300px; /* Minimum height for editor */
+      color: var(--ion-text-color, var(--ion-color-step-850, #e0e0e0));
+      min-height: 300px;
     }
     
     .content-editor :global(.prosemirror-editor) {
-      outline: none;
-      border: none;
+      outline: none !important;
+      border: none !important;
       background: transparent;
-      color: #e0e0e0;
-      font-size: 0.8rem;
+      color: var(--ion-text-color, var(--ion-color-step-850, #e0e0e0));
+      font-size: 1rem;
       line-height: 1.8;
-      font-family: Georgia, serif;
+      font-family: var(--ion-font-family, Georgia, serif);
       min-height: 200px;
       white-space: pre-wrap;
       word-wrap: break-word;
       -webkit-font-variant-ligatures: none;
       font-variant-ligatures: none;
-      padding-bottom: 50vh; /* Ensure we can scroll past the last line */
+      padding-bottom: 50vh;
     }
     
     .content-editor :global(.prosemirror-editor p) {
@@ -424,52 +436,52 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
     .content-editor :global(.prosemirror-editor h1),
     .content-editor :global(.prosemirror-editor h2),
     .content-editor :global(.prosemirror-editor h3) {
-      color: #f8f9fa;
-      font-weight: bold;
-      margin: 1.5rem 0 1rem 0;
+      color: var(--ion-text-color, var(--ion-color-step-900, #f8f9fa));
+      font-weight: var(--ion-font-weight-bold, bold);
+      margin: var(--ion-margin, 1.5rem) 0 var(--ion-margin-sm, 1rem) 0;
     }
     
     .content-editor :global(.prosemirror-editor h1) {
-      font-size: 1.2rem;
+      font-size: var(--ion-font-size-large, 1.2rem);
     }
     
     .content-editor :global(.prosemirror-editor h2) {
-      font-size: 1.0rem;
+      font-size: var(--ion-font-size-medium, 1.0rem);
     }
     
     .content-editor :global(.prosemirror-editor h3) {
-      font-size: 0.9rem;
+      font-size: var(--ion-font-size-small, 0.9rem);
     }
     
     .content-editor :global(.prosemirror-editor strong) {
-      color: #f8f9fa;
-      font-weight: bold;
+      color: var(--ion-text-color, var(--ion-color-step-900, #f8f9fa));
+      font-weight: var(--ion-font-weight-bold, bold);
     }
     
     .content-editor :global(.prosemirror-editor em) {
-      color: #adb5bd;
+      color: var(--ion-color-medium, #adb5bd);
       font-style: italic;
     }
     
     .content-editor :global(.prosemirror-editor ul),
     .content-editor :global(.prosemirror-editor ol) {
-      padding-left: 1.5rem;
-      margin: 1rem 0;
+      padding-left: var(--ion-padding, 1.5rem);
+      margin: var(--ion-margin, 1rem) 0;
     }
     
     .content-editor :global(.prosemirror-editor li) {
-      margin: 0.5rem 0;
+      margin: var(--ion-margin-sm, 0.5rem) 0;
     }
     
     .content-editor :global(.beat-ai-wrapper) {
-      margin: 1rem 0;
+      margin: var(--ion-margin, 1rem) 0;
       position: relative;
     }
     
     .content-editor :global(.ProseMirror-selectednode .beat-ai-wrapper) {
-      outline: 2px solid #0d6efd;
+      outline: 2px solid var(--ion-color-primary, #0d6efd);
       outline-offset: 2px;
-      border-radius: 8px;
+      border-radius: var(--ion-border-radius, 8px);
     }
     
     /* Additional ProseMirror CSS fixes */
@@ -477,9 +489,24 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
       position: relative;
       white-space: pre-wrap;
       word-wrap: break-word;
+      caret-color: var(--ion-text-color, var(--ion-color-step-850, #e0e0e0));
+    }
+    
+    .content-editor :global(.ProseMirror-focused) {
+      outline: none !important;
+      border: none !important;
+      box-shadow: none !important;
+      caret-color: var(--ion-text-color, var(--ion-color-step-850, #e0e0e0));
       -webkit-font-variant-ligatures: none;
       font-variant-ligatures: none;
       font-feature-settings: "liga" 0;
+    }
+    
+    /* Remove any focus styles from the content editor container */
+    .content-editor:focus,
+    .content-editor:focus-within {
+      outline: none !important;
+      box-shadow: none !important;
     }
     
     .content-editor :global(.ProseMirror-hideselection *::selection) {
