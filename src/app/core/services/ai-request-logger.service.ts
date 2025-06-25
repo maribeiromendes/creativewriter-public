@@ -21,7 +21,7 @@ export interface AIRequestLog {
 export class AIRequestLoggerService {
   private logsSubject = new BehaviorSubject<AIRequestLog[]>([]);
   public logs$ = this.logsSubject.asObservable();
-  private maxLogs = 100; // Keep last 100 logs
+  private maxLogs = 50; // Keep last 50 logs to avoid storage quota issues
 
   constructor() {
     // Load logs from localStorage on init
@@ -105,8 +105,60 @@ export class AIRequestLoggerService {
   }
 
   private saveLogs(): void {
-    const logs = this.logsSubject.value;
-    localStorage.setItem('ai-request-logs', JSON.stringify(logs));
+    try {
+      const logs = this.logsSubject.value;
+      
+      // Reduce log data size by limiting prompt and response length
+      const compactLogs = logs.map(log => ({
+        ...log,
+        prompt: log.prompt.length > 500 ? log.prompt.substring(0, 500) + '...' : log.prompt,
+        response: log.response && log.response.length > 300 ? log.response.substring(0, 300) + '...' : log.response
+      }));
+      
+      localStorage.setItem('ai-request-logs', JSON.stringify(compactLogs));
+    } catch (error) {
+      console.warn('Failed to save AI request logs to localStorage:', error);
+      
+      // If storage is full, clear old logs and try again with fewer logs
+      if (error instanceof DOMException && error.name === 'QuotaExceededError') {
+        this.handleStorageQuotaExceeded();
+      }
+    }
+  }
+
+  private handleStorageQuotaExceeded(): void {
+    console.warn('localStorage quota exceeded. Reducing log count and clearing old data.');
+    
+    // Reduce maxLogs even further
+    this.maxLogs = Math.max(10, this.maxLogs / 2);
+    
+    // Keep only the most recent logs
+    const currentLogs = this.logsSubject.value.slice(0, this.maxLogs);
+    this.logsSubject.next(currentLogs);
+    
+    try {
+      // Try to save with reduced data
+      const compactLogs = currentLogs.map(log => ({
+        id: log.id,
+        timestamp: log.timestamp,
+        endpoint: log.endpoint,
+        model: log.model,
+        wordCount: log.wordCount,
+        maxTokens: log.maxTokens,
+        status: log.status,
+        duration: log.duration,
+        // Keep only essential data
+        prompt: log.prompt.substring(0, 100) + '...',
+        response: log.response ? log.response.substring(0, 100) + '...' : undefined,
+        error: log.error ? log.error.substring(0, 200) : undefined
+      }));
+      
+      localStorage.setItem('ai-request-logs', JSON.stringify(compactLogs));
+    } catch (error) {
+      console.error('Still cannot save logs after reduction. Clearing all logs.');
+      // Last resort: clear all logs
+      this.clearLogs();
+    }
   }
 
   private generateId(): string {
