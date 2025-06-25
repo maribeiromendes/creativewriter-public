@@ -258,6 +258,32 @@ export class PromptManagerService {
   }
 
   /**
+   * Get full text of current scene if it has content, otherwise get previous scene's text
+   * This is used for beat prompt generation to provide context
+   */
+  getCurrentOrPreviousSceneText(targetSceneId: string): string {
+    const flatScenes = this.getCurrentFlatScenes();
+    const targetIndex = flatScenes.findIndex(scene => scene.id === targetSceneId);
+    
+    if (targetIndex < 0) return ''; // Target scene not found
+    
+    const currentScene = flatScenes[targetIndex];
+    
+    // If current scene has text content, return it
+    if (currentScene.fullText && currentScene.fullText.trim().length > 0) {
+      return currentScene.fullText;
+    }
+    
+    // Otherwise, return previous scene's text
+    if (targetIndex > 0) {
+      const previousScene = flatScenes[targetIndex - 1];
+      return previousScene.fullText;
+    }
+    
+    return ''; // No previous scene available
+  }
+
+  /**
    * Force refresh of current story data
    */
   async refresh(): Promise<void> {

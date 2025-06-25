@@ -155,9 +155,9 @@ export class BeatAIService {
           ? this.promptManager.getSummariesBeforeScene(options.sceneId)
           : '';
 
-        // Get current scene text
+        // Get current scene text if it has content, otherwise get previous scene text
         const sceneText = options.sceneId 
-          ? this.promptManager.getPreviousSceneText(options.sceneId)
+          ? this.promptManager.getCurrentOrPreviousSceneText(options.sceneId)
           : '';
 
         // Build template placeholders
