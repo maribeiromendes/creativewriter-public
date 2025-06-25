@@ -194,7 +194,7 @@ import { Story, StorySettings, DEFAULT_STORY_SETTINGS } from '../models/story.in
   `,
   styles: [`
     ion-content {
-      --background: var(--ion-color-dark);
+      --background: #1a1a1a;
       --padding-start: 16px;
       --padding-end: 16px;
       --padding-top: 16px;
@@ -202,12 +202,12 @@ import { Story, StorySettings, DEFAULT_STORY_SETTINGS } from '../models/story.in
     }
 
     .story-info-card {
-      --background: var(--ion-color-dark-shade);
+      --background: #2d2d2d;
       margin-bottom: 1rem;
     }
 
     .settings-section {
-      --background: var(--ion-color-dark-shade);
+      --background: #2d2d2d;
       margin-bottom: 1rem;
       max-width: 800px;
       margin-left: auto;
@@ -229,13 +229,15 @@ import { Story, StorySettings, DEFAULT_STORY_SETTINGS } from '../models/story.in
     }
 
     .settings-textarea {
-      --background: var(--ion-color-dark);
-      --color: var(--ion-color-light);
-      --placeholder-color: var(--ion-color-medium);
+      --background: #1a1a1a;
+      --color: #e0e0e0;
+      --placeholder-color: #6c757d;
       --padding-start: 16px;
       --padding-end: 16px;
       --padding-top: 16px;
       --padding-bottom: 16px;
+      border: 1px solid #404040;
+      border-radius: 8px;
       font-family: 'Courier New', monospace;
       font-size: 0.95rem;
       margin-top: 1rem;
@@ -266,12 +268,12 @@ import { Story, StorySettings, DEFAULT_STORY_SETTINGS } from '../models/story.in
     }
 
     .save-button {
-      --background: var(--ion-color-primary);
+      --background: #0d6efd;
     }
 
     .reset-button {
-      --color: var(--ion-color-medium);
-      --border-color: var(--ion-color-medium);
+      --color: #6c757d;
+      --border-color: #6c757d;
     }
 
     .no-story {
@@ -288,9 +290,9 @@ import { Story, StorySettings, DEFAULT_STORY_SETTINGS } from '../models/story.in
     .template-placeholders {
       margin: 1rem 0;
       padding: 1rem;
-      background: var(--ion-color-dark);
+      background: #1a1a1a;
       border-radius: 8px;
-      border: 1px solid var(--ion-color-dark-tint);
+      border: 1px solid #404040;
     }
 
     .placeholder-chip {
@@ -298,7 +300,7 @@ import { Story, StorySettings, DEFAULT_STORY_SETTINGS } from '../models/story.in
       justify-content: center;
       margin-bottom: 0.5rem;
       --background: transparent;
-      --color: var(--ion-color-warning);
+      --color: #ffc107;
       font-family: 'Courier New', monospace;
       font-size: 0.85rem;
     }
