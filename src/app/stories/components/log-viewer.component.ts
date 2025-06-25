@@ -23,36 +23,46 @@ import { SyncLogTabComponent } from './sync-log-tab.component';
     SyncLogTabComponent
   ],
   template: `
-    <ion-header>
-      <ion-toolbar >
-        <ion-buttons slot="start">
-          <ion-button (click)="goBack()">
-            <ion-icon name="arrow-back" slot="icon-only"></ion-icon>
-          </ion-button>
-        </ion-buttons>
-        <ion-title>System Logs</ion-title>
-      </ion-toolbar>
-      
-      <ion-toolbar >
-        <ion-segment [(ngModel)]="selectedTab" color="primary">
-          <ion-segment-button value="ai">
-            <ion-label>AI Requests</ion-label>
-          </ion-segment-button>
-          <ion-segment-button value="sync">
-            <ion-label>Synchronisation</ion-label>
-          </ion-segment-button>
-        </ion-segment>
-      </ion-toolbar>
-    </ion-header>
+    <div class="ion-page">
+      <ion-header>
+        <ion-toolbar>
+          <ion-buttons slot="start">
+            <ion-button (click)="goBack()">
+              <ion-icon name="arrow-back" slot="icon-only"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+          <ion-title>System Logs</ion-title>
+        </ion-toolbar>
+        
+        <ion-toolbar>
+          <ion-segment [(ngModel)]="selectedTab" color="primary">
+            <ion-segment-button value="ai">
+              <ion-label>AI Requests</ion-label>
+            </ion-segment-button>
+            <ion-segment-button value="sync">
+              <ion-label>Synchronisation</ion-label>
+            </ion-segment-button>
+          </ion-segment>
+        </ion-toolbar>
+      </ion-header>
 
-    <ion-content >
-      <app-ai-log-tab *ngIf="selectedTab === 'ai'"></app-ai-log-tab>
-      <app-sync-log-tab *ngIf="selectedTab === 'sync'"></app-sync-log-tab>
-    </ion-content>
+      <ion-content>
+        <app-ai-log-tab *ngIf="selectedTab === 'ai'"></app-ai-log-tab>
+        <app-sync-log-tab *ngIf="selectedTab === 'sync'"></app-sync-log-tab>
+      </ion-content>
+    </div>
   `,
   styles: [`
+    .ion-page {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      background-color: #1a1a1a;
+    }
+
     ion-content {
-      --background: var(--ion-color-dark);
+      --background: #1a1a1a;
+      flex: 1;
     }
     
     ion-segment {

@@ -25,26 +25,27 @@ import { Subscription } from 'rxjs';
     IonCardContent, IonText, IonNote
   ],
   template: `
-    <ion-header>
-      <ion-toolbar >
-        <ion-buttons slot="start">
-          <ion-button (click)="goBack()">
-            <ion-icon name="arrow-back" slot="icon-only"></ion-icon>
-          </ion-button>
-        </ion-buttons>
-        <ion-title>AI Request Logger</ion-title>
-        <ion-buttons slot="end">
-          <ion-chip color="medium">
-            <ion-label>{{ logs.length }} Logs</ion-label>
-          </ion-chip>
-          <ion-button color="danger" (click)="clearLogs()" [disabled]="logs.length === 0">
-            <ion-icon name="trash" slot="icon-only"></ion-icon>
-          </ion-button>
-        </ion-buttons>
-      </ion-toolbar>
-    </ion-header>
+    <div class="ion-page">
+      <ion-header>
+        <ion-toolbar>
+          <ion-buttons slot="start">
+            <ion-button (click)="goBack()">
+              <ion-icon name="arrow-back" slot="icon-only"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+          <ion-title>AI Request Logger</ion-title>
+          <ion-buttons slot="end">
+            <ion-chip color="medium">
+              <ion-label>{{ logs.length }} Logs</ion-label>
+            </ion-chip>
+            <ion-button color="danger" (click)="clearLogs()" [disabled]="logs.length === 0">
+              <ion-icon name="trash" slot="icon-only"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
 
-    <ion-content >
+      <ion-content>
       <ion-list class="logs-list">
         <ion-card *ngFor="let log of logs" 
                   [class.success-card]="log.status === 'success'"
@@ -122,11 +123,20 @@ import { Subscription } from 'rxjs';
           </ion-card-content>
         </ion-card>
       </ion-list>
-    </ion-content>
+      </ion-content>
+    </div>
   `,
   styles: [`
+    .ion-page {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      background-color: #1a1a1a;
+    }
+
     ion-content {
-      --background: var(--ion-color-dark);
+      --background: #1a1a1a;
+      flex: 1;
     }
 
     .logs-list {
