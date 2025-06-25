@@ -373,8 +373,12 @@ import { Subscription } from 'rxjs';
     }
     
     .scene-item.active-scene {
-      --background: var(--ion-color-primary);
-      --color: var(--ion-color-primary-contrast);
+      --background: var(--ion-color-step-50, #f9f9f9);
+      --color: inherit;
+      border-left: 4px solid var(--ion-color-primary);
+      font-weight: 500;
+      --background-hover: var(--ion-color-step-100, #f1f1f1);
+      --background-focused: var(--ion-color-step-100, #f1f1f1);
     }
     
     .scene-content {
