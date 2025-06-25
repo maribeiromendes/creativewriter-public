@@ -57,11 +57,11 @@ import { SyncLogTabComponent } from './sync-log-tab.component';
       display: flex;
       flex-direction: column;
       height: 100vh;
-      background-color: #1a1a1a;
+      background: var(--ion-background-color);
     }
 
     ion-content {
-      --background: #1a1a1a;
+      --background: var(--ion-background-color);
       flex: 1;
     }
     

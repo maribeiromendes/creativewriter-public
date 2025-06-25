@@ -255,8 +255,8 @@ import { Subscription } from 'rxjs';
   styles: [`
     .story-structure {
       width: 280px;
-      background: var(--ion-color-dark);
-      border-right: 1px solid var(--ion-color-dark-shade);
+      background: var(--ion-background-color);
+      border-right: 1px solid var(--ion-color-step-200);
       display: flex;
       flex-direction: column;
       position: fixed;
@@ -302,9 +302,9 @@ import { Subscription } from 'rxjs';
     }
     
     .structure-header {
-      --background: var(--ion-color-dark-shade);
+      --background: var(--ion-color-step-100);
       --border-width: 0 0 1px 0;
-      --border-color: var(--ion-color-dark-tint);
+      --border-color: var(--ion-color-step-200);
     }
     
     .structure-header ion-title {
@@ -312,7 +312,7 @@ import { Subscription } from 'rxjs';
     }
     
     .structure-content {
-      --background: var(--ion-color-dark);
+      --background: var(--ion-background-color);
       flex: 1;
       overflow-y: auto;
     }
@@ -325,15 +325,15 @@ import { Subscription } from 'rxjs';
     
     .chapter-item {
       margin-bottom: 0.5rem;
-      border: 1px solid var(--ion-color-dark-shade);
+      border: 1px solid var(--ion-color-step-100);
       border-radius: 8px;
       overflow: hidden;
     }
     
     .chapter-header {
-      --background: var(--ion-color-dark-shade);
-      --background-hover: var(--ion-color-dark-tint);
-      --color: var(--ion-color-light);
+      --background: var(--ion-color-step-100);
+      --background-hover: var(--ion-color-step-150);
+      --color: var(--ion-text-color);
     }
     
     .expand-icon {
@@ -342,14 +342,14 @@ import { Subscription } from 'rxjs';
     }
     
     .chapter-title-input {
-      --color: var(--ion-color-light);
+      --color: var(--ion-text-color);
       --placeholder-color: var(--ion-color-medium);
       font-weight: 500;
       font-size: 0.9rem;
     }
     
     .scenes-list {
-      background: var(--ion-color-dark);
+      background: var(--ion-background-color);
       padding: 0.5rem;
     }
     
@@ -358,7 +358,7 @@ import { Subscription } from 'rxjs';
     }
     
     .scene-item {
-      --background: var(--ion-color-dark-tint);
+      --background: var(--ion-color-step-150);
       --background-hover: var(--ion-color-medium-tint);
       --border-radius: 4px;
       margin-bottom: 0.25rem;
@@ -391,7 +391,7 @@ import { Subscription } from 'rxjs';
     }
     
     .scene-title-input {
-      --color: var(--ion-color-light);
+      --color: var(--ion-text-color);
       --placeholder-color: var(--ion-color-medium);
       font-size: 0.9rem;
       flex: 1;
@@ -440,12 +440,12 @@ import { Subscription } from 'rxjs';
     }
     
     .scene-details {
-      background: var(--ion-color-dark);
+      background: var(--ion-background-color);
       padding: 0.5rem;
     }
     
     .scene-summary-section {
-      --background: var(--ion-color-dark-shade);
+      --background: var(--ion-color-step-100);
       --padding-start: 8px;
       --padding-end: 8px;
       margin: 0;
@@ -468,8 +468,8 @@ import { Subscription } from 'rxjs';
     }
     
     .summary-textarea {
-      --background: var(--ion-color-dark);
-      --color: var(--ion-color-light);
+      --background: var(--ion-background-color);
+      --color: var(--ion-text-color);
       --placeholder-color: var(--ion-color-medium);
       --padding-start: 8px;
       --padding-end: 8px;
@@ -712,7 +712,7 @@ import { Subscription } from 'rxjs';
       }
       
       .structure-content::-webkit-scrollbar-track {
-        background: var(--ion-color-dark-shade);
+        background: var(--ion-color-step-100);
         border-radius: 4px;
         margin: 4px 0; /* Add margin to track */
       }

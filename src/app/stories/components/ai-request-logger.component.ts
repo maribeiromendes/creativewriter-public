@@ -22,7 +22,7 @@ import { Subscription } from 'rxjs';
     CommonModule,
     IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
     IonList, IonItem, IonLabel, IonBadge, IonChip, IonCard,
-    IonCardContent, IonText, IonNote
+    IonCardContent, IonText
   ],
   template: `
     <div class="ion-page">
@@ -63,11 +63,11 @@ import { Subscription } from 'rxjs';
             
             <ion-label>
               <h2>
-                <ion-text color="light">{{ formatTime(log.timestamp) }}</ion-text>
+                <ion-text>{{ formatTime(log.timestamp) }}</ion-text>
                 <ion-badge color="primary" class="model-badge">{{ log.model }}</ion-badge>
               </h2>
               <p>
-                <ion-note>{{ log.endpoint }}</ion-note>
+                <ion-text color="medium">{{ log.endpoint }}</ion-text>
               </p>
               <p>
                 <ion-chip color="medium" class="meta-chip">
@@ -131,11 +131,11 @@ import { Subscription } from 'rxjs';
       display: flex;
       flex-direction: column;
       height: 100vh;
-      background-color: #1a1a1a;
+      background: var(--ion-background-color);
     }
 
     ion-content {
-      --background: #1a1a1a;
+      --background: var(--ion-background-color);
       flex: 1;
     }
 
@@ -147,8 +147,8 @@ import { Subscription } from 'rxjs';
     }
 
     ion-card {
-      --background: var(--ion-color-dark-shade);
-      border: 1px solid var(--ion-color-dark-tint);
+      --background: var(--ion-color-step-100);
+      border: 1px solid var(--ion-color-step-200);
       margin-bottom: 1rem;
     }
 
@@ -170,7 +170,8 @@ import { Subscription } from 'rxjs';
 
     .log-header {
       --background: transparent;
-      --background-hover: var(--ion-color-dark-tint);
+      --background-hover: var(--ion-color-step-150);
+      --color: var(--ion-text-color);
       --padding-start: 16px;
       --padding-end: 16px;
       --inner-padding-end: 0;
@@ -188,8 +189,8 @@ import { Subscription } from 'rxjs';
 
     .meta-chip {
       margin-right: 0.5rem;
-      --background: transparent;
-      --color: var(--ion-color-medium);
+      --background: var(--ion-color-step-50);
+      --color: var(--ion-text-color);
       font-size: 0.8rem;
       height: 24px;
     }
@@ -230,8 +231,8 @@ import { Subscription } from 'rxjs';
     }
 
     .content-pre {
-      background: var(--ion-color-dark);
-      border: 1px solid var(--ion-color-dark-tint);
+      background: var(--ion-background-color);
+      border: 1px solid var(--ion-color-step-200);
       border-radius: 6px;
       padding: 1rem;
       font-family: 'Courier New', monospace;
@@ -242,7 +243,7 @@ import { Subscription } from 'rxjs';
       margin: 0;
       max-height: 400px;
       overflow-y: auto;
-      color: var(--ion-color-light);
+      color: var(--ion-text-color);
     }
 
     .error-content {
@@ -264,7 +265,7 @@ import { Subscription } from 'rxjs';
     }
 
     .content-pre::-webkit-scrollbar-track {
-      background: var(--ion-color-dark-shade);
+      background: var(--ion-color-step-100);
       border-radius: 4px;
     }
 
@@ -274,7 +275,7 @@ import { Subscription } from 'rxjs';
     }
 
     .content-pre::-webkit-scrollbar-thumb:hover {
-      background: var(--ion-color-medium-shade);
+      background: var(--ion-color-medium-tint);
     }
 
     /* Mobile responsiveness */

@@ -4,142 +4,255 @@ import { FormsModule } from '@angular/forms';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
+import {
+  IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
+  IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonItem, IonLabel,
+  IonSearchbar, IonList, IonChip, IonBadge, IonTextarea, IonInput,
+  IonModal, IonGrid, IonRow, IonCol, IonText, IonNote
+} from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import {
+  arrowBack, add, ellipsisVertical, create, trash, save, close,
+  search, person, bookmark, pricetag
+} from 'ionicons/icons';
 import { CodexService } from '../services/codex.service';
 import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField } from '../models/codex.interface';
 
 @Component({
   selector: 'app-codex',
   standalone: true,
-  imports: [CommonModule, FormsModule, NgSelectModule],
+  imports: [
+    CommonModule, FormsModule, NgSelectModule,
+    IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
+    IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonItem, IonLabel,
+    IonSearchbar, IonList, IonChip, IonBadge, IonTextarea, IonInput,
+    IonModal, IonGrid, IonRow, IonCol, IonText, IonNote
+  ],
   template: `
-    <div class="codex-container">
+    <div class="ion-page">
       <!-- Header -->
-      <header class="codex-header">
-        <div class="header-actions">
-          <button class="back-btn" (click)="goBack()">
-            ← Zurück zur Geschichte
-          </button>
-          <h1>Codex</h1>
-          <button class="add-category-btn" (click)="showAddCategoryModal = true">
-            + Kategorie
-          </button>
-        </div>
+      <ion-header>
+        <ion-toolbar>
+          <ion-buttons slot="start">
+            <ion-button (click)="goBack()">
+              <ion-icon name="arrow-back" slot="icon-only"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+          <ion-title>Codex</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="showAddCategoryModal = true">
+              <ion-icon name="add" slot="start"></ion-icon>
+              Kategorie
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
         
         <!-- Search -->
-        <div class="search-container">
-          <input 
-            type="text" 
-            placeholder="Codex durchsuchen..." 
+        <ion-toolbar>
+          <ion-searchbar
+            placeholder="Codex durchsuchen..."
             [(ngModel)]="searchQuery"
-            (input)="onSearch()"
-            class="search-input">
-        </div>
-      </header>
+            (ionInput)="onSearch()"
+            debounce="300">
+          </ion-searchbar>
+        </ion-toolbar>
+      </ion-header>
 
       <!-- Content -->
-      <div class="codex-content">
-        <!-- Sidebar with categories -->
-        <aside class="categories-sidebar">
-          <div class="categories-list">
-            <div 
-              *ngFor="let category of sortedCategories()" 
-              class="category-item"
-              [class.active]="selectedCategoryId() === category.id"
-              (click)="selectCategory(category.id)">
-              <span class="category-icon">{{ category.icon }}</span>
-              <span class="category-name">{{ category.title }}</span>
-              <span class="entry-count">({{ category.entries.length }})</span>
-              <button 
-                class="category-menu-btn"
-                (click)="$event.stopPropagation(); toggleCategoryMenu(category.id)">
-                ⋮
-              </button>
-              
-              <!-- Category menu -->
-              <div 
-                *ngIf="categoryMenuId() === category.id" 
-                class="category-menu">
-                <button (click)="editCategory(category)">Bearbeiten</button>
-                <button (click)="deleteCategory(category.id)" class="danger">Löschen</button>
-              </div>
-            </div>
-          </div>
-        </aside>
+      <ion-content>
+        <ion-grid class="codex-grid">
+          <ion-row>
+            <!-- Sidebar with categories -->
+            <ion-col size="12" size-md="3" class="categories-sidebar">
+              <ion-card>
+                <ion-card-header>
+                  <ion-card-title>Kategorien</ion-card-title>
+                </ion-card-header>
+                <ion-card-content>
+                  <ion-list>
+                    <ion-item 
+                      *ngFor="let category of sortedCategories()" 
+                      button
+                      [class.active-category]="selectedCategoryId() === category.id"
+                      (click)="selectCategory(category.id)">
+                      <ion-icon [name]="getDefaultIcon()" slot="start"></ion-icon>
+                      <ion-label>
+                        <h3>{{ category.icon }} {{ category.title }}</h3>
+                        <p>{{ category.entries.length }} Einträge</p>
+                      </ion-label>
+                      <ion-button 
+                        fill="clear" 
+                        size="small"
+                        (click)="$event.stopPropagation(); toggleCategoryMenu(category.id)"
+                        slot="end">
+                        <ion-icon name="ellipsis-vertical" slot="icon-only"></ion-icon>
+                      </ion-button>
+                      
+                      <!-- Category menu -->
+                      <ion-list *ngIf="categoryMenuId() === category.id" class="category-menu">
+                        <ion-item button (click)="editCategory(category)">
+                          <ion-icon name="create" slot="start"></ion-icon>
+                          <ion-label>Bearbeiten</ion-label>
+                        </ion-item>
+                        <ion-item button (click)="deleteCategory(category.id)" color="danger">
+                          <ion-icon name="trash" slot="start"></ion-icon>
+                          <ion-label>Löschen</ion-label>
+                        </ion-item>
+                      </ion-list>
+                    </ion-item>
+                  </ion-list>
+                </ion-card-content>
+              </ion-card>
+            </ion-col>
 
-        <!-- Main content area -->
-        <main class="entries-main">
-          <div *ngIf="searchQuery(); else normalView" class="search-results">
-            <h2>Suchergebnisse für "{{ searchQuery() }}"</h2>
-            <div class="entries-grid">
-              <div *ngFor="let entry of searchResults()" class="entry-card" (click)="selectEntry(entry)">
-                <h3>{{ entry.title }}</h3>
-                <p class="entry-preview">{{ getContentPreview(entry.content) }}</p>
-                <div class="entry-meta">
-                  <span class="category-badge">{{ getCategoryName(entry.categoryId) }}</span>
-                  <span *ngIf="entry.metadata?.['storyRole']" class="story-role-badge">{{ entry.metadata?.['storyRole'] }}</span>
-                  <span *ngFor="let field of entry.metadata?.['customFields']" class="custom-field-badge">{{ field.name }}: {{ field.value }}</span>
-                  <span *ngFor="let tag of entry.tags" class="tag">{{ tag }}</span>
+            <!-- Main content area -->
+            <ion-col size="12" size-md="9" class="entries-main">
+              <div *ngIf="searchQuery(); else normalView">
+                <ion-card>
+                  <ion-card-header>
+                    <ion-card-title>Suchergebnisse für "{{ searchQuery() }}"</ion-card-title>
+                  </ion-card-header>
+                  <ion-card-content>
+                    <ion-grid>
+                      <ion-row>
+                        <ion-col *ngFor="let entry of searchResults()" size="12" size-md="6" size-lg="4">
+                          <ion-card button (click)="selectEntry(entry)" class="entry-card">
+                            <ion-card-header>
+                              <ion-card-title>{{ entry.title }}</ion-card-title>
+                            </ion-card-header>
+                            <ion-card-content>
+                              <ion-text color="medium">
+                                <p>{{ getContentPreview(entry.content) }}</p>
+                              </ion-text>
+                              <div class="entry-meta">
+                                <ion-chip color="primary">
+                                  <ion-label>{{ getCategoryName(entry.categoryId) }}</ion-label>
+                                </ion-chip>
+                                <ion-chip *ngIf="entry.metadata?.['storyRole']" color="success">
+                                  <ion-icon name="person"></ion-icon>
+                                  <ion-label>{{ entry.metadata?.['storyRole'] }}</ion-label>
+                                </ion-chip>
+                                <ion-chip *ngFor="let field of entry.metadata?.['customFields']" color="secondary">
+                                  <ion-label>{{ field.name }}: {{ getFieldValuePreview(field.value) }}</ion-label>
+                                </ion-chip>
+                                <ion-chip *ngFor="let tag of entry.tags" color="medium">
+                                  <ion-icon name="tag"></ion-icon>
+                                  <ion-label>{{ tag }}</ion-label>
+                                </ion-chip>
+                              </div>
+                            </ion-card-content>
+                          </ion-card>
+                        </ion-col>
+                      </ion-row>
+                    </ion-grid>
+                  </ion-card-content>
+                </ion-card>
+              </div>
+
+              <ng-template #normalView>
+                <div *ngIf="selectedCategory(); else selectCategoryPrompt">
+                  <ion-card>
+                    <ion-card-header>
+                      <ion-card-title>
+                        {{ selectedCategory()!.icon }} {{ selectedCategory()!.title }}
+                      </ion-card-title>
+                      <ion-button 
+                        fill="outline" 
+                        size="small" 
+                        (click)="showAddEntryModal = true"
+                        slot="end">
+                        <ion-icon name="add" slot="start"></ion-icon>
+                        Eintrag hinzufügen
+                      </ion-button>
+                    </ion-card-header>
+                    <ion-card-content>
+                      <ion-grid>
+                        <ion-row>
+                          <ion-col 
+                            *ngFor="let entry of sortedEntries()" 
+                            size="12" 
+                            size-md="6" 
+                            size-lg="4">
+                            <ion-card button (click)="selectEntry(entry)" class="entry-card">
+                              <ion-card-header>
+                                <ion-card-title>{{ entry.title }}</ion-card-title>
+                              </ion-card-header>
+                              <ion-card-content>
+                                <ion-text color="medium">
+                                  <p>{{ getContentPreview(entry.content) }}</p>
+                                </ion-text>
+                                <div class="entry-meta">
+                                  <ion-chip *ngIf="entry.metadata?.['storyRole']" color="success">
+                                    <ion-icon name="person"></ion-icon>
+                                    <ion-label>{{ entry.metadata?.['storyRole'] }}</ion-label>
+                                  </ion-chip>
+                                  <ion-chip *ngFor="let field of entry.metadata?.['customFields']" color="secondary">
+                                    <ion-label>{{ field.name }}: {{ getFieldValuePreview(field.value) }}</ion-label>
+                                  </ion-chip>
+                                  <ion-chip *ngFor="let tag of entry.tags" color="medium">
+                                    <ion-icon name="tag"></ion-icon>
+                                    <ion-label>{{ tag }}</ion-label>
+                                  </ion-chip>
+                                  <ion-note>{{ formatDate(entry.updatedAt) }}</ion-note>
+                                </div>
+                              </ion-card-content>
+                            </ion-card>
+                          </ion-col>
+                        </ion-row>
+                      </ion-grid>
+                    </ion-card-content>
+                  </ion-card>
                 </div>
-              </div>
-            </div>
-          </div>
+              </ng-template>
 
-          <ng-template #normalView>
-            <div *ngIf="selectedCategory(); else selectCategoryPrompt" class="category-view">
-              <div class="category-header">
-                <h2>
-                  <span class="category-icon">{{ selectedCategory()!.icon }}</span>
-                  {{ selectedCategory()!.title }}
-                </h2>
-                <button class="add-entry-btn" (click)="showAddEntryModal = true">
-                  + Eintrag hinzufügen
-                </button>
-              </div>
-
-              <div class="entries-grid">
-                <div 
-                  *ngFor="let entry of sortedEntries()" 
-                  class="entry-card"
-                  (click)="selectEntry(entry)">
-                  <h3>{{ entry.title }}</h3>
-                  <p class="entry-preview">{{ getContentPreview(entry.content) }}</p>
-                  <div class="entry-meta">
-                    <span *ngIf="entry.metadata?.['storyRole']" class="story-role-badge">{{ entry.metadata?.['storyRole'] }}</span>
-                    <span *ngFor="let field of entry.metadata?.['customFields']" class="custom-field-badge">{{ field.name }}: {{ getFieldValuePreview(field.value) }}</span>
-                    <span *ngFor="let tag of entry.tags" class="tag">{{ tag }}</span>
-                    <span class="entry-date">{{ formatDate(entry.updatedAt) }}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </ng-template>
-
-          <ng-template #selectCategoryPrompt>
-            <div class="empty-state">
-              <h2>Wähle eine Kategorie</h2>
-              <p>Wähle eine Kategorie aus der Sidebar, um die Einträge zu sehen.</p>
-            </div>
-          </ng-template>
-        </main>
-      </div>
+              <ng-template #selectCategoryPrompt>
+                <ion-card>
+                  <ion-card-content class="ion-text-center">
+                    <ion-text color="medium">
+                      <h2>Wähle eine Kategorie</h2>
+                      <p>Wähle eine Kategorie aus der Sidebar, um die Einträge zu sehen.</p>
+                    </ion-text>
+                  </ion-card-content>
+                </ion-card>
+              </ng-template>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+      </ion-content>
 
       <!-- Entry Modal -->
-      <div *ngIf="selectedEntry()" class="modal-overlay" (click)="closeEntryModal()">
-        <div class="modal-content entry-modal" (click)="$event.stopPropagation()">
-          <header class="modal-header">
-            <input 
-              type="text" 
-              [(ngModel)]="editingEntry.title" 
-              class="entry-title-input"
-              placeholder="Titel...">
-            <div class="modal-actions">
-              <button (click)="saveEntry()" class="save-btn">Speichern</button>
-              <button (click)="deleteEntry()" class="delete-btn">Löschen</button>
-              <button (click)="closeEntryModal()" class="close-btn">×</button>
-            </div>
-          </header>
+      <ion-modal [isOpen]="!!selectedEntry()" (didDismiss)="closeEntryModal()">
+        <ng-template>
+          <ion-header>
+            <ion-toolbar>
+              <ion-title>Eintrag bearbeiten</ion-title>
+              <ion-buttons slot="end">
+                <ion-button (click)="saveEntry()" color="primary">
+                  <ion-icon name="save" slot="start"></ion-icon>
+                  Speichern
+                </ion-button>
+                <ion-button (click)="deleteEntry()" color="danger">
+                  <ion-icon name="trash" slot="start"></ion-icon>
+                  Löschen
+                </ion-button>
+                <ion-button (click)="closeEntryModal()">
+                  <ion-icon name="close" slot="icon-only"></ion-icon>
+                </ion-button>
+              </ion-buttons>
+            </ion-toolbar>
+          </ion-header>
           
-          <div class="modal-body">
+          <ion-content>
+            <ion-card>
+              <ion-card-content>
+                <ion-item>
+                  <ion-label position="stacked">Titel</ion-label>
+                  <ion-input 
+                    [(ngModel)]="editingEntry.title" 
+                    placeholder="Titel..."
+                    type="text">
+                  </ion-input>
+                </ion-item>
             <div class="entry-metadata">
               <div class="tags-section">
                 <label>Tags:</label>
@@ -299,229 +412,51 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
     </div>
   `,
   styles: [`
-    .codex-container {
+    .ion-page {
       height: 100vh;
       display: flex;
       flex-direction: column;
-      background: #1a1a1a;
-      color: #e0e0e0;
+      background: var(--ion-background-color);
     }
 
-    .codex-header {
+    .codex-grid {
+      height: 100%;
       padding: 1rem;
-      border-bottom: 1px solid #333;
-      background: #2a2a2a;
-    }
-
-    .header-actions {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      margin-bottom: 1rem;
-    }
-
-    .back-btn {
-      background: #333;
-      color: #e0e0e0;
-      border: none;
-      padding: 0.5rem 1rem;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-
-    .back-btn:hover {
-      background: #444;
-    }
-
-    .codex-header h1 {
-      margin: 0;
-      flex: 1;
-    }
-
-    .add-category-btn {
-      background: #007acc;
-      color: white;
-      border: none;
-      padding: 0.5rem 1rem;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-
-    .add-category-btn:hover {
-      background: #005a9f;
-    }
-
-    .search-container {
-      position: relative;
-    }
-
-    .search-input {
-      width: 100%;
-      padding: 0.75rem;
-      background: #333;
-      border: 1px solid #555;
-      border-radius: 4px;
-      color: #e0e0e0;
-      font-size: 1rem;
-    }
-
-    .search-input:focus {
-      outline: none;
-      border-color: #007acc;
-    }
-
-    .codex-content {
-      flex: 1;
-      display: flex;
-      overflow: hidden;
     }
 
     .categories-sidebar {
-      width: 250px;
-      background: #2a2a2a;
-      border-right: 1px solid #333;
-      overflow-y: auto;
+      position: sticky;
+      top: 0;
+      height: fit-content;
     }
 
-    .categories-list {
-      padding: 1rem 0;
-    }
-
-    .category-item {
-      display: flex;
-      align-items: center;
-      padding: 0.75rem 1rem;
-      cursor: pointer;
-      transition: background 0.2s;
-      position: relative;
-    }
-
-    .category-item:hover {
-      background: #333;
-    }
-
-    .category-item.active {
-      background: #007acc;
-    }
-
-    .category-icon {
-      font-size: 1.2rem;
-      margin-right: 0.5rem;
-    }
-
-    .category-name {
-      flex: 1;
-    }
-
-    .entry-count {
-      font-size: 0.9rem;
-      color: #999;
-    }
-
-    .category-menu-btn {
-      background: none;
-      border: none;
-      color: #999;
-      cursor: pointer;
-      padding: 0.25rem;
-      margin-left: 0.5rem;
+    .active-category {
+      --background: var(--ion-color-primary);
+      --color: var(--ion-color-primary-contrast);
     }
 
     .category-menu {
       position: absolute;
       right: 1rem;
       top: 100%;
-      background: #333;
-      border: 1px solid #555;
-      border-radius: 4px;
+      background: var(--ion-color-step-100);
+      border: 1px solid var(--ion-color-step-200);
+      border-radius: 8px;
       z-index: 100;
-    }
-
-    .category-menu button {
-      display: block;
-      width: 100%;
-      padding: 0.5rem 1rem;
-      background: none;
-      border: none;
-      color: #e0e0e0;
-      cursor: pointer;
-      text-align: left;
-    }
-
-    .category-menu button:hover {
-      background: #444;
-    }
-
-    .category-menu button.danger {
-      color: #ff6b6b;
+      min-width: 150px;
     }
 
     .entries-main {
-      flex: 1;
-      padding: 2rem;
-      overflow-y: auto;
-    }
-
-    .category-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 2rem;
-    }
-
-    .category-header h2 {
-      margin: 0;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .add-entry-btn {
-      background: #28a745;
-      color: white;
-      border: none;
-      padding: 0.5rem 1rem;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-
-    .add-entry-btn:hover {
-      background: #218838;
-    }
-
-    .entries-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 1rem;
+      padding: 0;
     }
 
     .entry-card {
-      background: #2a2a2a;
-      border: 1px solid #333;
-      border-radius: 8px;
-      padding: 1rem;
-      cursor: pointer;
-      transition: transform 0.2s, border-color 0.2s;
+      transition: transform 0.2s ease;
+      margin-bottom: 1rem;
     }
 
     .entry-card:hover {
       transform: translateY(-2px);
-      border-color: #007acc;
-    }
-
-    .entry-card h3 {
-      margin: 0 0 0.5rem 0;
-      color: #007acc;
-    }
-
-    .entry-preview {
-      color: #ccc;
-      font-size: 0.9rem;
-      line-height: 1.4;
-      margin: 0 0 1rem 0;
     }
 
     .entry-meta {
@@ -529,353 +464,19 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
       gap: 0.5rem;
       flex-wrap: wrap;
       align-items: center;
+      margin-top: 0.5rem;
     }
 
-    .tag {
-      background: #444;
-      color: #e0e0e0;
-      padding: 0.25rem 0.5rem;
-      border-radius: 12px;
-      font-size: 0.8rem;
-    }
 
-    .tag.removable {
-      cursor: pointer;
-      background: #666;
-    }
 
-    .tag.removable:hover {
-      background: #888;
-    }
-
-    .category-badge {
-      background: #007acc;
-      color: white;
-      padding: 0.25rem 0.5rem;
-      border-radius: 12px;
-      font-size: 0.8rem;
-    }
-
-    .story-role-badge {
-      background: #28a745;
-      color: white;
-      padding: 0.25rem 0.5rem;
-      border-radius: 12px;
-      font-size: 0.8rem;
-    }
-
-    .custom-field-badge {
-      background: #6f42c1;
-      color: white;
-      padding: 0.25rem 0.5rem;
-      border-radius: 12px;
-      font-size: 0.8rem;
-    }
-
-    .entry-date {
-      color: #999;
-      font-size: 0.8rem;
-      margin-left: auto;
-    }
-
-    .empty-state {
-      text-align: center;
-      padding: 4rem 2rem;
-      color: #999;
-    }
-
-    .modal-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.8);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-    }
-
-    .modal-content {
-      background: #2a2a2a;
-      border-radius: 8px;
-      padding: 2rem;
-      max-width: 500px;
-      width: 90%;
-      max-height: 80vh;
-      overflow-y: auto;
-    }
-
-    .entry-modal {
-      max-width: 800px;
-      width: 95%;
-    }
-
-    .modal-header {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      margin-bottom: 1rem;
-      padding-bottom: 1rem;
-      border-bottom: 1px solid #444;
-    }
-
-    .entry-title-input {
-      flex: 1;
-      background: #333;
-      border: 1px solid #555;
-      border-radius: 4px;
-      padding: 0.5rem;
-      color: #e0e0e0;
-      font-size: 1.2rem;
-      font-weight: bold;
-    }
-
-    .modal-actions {
-      display: flex;
-      gap: 0.5rem;
-    }
-
-    .modal-actions button {
-      padding: 0.5rem 1rem;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-
-    .save-btn {
-      background: #28a745;
-      color: white;
-    }
-
-    .save-btn:hover {
-      background: #218838;
-    }
-
-    .delete-btn {
-      background: #dc3545;
-      color: white;
-    }
-
-    .delete-btn:hover {
-      background: #c82333;
-    }
-
-    .close-btn {
-      background: #6c757d;
-      color: white;
-    }
-
-    .close-btn:hover {
-      background: #5a6268;
-    }
-
-    .modal-body {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
-
-    .entry-metadata {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1rem;
-    }
-
-    .tags-section, .image-section {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-    }
-
-    .story-role-section {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-      margin-bottom: 1rem;
-    }
-
-    .custom-fields-section {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-      margin-bottom: 1rem;
-    }
-
-    .custom-field-item {
-      border: 1px solid #555;
-      border-radius: 4px;
-      padding: 0.5rem;
-      background: #333;
-    }
-
-    .custom-field-inputs {
-      display: grid;
-      grid-template-columns: 1fr 2fr auto;
-      gap: 0.5rem;
-      align-items: start;
-    }
-
-    .custom-field-name, .custom-field-value {
-      background: #444;
-      border: 1px solid #666;
-      border-radius: 4px;
-      padding: 0.5rem;
-      color: #e0e0e0;
-      font-size: 0.9rem;
-      font-family: inherit;
-    }
-
-    .custom-field-value {
-      resize: vertical;
-      min-height: 60px;
-    }
-
-    .custom-field-name:focus, .custom-field-value:focus {
-      outline: none;
-      border-color: #007acc;
-    }
-
-    .remove-field-btn, .add-field-btn {
-      background: #dc3545;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      width: 32px;
-      height: 32px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.2rem;
-      transition: background 0.2s;
-      align-self: start;
-      margin-top: 2px;
-    }
-
-    .add-field-btn {
-      background: #28a745;
-    }
-
-    .add-field-btn:disabled {
-      background: #6c757d;
-      cursor: not-allowed;
-    }
-
-    .remove-field-btn:hover {
-      background: #c82333;
-    }
-
-    .add-field-btn:hover:not(:disabled) {
-      background: #218838;
-    }
-
-    .add-custom-field {
-      border: 1px dashed #666;
-      border-radius: 4px;
-      padding: 0.5rem;
-      background: #2a2a2a;
-    }
-
-    .tags-section label, .image-section label, .story-role-section label, .custom-fields-section label {
-      font-weight: bold;
-      color: #ccc;
-    }
-
-    .tags-section input, .image-section input {
-      background: #333;
-      border: 1px solid #555;
-      border-radius: 4px;
-      padding: 0.5rem;
-      color: #e0e0e0;
-    }
-
-    .tags-list {
-      display: flex;
-      gap: 0.5rem;
-      flex-wrap: wrap;
-    }
-
-    .entry-image-preview {
-      max-width: 100%;
-      max-height: 200px;
-      border-radius: 4px;
-    }
-
-    .content-section {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-    }
-
-    .content-section label {
-      font-weight: bold;
-      color: #ccc;
-    }
-
-    .entry-content-textarea {
-      background: #333;
-      border: 1px solid #555;
-      border-radius: 4px;
-      padding: 1rem;
-      color: #e0e0e0;
-      min-height: 200px;
-      resize: vertical;
-      font-family: inherit;
-    }
-
-    .modal-content form {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
-
-    .modal-content input, .modal-content textarea {
-      background: #333;
-      border: 1px solid #555;
-      border-radius: 4px;
-      padding: 0.75rem;
-      color: #e0e0e0;
-    }
-
-    .modal-content input:focus, .modal-content textarea:focus {
-      outline: none;
-      border-color: #007acc;
-    }
 
     @media (max-width: 768px) {
-      .codex-content {
-        flex-direction: column;
+      .codex-grid {
+        padding: 0.5rem;
       }
-
+      
       .categories-sidebar {
-        width: 100%;
-        height: 200px;
-      }
-
-      .categories-list {
-        display: flex;
-        overflow-x: auto;
-        padding: 1rem;
-      }
-
-      .category-item {
-        white-space: nowrap;
-        min-width: 150px;
-      }
-
-      .entries-main {
-        padding: 1rem;
-      }
-
-      .entries-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .entry-metadata {
-        grid-template-columns: 1fr;
+        position: static;
       }
     }
   `]
@@ -911,6 +512,17 @@ export class CodexComponent implements OnInit, OnDestroy {
   // Custom fields
   newCustomFieldName = '';
   newCustomFieldValue = '';
+
+  constructor() {
+    addIcons({
+      arrowBack, add, ellipsisVertical, create, trash, save, close,
+      search, person, bookmark, pricetag
+    });
+  }
+
+  getDefaultIcon(): string {
+    return 'bookmark';
+  }
 
   // Computed values
   sortedCategories = computed(() => {

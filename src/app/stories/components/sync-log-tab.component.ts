@@ -20,7 +20,7 @@ import { Subscription } from 'rxjs';
   imports: [
     CommonModule,
     IonList, IonItem, IonLabel, IonChip, IonCard,
-    IonCardContent, IonText, IonNote, IonButton, IonIcon,
+    IonCardContent, IonText, IonButton, IonIcon,
     IonButtons, IonToolbar
   ],
   template: `
@@ -52,10 +52,10 @@ import { Subscription } from 'rxjs';
           
           <ion-label>
             <h2>
-              <ion-text color="light">{{ log.action }}</ion-text>
+              <ion-text>{{ log.action }}</ion-text>
             </h2>
             <p>
-              <ion-note>{{ formatTime(log.timestamp) }}</ion-note>
+              <ion-text color="medium">{{ formatTime(log.timestamp) }}</ion-text>
             </p>
             <p>
               <ion-chip color="medium" class="meta-chip" *ngIf="log.userId">
@@ -108,8 +108,8 @@ import { Subscription } from 'rxjs';
     }
 
     ion-card {
-      --background: var(--ion-color-dark-shade);
-      border: 1px solid var(--ion-color-dark-tint);
+      --background: var(--ion-color-step-100);
+      border: 1px solid var(--ion-color-step-200);
       margin-bottom: 1rem;
     }
 
@@ -131,7 +131,8 @@ import { Subscription } from 'rxjs';
 
     .log-header {
       --background: transparent;
-      --background-hover: var(--ion-color-dark-tint);
+      --background-hover: var(--ion-color-step-150);
+      --color: var(--ion-text-color);
       --padding-start: 16px;
       --padding-end: 16px;
       --inner-padding-end: 0;
@@ -144,8 +145,8 @@ import { Subscription } from 'rxjs';
 
     .meta-chip {
       margin-right: 0.5rem;
-      --background: transparent;
-      --color: var(--ion-color-medium);
+      --background: var(--ion-color-step-50);
+      --color: var(--ion-text-color);
       font-size: 0.8rem;
       height: 24px;
     }
@@ -178,8 +179,8 @@ import { Subscription } from 'rxjs';
     }
 
     .content-pre {
-      background: var(--ion-color-dark);
-      border: 1px solid var(--ion-color-dark-tint);
+      background: var(--ion-background-color);
+      border: 1px solid var(--ion-color-step-200);
       border-radius: 6px;
       padding: 1rem;
       font-family: 'Courier New', monospace;
@@ -190,7 +191,7 @@ import { Subscription } from 'rxjs';
       margin: 0;
       max-height: 300px;
       overflow-y: auto;
-      color: var(--ion-color-light);
+      color: var(--ion-text-color);
     }
 
     .error-content {
