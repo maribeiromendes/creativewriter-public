@@ -7,8 +7,9 @@ import { Subscription } from 'rxjs';
 import {
   IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
   IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonItem, IonLabel,
-  IonSearchbar, IonList, IonChip, IonBadge, IonTextarea, IonInput,
-  IonModal, IonGrid, IonRow, IonCol, IonText, IonNote
+  IonSearchbar, IonList, IonChip, IonTextarea, IonInput,
+  IonModal, IonGrid, IonRow, IonCol, IonText, IonNote, IonItemGroup, IonItemDivider,
+  IonSelect, IonSelectOption
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -25,8 +26,9 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
     CommonModule, FormsModule, NgSelectModule,
     IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
     IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonItem, IonLabel,
-    IonSearchbar, IonList, IonChip, IonBadge, IonTextarea, IonInput,
-    IonModal, IonGrid, IonRow, IonCol, IonText, IonNote
+    IonSearchbar, IonList, IonChip, IonTextarea, IonInput,
+    IonModal, IonGrid, IonRow, IonCol, IonText, IonNote, IonItemGroup, IonItemDivider,
+    IonSelect, IonSelectOption
   ],
   template: `
     <div class="ion-page">
@@ -40,7 +42,7 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
           </ion-buttons>
           <ion-title>Codex</ion-title>
           <ion-buttons slot="end">
-            <ion-button (click)="showAddCategoryModal = true">
+            <ion-button (click)="showAddCategoryModal.set(true)">
               <ion-icon name="add" slot="start"></ion-icon>
               Kategorie
             </ion-button>
@@ -153,17 +155,18 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
                 <div *ngIf="selectedCategory(); else selectCategoryPrompt">
                   <ion-card>
                     <ion-card-header>
-                      <ion-card-title>
-                        {{ selectedCategory()!.icon }} {{ selectedCategory()!.title }}
-                      </ion-card-title>
-                      <ion-button 
-                        fill="outline" 
-                        size="small" 
-                        (click)="showAddEntryModal = true"
-                        slot="end">
-                        <ion-icon name="add" slot="start"></ion-icon>
-                        Eintrag hinzufügen
-                      </ion-button>
+                      <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                        <ion-card-title>
+                          {{ selectedCategory()!.icon }} {{ selectedCategory()!.title }}
+                        </ion-card-title>
+                        <ion-button 
+                          fill="outline" 
+                          size="small" 
+                          (click)="showAddEntryModal.set(true)">
+                          <ion-icon name="add" slot="start"></ion-icon>
+                          Eintrag hinzufügen
+                        </ion-button>
+                      </div>
                     </ion-card-header>
                     <ion-card-content>
                       <ion-grid>
@@ -227,14 +230,6 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
             <ion-toolbar>
               <ion-title>Eintrag bearbeiten</ion-title>
               <ion-buttons slot="end">
-                <ion-button (click)="saveEntry()" color="primary">
-                  <ion-icon name="save" slot="start"></ion-icon>
-                  Speichern
-                </ion-button>
-                <ion-button (click)="deleteEntry()" color="danger">
-                  <ion-icon name="trash" slot="start"></ion-icon>
-                  Löschen
-                </ion-button>
                 <ion-button (click)="closeEntryModal()">
                   <ion-icon name="close" slot="icon-only"></ion-icon>
                 </ion-button>
@@ -253,162 +248,239 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
                     type="text">
                   </ion-input>
                 </ion-item>
-            <div class="entry-metadata">
-              <div class="tags-section">
-                <label>Tags:</label>
-                <input 
-                  type="text" 
-                  [(ngModel)]="tagInput" 
-                  (keyup.enter)="addTag()"
-                  placeholder="Tag hinzufügen...">
-                <div class="tags-list">
-                  <span 
+
+                <!-- Tags -->
+                <ion-item>
+                  <ion-label position="stacked">Tags</ion-label>
+                  <ion-input 
+                    [(ngModel)]="tagInput" 
+                    (keyup.enter)="addTag()"
+                    placeholder="Tag hinzufügen...">
+                  </ion-input>
+                </ion-item>
+                <div class="tags-list" style="padding: 8px 16px;">
+                  <ion-chip 
                     *ngFor="let tag of editingEntry.tags" 
-                    class="tag removable"
-                    (click)="removeTag(tag)">
-                    {{ tag }} ×
-                  </span>
+                    (click)="removeTag(tag)"
+                    color="medium">
+                    <ion-label>{{ tag }}</ion-label>
+                    <ion-icon name="close" size="small"></ion-icon>
+                  </ion-chip>
                 </div>
-              </div>
-              
-              <div class="image-section">
-                <label>Bild URL:</label>
-                <input 
-                  type="url" 
-                  [(ngModel)]="editingEntry.imageUrl" 
-                  placeholder="https://...">
-                <img 
-                  *ngIf="editingEntry.imageUrl" 
-                  [src]="editingEntry.imageUrl" 
-                  class="entry-image-preview"
-                  (error)="editingEntry.imageUrl = ''">
-              </div>
-            </div>
-            
-            <!-- Story role selection for character entries -->
-            <div *ngIf="isCharacterEntry()" class="story-role-section">
-              <label>Story-Rolle:</label>
-              <ng-select 
-                [(ngModel)]="editingEntry.storyRole"
-                [items]="storyRoles"
-                bindLabel="label"
-                bindValue="value"
-                [clearable]="true"
-                [searchable]="false"
-                placeholder="Rolle auswählen..."
-                class="model-select">
-              </ng-select>
-            </div>
-            
-            <!-- Custom fields -->
-            <div class="custom-fields-section">
-              <label>Benutzerdefinierte Felder:</label>
-              
-              <!-- Existing custom fields -->
-              <div *ngFor="let field of editingEntry.customFields" class="custom-field-item">
-                <div class="custom-field-inputs">
-                  <input 
-                    type="text" 
-                    [(ngModel)]="field.name" 
-                    placeholder="Feldname..."
-                    class="custom-field-name">
-                  <textarea 
-                    [(ngModel)]="field.value" 
-                    placeholder="Feldwert..."
-                    class="custom-field-value"
-                    rows="3"></textarea>
-                  <button 
-                    type="button" 
-                    (click)="removeCustomField(field.id)"
-                    class="remove-field-btn">×</button>
+                
+                <!-- Image URL -->
+                <ion-item>
+                  <ion-label position="stacked">Bild URL</ion-label>
+                  <ion-input 
+                    [(ngModel)]="editingEntry.imageUrl" 
+                    placeholder="https://..."
+                    type="url">
+                  </ion-input>
+                </ion-item>
+                <div *ngIf="editingEntry.imageUrl" style="padding: 8px 16px;">
+                  <img 
+                    [src]="editingEntry.imageUrl" 
+                    style="max-width: 100%; height: auto; border-radius: 8px;"
+                    (error)="editingEntry.imageUrl = ''">
                 </div>
-              </div>
-              
-              <!-- Add new custom field -->
-              <div class="add-custom-field">
-                <div class="custom-field-inputs">
-                  <input 
-                    type="text" 
-                    [(ngModel)]="newCustomFieldName" 
-                    placeholder="Neuer Feldname..."
-                    class="custom-field-name">
-                  <textarea 
-                    [(ngModel)]="newCustomFieldValue" 
-                    placeholder="Feldwert..."
-                    class="custom-field-value"
-                    rows="3"></textarea>
-                  <button 
-                    type="button" 
-                    (click)="addCustomField()"
-                    [disabled]="!newCustomFieldName.trim()"
-                    class="add-field-btn">+</button>
+                
+                <!-- Story role selection for character entries -->
+                <ion-item *ngIf="isCharacterEntry()">
+                  <ion-label position="stacked">Story-Rolle</ion-label>
+                  <ion-select 
+                    [(ngModel)]="editingEntry.storyRole"
+                    placeholder="Rolle auswählen..."
+                    interface="popover">
+                    <ion-select-option value="">Keine Rolle</ion-select-option>
+                    <ion-select-option 
+                      *ngFor="let role of storyRoles" 
+                      [value]="role.value">
+                      {{ role.label }}
+                    </ion-select-option>
+                  </ion-select>
+                </ion-item>
+                
+                <!-- Custom fields -->
+                <ion-item-group>
+                  <ion-item-divider>
+                    <ion-label>Benutzerdefinierte Felder</ion-label>
+                  </ion-item-divider>
+                  
+                  <!-- Existing custom fields -->
+                  <div *ngFor="let field of editingEntry.customFields">
+                    <ion-item>
+                      <ion-label position="stacked">Feldname</ion-label>
+                      <ion-input 
+                        [(ngModel)]="field.name" 
+                        placeholder="Feldname...">
+                      </ion-input>
+                    </ion-item>
+                    <ion-item>
+                      <ion-label position="stacked">Feldwert</ion-label>
+                      <ion-textarea 
+                        [(ngModel)]="field.value" 
+                        placeholder="Feldwert..."
+                        rows="3">
+                      </ion-textarea>
+                      <ion-button 
+                        slot="end" 
+                        fill="clear" 
+                        color="danger"
+                        (click)="removeCustomField(field.id)">
+                        <ion-icon name="trash" slot="icon-only"></ion-icon>
+                      </ion-button>
+                    </ion-item>
+                  </div>
+                  
+                  <!-- Add new custom field -->
+                  <ion-item>
+                    <ion-label position="stacked">Neuer Feldname</ion-label>
+                    <ion-input 
+                      [(ngModel)]="newCustomFieldName" 
+                      placeholder="Feldname...">
+                    </ion-input>
+                  </ion-item>
+                  <ion-item>
+                    <ion-label position="stacked">Feldwert</ion-label>
+                    <ion-textarea 
+                      [(ngModel)]="newCustomFieldValue" 
+                      placeholder="Feldwert..."
+                      rows="3">
+                    </ion-textarea>
+                    <ion-button 
+                      slot="end" 
+                      fill="clear" 
+                      [disabled]="!newCustomFieldName.trim()"
+                      (click)="addCustomField()">
+                      <ion-icon name="add" slot="icon-only"></ion-icon>
+                    </ion-button>
+                  </ion-item>
+                </ion-item-group>
+                
+                <!-- Content -->
+                <ion-item>
+                  <ion-label position="stacked">Inhalt</ion-label>
+                  <ion-textarea 
+                    [(ngModel)]="editingEntry.content" 
+                    placeholder="Beschreibung, Details, Notizen..."
+                    rows="6">
+                  </ion-textarea>
+                </ion-item>
+                
+                <!-- Action Buttons -->
+                <div style="padding: 16px; display: flex; gap: 8px; justify-content: flex-end;">
+                  <ion-button (click)="deleteEntry()" fill="outline" color="danger">
+                    <ion-icon name="trash" slot="start"></ion-icon>
+                    Löschen
+                  </ion-button>
+                  <ion-button (click)="saveEntry()" color="primary">
+                    <ion-icon name="save" slot="start"></ion-icon>
+                    Speichern
+                  </ion-button>
                 </div>
-              </div>
-            </div>
-            
-            <div class="content-section">
-              <label>Inhalt:</label>
-              <textarea 
-                [(ngModel)]="editingEntry.content" 
-                class="entry-content-textarea"
-                placeholder="Beschreibung, Details, Notizen..."></textarea>
-            </div>
-          </div>
-        </div>
-      </div>
+              </ion-card-content>
+            </ion-card>
+          </ion-content>
+        </ng-template>
+      </ion-modal>
 
       <!-- Add Category Modal -->
-      <div *ngIf="showAddCategoryModal" class="modal-overlay" (click)="showAddCategoryModal = false">
-        <div class="modal-content" (click)="$event.stopPropagation()">
-          <h3>Neue Kategorie</h3>
-          <form (ngSubmit)="addCategory()">
-            <input 
-              type="text" 
-              [(ngModel)]="newCategory.title" 
-              name="title"
-              placeholder="Kategorie Name"
-              required>
-            <input 
-              type="text" 
-              [(ngModel)]="newCategory.icon" 
-              name="icon"
-              placeholder="Icon (Emoji)"
-              maxlength="2">
-            <textarea 
-              [(ngModel)]="newCategory.description" 
-              name="description"
-              placeholder="Beschreibung (optional)"></textarea>
-            <div class="modal-actions">
-              <button type="submit">Erstellen</button>
-              <button type="button" (click)="showAddCategoryModal = false">Abbrechen</button>
-            </div>
-          </form>
-        </div>
-      </div>
+      <ion-modal [isOpen]="showAddCategoryModal()" (didDismiss)="showAddCategoryModal.set(false)">
+        <ng-template>
+          <ion-header>
+            <ion-toolbar>
+              <ion-title>Neue Kategorie</ion-title>
+              <ion-buttons slot="end">
+                <ion-button (click)="addCategory()" color="primary">
+                  <ion-icon name="save" slot="start"></ion-icon>
+                  Erstellen
+                </ion-button>
+                <ion-button (click)="showAddCategoryModal.set(false)">
+                  <ion-icon name="close" slot="icon-only"></ion-icon>
+                </ion-button>
+              </ion-buttons>
+            </ion-toolbar>
+          </ion-header>
+          
+          <ion-content>
+            <ion-card>
+              <ion-card-content>
+                <ion-item>
+                  <ion-label position="stacked">Kategorie Name</ion-label>
+                  <ion-input 
+                    [(ngModel)]="newCategory.title" 
+                    placeholder="Kategorie Name"
+                    type="text">
+                  </ion-input>
+                </ion-item>
+                
+                <ion-item>
+                  <ion-label position="stacked">Icon (Emoji)</ion-label>
+                  <ion-input 
+                    [(ngModel)]="newCategory.icon" 
+                    placeholder="🏷️"
+                    maxlength="2"
+                    type="text">
+                  </ion-input>
+                </ion-item>
+                
+                <ion-item>
+                  <ion-label position="stacked">Beschreibung (optional)</ion-label>
+                  <ion-textarea 
+                    [(ngModel)]="newCategory.description" 
+                    placeholder="Beschreibung..."
+                    rows="3">
+                  </ion-textarea>
+                </ion-item>
+              </ion-card-content>
+            </ion-card>
+          </ion-content>
+        </ng-template>
+      </ion-modal>
 
       <!-- Add Entry Modal -->
-      <div *ngIf="showAddEntryModal" class="modal-overlay" (click)="showAddEntryModal = false">
-        <div class="modal-content" (click)="$event.stopPropagation()">
-          <h3>Neuer Eintrag</h3>
-          <form (ngSubmit)="addEntry()">
-            <input 
-              type="text" 
-              [(ngModel)]="newEntry.title" 
-              name="title"
-              placeholder="Titel"
-              required>
-            <textarea 
-              [(ngModel)]="newEntry.content" 
-              name="content"
-              placeholder="Inhalt"
-              rows="4"></textarea>
-            <div class="modal-actions">
-              <button type="submit">Erstellen</button>
-              <button type="button" (click)="showAddEntryModal = false">Abbrechen</button>
-            </div>
-          </form>
-        </div>
-      </div>
+      <ion-modal [isOpen]="showAddEntryModal()" (didDismiss)="showAddEntryModal.set(false)">
+        <ng-template>
+          <ion-header>
+            <ion-toolbar>
+              <ion-title>Neuer Eintrag</ion-title>
+              <ion-buttons slot="end">
+                <ion-button (click)="addEntry()" color="primary">
+                  <ion-icon name="save" slot="start"></ion-icon>
+                  Erstellen
+                </ion-button>
+                <ion-button (click)="showAddEntryModal.set(false)">
+                  <ion-icon name="close" slot="icon-only"></ion-icon>
+                </ion-button>
+              </ion-buttons>
+            </ion-toolbar>
+          </ion-header>
+          
+          <ion-content>
+            <ion-card>
+              <ion-card-content>
+                <ion-item>
+                  <ion-label position="stacked">Titel</ion-label>
+                  <ion-input 
+                    [(ngModel)]="newEntry.title" 
+                    placeholder="Titel"
+                    type="text">
+                  </ion-input>
+                </ion-item>
+                
+                <ion-item>
+                  <ion-label position="stacked">Inhalt</ion-label>
+                  <ion-textarea 
+                    [(ngModel)]="newEntry.content" 
+                    placeholder="Inhalt"
+                    rows="6">
+                  </ion-textarea>
+                </ion-item>
+              </ion-card-content>
+            </ion-card>
+          </ion-content>
+        </ng-template>
+      </ion-modal>
     </div>
   `,
   styles: [`
@@ -439,9 +511,10 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
       position: absolute;
       right: 1rem;
       top: 100%;
-      background: var(--ion-color-step-100);
-      border: 1px solid var(--ion-color-step-200);
-      border-radius: 8px;
+      background: var(--ion-background-color);
+      border: 1px solid var(--ion-border-color);
+      border-radius: var(--ion-border-radius);
+      box-shadow: var(--ion-box-shadow);
       z-index: 100;
       min-width: 150px;
     }
@@ -451,12 +524,13 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
     }
 
     .entry-card {
-      transition: transform 0.2s ease;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
       margin-bottom: 1rem;
     }
 
     .entry-card:hover {
       transform: translateY(-2px);
+      box-shadow: var(--ion-box-shadow-hover);
     }
 
     .entry-meta {
@@ -467,8 +541,12 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
       margin-top: 0.5rem;
     }
 
-
-
+    .tags-list {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
 
     @media (max-width: 768px) {
       .codex-grid {
@@ -497,8 +575,8 @@ export class CodexComponent implements OnInit, OnDestroy {
   categoryMenuId = signal<string | null>(null);
 
   // Modals
-  showAddCategoryModal = false;
-  showAddEntryModal = false;
+  showAddCategoryModal = signal<boolean>(false);
+  showAddEntryModal = signal<boolean>(false);
 
   // Form data
   newCategory = { title: '', icon: '', description: '' };
@@ -621,7 +699,7 @@ export class CodexComponent implements OnInit, OnDestroy {
     try {
       await this.codexService.addCategory(storyId, this.newCategory);
       this.newCategory = { title: '', icon: '', description: '' };
-      this.showAddCategoryModal = false;
+      this.showAddCategoryModal.set(false);
     } catch (error) {
       console.error('Error adding category:', error);
     }
@@ -658,7 +736,7 @@ export class CodexComponent implements OnInit, OnDestroy {
     try {
       await this.codexService.addEntry(storyId, categoryId, this.newEntry);
       this.newEntry = { title: '', content: '' };
-      this.showAddEntryModal = false;
+      this.showAddEntryModal.set(false);
     } catch (error) {
       console.error('Error adding entry:', error);
     }
