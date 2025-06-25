@@ -131,22 +131,55 @@ export class BeatAIService {
         const codexText = codexEntries.length > 0 
           ? codexEntries.map(categoryData => {
               const entries = categoryData.entries.map(entry => {
-                let entryText = `**${entry.title}**\n${entry.content || ''}`;
+                // Start with clear entry separator
+                let entryText = `━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+                entryText += `**${entry.title}**\n`;
+                
+                // Main content
+                if (entry.content) {
+                  entryText += `\n📝 Beschreibung:\n${entry.content}\n`;
+                }
+                
+                // Story role for characters
                 if (entry.metadata?.['storyRole'] && categoryData.category === 'Charaktere') {
-                  entryText += `\nStory-Rolle: ${entry.metadata['storyRole']}`;
+                  entryText += `\n🎭 Story-Rolle: ${entry.metadata['storyRole']}\n`;
                 }
-                if (entry.metadata?.['customFields'] && entry.metadata['customFields'].length > 0) {
-                  const customFieldsText = entry.metadata['customFields']
-                    .map((field: any) => `${field.name}: ${field.value}`)
-                    .join('\n');
-                  entryText += `\n${customFieldsText}`;
+                
+                // Custom fields - check both in metadata and directly in entry
+                const customFields = entry.metadata?.['customFields'] || [];
+                if (customFields.length > 0) {
+                  entryText += `\n📋 Weitere Details:\n`;
+                  customFields.forEach((field: any) => {
+                    entryText += `   • ${field.name}: ${field.value}\n`;
+                  });
                 }
+                
+                // Tags
                 if (entry.tags && entry.tags.length > 0) {
-                  entryText += `\nTags: ${entry.tags.join(', ')}`;
+                  entryText += `\n🏷️ Tags: ${entry.tags.join(', ')}\n`;
                 }
+                
+                // Additional metadata fields (catch any other fields)
+                if (entry.metadata) {
+                  const otherFields = Object.entries(entry.metadata)
+                    .filter(([key]) => key !== 'storyRole' && key !== 'customFields')
+                    .filter(([_, value]) => value !== null && value !== undefined && value !== '');
+                  
+                  if (otherFields.length > 0) {
+                    entryText += `\n🔧 Zusätzliche Informationen:\n`;
+                    otherFields.forEach(([key, value]) => {
+                      entryText += `   • ${key}: ${value}\n`;
+                    });
+                  }
+                }
+                
                 return entryText;
-              }).join('\n\n');
-              return `### ${categoryData.category}\n${entries}`;
+              }).join('\n');
+              
+              return `\n╔════════════════════════════════════════╗\n` +
+                     `║ ${categoryData.category.toUpperCase()}${' '.repeat(Math.max(0, 38 - categoryData.category.length))}║\n` +
+                     `╚════════════════════════════════════════╝\n` +
+                     `${entries}`;
             }).join('\n\n')
           : '';
 
