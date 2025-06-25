@@ -27,24 +27,25 @@ import { Story, StorySettings, DEFAULT_STORY_SETTINGS } from '../models/story.in
     IonText, IonGrid, IonRow, IonCol
   ],
   template: `
-    <ion-header>
-      <ion-toolbar >
-        <ion-buttons slot="start">
-          <ion-button (click)="goBack()">
-            <ion-icon name="arrow-back" slot="icon-only"></ion-icon>
-          </ion-button>
-        </ion-buttons>
-        <ion-title>Story-Einstellungen</ion-title>
-        <ion-buttons slot="end">
-          <ion-chip [color]="hasUnsavedChanges ? 'warning' : 'success'">
-            <ion-icon [name]="hasUnsavedChanges ? 'warning-outline' : 'checkmark-circle-outline'"></ion-icon>
-            <ion-label>{{ hasUnsavedChanges ? 'Nicht gespeichert' : 'Gespeichert' }}</ion-label>
-          </ion-chip>
-        </ion-buttons>
-      </ion-toolbar>
-    </ion-header>
+    <div class="ion-page">
+      <ion-header>
+        <ion-toolbar>
+          <ion-buttons slot="start">
+            <ion-button (click)="goBack()">
+              <ion-icon name="arrow-back" slot="icon-only"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+          <ion-title>Story-Einstellungen</ion-title>
+          <ion-buttons slot="end">
+            <ion-chip [color]="hasUnsavedChanges ? 'warning' : 'success'">
+              <ion-icon [name]="hasUnsavedChanges ? 'warning-outline' : 'checkmark-circle-outline'"></ion-icon>
+              <ion-label>{{ hasUnsavedChanges ? 'Nicht gespeichert' : 'Gespeichert' }}</ion-label>
+            </ion-chip>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
 
-    <ion-content  *ngIf="story">
+      <ion-content *ngIf="story">
       <ion-card class="story-info-card">
         <ion-card-header>
           <ion-card-title>{{ story.title || 'Unbenannte Geschichte' }}</ion-card-title>
@@ -181,24 +182,33 @@ import { Story, StorySettings, DEFAULT_STORY_SETTINGS } from '../models/story.in
           <ion-icon name="refresh-outline" slot="start"></ion-icon>
           Auf Standard zurücksetzen
         </ion-button>
-      </div>
-    </ion-content>
+        </div>
+      </ion-content>
 
-    <ion-content  *ngIf="!story">
-      <div class="no-story">
-        <ion-text color="medium">
-          <p>Geschichte nicht gefunden.</p>
-        </ion-text>
-      </div>
-    </ion-content>
+      <ion-content *ngIf="!story">
+        <div class="no-story">
+          <ion-text color="medium">
+            <p>Geschichte nicht gefunden.</p>
+          </ion-text>
+        </div>
+      </ion-content>
+    </div>
   `,
   styles: [`
+    .ion-page {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      background-color: #1a1a1a;
+    }
+
     ion-content {
       --background: #1a1a1a;
       --padding-start: 16px;
       --padding-end: 16px;
       --padding-top: 16px;
       --padding-bottom: 16px;
+      flex: 1;
     }
 
     .story-info-card {
