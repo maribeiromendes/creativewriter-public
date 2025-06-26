@@ -801,9 +801,9 @@ export class BeatAIComponent implements OnInit, OnDestroy {
   generateContent(): void {
     if (!this.currentPrompt.trim() || !this.selectedModel) return;
     
-    
     this.beatData.prompt = this.currentPrompt.trim();
     this.beatData.isEditing = false;
+    this.beatData.isGenerating = true;
     this.beatData.updatedAt = new Date();
     
     this.promptSubmit.emit({
@@ -822,6 +822,8 @@ export class BeatAIComponent implements OnInit, OnDestroy {
   
   regenerateContent(): void {
     if (!this.beatData.prompt) return;
+    
+    this.beatData.isGenerating = true;
     
     this.promptSubmit.emit({
       beatId: this.beatData.id,
