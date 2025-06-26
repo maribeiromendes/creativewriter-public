@@ -11,6 +11,7 @@ import { BeatAINodeView } from './beat-ai-nodeview';
 import { BeatAI, BeatAIPromptEvent, BeatContentInsertEvent } from '../../stories/models/beat-ai.interface';
 import { BeatAIService } from './beat-ai.service';
 import { ImageInsertResult } from '../components/image-upload-dialog.component';
+import { PromptManagerService } from './prompt-manager.service';
 
 export interface EditorConfig {
   placeholder?: string;
@@ -47,7 +48,8 @@ export class ProseMirrorEditorService {
     private injector: Injector,
     private appRef: ApplicationRef,
     private envInjector: EnvironmentInjector,
-    private beatAIService: BeatAIService
+    private beatAIService: BeatAIService,
+    private promptManager: PromptManagerService
   ) {
     // Create schema with basic nodes, list support, and beat AI node
     const baseNodes = addListNodes(schema.spec.nodes, 'paragraph block*', 'block');
@@ -571,6 +573,16 @@ export class ProseMirrorEditorService {
     // Emit content update to trigger save
     const content = this.getHTMLContent();
     this.contentUpdate$.next(content);
+    
+    // Refresh prompt manager to update scene context
+    // This ensures that the next beat prompt will use the correct context
+    setTimeout(() => {
+      this.promptManager.refresh().then(() => {
+        console.log('Prompt manager refreshed after content deletion');
+      }).catch(error => {
+        console.error('Error refreshing prompt manager:', error);
+      });
+    }, 500); // Small delay to ensure content is saved first
   }
 
   private isGeneratedContent(node: ProseMirrorNode, beatId: string): boolean {
