@@ -1,4 +1,4 @@
-<messages>
+export const NOVELCRAFTER_BEAT_TEMPLATE = `<messages>
 <message role="system">{systemMessage}</message>
 <message role="user">Take into account the following glossary of characters/locations/items/lore... when writing your response:
 {codexEntries}
@@ -16,4 +16,4 @@ The story so far:
 
 {writingStyle}
 </instructions></message>
-</messages>
+</messages>`;

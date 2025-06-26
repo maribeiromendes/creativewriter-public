@@ -6,6 +6,7 @@ import { SettingsService } from '../../core/services/settings.service';
 import { StoryService } from '../../stories/services/story.service';
 import { CodexService } from '../../stories/services/codex.service';
 import { PromptManagerService } from './prompt-manager.service';
+import { NOVELCRAFTER_BEAT_TEMPLATE } from '../templates/novelcrafter-beat-generation.template';
 
 @Injectable({
   providedIn: 'root'
@@ -208,9 +209,8 @@ export class BeatAIService {
             : 'Bleibe im Moment'
         };
 
-        // Load template and replace placeholders
-        const template = await this.loadTemplate();
-        let processedTemplate = template;
+        // Use imported template and replace placeholders
+        let processedTemplate = NOVELCRAFTER_BEAT_TEMPLATE;
         
         Object.entries(placeholders).forEach(([key, value]) => {
           const placeholder = `{${key}}`;
@@ -364,36 +364,5 @@ export class BeatAIService {
     return null;
   }
 
-  private async loadTemplate(): Promise<string> {
-    try {
-      const response = await fetch('/assets/templates/novelcrafter-beat-generation.template');
-      if (!response.ok) {
-        throw new Error(`Template not found: ${response.status}`);
-      }
-      return await response.text();
-    } catch (error) {
-      console.warn('Could not load template, using fallback:', error);
-      // Fallback template
-      return `<messages>
-<message role="system">{systemMessage}</message>
-<message role="user">Take into account the following glossary of characters/locations/items/lore... when writing your response:
-{codexEntries}
-
-The story so far:
-{storySoFar}</message>
-<message role="assistant"># {storyTitle}
-
-{sceneFullText}</message>
-<message role="user">Write {wordCount} words that continue the story, using the following instructions:
-<instructions>
-{pointOfView}
-
-{prompt}
-
-{writingStyle}
-</instructions></message>
-</messages>`;
-    }
-  }
 
 }
