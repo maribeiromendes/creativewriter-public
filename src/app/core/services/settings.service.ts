@@ -81,6 +81,11 @@ export class SettingsService {
         ...currentSettings.openRouter,
         ...settings
       },
+      // If OpenRouter is being enabled, disable Gemini
+      googleGemini: settings.enabled ? {
+        ...currentSettings.googleGemini,
+        enabled: false
+      } : currentSettings.googleGemini,
       updatedAt: new Date()
     };
     
@@ -142,6 +147,11 @@ export class SettingsService {
         ...currentSettings.googleGemini,
         ...settings
       },
+      // If Gemini is being enabled, disable OpenRouter
+      openRouter: settings.enabled ? {
+        ...currentSettings.openRouter,
+        enabled: false
+      } : currentSettings.openRouter,
       updatedAt: new Date()
     };
     

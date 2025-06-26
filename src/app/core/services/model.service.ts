@@ -5,9 +5,11 @@ import { map, catchError, tap } from 'rxjs/operators';
 import { 
   OpenRouterModelsResponse, 
   ReplicateModelsResponse, 
+  GeminiModelsResponse,
   ModelOption,
   OpenRouterModel,
-  ReplicateModel 
+  ReplicateModel,
+  GeminiModel 
 } from '../models/model.interface';
 import { SettingsService } from './settings.service';
 
@@ -21,10 +23,12 @@ export class ModelService {
 
   private openRouterModelsSubject = new BehaviorSubject<ModelOption[]>([]);
   private replicateModelsSubject = new BehaviorSubject<ModelOption[]>([]);
+  private geminiModelsSubject = new BehaviorSubject<ModelOption[]>([]);
   private loadingSubject = new BehaviorSubject<boolean>(false);
 
   public openRouterModels$ = this.openRouterModelsSubject.asObservable();
   public replicateModels$ = this.replicateModelsSubject.asObservable();
+  public geminiModels$ = this.geminiModelsSubject.asObservable();
   public loading$ = this.loadingSubject.asObservable();
 
   constructor(
@@ -92,10 +96,66 @@ export class ModelService {
       );
   }
 
-  loadAllModels(): Observable<{ openRouter: ModelOption[], replicate: ModelOption[] }> {
+  loadGeminiModels(): Observable<ModelOption[]> {
+    const settings = this.settingsService.getSettings();
+    
+    if (!settings.googleGemini.enabled || !settings.googleGemini.apiKey) {
+      return of([]);
+    }
+
+    this.loadingSubject.next(true);
+
+    // Gemini models are predefined since the API doesn't provide a models list endpoint
+    const predefinedModels: ModelOption[] = [
+      {
+        id: 'gemini-2.5-flash',
+        label: 'Gemini 2.5 Flash',
+        description: 'Google\'s fastest and most cost-effective model with multimodal capabilities',
+        costInputEur: '0.07 €',
+        costOutputEur: '0.21 €',
+        contextLength: 1000000,
+        provider: 'gemini'
+      },
+      {
+        id: 'gemini-2.5-pro',
+        label: 'Gemini 2.5 Pro',
+        description: 'Google\'s most capable model with advanced reasoning and multimodal capabilities',
+        costInputEur: '3.50 €',
+        costOutputEur: '10.50 €',
+        contextLength: 2000000,
+        provider: 'gemini'
+      },
+      {
+        id: 'gemini-1.5-flash',
+        label: 'Gemini 1.5 Flash',
+        description: 'Fast and efficient model with good performance for most tasks',
+        costInputEur: '0.07 €',
+        costOutputEur: '0.21 €',
+        contextLength: 1000000,
+        provider: 'gemini'
+      },
+      {
+        id: 'gemini-1.5-pro',
+        label: 'Gemini 1.5 Pro',
+        description: 'Advanced model with superior reasoning capabilities',
+        costInputEur: '3.50 €',
+        costOutputEur: '10.50 €',
+        contextLength: 2000000,
+        provider: 'gemini'
+      }
+    ];
+
+    this.geminiModelsSubject.next(predefinedModels);
+    this.loadingSubject.next(false);
+    
+    return of(predefinedModels);
+  }
+
+  loadAllModels(): Observable<{ openRouter: ModelOption[], replicate: ModelOption[], gemini: ModelOption[] }> {
     return forkJoin({
       openRouter: this.loadOpenRouterModels(),
-      replicate: this.loadReplicateModels()
+      replicate: this.loadReplicateModels(),
+      gemini: this.loadGeminiModels()
     });
   }
 
@@ -209,5 +269,43 @@ export class ModelService {
 
   getCurrentReplicateModels(): ModelOption[] {
     return this.replicateModelsSubject.value;
+  }
+
+  getCurrentGeminiModels(): ModelOption[] {
+    return this.geminiModelsSubject.value;
+  }
+
+  /**
+   * Get available models based on the currently active API
+   */
+  getAvailableModels(): Observable<ModelOption[]> {
+    const settings = this.settingsService.getSettings();
+    
+    if (settings.googleGemini.enabled && settings.googleGemini.apiKey) {
+      return this.loadGeminiModels();
+    } else if (settings.openRouter.enabled && settings.openRouter.apiKey) {
+      return this.loadOpenRouterModels();
+    } else if (settings.replicate.enabled && settings.replicate.apiKey) {
+      return this.loadReplicateModels();
+    }
+    
+    return of([]);
+  }
+
+  /**
+   * Get currently loaded models based on the active API
+   */
+  getCurrentAvailableModels(): ModelOption[] {
+    const settings = this.settingsService.getSettings();
+    
+    if (settings.googleGemini.enabled && settings.googleGemini.apiKey) {
+      return this.getCurrentGeminiModels();
+    } else if (settings.openRouter.enabled && settings.openRouter.apiKey) {
+      return this.getCurrentOpenRouterModels();
+    } else if (settings.replicate.enabled && settings.replicate.apiKey) {
+      return this.getCurrentReplicateModels();
+    }
+    
+    return [];
   }
 }

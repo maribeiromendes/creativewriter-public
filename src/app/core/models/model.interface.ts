@@ -4,7 +4,7 @@ export interface ModelInfo {
   description?: string;
   pricing: ModelPricing;
   context_length: number;
-  provider: 'openrouter' | 'replicate';
+  provider: 'openrouter' | 'replicate' | 'gemini';
 }
 
 export interface ModelPricing {
@@ -70,6 +70,24 @@ export interface ReplicateModelsResponse {
   previous?: string;
 }
 
+// Gemini API Response Interfaces
+export interface GeminiModel {
+  name: string;
+  version: string;
+  displayName: string;
+  description?: string;
+  inputTokenLimit: number;
+  outputTokenLimit: number;
+  supportedGenerationMethods: string[];
+  temperature?: number;
+  topP?: number;
+  topK?: number;
+}
+
+export interface GeminiModelsResponse {
+  models: GeminiModel[];
+}
+
 // Unified model selection interface
 export interface ModelOption {
   id: string;
@@ -78,5 +96,5 @@ export interface ModelOption {
   costInputEur: string; // Formatted cost per 1M tokens in EUR
   costOutputEur: string; // Formatted cost per 1M tokens in EUR
   contextLength: number;
-  provider: 'openrouter' | 'replicate';
+  provider: 'openrouter' | 'replicate' | 'gemini';
 }

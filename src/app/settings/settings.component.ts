@@ -671,6 +671,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
   // Model loading state
   openRouterModels: ModelOption[] = [];
   replicateModels: ModelOption[] = [];
+  geminiModels: ModelOption[] = [];
   loadingModels = false;
   modelLoadError: string | null = null;
 
@@ -714,6 +715,12 @@ export class SettingsComponent implements OnInit, OnDestroy {
     this.subscription.add(
       this.modelService.replicateModels$.subscribe(models => {
         this.replicateModels = models;
+      })
+    );
+    
+    this.subscription.add(
+      this.modelService.geminiModels$.subscribe(models => {
+        this.geminiModels = models;
       })
     );
     
@@ -765,8 +772,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
       console.log('API key entered for Replicate, loading models...');
       this.modelService.loadReplicateModels().subscribe();
     } else if (provider === 'googleGemini' && this.settings.googleGemini.enabled && this.settings.googleGemini.apiKey) {
-      console.log('API key entered for Google Gemini');
-      // No model loading needed for Gemini - models are predefined
+      console.log('API key entered for Google Gemini, loading models...');
+      this.modelService.loadGeminiModels().subscribe();
     }
   }
   
@@ -782,8 +789,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
       console.log('Replicate enabled, loading models...');
       this.modelService.loadReplicateModels().subscribe();
     } else if (provider === 'googleGemini' && this.settings.googleGemini.enabled && this.settings.googleGemini.apiKey) {
-      console.log('Google Gemini enabled');
-      // No model loading needed for Gemini - models are predefined
+      console.log('Google Gemini enabled, loading models...');
+      this.modelService.loadGeminiModels().subscribe();
     }
   }
   
@@ -835,6 +842,20 @@ export class SettingsComponent implements OnInit, OnDestroy {
         !this.loadingModels) {
       console.log('Auto-loading Replicate models because model is selected:', this.settings.replicate.model);
       this.modelService.loadReplicateModels().subscribe();
+    }
+    
+    // Auto-load Gemini models if:
+    // 1. Gemini is enabled
+    // 2. API key is present
+    // 3. A model is already selected
+    // 4. Models haven't been loaded yet
+    if (this.settings.googleGemini.enabled && 
+        this.settings.googleGemini.apiKey && 
+        this.settings.googleGemini.model && 
+        this.geminiModels.length === 0 &&
+        !this.loadingModels) {
+      console.log('Auto-loading Gemini models because model is selected:', this.settings.googleGemini.model);
+      this.modelService.loadGeminiModels().subscribe();
     }
   }
 

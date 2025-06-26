@@ -845,29 +845,38 @@ export class BeatAIComponent implements OnInit, OnDestroy {
   }
 
   private loadAvailableModels(): void {
-    // Subscribe to model changes
+    // Subscribe to settings changes to reload models when API switches
     this.subscription.add(
-      this.modelService.openRouterModels$.subscribe(models => {
+      this.settingsService.settings$.subscribe(() => {
+        this.reloadModels();
+      })
+    );
+    
+    // Initial load
+    this.reloadModels();
+  }
+  
+  private reloadModels(): void {
+    // Load models based on currently active API
+    this.subscription.add(
+      this.modelService.getAvailableModels().subscribe(models => {
         this.availableModels = models;
         if (models.length > 0 && !this.selectedModel) {
           this.setDefaultModel();
         }
       })
     );
-    
-    // Load models if not already loaded
-    const currentModels = this.modelService.getCurrentOpenRouterModels();
-    if (currentModels.length === 0) {
-      this.modelService.loadOpenRouterModels().subscribe();
-    } else {
-      this.availableModels = currentModels;
-    }
   }
   
   private setDefaultModel(): void {
     const settings = this.settingsService.getSettings();
-    if (settings.openRouter.enabled && settings.openRouter.model) {
+    
+    if (settings.googleGemini.enabled && settings.googleGemini.model) {
+      this.selectedModel = settings.googleGemini.model;
+    } else if (settings.openRouter.enabled && settings.openRouter.model) {
       this.selectedModel = settings.openRouter.model;
+    } else if (settings.replicate.enabled && settings.replicate.model) {
+      this.selectedModel = settings.replicate.model;
     } else if (this.availableModels.length > 0) {
       // Fallback to first available model
       this.selectedModel = this.availableModels[0].id;
