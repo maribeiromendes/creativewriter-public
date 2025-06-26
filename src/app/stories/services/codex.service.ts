@@ -71,7 +71,7 @@ export class CodexService {
   }
 
 
-  private async saveToDatabase(codex: Codex): Promise<void> {
+  private async saveToDatabase(codex: Codex, maxRetries: number = 3): Promise<void> {
     try {
       if (!this.isInitialized) {
         await this.waitForInitialization();
@@ -79,23 +79,33 @@ export class CodexService {
       
       const docId = `codex_${codex.storyId}`;
       
-      try {
-        const existingDoc = await this.db.get(docId);
-        await this.db.put({
-          ...existingDoc,
-          ...codex,
-          _id: docId,
-          type: 'codex'
-        });
-      } catch (error: any) {
-        if (error.status === 404) {
+      for (let attempt = 0; attempt < maxRetries; attempt++) {
+        try {
+          const existingDoc = await this.db.get(docId);
           await this.db.put({
+            ...existingDoc,
+            ...codex,
             _id: docId,
-            type: 'codex',
-            ...codex
+            type: 'codex'
           });
-        } else {
-          throw error;
+          break; // Success, exit retry loop
+        } catch (error: any) {
+          if (error.status === 404) {
+            // Document doesn't exist, create new one
+            await this.db.put({
+              _id: docId,
+              type: 'codex',
+              ...codex
+            });
+            break; // Success, exit retry loop
+          } else if (error.status === 409 && attempt < maxRetries - 1) {
+            // Conflict error, retry after a short delay
+            console.warn(`Document conflict on attempt ${attempt + 1}, retrying...`);
+            await new Promise(resolve => setTimeout(resolve, 100 * (attempt + 1))); // Exponential backoff
+            continue;
+          } else {
+            throw error;
+          }
         }
       }
       
@@ -233,43 +243,99 @@ export class CodexService {
 
   // Add entry to category
   async addEntry(storyId: string, categoryId: string, entry: Partial<CodexEntry>): Promise<CodexEntry> {
+    // Always get the latest version from database to avoid conflicts
     const codex = await this.getOrCreateCodex(storyId);
-    const category = codex.categories.find((c: CodexCategory) => c.id === categoryId);
     
-    if (!category) {
-      throw new Error('Category not found');
+    // Refresh codex from database before modification
+    try {
+      if (!this.isInitialized) {
+        await this.waitForInitialization();
+      }
+      
+      const docId = `codex_${storyId}`;
+      const latestDoc = await this.db.get(docId);
+      const latestCodex = this.deserializeCodex(latestDoc);
+      
+      const category = latestCodex.categories.find((c: CodexCategory) => c.id === categoryId);
+      
+      if (!category) {
+        throw new Error('Category not found');
+      }
+
+      const now = new Date();
+      const newEntry: CodexEntry = {
+        id: uuidv4(),
+        categoryId,
+        title: entry.title || 'New Entry',
+        content: entry.content || '',
+        tags: entry.tags || [],
+        imageUrl: entry.imageUrl,
+        metadata: entry.metadata || {},
+        customFields: entry.customFields || [],
+        order: category.entries.length,
+        createdAt: now,
+        updatedAt: now
+      };
+
+      // Create new category with updated entries
+      const updatedCategory: CodexCategory = {
+        ...category,
+        entries: [...category.entries, newEntry],
+        updatedAt: now
+      };
+      
+      // Create new codex with updated category
+      const updatedCodex: Codex = {
+        ...latestCodex,
+        categories: latestCodex.categories.map(c => c.id === categoryId ? updatedCategory : c),
+        updatedAt: now
+      };
+      
+      await this.saveToDatabase(updatedCodex);
+      return newEntry;
+      
+    } catch (error: any) {
+      if (error.status === 404) {
+        // Fallback to original logic if document doesn't exist
+        const category = codex.categories.find((c: CodexCategory) => c.id === categoryId);
+        
+        if (!category) {
+          throw new Error('Category not found');
+        }
+
+        const now = new Date();
+        const newEntry: CodexEntry = {
+          id: uuidv4(),
+          categoryId,
+          title: entry.title || 'New Entry',
+          content: entry.content || '',
+          tags: entry.tags || [],
+          imageUrl: entry.imageUrl,
+          metadata: entry.metadata || {},
+          customFields: entry.customFields || [],
+          order: category.entries.length,
+          createdAt: now,
+          updatedAt: now
+        };
+
+        const updatedCategory: CodexCategory = {
+          ...category,
+          entries: [...category.entries, newEntry],
+          updatedAt: now
+        };
+        
+        const updatedCodex: Codex = {
+          ...codex,
+          categories: codex.categories.map(c => c.id === categoryId ? updatedCategory : c),
+          updatedAt: now
+        };
+        
+        await this.saveToDatabase(updatedCodex);
+        return newEntry;
+      } else {
+        throw error;
+      }
     }
-
-    const now = new Date();
-    const newEntry: CodexEntry = {
-      id: uuidv4(),
-      categoryId,
-      title: entry.title || 'New Entry',
-      content: entry.content || '',
-      tags: entry.tags || [],
-      imageUrl: entry.imageUrl,
-      metadata: entry.metadata || {},
-      order: category.entries.length,
-      createdAt: now,
-      updatedAt: now
-    };
-
-    // Create new category with updated entries
-    const updatedCategory: CodexCategory = {
-      ...category,
-      entries: [...category.entries, newEntry],
-      updatedAt: now
-    };
-    
-    // Create new codex with updated category
-    const updatedCodex: Codex = {
-      ...codex,
-      categories: codex.categories.map(c => c.id === categoryId ? updatedCategory : c),
-      updatedAt: now
-    };
-    
-    await this.saveToDatabase(updatedCodex);
-    return newEntry;
   }
 
   // Update entry

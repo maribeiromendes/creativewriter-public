@@ -6,6 +6,8 @@ export interface CodexEntry {
   tags?: string[];
   imageUrl?: string;
   metadata?: Record<string, any>;
+  customFields?: CustomField[];
+  storyRole?: StoryRole | '';
   order: number;
   createdAt: Date;
   updatedAt: Date;

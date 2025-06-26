@@ -8,7 +8,7 @@ import {
   IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
   IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonItem, IonLabel,
   IonSearchbar, IonList, IonChip, IonTextarea, IonInput,
-  IonModal, IonGrid, IonRow, IonCol, IonText, IonNote, IonItemGroup, IonItemDivider,
+  IonModal, IonGrid, IonRow, IonCol, IonText, IonNote,
   IonSelect, IonSelectOption
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -27,7 +27,7 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
     IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
     IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonItem, IonLabel,
     IonSearchbar, IonList, IonChip, IonTextarea, IonInput,
-    IonModal, IonGrid, IonRow, IonCol, IonText, IonNote, IonItemGroup, IonItemDivider,
+    IonModal, IonGrid, IonRow, IonCol, IonText, IonNote,
     IonSelect, IonSelectOption
   ],
   template: `
@@ -162,7 +162,7 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
                         <ion-button 
                           fill="outline" 
                           size="small" 
-                          (click)="showAddEntryModal.set(true)">
+                          (click)="createNewEntry()">
                           <ion-icon name="add" slot="start"></ion-icon>
                           Eintrag hinzufügen
                         </ion-button>
@@ -224,11 +224,11 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
       </ion-content>
 
       <!-- Entry Modal -->
-      <ion-modal [isOpen]="!!selectedEntry()" (didDismiss)="closeEntryModal()">
+      <ion-modal [isOpen]="!!selectedEntry()" (didDismiss)="closeEntryModal()" class="entry-modal">
         <ng-template>
           <ion-header>
-            <ion-toolbar>
-              <ion-title>Eintrag bearbeiten</ion-title>
+            <ion-toolbar color="primary">
+              <ion-title>{{ editingEntry.title || 'Eintrag bearbeiten' }}</ion-title>
               <ion-buttons slot="end">
                 <ion-button (click)="closeEntryModal()">
                   <ion-icon name="close" slot="icon-only"></ion-icon>
@@ -237,149 +237,192 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
             </ion-toolbar>
           </ion-header>
           
-          <ion-content>
-            <ion-card>
-              <ion-card-content>
-                <ion-item>
-                  <ion-label position="stacked">Titel</ion-label>
-                  <ion-input 
-                    [(ngModel)]="editingEntry.title" 
-                    placeholder="Titel..."
-                    type="text">
-                  </ion-input>
-                </ion-item>
+          <ion-content class="entry-modal-content">
+            <div class="modal-form-container">
+              <!-- Basic Information Section -->
+              <div class="form-section">
+                <h3 class="section-title">Grundinformationen</h3>
+                
+                <div class="form-group">
+                  <ion-item lines="none" class="form-item">
+                    <ion-label position="stacked">Titel <span class="required">*</span></ion-label>
+                    <ion-input 
+                      [(ngModel)]="editingEntry.title" 
+                      placeholder="Titel eingeben..."
+                      type="text"
+                      class="title-input">
+                    </ion-input>
+                  </ion-item>
+                </div>
 
-                <!-- Tags -->
-                <ion-item>
-                  <ion-label position="stacked">Tags</ion-label>
-                  <ion-input 
-                    [(ngModel)]="tagInput" 
-                    (keyup.enter)="addTag()"
-                    placeholder="Tag hinzufügen...">
-                  </ion-input>
-                </ion-item>
-                <div class="tags-list" style="padding: 8px 16px;">
-                  <ion-chip 
-                    *ngFor="let tag of editingEntry.tags" 
-                    (click)="removeTag(tag)"
-                    color="medium">
-                    <ion-label>{{ tag }}</ion-label>
-                    <ion-icon name="close" size="small"></ion-icon>
-                  </ion-chip>
+                <!-- Tags Section -->
+                <div class="form-group">
+                  <ion-item lines="none" class="form-item">
+                    <ion-label position="stacked">Tags</ion-label>
+                    <ion-input 
+                      [(ngModel)]="tagInput" 
+                      (keyup.enter)="addTag()"
+                      placeholder="Tag eingeben und Enter drücken..."
+                      class="tag-input">
+                    </ion-input>
+                  </ion-item>
+                  <div class="tags-container" *ngIf="editingEntry.tags?.length">
+                    <ion-chip 
+                      *ngFor="let tag of editingEntry.tags" 
+                      (click)="removeTag(tag)"
+                      color="primary"
+                      class="tag-chip">
+                      <ion-label>{{ tag }}</ion-label>
+                      <ion-icon name="close" size="small"></ion-icon>
+                    </ion-chip>
+                  </div>
                 </div>
+              </div>
+
+              <!-- Media Section -->
+              <div class="form-section" *ngIf="editingEntry.imageUrl || !editingEntry.imageUrl">
+                <h3 class="section-title">Medien</h3>
                 
-                <!-- Image URL -->
-                <ion-item>
-                  <ion-label position="stacked">Bild URL</ion-label>
-                  <ion-input 
-                    [(ngModel)]="editingEntry.imageUrl" 
-                    placeholder="https://..."
-                    type="url">
-                  </ion-input>
-                </ion-item>
-                <div *ngIf="editingEntry.imageUrl" style="padding: 8px 16px;">
-                  <img 
-                    [src]="editingEntry.imageUrl" 
-                    style="max-width: 100%; height: auto; border-radius: 8px;"
-                    (error)="editingEntry.imageUrl = ''">
+                <div class="form-group">
+                  <ion-item lines="none" class="form-item">
+                    <ion-label position="stacked">Bild URL</ion-label>
+                    <ion-input 
+                      [(ngModel)]="editingEntry.imageUrl" 
+                      placeholder="https://beispiel.com/bild.jpg"
+                      type="url"
+                      class="url-input">
+                    </ion-input>
+                  </ion-item>
+                  <div class="image-preview" *ngIf="editingEntry.imageUrl">
+                    <img 
+                      [src]="editingEntry.imageUrl" 
+                      alt="Vorschau"
+                      (error)="editingEntry.imageUrl = ''">
+                  </div>
                 </div>
+              </div>
                 
-                <!-- Story role selection for character entries -->
-                <ion-item *ngIf="isCharacterEntry()">
-                  <ion-label position="stacked">Story-Rolle</ion-label>
-                  <ion-select 
-                    [(ngModel)]="editingEntry.storyRole"
-                    placeholder="Rolle auswählen..."
-                    interface="popover">
-                    <ion-select-option value="">Keine Rolle</ion-select-option>
-                    <ion-select-option 
-                      *ngFor="let role of storyRoles" 
-                      [value]="role.value">
-                      {{ role.label }}
-                    </ion-select-option>
-                  </ion-select>
-                </ion-item>
+              <!-- Story Role Section -->
+              <div class="form-section" *ngIf="isCharacterEntry()">
+                <h3 class="section-title">Story-Einstellungen</h3>
                 
-                <!-- Custom fields -->
-                <ion-item-group>
-                  <ion-item-divider>
-                    <ion-label>Benutzerdefinierte Felder</ion-label>
-                  </ion-item-divider>
+                <div class="form-group">
+                  <ion-item lines="none" class="form-item">
+                    <ion-label position="stacked">Story-Rolle</ion-label>
+                    <ion-select 
+                      [(ngModel)]="editingEntry.storyRole"
+                      placeholder="Rolle auswählen..."
+                      interface="popover"
+                      class="role-select">
+                      <ion-select-option value="">Keine Rolle</ion-select-option>
+                      <ion-select-option 
+                        *ngFor="let role of storyRoles" 
+                        [value]="role.value">
+                        {{ role.label }}
+                      </ion-select-option>
+                    </ion-select>
+                  </ion-item>
+                </div>
+              </div>
+                
+              <!-- Custom Fields Section -->
+              <div class="form-section">
+                <div class="section-header">
+                  <h3 class="section-title">Benutzerdefinierte Felder</h3>
+                  <ion-button 
+                    size="small" 
+                    fill="outline" 
+                    color="primary"
+                    [disabled]="!newCustomFieldName.trim()"
+                    (click)="addCustomField()">
+                    <ion-icon name="add" slot="start"></ion-icon>
+                    Feld hinzufügen
+                  </ion-button>
+                </div>
                   
-                  <!-- Existing custom fields -->
-                  <div *ngFor="let field of editingEntry.customFields">
-                    <ion-item>
-                      <ion-label position="stacked">Feldname</ion-label>
-                      <ion-input 
-                        [(ngModel)]="field.name" 
-                        placeholder="Feldname...">
-                      </ion-input>
-                    </ion-item>
-                    <ion-item>
+                <!-- Existing custom fields -->
+                <div class="custom-fields-container">
+                  <div *ngFor="let field of editingEntry.customFields" class="custom-field-item">
+                    <div class="custom-field-header">
+                      <ion-item lines="none" class="form-item field-name-item">
+                        <ion-label position="stacked">Feldname</ion-label>
+                        <ion-input 
+                          [(ngModel)]="field.name" 
+                          placeholder="Feldname eingeben...">
+                        </ion-input>
+                      </ion-item>
+                      <ion-button 
+                        fill="clear" 
+                        color="danger"
+                        size="small"
+                        (click)="removeCustomField(field.id)"
+                        class="remove-field-btn">
+                        <ion-icon name="trash" slot="icon-only"></ion-icon>
+                      </ion-button>
+                    </div>
+                    <ion-item lines="none" class="form-item">
                       <ion-label position="stacked">Feldwert</ion-label>
                       <ion-textarea 
                         [(ngModel)]="field.value" 
-                        placeholder="Feldwert..."
-                        rows="3">
+                        placeholder="Feldwert eingeben..."
+                        rows="3"
+                        autoGrow="true">
                       </ion-textarea>
-                      <ion-button 
-                        slot="end" 
-                        fill="clear" 
-                        color="danger"
-                        (click)="removeCustomField(field.id)">
-                        <ion-icon name="trash" slot="icon-only"></ion-icon>
-                      </ion-button>
                     </ion-item>
                   </div>
                   
-                  <!-- Add new custom field -->
-                  <ion-item>
-                    <ion-label position="stacked">Neuer Feldname</ion-label>
-                    <ion-input 
-                      [(ngModel)]="newCustomFieldName" 
-                      placeholder="Feldname...">
-                    </ion-input>
-                  </ion-item>
-                  <ion-item>
-                    <ion-label position="stacked">Feldwert</ion-label>
-                    <ion-textarea 
-                      [(ngModel)]="newCustomFieldValue" 
-                      placeholder="Feldwert..."
-                      rows="3">
-                    </ion-textarea>
-                    <ion-button 
-                      slot="end" 
-                      fill="clear" 
-                      [disabled]="!newCustomFieldName.trim()"
-                      (click)="addCustomField()">
-                      <ion-icon name="add" slot="icon-only"></ion-icon>
-                    </ion-button>
-                  </ion-item>
-                </ion-item-group>
-                
-                <!-- Content -->
-                <ion-item>
-                  <ion-label position="stacked">Inhalt</ion-label>
-                  <ion-textarea 
-                    [(ngModel)]="editingEntry.content" 
-                    placeholder="Beschreibung, Details, Notizen..."
-                    rows="6">
-                  </ion-textarea>
-                </ion-item>
-                
-                <!-- Action Buttons -->
-                <div style="padding: 16px; display: flex; gap: 8px; justify-content: flex-end;">
-                  <ion-button (click)="deleteEntry()" fill="outline" color="danger">
-                    <ion-icon name="trash" slot="start"></ion-icon>
-                    Löschen
-                  </ion-button>
-                  <ion-button (click)="saveEntry()" color="primary">
-                    <ion-icon name="save" slot="start"></ion-icon>
-                    Speichern
-                  </ion-button>
+                  <!-- Add new custom field form -->
+                  <div class="new-custom-field">
+                    <ion-item lines="none" class="form-item">
+                      <ion-label position="stacked">Neuer Feldname</ion-label>
+                      <ion-input 
+                        [(ngModel)]="newCustomFieldName" 
+                        placeholder="Feldname eingeben...">
+                      </ion-input>
+                    </ion-item>
+                    <ion-item lines="none" class="form-item">
+                      <ion-label position="stacked">Feldwert</ion-label>
+                      <ion-textarea 
+                        [(ngModel)]="newCustomFieldValue" 
+                        placeholder="Feldwert eingeben..."
+                        rows="3"
+                        autoGrow="true">
+                      </ion-textarea>
+                    </ion-item>
+                  </div>
                 </div>
-              </ion-card-content>
-            </ion-card>
+              </div>
+                
+              <!-- Content Section -->
+              <div class="form-section">
+                <h3 class="section-title">Inhalt</h3>
+                
+                <div class="form-group">
+                  <ion-item lines="none" class="form-item content-item">
+                    <ion-label position="stacked">Beschreibung</ion-label>
+                    <ion-textarea 
+                      [(ngModel)]="editingEntry.content" 
+                      placeholder="Beschreibung, Details, Notizen..."
+                      rows="8"
+                      autoGrow="true"
+                      class="content-textarea">
+                    </ion-textarea>
+                  </ion-item>
+                </div>
+              </div>
+                
+              <!-- Action Buttons -->
+              <div class="modal-actions">
+                <ion-button (click)="deleteEntry()" fill="outline" color="danger" size="default">
+                  <ion-icon name="trash" slot="start"></ion-icon>
+                  Löschen
+                </ion-button>
+                <ion-button (click)="saveEntry()" color="primary" size="default">
+                  <ion-icon name="save" slot="start"></ion-icon>
+                  Speichern
+                </ion-button>
+              </div>
+            </div>
           </ion-content>
         </ng-template>
       </ion-modal>
@@ -438,49 +481,6 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
         </ng-template>
       </ion-modal>
 
-      <!-- Add Entry Modal -->
-      <ion-modal [isOpen]="showAddEntryModal()" (didDismiss)="showAddEntryModal.set(false)">
-        <ng-template>
-          <ion-header>
-            <ion-toolbar>
-              <ion-title>Neuer Eintrag</ion-title>
-              <ion-buttons slot="end">
-                <ion-button (click)="addEntry()" color="primary">
-                  <ion-icon name="save" slot="start"></ion-icon>
-                  Erstellen
-                </ion-button>
-                <ion-button (click)="showAddEntryModal.set(false)">
-                  <ion-icon name="close" slot="icon-only"></ion-icon>
-                </ion-button>
-              </ion-buttons>
-            </ion-toolbar>
-          </ion-header>
-          
-          <ion-content>
-            <ion-card>
-              <ion-card-content>
-                <ion-item>
-                  <ion-label position="stacked">Titel</ion-label>
-                  <ion-input 
-                    [(ngModel)]="newEntry.title" 
-                    placeholder="Titel"
-                    type="text">
-                  </ion-input>
-                </ion-item>
-                
-                <ion-item>
-                  <ion-label position="stacked">Inhalt</ion-label>
-                  <ion-textarea 
-                    [(ngModel)]="newEntry.content" 
-                    placeholder="Inhalt"
-                    rows="6">
-                  </ion-textarea>
-                </ion-item>
-              </ion-card-content>
-            </ion-card>
-          </ion-content>
-        </ng-template>
-      </ion-modal>
     </div>
   `,
   styles: [`
@@ -557,6 +557,287 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
         position: static;
       }
     }
+
+    /* Entry Modal Styling */
+    .entry-modal {
+      --width: 90vw;
+      --max-width: 800px;
+      --height: 90vh;
+      --border-radius: 12px;
+    }
+
+    @media (max-width: 768px) {
+      .entry-modal {
+        --width: 95vw;
+        --height: 95vh;
+      }
+    }
+
+    .entry-modal-content {
+      --padding-start: 0;
+      --padding-end: 0;
+      --padding-top: 0;
+      --padding-bottom: 0;
+    }
+
+    .modal-form-container {
+      padding: 0;
+      max-width: none;
+    }
+
+    /* Form Sections */
+    .form-section {
+      background: var(--ion-color-step-50);
+      margin: 0;
+      padding: 24px;
+      border-bottom: 1px solid var(--ion-color-step-100);
+    }
+
+    .form-section:last-of-type {
+      border-bottom: none;
+    }
+
+    .section-title {
+      margin: 0 0 20px 0;
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: var(--ion-color-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section-title::before {
+      content: '';
+      width: 4px;
+      height: 20px;
+      background: var(--ion-color-primary);
+      border-radius: 2px;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    /* Form Groups and Items */
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group:last-child {
+      margin-bottom: 0;
+    }
+
+    .form-item {
+      --background: white;
+      --border-color: var(--ion-color-step-200);
+      --border-width: 1px;
+      --border-style: solid;
+      --border-radius: 8px;
+      --padding-start: 16px;
+      --padding-end: 16px;
+      --min-height: auto;
+      margin-bottom: 0;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .form-item ion-label {
+      font-weight: 500;
+      color: var(--ion-color-step-600);
+      margin-bottom: 8px;
+    }
+
+    .form-item ion-input,
+    .form-item ion-textarea,
+    .form-item ion-select {
+      --padding-start: 0;
+      --padding-end: 0;
+      font-size: 1rem;
+    }
+
+    .required {
+      color: var(--ion-color-danger);
+      font-weight: 600;
+    }
+
+    /* Specific Input Styling */
+    .title-input {
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
+
+    .content-item {
+      --min-height: 120px;
+    }
+
+    .content-textarea {
+      min-height: 120px;
+      font-family: 'Georgia', serif;
+      line-height: 1.6;
+    }
+
+    /* Tags Styling */
+    .tags-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+      padding: 12px 16px;
+      background: white;
+      border: 1px solid var(--ion-color-step-200);
+      border-radius: 8px;
+      min-height: 50px;
+      align-items: flex-start;
+      align-content: flex-start;
+    }
+
+    .tag-chip {
+      --background: var(--ion-color-primary-tint);
+      --color: var(--ion-color-primary-contrast);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .tag-chip:hover {
+      --background: var(--ion-color-primary);
+      transform: scale(1.05);
+    }
+
+    /* Image Preview */
+    .image-preview {
+      margin-top: 12px;
+      padding: 12px 16px;
+      background: white;
+      border: 1px solid var(--ion-color-step-200);
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .image-preview img {
+      max-width: 100%;
+      max-height: 200px;
+      height: auto;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    /* Custom Fields Styling */
+    .custom-fields-container {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .custom-field-item {
+      background: white;
+      border: 1px solid var(--ion-color-step-200);
+      border-radius: 8px;
+      padding: 16px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .custom-field-header {
+      display: flex;
+      align-items: flex-end;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .field-name-item {
+      flex: 1;
+      margin-bottom: 0;
+    }
+
+    .remove-field-btn {
+      --padding-start: 8px;
+      --padding-end: 8px;
+      height: 40px;
+      margin-bottom: 0;
+    }
+
+    .new-custom-field {
+      background: var(--ion-color-step-100);
+      border: 2px dashed var(--ion-color-step-300);
+      border-radius: 8px;
+      padding: 16px;
+      transition: all 0.2s ease;
+    }
+
+    .new-custom-field:hover {
+      border-color: var(--ion-color-primary);
+      background: var(--ion-color-primary-tint);
+    }
+
+    /* Modal Actions */
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 12px;
+      padding: 24px;
+      background: var(--ion-color-step-100);
+      border-top: 1px solid var(--ion-color-step-200);
+      position: sticky;
+      bottom: 0;
+      z-index: 10;
+    }
+
+    .modal-actions ion-button {
+      --padding-start: 20px;
+      --padding-end: 20px;
+      --height: 44px;
+      font-weight: 500;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .form-section {
+        padding: 16px;
+      }
+
+      .section-header {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .custom-field-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+      }
+
+      .remove-field-btn {
+        align-self: flex-end;
+        width: fit-content;
+      }
+
+      .modal-actions {
+        flex-direction: column-reverse;
+        gap: 8px;
+        padding: 16px;
+      }
+
+      .modal-actions ion-button {
+        width: 100%;
+      }
+    }
+
+    /* Focus states */
+    .form-item:focus-within {
+      --border-color: var(--ion-color-primary);
+      box-shadow: 0 0 0 2px var(--ion-color-primary-tint);
+    }
+
+    /* Loading and disabled states */
+    .form-item[disabled] {
+      opacity: 0.6;
+      pointer-events: none;
+    }
   `]
 })
 export class CodexComponent implements OnInit, OnDestroy {
@@ -576,11 +857,9 @@ export class CodexComponent implements OnInit, OnDestroy {
 
   // Modals
   showAddCategoryModal = signal<boolean>(false);
-  showAddEntryModal = signal<boolean>(false);
 
   // Form data
   newCategory = { title: '', icon: '', description: '' };
-  newEntry = { title: '', content: '' };
   editingEntry: any = {};
   tagInput = '';
   
@@ -728,17 +1007,24 @@ export class CodexComponent implements OnInit, OnDestroy {
     this.categoryMenuId.set(null);
   }
 
-  async addEntry() {
+  async createNewEntry() {
     const storyId = this.storyId();
     const categoryId = this.selectedCategoryId();
-    if (!storyId || !categoryId || !this.newEntry.title.trim()) return;
+    if (!storyId || !categoryId) return;
 
     try {
-      await this.codexService.addEntry(storyId, categoryId, this.newEntry);
-      this.newEntry = { title: '', content: '' };
-      this.showAddEntryModal.set(false);
+      // Create a new entry with default values
+      const newEntry = {
+        title: 'Neuer Eintrag',
+        content: ''
+      };
+      
+      const createdEntry = await this.codexService.addEntry(storyId, categoryId, newEntry);
+      
+      // Directly open the edit dialog for the new entry
+      this.selectEntry(createdEntry);
     } catch (error) {
-      console.error('Error adding entry:', error);
+      console.error('Error creating entry:', error);
     }
   }
 
