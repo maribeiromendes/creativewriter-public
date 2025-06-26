@@ -531,9 +531,9 @@ export class ProseMirrorEditorService {
     const insertPos = beatPos + beatNode.nodeSize;
     
     // Create paragraph with the generated content
-    const paragraph = state.schema.nodes['paragraph'].create(null, [
-      state.schema.text(content)
-    ]);
+    // Only create text node if content is not empty
+    const textNodes = content ? [state.schema.text(content)] : [];
+    const paragraph = state.schema.nodes['paragraph'].create(null, textNodes);
     
     // Check if there's already a paragraph right after this beat node
     const nextNode = state.doc.nodeAt(insertPos);
