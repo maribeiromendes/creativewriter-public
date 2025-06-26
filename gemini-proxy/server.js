@@ -1,7 +1,6 @@
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
-const fetch = require('node-fetch');
 
 const app = express();
 const PORT = process.env.PORT || 3002;
@@ -43,7 +42,7 @@ app.all('/api/gemini/*', async (req, res) => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(req.body)
+        body: req.method !== 'GET' ? JSON.stringify(req.body) : undefined
       });
       
       if (!response.ok) {
