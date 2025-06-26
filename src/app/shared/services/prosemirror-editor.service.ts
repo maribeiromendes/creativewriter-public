@@ -442,19 +442,21 @@ export class ProseMirrorEditorService {
     const beatNodePosition = this.findBeatNodePosition(event.beatId);
     if (beatNodePosition === null) return;
     
+    // Clear any existing content after the beat node first
+    this.clearContentAfterBeatNode(event.beatId);
+    
     // Track accumulating content for real-time insertion
     let accumulatedContent = '';
-    let insertedPosition = beatNodePosition + 1; // Position after beat node
+    const startPosition = beatNodePosition + 1; // Position right after beat node
     
     // Subscribe to streaming generation events
     const generationSubscription = this.beatAIService.generation$.subscribe(generationEvent => {
       if (generationEvent.beatId !== event.beatId) return;
       
       if (!generationEvent.isComplete && generationEvent.chunk) {
-        // Stream chunk received - insert new text at current position
+        // Stream chunk received - append to accumulated content and insert
         accumulatedContent += generationEvent.chunk;
-        this.insertTextAtPosition(insertedPosition, generationEvent.chunk);
-        insertedPosition += generationEvent.chunk.length;
+        this.replaceContentAfterBeatNode(event.beatId, accumulatedContent);
       } else if (generationEvent.isComplete) {
         // Generation completed
         this.updateBeatNode(event.beatId, { 
@@ -485,12 +487,8 @@ export class ProseMirrorEditorService {
       error: (error) => {
         console.error('Beat generation failed:', error);
         
-        // Clean up any partial content and insert error message
-        if (accumulatedContent) {
-          this.replaceContentAfterBeatNode(event.beatId, 'Fehler bei der Generierung. Bitte versuchen Sie es erneut.');
-        } else {
-          this.insertContentAfterBeatNode(event.beatId, 'Fehler bei der Generierung. Bitte versuchen Sie es erneut.');
-        }
+        // Insert error message
+        this.replaceContentAfterBeatNode(event.beatId, 'Fehler bei der Generierung. Bitte versuchen Sie es erneut.');
         
         this.updateBeatNode(event.beatId, { 
           isGenerating: false,
@@ -674,20 +672,9 @@ export class ProseMirrorEditorService {
   }
 
   private isGeneratedContent(node: ProseMirrorNode, beatId: string): boolean {
-    // Check if this paragraph is likely generated content by looking at its position
-    // and checking if it contains typical AI-generated patterns
-    if (!node.textContent) return false;
-    
-    // Simple heuristic: if it's a paragraph right after a beat node and contains
-    // typical story content patterns, consider it generated content
-    const text = node.textContent.toLowerCase();
-    const hasStoryPatterns = text.includes('protagonist') || 
-                           text.includes('betritt') || 
-                           text.includes('moment') || 
-                           text.includes('atmosphäre') ||
-                           text.length > 50; // Longer paragraphs are likely generated
-    
-    return hasStoryPatterns;
+    // For streaming, we consider all paragraphs after a beat node as generated content
+    // until we hit another beat node or other special content
+    return node.type.name === 'paragraph';
   }
 
   private checkSlashCommand(state: EditorState, onSlashCommand?: (position: number) => void): void {
@@ -816,6 +803,50 @@ export class ProseMirrorEditorService {
     }
   }
 
+  private clearContentAfterBeatNode(beatId: string): void {
+    if (!this.editorView) return;
+    
+    const beatPos = this.findBeatNodePosition(beatId);
+    if (beatPos === null) return;
+    
+    const { state } = this.editorView;
+    const beatNode = state.doc.nodeAt(beatPos);
+    if (!beatNode) return;
+    
+    // Position after the beat node
+    const afterBeatPos = beatPos + beatNode.nodeSize;
+    
+    // Find the range of generated content to clear
+    let endPos = afterBeatPos;
+    let pos = afterBeatPos;
+    
+    // Look for consecutive paragraphs until we hit another beat node or end of document
+    while (pos < state.doc.content.size) {
+      const node = state.doc.nodeAt(pos);
+      if (!node) break;
+      
+      // Stop if we hit another beat node
+      if (node.type.name === 'beatAI') {
+        break;
+      }
+      
+      // Include paragraphs in the range to clear
+      if (node.type.name === 'paragraph') {
+        endPos = pos + node.nodeSize;
+        pos = endPos;
+      } else {
+        // Stop at other node types (images, etc.)
+        break;
+      }
+    }
+    
+    // Clear existing generated content
+    if (endPos > afterBeatPos) {
+      const tr = state.tr.delete(afterBeatPos, endPos);
+      this.editorView.dispatch(tr);
+    }
+  }
+
   private replaceContentAfterBeatNode(beatId: string, newContent: string): void {
     if (!this.editorView) return;
     
@@ -833,29 +864,31 @@ export class ProseMirrorEditorService {
     let endPos = afterBeatPos;
     let pos = afterBeatPos;
     
-    // Look for consecutive paragraphs that were generated by this beat
+    // Look for consecutive paragraphs until we hit another beat node or end of document
     while (pos < state.doc.content.size) {
       const node = state.doc.nodeAt(pos);
       if (!node) break;
       
-      if (node.type.name === 'paragraph' && this.isGeneratedContent(node, beatId)) {
+      // Stop if we hit another beat node
+      if (node.type.name === 'beatAI') {
+        break;
+      }
+      
+      // Include paragraphs in the range to replace
+      if (node.type.name === 'paragraph') {
         endPos = pos + node.nodeSize;
         pos = endPos;
       } else {
+        // Stop at other node types (images, etc.)
         break;
       }
     }
     
     // Replace the range with new content
-    if (endPos > afterBeatPos) {
-      const paragraphNodes = this.createParagraphsFromContent(newContent, state);
-      const fragment = Fragment.from(paragraphNodes);
-      const slice = new Slice(fragment, 0, 0);
-      const tr = state.tr.replaceRange(afterBeatPos, endPos, slice);
-      this.editorView.dispatch(tr);
-    } else {
-      // No existing content, just insert
-      this.insertContentAfterBeatNode(beatId, newContent);
-    }
+    const paragraphNodes = this.createParagraphsFromContent(newContent, state);
+    const fragment = Fragment.from(paragraphNodes);
+    const slice = new Slice(fragment, 0, 0);
+    const tr = state.tr.replaceRange(afterBeatPos, endPos, slice);
+    this.editorView.dispatch(tr);
   }
 }
