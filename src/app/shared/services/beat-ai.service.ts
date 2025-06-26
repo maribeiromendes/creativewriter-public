@@ -186,26 +186,31 @@ export class BeatAIService {
           ? this.promptManager.getCurrentOrPreviousSceneText(options.sceneId)
           : '';
 
-        // Build the prompt in messages format
-        const messages = `<messages>
-<message role="system">${story.settings.systemMessage}</message>
-<message role="user">Take into account the following glossary of characters/locations/items/lore... when writing your response:
-${codexText}
+        // Build template placeholders
+        const placeholders = {
+          systemMessage: story.settings.systemMessage,
+          codexEntries: codexText,
+          storySoFar: storySoFar,
+          storyTitle: story.title || 'Story',
+          sceneFullText: sceneText,
+          wordCount: (options.wordCount || 200).toString(),
+          prompt: userPrompt,
+          writingStyle: story.settings.beatInstruction === 'continue' 
+            ? 'Setze die Geschichte fort' 
+            : 'Bleibe im Moment'
+        };
 
-The story so far:
-${storySoFar}</message>
-<message role="assistant"># ${story.title || 'Story'}
+        // Load template and replace placeholders
+        const template = await this.loadTemplate();
+        let processedTemplate = template;
+        
+        Object.entries(placeholders).forEach(([key, value]) => {
+          const placeholder = `{${key}}`;
+          const regex = new RegExp(placeholder.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
+          processedTemplate = processedTemplate.replace(regex, value || '');
+        });
 
-${sceneText}</message>
-<message role="user">Write ${options.wordCount || 200} words that continue the story, using the following instructions:
-<instructions>
-${userPrompt}
-
-${story.settings.beatInstruction === 'continue' ? 'Setze die Geschichte fort' : 'Bleibe im Moment'}
-</instructions></message>
-</messages>`;
-
-        return messages;
+        return processedTemplate;
       }),
       map(result => result)
     );
@@ -334,6 +339,36 @@ ${story.settings.beatInstruction === 'continue' ? 'Setze die Geschichte fort' : 
       .toLowerCase()
       .replace(/[^a-z0-9]+(.)/g, (_, chr) => chr.toUpperCase())
       .replace(/[^a-zA-Z0-9]/g, '');
+  }
+
+  private async loadTemplate(): Promise<string> {
+    try {
+      const response = await fetch('/assets/templates/novelcrafter-beat-generation.template');
+      if (!response.ok) {
+        throw new Error(`Template not found: ${response.status}`);
+      }
+      return await response.text();
+    } catch (error) {
+      console.warn('Could not load template, using fallback:', error);
+      // Fallback template
+      return `<messages>
+<message role="system">{systemMessage}</message>
+<message role="user">Take into account the following glossary of characters/locations/items/lore... when writing your response:
+{codexEntries}
+
+The story so far:
+{storySoFar}</message>
+<message role="assistant"># {storyTitle}
+
+{sceneFullText}</message>
+<message role="user">Write {wordCount} words that continue the story, using the following instructions:
+<instructions>
+{prompt}
+
+{writingStyle}
+</instructions></message>
+</messages>`;
+    }
   }
 
 }
