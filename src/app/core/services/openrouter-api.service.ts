@@ -14,6 +14,10 @@ export interface OpenRouterRequest {
   temperature?: number;
   top_p?: number;
   stream?: boolean;
+  safety_settings?: Array<{
+    category: string;
+    threshold: string;
+  }>;
 }
 
 export interface OpenRouterResponse {
@@ -99,7 +103,25 @@ export class OpenRouterApiService {
       ],
       max_tokens: maxTokens,
       temperature: options.temperature !== undefined ? options.temperature : settings.openRouter.temperature,
-      top_p: options.topP !== undefined ? options.topP : settings.openRouter.topP
+      top_p: options.topP !== undefined ? options.topP : settings.openRouter.topP,
+      safety_settings: [
+        {
+          category: "HARM_CATEGORY_HARASSMENT",
+          threshold: "BLOCK_NONE"
+        },
+        {
+          category: "HARM_CATEGORY_HATE_SPEECH",
+          threshold: "BLOCK_NONE"
+        },
+        {
+          category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+          threshold: "BLOCK_NONE"
+        },
+        {
+          category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+          threshold: "BLOCK_NONE"
+        }
+      ]
     };
 
     // Create abort subject for this request
