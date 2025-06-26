@@ -52,7 +52,7 @@ Was bisher passiert ist:
 Was gerade passiert ist:
 {sceneFullText}
 
-Schrebeibe {wordCount} Wörter welche die Geschichte fortsetzen mit folgenden Aufgaben:
+Schreibe {wordCount} Wörter welche die Geschichte fortsetzen mit folgenden Aufgaben:
 {prompt}
 
 {writingStyle}`,
