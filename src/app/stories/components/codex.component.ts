@@ -587,10 +587,10 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
 
     /* Form Sections */
     .form-section {
-      background: var(--ion-color-step-50);
+      background: var(--ion-background-color);
       margin: 0;
       padding: 24px;
-      border-bottom: 1px solid var(--ion-color-step-100);
+      border-bottom: 1px solid var(--ion-color-step-150);
     }
 
     .form-section:last-of-type {
@@ -634,30 +634,44 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
     }
 
     .form-item {
-      --background: white;
-      --border-color: var(--ion-color-step-200);
-      --border-width: 1px;
-      --border-style: solid;
-      --border-radius: 8px;
-      --padding-start: 16px;
-      --padding-end: 16px;
+      --background: var(--ion-item-background);
+      --border-color: transparent;
+      --border-width: 0;
+      --border-style: none;
+      --border-radius: 0;
+      --padding-start: 0;
+      --padding-end: 0;
+      --inner-padding-start: 0;
+      --inner-padding-end: 0;
       --min-height: auto;
       margin-bottom: 0;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     }
 
     .form-item ion-label {
       font-weight: 500;
-      color: var(--ion-color-step-600);
+      color: var(--ion-text-color);
       margin-bottom: 8px;
+      opacity: 0.8;
     }
 
     .form-item ion-input,
     .form-item ion-textarea,
     .form-item ion-select {
-      --padding-start: 0;
-      --padding-end: 0;
+      --background: var(--ion-background-color);
+      --padding-start: 16px;
+      --padding-end: 16px;
+      --padding-top: 12px;
+      --padding-bottom: 12px;
       font-size: 1rem;
+      border: 1px solid var(--ion-color-step-200);
+      border-radius: 8px;
+      margin-top: 8px;
+    }
+    
+    .form-item ion-input:focus,
+    .form-item ion-textarea:focus,
+    .form-item ion-select:focus {
+      border-color: var(--ion-color-primary);
     }
 
     .required {
@@ -688,7 +702,7 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
       gap: 8px;
       margin-top: 12px;
       padding: 12px 16px;
-      background: white;
+      background: var(--ion-item-background);
       border: 1px solid var(--ion-color-step-200);
       border-radius: 8px;
       min-height: 50px;
@@ -712,7 +726,7 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
     .image-preview {
       margin-top: 12px;
       padding: 12px 16px;
-      background: white;
+      background: var(--ion-item-background);
       border: 1px solid var(--ion-color-step-200);
       border-radius: 8px;
       text-align: center;
@@ -734,7 +748,7 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
     }
 
     .custom-field-item {
-      background: white;
+      background: var(--ion-item-background);
       border: 1px solid var(--ion-color-step-200);
       border-radius: 8px;
       padding: 16px;
@@ -761,7 +775,7 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
     }
 
     .new-custom-field {
-      background: var(--ion-color-step-100);
+      background: var(--ion-color-step-50);
       border: 2px dashed var(--ion-color-step-300);
       border-radius: 8px;
       padding: 16px;
@@ -780,7 +794,7 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
       align-items: center;
       gap: 12px;
       padding: 24px;
-      background: var(--ion-color-step-100);
+      background: var(--ion-toolbar-background);
       border-top: 1px solid var(--ion-color-step-200);
       position: sticky;
       bottom: 0;
@@ -828,8 +842,10 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
     }
 
     /* Focus states */
-    .form-item:focus-within {
-      --border-color: var(--ion-color-primary);
+    .form-item ion-input.has-focus,
+    .form-item ion-textarea.has-focus,
+    .form-item ion-select.has-focus {
+      border-color: var(--ion-color-primary);
       box-shadow: 0 0 0 2px var(--ion-color-primary-tint);
     }
 
@@ -837,6 +853,44 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
     .form-item[disabled] {
       opacity: 0.6;
       pointer-events: none;
+    }
+
+    /* Dark mode specific adjustments */
+    @media (prefers-color-scheme: dark) {
+      .form-section {
+        background: var(--ion-background-color);
+      }
+      
+      .form-item ion-input,
+      .form-item ion-textarea,
+      .form-item ion-select {
+        --background: var(--ion-item-background);
+        border-color: var(--ion-color-step-300);
+      }
+      
+      .tags-container {
+        background: var(--ion-item-background);
+        border-color: var(--ion-color-step-300);
+      }
+      
+      .image-preview {
+        background: var(--ion-item-background);
+        border-color: var(--ion-color-step-300);
+      }
+      
+      .custom-field-item {
+        background: var(--ion-item-background);
+        border-color: var(--ion-color-step-300);
+      }
+      
+      .new-custom-field {
+        background: var(--ion-color-step-100);
+        border-color: var(--ion-color-step-400);
+      }
+      
+      .new-custom-field:hover {
+        background: var(--ion-color-primary-shade);
+      }
     }
   `]
 })
