@@ -83,7 +83,7 @@ import { Story, StorySettings, DEFAULT_STORY_SETTINGS } from '../models/story.in
         </ion-card-header>
         <ion-card-content>
           <ion-text color="medium">
-            <p>Template-Struktur für Beat-Generierung mit Kontext. Verfügbare Platzhalter:</p>
+            <p>XML-Template für Beat-Generierung im Messages-Format. Verfügbare Platzhalter:</p>
           </ion-text>
           
           <div class="template-placeholders">
@@ -333,12 +333,14 @@ export class StorySettingsComponent implements OnInit {
   private originalSettings!: StorySettings;
   
   placeholders = [
-    '{SystemMessage}',
+    '{systemMessage}',
     '{codexEntries}',
-    '{summariesOfScenesBefore}',
+    '{storySoFar}',
+    '{storyTitle}',
     '{sceneFullText}',
     '{wordCount}',
     '{prompt}',
+    '{pointOfView}',
     '{writingStyle}'
   ];
 

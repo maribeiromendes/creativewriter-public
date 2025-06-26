@@ -6,7 +6,6 @@ import { SettingsService } from '../../core/services/settings.service';
 import { StoryService } from '../../stories/services/story.service';
 import { CodexService } from '../../stories/services/codex.service';
 import { PromptManagerService } from './prompt-manager.service';
-import { NOVELCRAFTER_BEAT_TEMPLATE } from '../templates/novelcrafter-beat-generation.template';
 
 @Injectable({
   providedIn: 'root'
@@ -209,8 +208,8 @@ export class BeatAIService {
             : 'Bleibe im Moment'
         };
 
-        // Use imported template and replace placeholders
-        let processedTemplate = NOVELCRAFTER_BEAT_TEMPLATE;
+        // Use template from story settings and replace placeholders
+        let processedTemplate = story.settings.beatGenerationTemplate;
         
         Object.entries(placeholders).forEach(([key, value]) => {
           const placeholder = `{${key}}`;
