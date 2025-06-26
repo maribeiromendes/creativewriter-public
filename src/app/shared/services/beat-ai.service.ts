@@ -51,7 +51,7 @@ export class BeatAIService {
     });
 
     // Create structured prompt using template
-    const wordCount = options.wordCount || 200;
+    const wordCount = options.wordCount || 400;
     
     return this.buildStructuredPromptFromTemplate(prompt, { ...options, wordCount }).pipe(
       switchMap(enhancedPrompt => {

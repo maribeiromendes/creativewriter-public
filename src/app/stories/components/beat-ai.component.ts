@@ -726,15 +726,23 @@ export class BeatAIComponent implements OnInit, OnDestroy {
   @ViewChild('promptInput') promptInput!: ElementRef<HTMLTextAreaElement>;
   
   currentPrompt: string = '';
-  selectedWordCount: number = 200;
+  selectedWordCount: number = 400;
   selectedModel: string = '';
   availableModels: ModelOption[] = [];
   wordCountOptions = [
+    { value: 20, label: '~20 Wörter' },
     { value: 50, label: '~50 Wörter' },
     { value: 100, label: '~100 Wörter' },
     { value: 200, label: '~200 Wörter' },
-    { value: 300, label: '~300 Wörter' },
-    { value: 500, label: '~500 Wörter' }
+    { value: 400, label: '~400 Wörter' },
+    { value: 600, label: '~600 Wörter' },
+    { value: 800, label: '~800 Wörter' },
+    { value: 1000, label: '~1.000 Wörter' },
+    { value: 1500, label: '~1.500 Wörter' },
+    { value: 2000, label: '~2.000 Wörter' },
+    { value: 3000, label: '~3.000 Wörter' },
+    { value: 5000, label: '~5.000 Wörter' },
+    { value: 8000, label: '~8.000 Wörter' }
   ];
   showPreviewModal: boolean = false;
   previewContent: string = '';
