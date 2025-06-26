@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Observable, Subject, delay, map, scan, timer, catchError, of, switchMap, from } from 'rxjs';
+import { Observable, Subject, delay, map, scan, timer, catchError, of, switchMap, from, tap } from 'rxjs';
 import { BeatAI, BeatAIGenerationEvent, BeatAIPromptEvent } from '../../stories/models/beat-ai.interface';
 import { OpenRouterApiService } from '../../core/services/openrouter-api.service';
 import { GoogleGeminiApiService } from '../../core/services/google-gemini-api.service';
@@ -75,23 +75,10 @@ export class BeatAIService {
 
         // Choose API based on configuration (prefer Google Gemini if available)
         const apiCall = useGoogleGemini 
-          ? this.callGoogleGeminiAPI(enhancedPrompt, options, maxTokens, wordCount, requestId)
-          : this.callOpenRouterAPI(enhancedPrompt, options, maxTokens, wordCount, requestId);
+          ? this.callGoogleGeminiStreamingAPI(enhancedPrompt, options, maxTokens, wordCount, requestId, beatId)
+          : this.callOpenRouterStreamingAPI(enhancedPrompt, options, maxTokens, wordCount, requestId, beatId);
 
         return apiCall.pipe(
-          map(content => {
-            // Emit generation complete
-            this.generationSubject.next({
-              beatId,
-              chunk: content,
-              isComplete: true
-            });
-            
-            // Clean up active generation
-            this.activeGenerations.delete(beatId);
-            
-            return content;
-          }),
           catchError(error => {
             console.error('AI API error, using fallback:', error);
             // Clean up active generation
@@ -109,41 +96,79 @@ export class BeatAIService {
     );
   }
 
-  private callGoogleGeminiAPI(prompt: string, options: any, maxTokens: number, wordCount: number, requestId: string): Observable<string> {
+  private callGoogleGeminiStreamingAPI(prompt: string, options: any, maxTokens: number, wordCount: number, requestId: string, beatId: string): Observable<string> {
     // Parse the structured prompt to extract messages
     const messages = this.parseStructuredPrompt(prompt);
     
-    return this.googleGeminiApi.generateText(prompt, {
+    let accumulatedContent = '';
+    
+    return this.googleGeminiApi.generateTextStream(prompt, {
       model: options.model,
       maxTokens: maxTokens,
       wordCount: wordCount,
       requestId: requestId,
       messages: messages
     }).pipe(
-      map(response => {
-        if (response.candidates && response.candidates.length > 0) {
-          const content = response.candidates[0].content.parts[0].text;
-          return content;
+      tap((chunk: string) => {
+        // Emit each chunk as it arrives
+        accumulatedContent += chunk;
+        this.generationSubject.next({
+          beatId,
+          chunk: chunk,
+          isComplete: false
+        });
+      }),
+      scan((acc, chunk) => acc + chunk, ''), // Accumulate chunks
+      tap({
+        complete: () => {
+          // Emit completion
+          this.generationSubject.next({
+            beatId,
+            chunk: '',
+            isComplete: true
+          });
+          
+          // Clean up active generation
+          this.activeGenerations.delete(beatId);
         }
-        throw new Error('No content generated from Google Gemini');
-      })
+      }),
+      map(() => accumulatedContent) // Return full content at the end
     );
   }
 
-  private callOpenRouterAPI(prompt: string, options: any, maxTokens: number, wordCount: number, requestId: string): Observable<string> {
-    return this.openRouterApi.generateText(prompt, {
+  private callOpenRouterStreamingAPI(prompt: string, options: any, maxTokens: number, wordCount: number, requestId: string, beatId: string): Observable<string> {
+    let accumulatedContent = '';
+    
+    return this.openRouterApi.generateTextStream(prompt, {
       model: options.model,
       maxTokens: maxTokens,
       wordCount: wordCount,
       requestId: requestId
     }).pipe(
-      map(response => {
-        if (response.choices && response.choices.length > 0) {
-          const content = response.choices[0].message.content;
-          return content;
+      tap((chunk: string) => {
+        // Emit each chunk as it arrives
+        accumulatedContent += chunk;
+        this.generationSubject.next({
+          beatId,
+          chunk: chunk,
+          isComplete: false
+        });
+      }),
+      scan((acc, chunk) => acc + chunk, ''), // Accumulate chunks
+      tap({
+        complete: () => {
+          // Emit completion
+          this.generationSubject.next({
+            beatId,
+            chunk: '',
+            isComplete: true
+          });
+          
+          // Clean up active generation
+          this.activeGenerations.delete(beatId);
         }
-        throw new Error('No content generated from OpenRouter');
-      })
+      }),
+      map(() => accumulatedContent) // Return full content at the end
     );
   }
 

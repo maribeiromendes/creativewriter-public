@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, tap, takeUntil, Subject } from 'rxjs';
+import { Observable, tap, takeUntil, Subject, map } from 'rxjs';
 import { SettingsService } from './settings.service';
 import { AIRequestLoggerService } from './ai-request-logger.service';
 
@@ -72,6 +72,7 @@ export class GoogleGeminiApiService {
     wordCount?: number;
     requestId?: string;
     messages?: Array<{role: 'system' | 'user' | 'assistant', content: string}>;
+    stream?: boolean;
   } = {}): Observable<GoogleGeminiResponse> {
     const settings = this.settingsService.getSettings();
     const startTime = Date.now();
@@ -247,6 +248,181 @@ export class GoogleGeminiApiService {
       this.abortSubjects.delete(requestId);
     }
     this.requestMetadata.delete(requestId);
+  }
+
+  generateTextStream(prompt: string, options: {
+    model?: string;
+    maxTokens?: number;
+    temperature?: number;
+    topP?: number;
+    wordCount?: number;
+    requestId?: string;
+    messages?: Array<{role: 'system' | 'user' | 'assistant', content: string}>;
+  } = {}): Observable<string> {
+    const settings = this.settingsService.getSettings();
+    const startTime = Date.now();
+    
+    if (!settings.googleGemini.enabled || !settings.googleGemini.apiKey) {
+      throw new Error('Google Gemini API ist nicht aktiviert oder API-Key fehlt');
+    }
+
+    const model = options.model || settings.googleGemini.model;
+    if (!model) {
+      throw new Error('Kein AI-Modell ausgewählt');
+    }
+
+    const maxTokens = options.maxTokens || 500;
+    const wordCount = options.wordCount || Math.floor(maxTokens / 1.3);
+
+    // Log the request
+    const logId = this.aiLogger.logRequest({
+      endpoint: `${this.API_BASE_URL}/${model}:streamGenerateContent`,
+      model: model,
+      wordCount: wordCount,
+      maxTokens: maxTokens,
+      prompt: prompt
+    });
+
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json'
+    });
+
+    // Convert messages format to Gemini format
+    const contents = this.convertMessagesToContents(options.messages, prompt);
+
+    const request: GoogleGeminiRequest = {
+      contents: contents,
+      generationConfig: {
+        temperature: options.temperature !== undefined ? options.temperature : settings.googleGemini.temperature,
+        topP: options.topP !== undefined ? options.topP : settings.googleGemini.topP,
+        maxOutputTokens: maxTokens
+      },
+      safetySettings: [
+        {
+          category: "HARM_CATEGORY_HARASSMENT",
+          threshold: "BLOCK_NONE"
+        },
+        {
+          category: "HARM_CATEGORY_HATE_SPEECH",
+          threshold: "BLOCK_NONE"
+        },
+        {
+          category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+          threshold: "BLOCK_NONE"
+        },
+        {
+          category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+          threshold: "BLOCK_NONE"
+        }
+      ]
+    };
+
+    // Create abort subject for this request
+    const requestId = options.requestId || this.generateRequestId();
+    const abortSubject = new Subject<void>();
+    this.abortSubjects.set(requestId, abortSubject);
+    
+    // Store request metadata for abort handling
+    this.requestMetadata.set(requestId, { logId, startTime });
+
+    const url = `${this.API_BASE_URL}/${model}:streamGenerateContent`;
+
+    // Debug logging for Gemini API
+    console.log('🔍 Gemini Streaming API Debug:', {
+      model: model,
+      maxOutputTokens: maxTokens,
+      wordCount: options.wordCount,
+      contentsLength: contents.length,
+      temperature: request.generationConfig?.temperature,
+      requestUrl: url,
+      contentsPreview: contents.map(c => ({ role: c.role, textLength: c.parts[0].text.length }))
+    });
+
+    return new Observable<string>(observer => {
+      let accumulatedContent = '';
+      
+      // Use fetch for streaming since Angular HttpClient doesn't support streaming responses well
+      fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(request)
+      }).then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const reader = response.body?.getReader();
+        if (!reader) {
+          throw new Error('Failed to get response reader');
+        }
+        
+        const decoder = new TextDecoder();
+        
+        const readStream = (): Promise<void> => {
+          return reader.read().then(({ done, value }) => {
+            if (done) {
+              const duration = Date.now() - startTime;
+              console.log('🔍 Gemini Streaming Complete:', {
+                duration: duration + 'ms',
+                totalContentLength: accumulatedContent.length,
+                wordCount: accumulatedContent.split(/\s+/).length
+              });
+              
+              observer.complete();
+              this.aiLogger.logSuccess(logId, accumulatedContent, duration);
+              this.cleanupRequest(requestId);
+              return;
+            }
+            
+            const chunk = decoder.decode(value, { stream: true });
+            const lines = chunk.split('\n');
+            
+            for (const line of lines) {
+              if (line.trim().startsWith('data: ')) {
+                try {
+                  const data = JSON.parse(line.substring(6));
+                  if (data.candidates?.[0]?.content?.parts?.[0]?.text) {
+                    const newText = data.candidates[0].content.parts[0].text;
+                    accumulatedContent += newText;
+                    observer.next(newText);
+                  }
+                } catch (e) {
+                  // Ignore parsing errors for incomplete JSON
+                }
+              }
+            }
+            
+            return readStream();
+          });
+        }
+        
+        return readStream();
+      }).catch(error => {
+        const duration = Date.now() - startTime;
+        let errorMessage = 'Unknown error';
+        
+        if (error.message) {
+          errorMessage = error.message;
+        }
+        
+        observer.error(error);
+        this.aiLogger.logError(logId, errorMessage, duration);
+        this.cleanupRequest(requestId);
+      });
+      
+      // Handle abort
+      const abortSubscription = abortSubject.subscribe(() => {
+        observer.complete();
+      });
+      
+      return () => {
+        abortSubscription.unsubscribe();
+      };
+    }).pipe(
+      takeUntil(abortSubject)
+    );
   }
 
   private generateRequestId(): string {

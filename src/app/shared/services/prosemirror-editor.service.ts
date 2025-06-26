@@ -1,7 +1,7 @@
 import { Injectable, Injector, ApplicationRef, EnvironmentInjector } from '@angular/core';
 import { EditorState, Transaction, Plugin, PluginKey } from 'prosemirror-state';
 import { EditorView } from 'prosemirror-view';
-import { Schema, DOMParser, DOMSerializer, Node as ProseMirrorNode } from 'prosemirror-model';
+import { Schema, DOMParser, DOMSerializer, Node as ProseMirrorNode, Fragment, Slice } from 'prosemirror-model';
 import { schema } from 'prosemirror-schema-basic';
 import { addListNodes } from 'prosemirror-schema-list';
 import { keymap } from 'prosemirror-keymap';
@@ -442,7 +442,31 @@ export class ProseMirrorEditorService {
     const beatNodePosition = this.findBeatNodePosition(event.beatId);
     if (beatNodePosition === null) return;
     
-    // Generate AI content and insert the final result
+    // Track accumulating content for real-time insertion
+    let accumulatedContent = '';
+    let insertedPosition = beatNodePosition + 1; // Position after beat node
+    
+    // Subscribe to streaming generation events
+    const generationSubscription = this.beatAIService.generation$.subscribe(generationEvent => {
+      if (generationEvent.beatId !== event.beatId) return;
+      
+      if (!generationEvent.isComplete && generationEvent.chunk) {
+        // Stream chunk received - insert new text at current position
+        accumulatedContent += generationEvent.chunk;
+        this.insertTextAtPosition(insertedPosition, generationEvent.chunk);
+        insertedPosition += generationEvent.chunk.length;
+      } else if (generationEvent.isComplete) {
+        // Generation completed
+        this.updateBeatNode(event.beatId, { 
+          isGenerating: false,
+          generatedContent: accumulatedContent,
+          prompt: event.prompt || ''
+        });
+        generationSubscription.unsubscribe();
+      }
+    });
+    
+    // Generate AI content with streaming
     this.beatAIService.generateBeatContent(event.prompt || '', event.beatId, {
       wordCount: event.wordCount,
       model: event.model,
@@ -450,23 +474,31 @@ export class ProseMirrorEditorService {
       chapterId: event.chapterId,
       sceneId: event.sceneId
     }).subscribe({
-      next: (content) => {
-        // Insert the complete content in editor after the beat node
-        this.insertContentAfterBeatNode(event.beatId, content);
+      next: (finalContent) => {
+        // Final content received - ensure beat node is updated
         this.updateBeatNode(event.beatId, { 
           isGenerating: false,
-          generatedContent: content,
+          generatedContent: finalContent,
           prompt: event.prompt || ''
         });
       },
       error: (error) => {
         console.error('Beat generation failed:', error);
-        this.insertContentAfterBeatNode(event.beatId, 'Fehler bei der Generierung. Bitte versuchen Sie es erneut.');
+        
+        // Clean up any partial content and insert error message
+        if (accumulatedContent) {
+          this.replaceContentAfterBeatNode(event.beatId, 'Fehler bei der Generierung. Bitte versuchen Sie es erneut.');
+        } else {
+          this.insertContentAfterBeatNode(event.beatId, 'Fehler bei der Generierung. Bitte versuchen Sie es erneut.');
+        }
+        
         this.updateBeatNode(event.beatId, { 
           isGenerating: false,
           generatedContent: 'Fehler bei der Generierung. Bitte versuchen Sie es erneut.',
           prompt: event.prompt || ''
         });
+        
+        generationSubscription.unsubscribe();
       }
     });
   }
@@ -763,5 +795,67 @@ export class ProseMirrorEditorService {
   requestImageInsert(): void {
     // This will be called by slash commands to request image insertion
     // The actual dialog will be handled by the component
+  }
+
+  private insertTextAtPosition(position: number, text: string): void {
+    if (!this.editorView) return;
+    
+    const { state } = this.editorView;
+    
+    // Validate position bounds
+    if (position < 0 || position > state.doc.content.size) {
+      console.warn('Invalid position for text insertion:', position);
+      return;
+    }
+    
+    try {
+      const tr = state.tr.insertText(text, position);
+      this.editorView.dispatch(tr);
+    } catch (error) {
+      console.error('Failed to insert text at position:', error);
+    }
+  }
+
+  private replaceContentAfterBeatNode(beatId: string, newContent: string): void {
+    if (!this.editorView) return;
+    
+    const beatPos = this.findBeatNodePosition(beatId);
+    if (beatPos === null) return;
+    
+    const { state } = this.editorView;
+    const beatNode = state.doc.nodeAt(beatPos);
+    if (!beatNode) return;
+    
+    // Position after the beat node
+    const afterBeatPos = beatPos + beatNode.nodeSize;
+    
+    // Find the range of generated content to replace
+    let endPos = afterBeatPos;
+    let pos = afterBeatPos;
+    
+    // Look for consecutive paragraphs that were generated by this beat
+    while (pos < state.doc.content.size) {
+      const node = state.doc.nodeAt(pos);
+      if (!node) break;
+      
+      if (node.type.name === 'paragraph' && this.isGeneratedContent(node, beatId)) {
+        endPos = pos + node.nodeSize;
+        pos = endPos;
+      } else {
+        break;
+      }
+    }
+    
+    // Replace the range with new content
+    if (endPos > afterBeatPos) {
+      const paragraphNodes = this.createParagraphsFromContent(newContent, state);
+      const fragment = Fragment.from(paragraphNodes);
+      const slice = new Slice(fragment, 0, 0);
+      const tr = state.tr.replaceRange(afterBeatPos, endPos, slice);
+      this.editorView.dispatch(tr);
+    } else {
+      // No existing content, just insert
+      this.insertContentAfterBeatNode(beatId, newContent);
+    }
   }
 }

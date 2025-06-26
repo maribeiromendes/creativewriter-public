@@ -119,7 +119,7 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
       <!-- Generation Status -->
       <div class="generation-status" *ngIf="beatData.isGenerating">
         <div class="generation-indicator">
-          <span class="generating-text">Generiere Content...</span>
+          <span class="generating-text">Text wird gestreamt...</span>
           <div class="typing-indicator">
             <span></span><span></span><span></span>
           </div>
@@ -766,6 +766,21 @@ export class BeatAIComponent implements OnInit, OnDestroy {
       this.beatData.isEditing = true;
       setTimeout(() => this.focusPromptInput(), 200);
     }
+    
+    // Subscribe to generation events for this beat
+    this.subscription.add(
+      this.beatAIService.generation$.subscribe(generationEvent => {
+        if (generationEvent.beatId === this.beatData.id) {
+          if (generationEvent.isComplete) {
+            // Generation completed
+            this.beatData.isGenerating = false;
+            this.contentUpdate.emit(this.beatData);
+          }
+          // Note: Streaming text is handled directly in the editor via ProseMirror service
+          // The component just tracks the generation state
+        }
+      })
+    );
   }
   
   ngOnDestroy(): void {
