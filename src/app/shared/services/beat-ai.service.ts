@@ -55,8 +55,8 @@ export class BeatAIService {
     
     return this.buildStructuredPromptFromTemplate(prompt, { ...options, wordCount }).pipe(
       switchMap(enhancedPrompt => {
-        // Calculate max tokens based on word count (roughly 1.3 tokens per word)
-        const maxTokens = Math.ceil(wordCount * 1.3);
+        // Calculate max tokens based on word count (roughly 2.5 tokens per German word for Gemini)
+        const maxTokens = Math.ceil(wordCount * 2.5);
         const requestId = this.generateRequestId();
         
         // Store the active generation
