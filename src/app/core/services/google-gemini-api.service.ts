@@ -371,9 +371,25 @@ export class GoogleGeminiApiService {
           return response.json().then(data => {
             console.log('🔍 Gemini Complete Response:', data);
             
-            if (data.candidates?.[0]?.content?.parts?.[0]?.text) {
-              const fullText = data.candidates[0].content.parts[0].text;
-              accumulatedContent = fullText;
+            // Handle array of responses from proxy
+            let fullText = '';
+            if (Array.isArray(data)) {
+              // Proxy returns array of response objects
+              data.forEach(response => {
+                if (response.candidates?.[0]?.content?.parts?.[0]?.text) {
+                  fullText += response.candidates[0].content.parts[0].text;
+                }
+              });
+            } else if (data.candidates?.[0]?.content?.parts?.[0]?.text) {
+              // Single response object
+              fullText = data.candidates[0].content.parts[0].text;
+            }
+            
+            if (!fullText) {
+              throw new Error('No text content in response');
+            }
+            
+            accumulatedContent = fullText;
               
               // Simulate streaming by sending text in chunks
               const chunkSize = 50; // Characters per chunk
@@ -399,9 +415,6 @@ export class GoogleGeminiApiService {
               };
               
               sendChunk();
-            } else {
-              throw new Error('No text content in response');
-            }
           });
         }
         
