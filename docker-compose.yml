@@ -55,6 +55,8 @@ services:
       - PORT=3001
     networks:
       - creativewriter-network
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
 
   gemini-proxy:
     image: ghcr.io/marcodroll/creativewriter2-gemini-proxy:latest
@@ -65,6 +67,8 @@ services:
       - PORT=3002
     networks:
       - creativewriter-network
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
 
 networks:
   creativewriter-network:
