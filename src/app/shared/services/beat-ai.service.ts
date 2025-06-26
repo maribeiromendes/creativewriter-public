@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Observable, Subject, delay, map, scan, timer, catchError, of, switchMap, from } from 'rxjs';
 import { BeatAI, BeatAIGenerationEvent, BeatAIPromptEvent } from '../../stories/models/beat-ai.interface';
 import { OpenRouterApiService } from '../../core/services/openrouter-api.service';
+import { GoogleGeminiApiService } from '../../core/services/google-gemini-api.service';
 import { SettingsService } from '../../core/services/settings.service';
 import { StoryService } from '../../stories/services/story.service';
 import { CodexService } from '../../stories/services/codex.service';
@@ -17,6 +18,7 @@ export class BeatAIService {
 
   constructor(
     private openRouterApi: OpenRouterApiService,
+    private googleGeminiApi: GoogleGeminiApiService,
     private settingsService: SettingsService,
     private storyService: StoryService,
     private codexService: CodexService,
@@ -32,9 +34,12 @@ export class BeatAIService {
   } = {}): Observable<string> {
     const settings = this.settingsService.getSettings();
     
-    // Check if OpenRouter is enabled and configured
-    if (!settings.openRouter.enabled || !settings.openRouter.apiKey) {
-      console.warn('OpenRouter not configured, using fallback content');
+    // Check which API is enabled and configured
+    const useGoogleGemini = settings.googleGemini.enabled && settings.googleGemini.apiKey;
+    const useOpenRouter = settings.openRouter.enabled && settings.openRouter.apiKey;
+    
+    if (!useGoogleGemini && !useOpenRouter) {
+      console.warn('No AI API configured, using fallback content');
       return this.generateFallbackContent(prompt, beatId);
     }
 
@@ -57,7 +62,65 @@ export class BeatAIService {
         // Store the active generation
         this.activeGenerations.set(beatId, requestId);
 
-        return this.openRouterApi.generateText(enhancedPrompt, {
+        // Choose API based on configuration (prefer Google Gemini if available)
+        const apiCall = useGoogleGemini 
+          ? this.callGoogleGeminiAPI(enhancedPrompt, options, maxTokens, wordCount, requestId)
+          : this.callOpenRouterAPI(enhancedPrompt, options, maxTokens, wordCount, requestId);
+
+        return apiCall.pipe(
+          map(content => {
+            // Emit generation complete
+            this.generationSubject.next({
+              beatId,
+              chunk: content,
+              isComplete: true
+            });
+            
+            // Clean up active generation
+            this.activeGenerations.delete(beatId);
+            
+            return content;
+          }),
+          catchError(error => {
+            console.error('AI API error, using fallback:', error);
+            // Clean up active generation
+            this.activeGenerations.delete(beatId);
+            // Emit error and fall back to sample content
+            this.generationSubject.next({
+              beatId,
+              chunk: '',
+              isComplete: true
+            });
+            return this.generateFallbackContent(prompt, beatId);
+          })
+        );
+      })
+    );
+  }
+
+  private callGoogleGeminiAPI(prompt: string, options: any, maxTokens: number, wordCount: number, requestId: string): Observable<string> {
+    // Parse the structured prompt to extract messages
+    const messages = this.parseStructuredPrompt(prompt);
+    
+    return this.googleGeminiApi.generateText(prompt, {
+      model: options.model,
+      maxTokens: maxTokens,
+      wordCount: wordCount,
+      requestId: requestId,
+      messages: messages
+    }).pipe(
+      map(response => {
+        if (response.candidates && response.candidates.length > 0) {
+          const content = response.candidates[0].content.parts[0].text;
+          return content;
+        }
+        throw new Error('No content generated from Google Gemini');
+      })
+    );
+  }
+
+  private callOpenRouterAPI(prompt: string, options: any, maxTokens: number, wordCount: number, requestId: string): Observable<string> {
+    return this.openRouterApi.generateText(prompt, {
       model: options.model,
       maxTokens: maxTokens,
       wordCount: wordCount,
@@ -66,36 +129,31 @@ export class BeatAIService {
       map(response => {
         if (response.choices && response.choices.length > 0) {
           const content = response.choices[0].message.content;
-          
-          // Emit generation complete
-          this.generationSubject.next({
-            beatId,
-            chunk: content,
-            isComplete: true
-          });
-          
-          // Clean up active generation
-          this.activeGenerations.delete(beatId);
-          
           return content;
         }
-        throw new Error('No content generated');
-      }),
-      catchError(error => {
-        console.error('OpenRouter API error, using fallback:', error);
-        // Clean up active generation
-        this.activeGenerations.delete(beatId);
-        // Emit error and fall back to sample content
-        this.generationSubject.next({
-          beatId,
-          chunk: '',
-          isComplete: true
-        });
-        return this.generateFallbackContent(prompt, beatId);
+        throw new Error('No content generated from OpenRouter');
       })
     );
-      })
-    );
+  }
+
+  private parseStructuredPrompt(prompt: string): Array<{role: 'system' | 'user' | 'assistant', content: string}> {
+    // Parse XML-like message structure from the template
+    const messagePattern = /<message role="(system|user|assistant)">([\s\S]*?)<\/message>/gi;
+    const messages: Array<{role: 'system' | 'user' | 'assistant', content: string}> = [];
+    
+    let match;
+    while ((match = messagePattern.exec(prompt)) !== null) {
+      const role = match[1] as 'system' | 'user' | 'assistant';
+      const content = match[2].trim();
+      messages.push({ role, content });
+    }
+    
+    // If no structured messages found, treat as single user message
+    if (messages.length === 0) {
+      messages.push({ role: 'user', content: prompt });
+    }
+    
+    return messages;
   }
 
   // Legacy template - now replaced by story.settings.beatGenerationTemplate
@@ -298,7 +356,13 @@ export class BeatAIService {
   stopGeneration(beatId: string): void {
     const requestId = this.activeGenerations.get(beatId);
     if (requestId) {
-      this.openRouterApi.abortRequest(requestId);
+      // Try to abort on both APIs (one will succeed based on request ID format)
+      if (requestId.startsWith('gemini_')) {
+        this.googleGeminiApi.abortRequest(requestId);
+      } else {
+        this.openRouterApi.abortRequest(requestId);
+      }
+      
       this.activeGenerations.delete(beatId);
       
       // Emit generation stopped

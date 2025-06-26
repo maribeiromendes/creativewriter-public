@@ -33,6 +33,10 @@ export class SettingsService {
             ...DEFAULT_SETTINGS.replicate,
             ...parsed.replicate
           },
+          googleGemini: {
+            ...DEFAULT_SETTINGS.googleGemini,
+            ...parsed.googleGemini
+          },
           sceneTitleGeneration: {
             ...DEFAULT_SETTINGS.sceneTitleGeneration,
             ...parsed.sceneTitleGeneration
@@ -128,5 +132,25 @@ export class SettingsService {
   isReplicateConfigured(): boolean {
     const settings = this.getSettings();
     return settings.replicate.enabled && !!settings.replicate.apiKey;
+  }
+
+  updateGoogleGeminiSettings(settings: Partial<Settings['googleGemini']>): void {
+    const currentSettings = this.settingsSubject.value;
+    const updatedSettings = {
+      ...currentSettings,
+      googleGemini: {
+        ...currentSettings.googleGemini,
+        ...settings
+      },
+      updatedAt: new Date()
+    };
+    
+    this.saveSettings(updatedSettings);
+    this.settingsSubject.next(updatedSettings);
+  }
+
+  isGoogleGeminiConfigured(): boolean {
+    const settings = this.getSettings();
+    return settings.googleGemini.enabled && !!settings.googleGemini.apiKey;
   }
 }

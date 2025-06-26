@@ -234,6 +234,86 @@ import { NgSelectModule } from '@ng-select/ng-select';
           </ion-card-content>
         </ion-card>
 
+        <!-- Google Gemini Settings -->
+        <ion-card>
+          <ion-card-header>
+            <ion-card-title>Google Gemini API</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <ion-item>
+              <ion-label>Google Gemini aktivieren</ion-label>
+              <ion-toggle 
+                [(ngModel)]="settings.googleGemini.enabled"
+                (ngModelChange)="onProviderToggle('googleGemini')"
+                slot="end">
+              </ion-toggle>
+            </ion-item>
+
+            <ion-item [class.disabled]="!settings.googleGemini.enabled">
+              <ion-input
+                type="password"
+                [(ngModel)]="settings.googleGemini.apiKey"
+                (ngModelChange)="onApiKeyChange('googleGemini')"
+                placeholder="AIza..."
+                [disabled]="!settings.googleGemini.enabled"
+                label="API Key"
+                labelPlacement="stacked"
+                helperText="Ihren Google AI API Key finden Sie unter aistudio.google.com/app/apikey">
+              </ion-input>
+            </ion-item>
+
+            <ion-item [class.disabled]="!settings.googleGemini.enabled">
+              <ion-label>Model</ion-label>
+              <ion-select
+                [(ngModel)]="settings.googleGemini.model"
+                (ngModelChange)="onSettingsChange()"
+                interface="popover"
+                [disabled]="!settings.googleGemini.enabled"
+                slot="end">
+                <ion-select-option value="gemini-2.5-flash">Gemini 2.5 Flash</ion-select-option>
+                <ion-select-option value="gemini-2.5-pro">Gemini 2.5 Pro</ion-select-option>
+                <ion-select-option value="gemini-1.5-flash">Gemini 1.5 Flash</ion-select-option>
+                <ion-select-option value="gemini-1.5-pro">Gemini 1.5 Pro</ion-select-option>
+              </ion-select>
+            </ion-item>
+
+            <div class="settings-row" [class.disabled]="!settings.googleGemini.enabled">
+              <ion-item>
+                <ion-input
+                  type="number"
+                  [(ngModel)]="settings.googleGemini.temperature"
+                  (ngModelChange)="onSettingsChange()"
+                  min="0"
+                  max="2"
+                  step="0.1"
+                  [disabled]="!settings.googleGemini.enabled"
+                  label="Temperature"
+                  labelPlacement="stacked">
+                </ion-input>
+              </ion-item>
+              <ion-item>
+                <ion-input
+                  type="number"
+                  [(ngModel)]="settings.googleGemini.topP"
+                  (ngModelChange)="onSettingsChange()"
+                  min="0"
+                  max="1"
+                  step="0.1"
+                  [disabled]="!settings.googleGemini.enabled"
+                  label="Top P"
+                  labelPlacement="stacked">
+                </ion-input>
+              </ion-item>
+            </div>
+
+            <div class="model-info" *ngIf="settings.googleGemini.enabled">
+              <p class="info-text">
+                <strong>Direkte Google API:</strong> Umgeht Content-Filter von Proxy-Services. Safety Settings werden automatisch auf BLOCK_NONE gesetzt.
+              </p>
+            </div>
+          </ion-card-content>
+        </ion-card>
+
         <!-- Scene Title Generation Settings -->
         <ion-card>
           <ion-card-header>
@@ -673,7 +753,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
     });
   }
   
-  onApiKeyChange(provider: 'openRouter' | 'replicate'): void {
+  onApiKeyChange(provider: 'openRouter' | 'replicate' | 'googleGemini'): void {
     this.onSettingsChange();
     
     // Auto-load models when API key is entered and provider is enabled
@@ -684,10 +764,13 @@ export class SettingsComponent implements OnInit, OnDestroy {
     } else if (provider === 'replicate' && this.settings.replicate.enabled && this.settings.replicate.apiKey) {
       console.log('API key entered for Replicate, loading models...');
       this.modelService.loadReplicateModels().subscribe();
+    } else if (provider === 'googleGemini' && this.settings.googleGemini.enabled && this.settings.googleGemini.apiKey) {
+      console.log('API key entered for Google Gemini');
+      // No model loading needed for Gemini - models are predefined
     }
   }
   
-  onProviderToggle(provider: 'openRouter' | 'replicate'): void {
+  onProviderToggle(provider: 'openRouter' | 'replicate' | 'googleGemini'): void {
     this.onSettingsChange();
     
     // Load models when provider is enabled and has API key
@@ -698,6 +781,9 @@ export class SettingsComponent implements OnInit, OnDestroy {
     } else if (provider === 'replicate' && this.settings.replicate.enabled && this.settings.replicate.apiKey) {
       console.log('Replicate enabled, loading models...');
       this.modelService.loadReplicateModels().subscribe();
+    } else if (provider === 'googleGemini' && this.settings.googleGemini.enabled && this.settings.googleGemini.apiKey) {
+      console.log('Google Gemini enabled');
+      // No model loading needed for Gemini - models are predefined
     }
   }
   

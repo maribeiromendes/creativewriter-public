@@ -1,6 +1,7 @@
 export interface Settings {
   openRouter: OpenRouterSettings;
   replicate: ReplicateSettings;
+  googleGemini: GoogleGeminiSettings;
   sceneTitleGeneration: SceneTitleGenerationSettings;
   updatedAt: Date;
 }
@@ -17,6 +18,14 @@ export interface ReplicateSettings {
   apiKey: string;
   model: string;
   version: string;
+  enabled: boolean;
+}
+
+export interface GoogleGeminiSettings {
+  apiKey: string;
+  model: string;
+  temperature: number;
+  topP: number;
   enabled: boolean;
 }
 
@@ -41,6 +50,13 @@ export const DEFAULT_SETTINGS: Settings = {
     apiKey: '',
     model: '',
     version: '',
+    enabled: false
+  },
+  googleGemini: {
+    apiKey: '',
+    model: 'gemini-2.5-flash',
+    temperature: 0.7,
+    topP: 1.0,
     enabled: false
   },
   sceneTitleGeneration: {
