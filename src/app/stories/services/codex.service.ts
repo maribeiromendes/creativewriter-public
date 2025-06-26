@@ -81,37 +81,50 @@ export class CodexService {
       
       for (let attempt = 0; attempt < maxRetries; attempt++) {
         try {
-          const existingDoc = await this.db.get(docId);
-          await this.db.put({
-            ...existingDoc,
+          // Always get the latest version before updating
+          let docToUpdate: any;
+          try {
+            docToUpdate = await this.db.get(docId);
+          } catch (error: any) {
+            if (error.status === 404) {
+              // Document doesn't exist, create new one
+              docToUpdate = {
+                _id: docId,
+                type: 'codex'
+              };
+            } else {
+              throw error;
+            }
+          }
+          
+          // Merge with the latest document, preserving _rev
+          const updatedDoc = {
+            ...docToUpdate,
             ...codex,
             _id: docId,
-            type: 'codex'
-          });
+            type: 'codex',
+            _rev: docToUpdate._rev // Preserve revision
+          };
+          
+          await this.db.put(updatedDoc);
+          
+          // Update local map and notify subscribers
+          this.codexMap.set(codex.storyId, codex);
+          this.codexSubject.next(new Map(this.codexMap));
+          
           break; // Success, exit retry loop
+          
         } catch (error: any) {
-          if (error.status === 404) {
-            // Document doesn't exist, create new one
-            await this.db.put({
-              _id: docId,
-              type: 'codex',
-              ...codex
-            });
-            break; // Success, exit retry loop
-          } else if (error.status === 409 && attempt < maxRetries - 1) {
+          if (error.status === 409 && attempt < maxRetries - 1) {
             // Conflict error, retry after a short delay
             console.warn(`Document conflict on attempt ${attempt + 1}, retrying...`);
-            await new Promise(resolve => setTimeout(resolve, 100 * (attempt + 1))); // Exponential backoff
-            continue;
+            await new Promise(resolve => setTimeout(resolve, 100 * Math.pow(2, attempt))); // Exponential backoff
+            // Continue to next iteration, which will reload the document
           } else {
             throw error;
           }
         }
       }
-      
-      // Update local map and notify subscribers
-      this.codexMap.set(codex.storyId, codex);
-      this.codexSubject.next(new Map(this.codexMap));
       
     } catch (error) {
       console.error('Error saving codex to database:', error);
@@ -340,47 +353,88 @@ export class CodexService {
 
   // Update entry
   async updateEntry(storyId: string, categoryId: string, entryId: string, updates: Partial<CodexEntry>): Promise<void> {
-    const codex = this.codexMap.get(storyId);
-    if (!codex) return;
+    // Always get the latest version from database
+    try {
+      if (!this.isInitialized) {
+        await this.waitForInitialization();
+      }
+      
+      const docId = `codex_${storyId}`;
+      const latestDoc = await this.db.get(docId);
+      const codex = this.deserializeCodex(latestDoc);
 
-    const category = codex.categories.find((c: CodexCategory) => c.id === categoryId);
-    if (!category) return;
+      const category = codex.categories.find((c: CodexCategory) => c.id === categoryId);
+      if (!category) return;
 
-    const entry = category.entries.find((e: CodexEntry) => e.id === entryId);
-    if (!entry) return;
+      const entryIndex = category.entries.findIndex((e: CodexEntry) => e.id === entryId);
+      if (entryIndex === -1) return;
 
-    Object.assign(entry, updates, { updatedAt: new Date() });
-    category.updatedAt = new Date();
-    codex.updatedAt = new Date();
-    
-    await this.saveToDatabase(codex);
+      const now = new Date();
+      
+      // Create updated entry
+      const updatedEntry = {
+        ...category.entries[entryIndex],
+        ...updates,
+        updatedAt: now
+      };
+      
+      // Create new category with updated entry
+      const updatedCategory: CodexCategory = {
+        ...category,
+        entries: category.entries.map((e, index) => index === entryIndex ? updatedEntry : e),
+        updatedAt: now
+      };
+      
+      // Create new codex with updated category
+      const updatedCodex: Codex = {
+        ...codex,
+        categories: codex.categories.map(c => c.id === categoryId ? updatedCategory : c),
+        updatedAt: now
+      };
+      
+      await this.saveToDatabase(updatedCodex);
+    } catch (error) {
+      console.error('Error updating entry:', error);
+      throw error;
+    }
   }
 
   // Delete entry
   async deleteEntry(storyId: string, categoryId: string, entryId: string): Promise<void> {
-    const codex = this.codexMap.get(storyId);
-    if (!codex) return;
+    // Always get the latest version from database
+    try {
+      if (!this.isInitialized) {
+        await this.waitForInitialization();
+      }
+      
+      const docId = `codex_${storyId}`;
+      const latestDoc = await this.db.get(docId);
+      const codex = this.deserializeCodex(latestDoc);
 
-    const category = codex.categories.find((c: CodexCategory) => c.id === categoryId);
-    if (!category) return;
+      const category = codex.categories.find((c: CodexCategory) => c.id === categoryId);
+      if (!category) return;
 
-    const now = new Date();
-    
-    // Create new category with filtered entries
-    const updatedCategory: CodexCategory = {
-      ...category,
-      entries: category.entries.filter((e: CodexEntry) => e.id !== entryId),
-      updatedAt: now
-    };
-    
-    // Create new codex with updated category
-    const updatedCodex: Codex = {
-      ...codex,
-      categories: codex.categories.map(c => c.id === categoryId ? updatedCategory : c),
-      updatedAt: now
-    };
-    
-    await this.saveToDatabase(updatedCodex);
+      const now = new Date();
+      
+      // Create new category with filtered entries
+      const updatedCategory: CodexCategory = {
+        ...category,
+        entries: category.entries.filter((e: CodexEntry) => e.id !== entryId),
+        updatedAt: now
+      };
+      
+      // Create new codex with updated category
+      const updatedCodex: Codex = {
+        ...codex,
+        categories: codex.categories.map(c => c.id === categoryId ? updatedCategory : c),
+        updatedAt: now
+      };
+      
+      await this.saveToDatabase(updatedCodex);
+    } catch (error) {
+      console.error('Error deleting entry:', error);
+      throw error;
+    }
   }
 
   // Reorder categories
