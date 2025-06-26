@@ -7,6 +7,7 @@ import { SettingsService } from '../../core/services/settings.service';
 import { StoryService } from '../../stories/services/story.service';
 import { CodexService } from '../../stories/services/codex.service';
 import { PromptManagerService } from './prompt-manager.service';
+import { CodexRelevanceService } from '../../core/services/codex-relevance.service';
 
 @Injectable({
   providedIn: 'root'
@@ -22,7 +23,8 @@ export class BeatAIService {
     private settingsService: SettingsService,
     private storyService: StoryService,
     private codexService: CodexService,
-    private promptManager: PromptManagerService
+    private promptManager: PromptManagerService,
+    private codexRelevanceService: CodexRelevanceService
   ) {}
 
   generateBeatContent(prompt: string, beatId: string, options: {
@@ -221,19 +223,40 @@ export class BeatAIService {
         }
 
         // Get codex entries in XML format
-        const codexEntries = this.codexService.getAllCodexEntries(options.storyId!);
+        const allCodexEntries = this.codexService.getAllCodexEntries(options.storyId!);
+        
+        // Get current scene text first
+        const sceneText = options.sceneId 
+          ? this.promptManager.getCurrentOrPreviousSceneText(options.sceneId)
+          : '';
+        
+        // Convert to relevance service format and filter
+        const convertedEntries = this.convertCodexEntriesToRelevanceFormat(allCodexEntries);
+        const sceneContext = sceneText || '';
+        const relevantEntries = await this.codexRelevanceService.getRelevantEntries(
+          convertedEntries,
+          sceneContext,
+          userPrompt,
+          1000 // Max tokens for codex
+        ).toPromise() || [];
+        
+        // Convert back to original format for XML generation
+        const filteredCodexEntries = this.filterCodexEntriesByRelevance(
+          allCodexEntries,
+          relevantEntries
+        );
         
         // Find protagonist for point of view
-        const protagonist = this.findProtagonist(codexEntries);
+        const protagonist = this.findProtagonist(filteredCodexEntries);
         const pointOfView = protagonist 
           ? `<pointOfView type="first person" character="${this.escapeXml(protagonist)}"/>`
           : '';
         
-        const codexText = codexEntries.length > 0 
-          ? '<codex>\n' + codexEntries.map(categoryData => {
+        const codexText = filteredCodexEntries.length > 0 
+          ? '<codex>\n' + filteredCodexEntries.map(categoryData => {
               const categoryType = this.getCategoryXmlType(categoryData.category);
               
-              return categoryData.entries.map(entry => {
+              return categoryData.entries.map((entry: any) => {
                 let entryXml = `<${categoryType} name="${this.escapeXml(entry.title)}"`;
                 
                 // Add aliases if present
@@ -280,11 +303,6 @@ export class BeatAIService {
         // Get story so far in XML format
         const storySoFar = options.sceneId 
           ? await this.promptManager.getStoryXmlFormat(options.sceneId)
-          : '';
-
-        // Get current scene text if it has content, otherwise get previous scene text
-        const sceneText = options.sceneId 
-          ? this.promptManager.getCurrentOrPreviousSceneText(options.sceneId)
           : '';
 
         // Build template placeholders
@@ -463,5 +481,71 @@ export class BeatAIService {
     return null;
   }
 
+  private convertCodexEntriesToRelevanceFormat(codexEntries: any[]): any[] {
+    const converted: any[] = [];
+    
+    for (const categoryData of codexEntries) {
+      const categoryMap: Record<string, any> = {
+        'Charaktere': 'character',
+        'Orte': 'location',
+        'Gegenstände': 'object',
+        'Notizen': 'other',
+        'Lore': 'lore'
+      };
+      
+      const category = categoryMap[categoryData.category] || 'other';
+      
+      for (const entry of categoryData.entries) {
+        // Extract aliases from metadata
+        const aliases: string[] = [];
+        if (entry.metadata?.['aliases']) {
+          const aliasString = entry.metadata['aliases'];
+          aliases.push(...aliasString.split(',').map((a: string) => a.trim()).filter((a: string) => a));
+        }
+        
+        // Extract keywords from tags and content
+        const keywords: string[] = entry.tags || [];
+        
+        // Determine importance based on story role or category
+        let importance: 'major' | 'minor' | 'background' = 'minor';
+        if (entry.metadata?.['storyRole']) {
+          const role = entry.metadata['storyRole'];
+          if (role === 'Protagonist' || role === 'Antagonist') {
+            importance = 'major';
+          } else if (role === 'Hintergrundcharakter') {
+            importance = 'background';
+          }
+        }
+        
+        converted.push({
+          id: entry.id,
+          title: entry.title,
+          category: category,
+          content: entry.content || '',
+          aliases: aliases,
+          keywords: keywords,
+          importance: importance,
+          globalInclude: entry.metadata?.['globalInclude'] || false,
+          lastMentioned: entry.metadata?.['lastMentioned'],
+          mentionCount: entry.metadata?.['mentionCount']
+        });
+      }
+    }
+    
+    return converted;
+  }
 
+  private filterCodexEntriesByRelevance(
+    allCodexEntries: any[], 
+    relevantEntries: any[]
+  ): any[] {
+    const relevantIds = new Set(relevantEntries.map(e => e.id));
+    
+    return allCodexEntries.map(categoryData => {
+      return {
+        ...categoryData,
+        entries: categoryData.entries.filter((entry: any) => relevantIds.has(entry.id))
+      };
+    }).filter(categoryData => categoryData.entries.length > 0);
+  }
 }
