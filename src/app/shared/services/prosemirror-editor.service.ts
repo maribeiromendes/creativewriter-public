@@ -530,23 +530,39 @@ export class ProseMirrorEditorService {
     // Position after the beat node
     const insertPos = beatPos + beatNode.nodeSize;
     
-    // Create paragraph with the generated content
-    // Only create text node if content is not empty
-    const textNodes = content ? [state.schema.text(content)] : [];
-    const paragraph = state.schema.nodes['paragraph'].create(null, textNodes);
+    // Parse content into multiple paragraphs if needed
+    const paragraphNodes = this.createParagraphsFromContent(content, state);
     
-    // Check if there's already a paragraph right after this beat node
+    // Check if there's already generated content after this beat node
     const nextNode = state.doc.nodeAt(insertPos);
-    let tr;
+    let tr = state.tr;
     
     if (nextNode && nextNode.type.name === 'paragraph' && this.isGeneratedContent(nextNode, beatId)) {
-      // Replace the existing generated content paragraph
-      const nextNodeEnd = insertPos + nextNode.nodeSize;
-      tr = state.tr.replaceRangeWith(insertPos, nextNodeEnd, paragraph);
-    } else {
-      // Insert new content
-      tr = state.tr.insert(insertPos, paragraph);
+      // Find and replace all existing generated content paragraphs
+      let endPos = insertPos;
+      let currentPos = insertPos;
+      
+      // Find the end of existing generated content
+      while (currentPos < state.doc.content.size) {
+        const node = state.doc.nodeAt(currentPos);
+        if (node && node.type.name === 'paragraph' && this.isGeneratedContent(node, beatId)) {
+          endPos = currentPos + node.nodeSize;
+          currentPos = endPos;
+        } else {
+          break;
+        }
+      }
+      
+      // Delete existing content first
+      tr = tr.delete(insertPos, endPos);
     }
+    
+    // Insert all new paragraphs sequentially
+    let currentPos = insertPos;
+    paragraphNodes.forEach((para, index) => {
+      tr = tr.insert(currentPos, para);
+      currentPos += para.nodeSize;
+    });
     
     this.editorView.dispatch(tr);
   }
@@ -583,6 +599,46 @@ export class ProseMirrorEditorService {
         console.error('Error refreshing prompt manager:', error);
       });
     }, 500); // Small delay to ensure content is saved first
+  }
+
+  private createParagraphsFromContent(content: string, state: any): any[] {
+    if (!content || !content.trim()) {
+      // Return empty paragraph if no content
+      return [state.schema.nodes['paragraph'].create()];
+    }
+    
+    // Split content by double newlines to get paragraphs
+    const paragraphTexts = content
+      .split(/\n\n+/) // Split on double newlines (or more)
+      .map(para => para.trim()) // Remove leading/trailing whitespace
+      .filter(para => para.length > 0); // Remove empty paragraphs
+    
+    // If no paragraphs found (single line text), create one paragraph
+    if (paragraphTexts.length === 0) {
+      const textNodes = [state.schema.text(content.trim())];
+      return [state.schema.nodes['paragraph'].create(null, textNodes)];
+    }
+    
+    // Create paragraph nodes for each text block
+    const paragraphNodes = paragraphTexts.map(paragraphText => {
+      // Handle single newlines within a paragraph as line breaks
+      const lines = paragraphText.split('\n');
+      const textNodes: any[] = [];
+      
+      lines.forEach((line, index) => {
+        if (line.trim()) {
+          textNodes.push(state.schema.text(line));
+        }
+        // Add line break between lines (but not after the last line)
+        if (index < lines.length - 1) {
+          textNodes.push(state.schema.nodes['hard_break']?.create() || state.schema.text('\n'));
+        }
+      });
+      
+      return state.schema.nodes['paragraph'].create(null, textNodes);
+    });
+    
+    return paragraphNodes;
   }
 
   private isGeneratedContent(node: ProseMirrorNode, beatId: string): boolean {
