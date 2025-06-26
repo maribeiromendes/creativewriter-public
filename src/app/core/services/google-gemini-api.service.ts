@@ -54,7 +54,7 @@ export interface GoogleGeminiResponse {
   providedIn: 'root'
 })
 export class GoogleGeminiApiService {
-  private readonly API_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/models';
+  private readonly API_BASE_URL = '/api/gemini/models';
   private abortSubjects = new Map<string, Subject<void>>();
   private requestMetadata = new Map<string, { logId: string; startTime: number }>();
 
@@ -98,8 +98,7 @@ export class GoogleGeminiApiService {
     });
 
     const headers = new HttpHeaders({
-      'Content-Type': 'application/json',
-      'x-goog-api-key': settings.googleGemini.apiKey
+      'Content-Type': 'application/json'
     });
 
     // Convert messages format to Gemini format

@@ -13,6 +13,7 @@ services:
       - creativewriter
       - couchdb
       - replicate-proxy
+      - gemini-proxy
     networks:
       - creativewriter-network
 
@@ -52,6 +53,16 @@ services:
     environment:
       - REPLICATE_API_TOKEN=${REPLICATE_API_TOKEN}
       - PORT=3001
+    networks:
+      - creativewriter-network
+
+  gemini-proxy:
+    image: ghcr.io/marcodroll/creativewriter2-gemini-proxy:latest
+    container_name: creativewriter-gemini-proxy
+    restart: unless-stopped
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - PORT=3002
     networks:
       - creativewriter-network
 
