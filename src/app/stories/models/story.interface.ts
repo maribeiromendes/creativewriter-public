@@ -61,7 +61,7 @@ export const DEFAULT_STORY_SETTINGS: StorySettings = {
 
 <instructions>
 {pointOfView}
-Write exactly {wordCount} words that continue this story.
+Write approximately {wordCount} words that continue this story.
 {writingStyle}
 
 Task: {prompt}
