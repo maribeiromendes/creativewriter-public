@@ -258,6 +258,18 @@ export class OpenRouterApiService {
 
     return new Observable<string>(observer => {
       let accumulatedContent = '';
+      let aborted = false;
+      
+      // Create AbortController for cancellation
+      const abortController = new AbortController();
+      
+      // Subscribe to abort signal
+      const abortSubscription = abortSubject.subscribe(() => {
+        aborted = true;
+        abortController.abort();
+        observer.complete();
+        this.cleanupRequest(requestId);
+      });
       
       // Use fetch for streaming
       fetch(this.API_URL, {
@@ -268,7 +280,8 @@ export class OpenRouterApiService {
           'HTTP-Referer': window.location.origin,
           'X-Title': 'Creative Writer'
         },
-        body: JSON.stringify(request)
+        body: JSON.stringify(request),
+        signal: abortController.signal
       }).then(response => {
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -283,17 +296,20 @@ export class OpenRouterApiService {
         
         const readStream = (): Promise<void> => {
           return reader.read().then(({ done, value }) => {
-            if (done) {
-              const duration = Date.now() - startTime;
-              console.log('🔍 OpenRouter Streaming Complete:', {
-                duration: duration + 'ms',
-                totalContentLength: accumulatedContent.length,
-                wordCount: accumulatedContent.split(/\s+/).length
-              });
-              
-              observer.complete();
-              this.aiLogger.logSuccess(logId, accumulatedContent, duration);
-              this.cleanupRequest(requestId);
+            if (aborted || done) {
+              if (done && !aborted) {
+                const duration = Date.now() - startTime;
+                console.log('🔍 OpenRouter Streaming Complete:', {
+                  duration: duration + 'ms',
+                  totalContentLength: accumulatedContent.length,
+                  wordCount: accumulatedContent.split(/\s+/).length
+                });
+                
+                observer.complete();
+                this.aiLogger.logSuccess(logId, accumulatedContent, duration);
+                this.cleanupRequest(requestId);
+                abortSubscription.unsubscribe();
+              }
               return;
             }
             
@@ -326,20 +342,20 @@ export class OpenRouterApiService {
         
         return readStream();
       }).catch(error => {
+        if (aborted) return; // Don't handle errors if we aborted
+        
         const duration = Date.now() - startTime;
         const errorMessage = error.message || 'Unknown error';
         
         observer.error(error);
         this.aiLogger.logError(logId, errorMessage, duration);
         this.cleanupRequest(requestId);
-      });
-      
-      // Handle abort
-      const abortSubscription = abortSubject.subscribe(() => {
-        observer.complete();
+        abortSubscription.unsubscribe();
       });
       
       return () => {
+        aborted = true;
+        abortController.abort();
         abortSubscription.unsubscribe();
       };
     }).pipe(

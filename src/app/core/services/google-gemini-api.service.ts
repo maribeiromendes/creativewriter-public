@@ -342,6 +342,22 @@ export class GoogleGeminiApiService {
     return new Observable<string>(observer => {
       let accumulatedContent = '';
       let buffer = ''; // Buffer for incomplete JSON chunks
+      let aborted = false;
+      let timeoutId: any;
+      
+      // Create AbortController for cancellation
+      const abortController = new AbortController();
+      
+      // Subscribe to abort signal
+      const abortSubscription = abortSubject.subscribe(() => {
+        aborted = true;
+        abortController.abort();
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+        }
+        observer.complete();
+        this.cleanupRequest(requestId);
+      });
       
       // Use fetch for streaming since Angular HttpClient doesn't support streaming responses well
       fetch(url, {
@@ -350,7 +366,8 @@ export class GoogleGeminiApiService {
           'Content-Type': 'application/json',
           'Accept': 'text/event-stream'
         },
-        body: JSON.stringify(request)
+        body: JSON.stringify(request),
+        signal: abortController.signal
       }).then(response => {
         console.log('🔍 Gemini Streaming Response:', {
           status: response.status,
@@ -396,11 +413,13 @@ export class GoogleGeminiApiService {
               let position = 0;
               
               const sendChunk = () => {
+                if (aborted) return;
+                
                 if (position < fullText.length) {
                   const chunk = fullText.substring(position, position + chunkSize);
                   observer.next(chunk);
                   position += chunkSize;
-                  setTimeout(sendChunk, 20); // 20ms delay between chunks
+                  timeoutId = setTimeout(sendChunk, 20); // 20ms delay between chunks
                 } else {
                   observer.complete();
                   const duration = Date.now() - startTime;
@@ -411,6 +430,7 @@ export class GoogleGeminiApiService {
                   });
                   this.aiLogger.logSuccess(logId, accumulatedContent, duration);
                   this.cleanupRequest(requestId);
+                  abortSubscription.unsubscribe();
                 }
               };
               
@@ -428,17 +448,20 @@ export class GoogleGeminiApiService {
         
         const readStream = (): Promise<void> => {
           return reader.read().then(({ done, value }) => {
-            if (done) {
-              const duration = Date.now() - startTime;
-              console.log('🔍 Gemini Streaming Complete:', {
-                duration: duration + 'ms',
-                totalContentLength: accumulatedContent.length,
-                wordCount: accumulatedContent.split(/\s+/).length
-              });
-              
-              observer.complete();
-              this.aiLogger.logSuccess(logId, accumulatedContent, duration);
-              this.cleanupRequest(requestId);
+            if (aborted || done) {
+              if (done && !aborted) {
+                const duration = Date.now() - startTime;
+                console.log('🔍 Gemini Streaming Complete:', {
+                  duration: duration + 'ms',
+                  totalContentLength: accumulatedContent.length,
+                  wordCount: accumulatedContent.split(/\s+/).length
+                });
+                
+                observer.complete();
+                this.aiLogger.logSuccess(logId, accumulatedContent, duration);
+                this.cleanupRequest(requestId);
+                abortSubscription.unsubscribe();
+              }
               return;
             }
             
@@ -492,6 +515,8 @@ export class GoogleGeminiApiService {
         
         return readStream();
       }).catch(error => {
+        if (aborted) return; // Don't handle errors if we aborted
+        
         const duration = Date.now() - startTime;
         let errorMessage = 'Unknown error';
         
@@ -502,14 +527,15 @@ export class GoogleGeminiApiService {
         observer.error(error);
         this.aiLogger.logError(logId, errorMessage, duration);
         this.cleanupRequest(requestId);
-      });
-      
-      // Handle abort
-      const abortSubscription = abortSubject.subscribe(() => {
-        observer.complete();
+        abortSubscription.unsubscribe();
       });
       
       return () => {
+        aborted = true;
+        abortController.abort();
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+        }
         abortSubscription.unsubscribe();
       };
     }).pipe(
