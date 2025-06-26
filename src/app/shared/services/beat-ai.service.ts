@@ -121,71 +121,64 @@ export class BeatAIService {
           map(() => story)
         );
       }),
-      switchMap((story: any) => {
+      switchMap(async (story: any) => {
         if (!story || typeof story === 'string' || !story.settings) {
-          return of(userPrompt);
+          return userPrompt;
         }
 
-        // Get codex entries
+        // Get codex entries in XML format
         const codexEntries = this.codexService.getAllCodexEntries(options.storyId!);
         const codexText = codexEntries.length > 0 
-          ? codexEntries.map(categoryData => {
-              const entries = categoryData.entries.map(entry => {
-                // Start with clear entry separator
-                let entryText = `━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
-                entryText += `**${entry.title}**\n`;
-                
-                // Main content
-                if (entry.content) {
-                  entryText += `\n📝 Beschreibung:\n${entry.content}\n`;
-                }
-                
-                // Story role for characters
-                if (entry.metadata?.['storyRole'] && categoryData.category === 'Charaktere') {
-                  entryText += `\n🎭 Story-Rolle: ${entry.metadata['storyRole']}\n`;
-                }
-                
-                // Custom fields - check both in metadata and directly in entry
-                const customFields = entry.metadata?.['customFields'] || [];
-                if (customFields.length > 0) {
-                  entryText += `\n📋 Weitere Details:\n`;
-                  customFields.forEach((field: any) => {
-                    entryText += `   • ${field.name}: ${field.value}\n`;
-                  });
-                }
-                
-                // Tags
-                if (entry.tags && entry.tags.length > 0) {
-                  entryText += `\n🏷️ Tags: ${entry.tags.join(', ')}\n`;
-                }
-                
-                // Additional metadata fields (catch any other fields)
-                if (entry.metadata) {
-                  const otherFields = Object.entries(entry.metadata)
-                    .filter(([key]) => key !== 'storyRole' && key !== 'customFields')
-                    .filter(([_, value]) => value !== null && value !== undefined && value !== '');
-                  
-                  if (otherFields.length > 0) {
-                    entryText += `\n🔧 Zusätzliche Informationen:\n`;
-                    otherFields.forEach(([key, value]) => {
-                      entryText += `   • ${key}: ${value}\n`;
-                    });
-                  }
-                }
-                
-                return entryText;
-              }).join('\n');
+          ? '<codex>\n' + codexEntries.map(categoryData => {
+              const categoryType = this.getCategoryXmlType(categoryData.category);
               
-              return `\n╔════════════════════════════════════════╗\n` +
-                     `║ ${categoryData.category.toUpperCase()}${' '.repeat(Math.max(0, 38 - categoryData.category.length))}║\n` +
-                     `╚════════════════════════════════════════╝\n` +
-                     `${entries}`;
-            }).join('\n\n')
+              return categoryData.entries.map(entry => {
+                let entryXml = `<${categoryType} name="${this.escapeXml(entry.title)}"`;
+                
+                // Add aliases if present
+                if (entry.metadata?.['aliases']) {
+                  entryXml += ` aliases="${this.escapeXml(entry.metadata['aliases'])}"`;
+                }
+                
+                // Add story role for characters
+                if (entry.metadata?.['storyRole'] && categoryData.category === 'Charaktere') {
+                  entryXml += ` storyRole="${this.escapeXml(entry.metadata['storyRole'])}"`;
+                }
+                
+                entryXml += '>\n';
+                
+                // Main description
+                if (entry.content) {
+                  entryXml += `  <description>${this.escapeXml(entry.content)}</description>\n`;
+                }
+                
+                // Custom fields
+                const customFields = entry.metadata?.['customFields'] || [];
+                customFields.forEach((field: any) => {
+                  const fieldName = this.sanitizeXmlTagName(field.name);
+                  entryXml += `  <${fieldName}>${this.escapeXml(field.value)}</${fieldName}>\n`;
+                });
+                
+                // Additional metadata fields
+                if (entry.metadata) {
+                  Object.entries(entry.metadata)
+                    .filter(([key]) => key !== 'storyRole' && key !== 'customFields' && key !== 'aliases')
+                    .filter(([_, value]) => value !== null && value !== undefined && value !== '')
+                    .forEach(([key, value]) => {
+                      const tagName = this.sanitizeXmlTagName(key);
+                      entryXml += `  <${tagName}>${this.escapeXml(String(value))}</${tagName}>\n`;
+                    });
+                }
+                
+                entryXml += `</${categoryType}>`;
+                return entryXml;
+              }).join('\n');
+            }).join('\n') + '\n</codex>'
           : '';
 
-        // Get previous scenes summaries
-        const summariesBefore = options.sceneId 
-          ? this.promptManager.getSummariesBeforeScene(options.sceneId)
+        // Get story so far in XML format
+        const storySoFar = options.sceneId 
+          ? await this.promptManager.getStoryXmlFormat(options.sceneId)
           : '';
 
         // Get current scene text if it has content, otherwise get previous scene text
@@ -193,30 +186,28 @@ export class BeatAIService {
           ? this.promptManager.getCurrentOrPreviousSceneText(options.sceneId)
           : '';
 
-        // Build template placeholders
-        const placeholders = {
-          SystemMessage: story.settings.systemMessage,
-          codexEntries: codexText,
-          summariesOfScenesBefore: summariesBefore,
-          sceneFullText: sceneText,
-          wordCount: (options.wordCount || 200).toString(),
-          prompt: userPrompt,
-          writingStyle: story.settings.beatInstruction === 'continue' 
-            ? 'Setze die Geschichte fort' 
-            : 'Bleibe im Moment'
-        };
+        // Build the prompt in messages format
+        const messages = `<messages>
+<message role="system">${story.settings.systemMessage}</message>
+<message role="user">Take into account the following glossary of characters/locations/items/lore... when writing your response:
+${codexText}
 
-        // Use beatGenerationTemplate from story settings
-        let processedTemplate = story.settings.beatGenerationTemplate;
-        
-        Object.entries(placeholders).forEach(([key, value]) => {
-          const placeholder = `{${key}}`;
-          const regex = new RegExp(placeholder.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
-          processedTemplate = processedTemplate.replace(regex, value || '');
-        });
+The story so far:
+${storySoFar}</message>
+<message role="assistant"># ${story.title || 'Story'}
 
-        return of(processedTemplate);
-      })
+${sceneText}</message>
+<message role="user">Write ${options.wordCount || 200} words that continue the story, using the following instructions:
+<instructions>
+${userPrompt}
+
+${story.settings.beatInstruction === 'continue' ? 'Setze die Geschichte fort' : 'Bleibe im Moment'}
+</instructions></message>
+</messages>`;
+
+        return messages;
+      }),
+      map(result => result)
     );
   }
 
@@ -313,6 +304,33 @@ export class BeatAIService {
 
   private generateRequestId(): string {
     return 'beat_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
+  }
+
+  private getCategoryXmlType(category: string): string {
+    const mapping: { [key: string]: string } = {
+      'Charaktere': 'character',
+      'Orte': 'location',
+      'Gegenstände': 'item',
+      'Notizen': 'other'
+    };
+    return mapping[category] || 'other';
+  }
+
+  private escapeXml(text: string): string {
+    return text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&apos;');
+  }
+
+  private sanitizeXmlTagName(name: string): string {
+    // Convert to camelCase and remove invalid characters
+    return name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+(.)/g, (_, chr) => chr.toUpperCase())
+      .replace(/[^a-zA-Z0-9]/g, '');
   }
 
 }
