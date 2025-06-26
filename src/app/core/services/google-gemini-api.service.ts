@@ -325,7 +325,8 @@ export class GoogleGeminiApiService {
     // Store request metadata for abort handling
     this.requestMetadata.set(requestId, { logId, startTime });
 
-    const url = `${this.API_BASE_URL}/${model}:streamGenerateContent?alt=sse`;
+    // Try without alt=sse first, as the proxy might handle streaming differently
+    const url = `${this.API_BASE_URL}/${model}:streamGenerateContent`;
 
     // Debug logging for Gemini API
     console.log('🔍 Gemini Streaming API Debug:', {
@@ -340,6 +341,7 @@ export class GoogleGeminiApiService {
 
     return new Observable<string>(observer => {
       let accumulatedContent = '';
+      let buffer = ''; // Buffer for incomplete JSON chunks
       
       // Use fetch for streaming since Angular HttpClient doesn't support streaming responses well
       fetch(url, {
@@ -355,10 +357,55 @@ export class GoogleGeminiApiService {
           headers: Object.fromEntries(response.headers.entries()),
           url: url
         });
+        
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         
+        // Check if response is JSON (proxy doesn't support streaming)
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          console.log('🔍 Gemini: Proxy returns JSON, falling back to non-streaming response');
+          
+          // Read complete response as JSON
+          return response.json().then(data => {
+            console.log('🔍 Gemini Complete Response:', data);
+            
+            if (data.candidates?.[0]?.content?.parts?.[0]?.text) {
+              const fullText = data.candidates[0].content.parts[0].text;
+              accumulatedContent = fullText;
+              
+              // Simulate streaming by sending text in chunks
+              const chunkSize = 50; // Characters per chunk
+              let position = 0;
+              
+              const sendChunk = () => {
+                if (position < fullText.length) {
+                  const chunk = fullText.substring(position, position + chunkSize);
+                  observer.next(chunk);
+                  position += chunkSize;
+                  setTimeout(sendChunk, 20); // 20ms delay between chunks
+                } else {
+                  observer.complete();
+                  const duration = Date.now() - startTime;
+                  console.log('🔍 Gemini Simulated Streaming Complete:', {
+                    duration: duration + 'ms',
+                    totalContentLength: accumulatedContent.length,
+                    wordCount: accumulatedContent.split(/\s+/).length
+                  });
+                  this.aiLogger.logSuccess(logId, accumulatedContent, duration);
+                  this.cleanupRequest(requestId);
+                }
+              };
+              
+              sendChunk();
+            } else {
+              throw new Error('No text content in response');
+            }
+          });
+        }
+        
+        // Original streaming code for real SSE responses
         const reader = response.body?.getReader();
         if (!reader) {
           throw new Error('Failed to get response reader');
