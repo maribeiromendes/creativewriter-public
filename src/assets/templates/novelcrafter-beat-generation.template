@@ -10,6 +10,8 @@ The story so far:
 {sceneFullText}</message>
 <message role="user">Write {wordCount} words that continue the story, using the following instructions:
 <instructions>
+{pointOfView}
+
 {prompt}
 
 {writingStyle}

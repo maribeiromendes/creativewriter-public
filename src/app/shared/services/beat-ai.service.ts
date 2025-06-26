@@ -128,6 +128,13 @@ export class BeatAIService {
 
         // Get codex entries in XML format
         const codexEntries = this.codexService.getAllCodexEntries(options.storyId!);
+        
+        // Find protagonist for point of view
+        const protagonist = this.findProtagonist(codexEntries);
+        const pointOfView = protagonist 
+          ? `<pointOfView type="first person" character="${this.escapeXml(protagonist)}"/>`
+          : '';
+        
         const codexText = codexEntries.length > 0 
           ? '<codex>\n' + codexEntries.map(categoryData => {
               const categoryType = this.getCategoryXmlType(categoryData.category);
@@ -195,6 +202,7 @@ export class BeatAIService {
           sceneFullText: sceneText,
           wordCount: (options.wordCount || 200).toString(),
           prompt: userPrompt,
+          pointOfView: pointOfView,
           writingStyle: story.settings.beatInstruction === 'continue' 
             ? 'Setze die Geschichte fort' 
             : 'Bleibe im Moment'
@@ -341,6 +349,21 @@ export class BeatAIService {
       .replace(/[^a-zA-Z0-9]/g, '');
   }
 
+  private findProtagonist(codexEntries: any[]): string | null {
+    // Look for character entries with storyRole "Protagonist"
+    for (const categoryData of codexEntries) {
+      if (categoryData.category === 'Charaktere') {
+        for (const entry of categoryData.entries) {
+          const storyRole = entry.metadata?.['storyRole'];
+          if (storyRole === 'Protagonist') {
+            return entry.title;
+          }
+        }
+      }
+    }
+    return null;
+  }
+
   private async loadTemplate(): Promise<string> {
     try {
       const response = await fetch('/assets/templates/novelcrafter-beat-generation.template');
@@ -363,6 +386,8 @@ The story so far:
 {sceneFullText}</message>
 <message role="user">Write {wordCount} words that continue the story, using the following instructions:
 <instructions>
+{pointOfView}
+
 {prompt}
 
 {writingStyle}
