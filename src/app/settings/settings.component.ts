@@ -778,6 +778,17 @@ export class SettingsComponent implements OnInit, OnDestroy {
   }
   
   onProviderToggle(provider: 'openRouter' | 'replicate' | 'googleGemini'): void {
+    // Handle mutual exclusion for text generation APIs
+    if (provider === 'openRouter' && this.settings.openRouter.enabled) {
+      // If OpenRouter is being enabled, disable Gemini
+      this.settings.googleGemini.enabled = false;
+      console.log('OpenRouter enabled, disabling Gemini');
+    } else if (provider === 'googleGemini' && this.settings.googleGemini.enabled) {
+      // If Gemini is being enabled, disable OpenRouter
+      this.settings.openRouter.enabled = false;
+      console.log('Gemini enabled, disabling OpenRouter');
+    }
+    
     this.onSettingsChange();
     
     // Load models when provider is enabled and has API key
