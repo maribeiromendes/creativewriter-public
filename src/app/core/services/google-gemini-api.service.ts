@@ -141,12 +141,34 @@ export class GoogleGeminiApiService {
 
     const url = `${this.API_BASE_URL}/${model}:generateContent`;
 
+    // Debug logging for Gemini API
+    console.log('🔍 Gemini API Debug:', {
+      model: model,
+      maxOutputTokens: maxTokens,
+      wordCount: options.wordCount,
+      contentsLength: contents.length,
+      temperature: request.generationConfig?.temperature,
+      requestUrl: url,
+      contentsPreview: contents.map(c => ({ role: c.role, textLength: c.parts[0].text.length }))
+    });
+
     return this.http.post<GoogleGeminiResponse>(url, request, { headers }).pipe(
       takeUntil(abortSubject),
       tap({
         next: (response) => {
           const duration = Date.now() - startTime;
           const content = response.candidates?.[0]?.content?.parts?.[0]?.text || '';
+          
+          // Debug logging for response
+          console.log('🔍 Gemini Response Debug:', {
+            duration: duration + 'ms',
+            contentLength: content.length,
+            wordCount: content.split(/\s+/).length,
+            contentPreview: content.substring(0, 200) + '...',
+            usageMetadata: response.usageMetadata,
+            finishReason: response.candidates?.[0]?.finishReason
+          });
+          
           this.aiLogger.logSuccess(logId, content, duration);
           this.cleanupRequest(requestId);
         },

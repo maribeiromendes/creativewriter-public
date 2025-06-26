@@ -59,6 +59,15 @@ export class BeatAIService {
         const maxTokens = Math.ceil(wordCount * 2.5);
         const requestId = this.generateRequestId();
         
+        // Debug logging
+        console.log('🔍 Beat AI Debug:', {
+          originalPrompt: prompt,
+          wordCount: wordCount,
+          maxTokens: maxTokens,
+          enhancedPromptLength: enhancedPrompt.length,
+          enhancedPromptPreview: enhancedPrompt.substring(0, 500) + '...'
+        });
+        
         // Store the active generation
         this.activeGenerations.set(beatId, requestId);
 
