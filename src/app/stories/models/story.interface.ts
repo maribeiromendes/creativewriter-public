@@ -43,22 +43,31 @@ export const DEFAULT_STORY_SETTINGS: StorySettings = {
   systemMessage: 'Du bist ein kreativer Schreibassistent, der beim Verfassen von Geschichten hilft. Behalte den Stil und Ton der bisherigen Geschichte bei.',
   beatGenerationTemplate: `<messages>
 <message role="system">{systemMessage}</message>
-<message role="user">Take into account the following glossary of characters/locations/items/lore... when writing your response:
+<message role="user">You are continuing a story. Here is the context:
+
+<story_title>{storyTitle}</story_title>
+
+<glossary>
 {codexEntries}
+</glossary>
 
-The story so far:
-{storySoFar}</message>
-<message role="assistant"># {storyTitle}
+<story_context>
+{storySoFar}
+</story_context>
 
-{sceneFullText}</message>
-<message role="user">Write {wordCount} words that continue the story, using the following instructions:
+<current_scene>
+{sceneFullText}
+</current_scene>
+
 <instructions>
 {pointOfView}
-
-{prompt}
-
+Write exactly {wordCount} words that continue this story.
 {writingStyle}
-</instructions></message>
+
+Task: {prompt}
+</instructions>
+
+Continue the story now with {wordCount} words:</message>
 </messages>`,
   useFullStoryContext: false,
   beatInstruction: 'continue'
