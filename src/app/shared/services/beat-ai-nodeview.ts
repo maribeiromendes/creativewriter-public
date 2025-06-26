@@ -99,8 +99,20 @@ export class BeatAINodeView implements NodeView {
     }
     
     this.node = node;
-    this.beatData = this.createBeatDataFromNode(node);
-    this.componentRef.instance.beatData = this.beatData;
+    const newBeatData = this.createBeatDataFromNode(node);
+    
+    // Only update if the component is not currently generating
+    // This preserves the component's isGenerating state during streaming
+    if (!this.componentRef.instance.beatData.isGenerating) {
+      this.beatData = newBeatData;
+      this.componentRef.instance.beatData = this.beatData;
+    } else {
+      // During generation, only update non-state properties
+      this.beatData.prompt = newBeatData.prompt;
+      this.beatData.generatedContent = newBeatData.generatedContent;
+      this.beatData.updatedAt = newBeatData.updatedAt;
+      // Keep the existing isGenerating and isEditing states
+    }
     
     return true;
   }
