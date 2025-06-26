@@ -325,7 +325,7 @@ export class GoogleGeminiApiService {
     // Store request metadata for abort handling
     this.requestMetadata.set(requestId, { logId, startTime });
 
-    const url = `${this.API_BASE_URL}/${model}:streamGenerateContent`;
+    const url = `${this.API_BASE_URL}/${model}:streamGenerateContent?alt=sse`;
 
     // Debug logging for Gemini API
     console.log('🔍 Gemini Streaming API Debug:', {
@@ -345,10 +345,16 @@ export class GoogleGeminiApiService {
       fetch(url, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Accept': 'text/event-stream'
         },
         body: JSON.stringify(request)
       }).then(response => {
+        console.log('🔍 Gemini Streaming Response:', {
+          status: response.status,
+          headers: Object.fromEntries(response.headers.entries()),
+          url: url
+        });
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -377,19 +383,62 @@ export class GoogleGeminiApiService {
             }
             
             const chunk = decoder.decode(value, { stream: true });
+            console.log('🔍 Gemini Raw Chunk:', chunk);
             const lines = chunk.split('\n');
             
-            for (const line of lines) {
-              if (line.trim().startsWith('data: ')) {
-                try {
-                  const data = JSON.parse(line.substring(6));
-                  if (data.candidates?.[0]?.content?.parts?.[0]?.text) {
-                    const newText = data.candidates[0].content.parts[0].text;
-                    accumulatedContent += newText;
-                    observer.next(newText);
+            // Try to parse the entire chunk as JSON first (Gemini might send complete JSON objects)
+            if (chunk.trim()) {
+              try {
+                const parsed = JSON.parse(chunk.trim());
+                console.log('🔍 Gemini Complete JSON Chunk:', parsed);
+                
+                if (parsed.candidates?.[0]?.content?.parts?.[0]?.text) {
+                  const newText = parsed.candidates[0].content.parts[0].text;
+                  accumulatedContent += newText;
+                  console.log('🔍 Gemini New Text (Complete):', newText);
+                  observer.next(newText);
+                }
+              } catch (e) {
+                // Not complete JSON, try line by line
+                for (const line of lines) {
+                  console.log('🔍 Gemini Processing Line:', line);
+                  
+                  if (line.trim().startsWith('data: ')) {
+                    const data = line.substring(6).trim();
+                    if (data === '[DONE]') {
+                      continue;
+                    }
+                    
+                    try {
+                      const parsed = JSON.parse(data);
+                      console.log('🔍 Gemini Streaming Chunk:', parsed);
+                      
+                      if (parsed.candidates?.[0]?.content?.parts?.[0]?.text) {
+                        const newText = parsed.candidates[0].content.parts[0].text;
+                        accumulatedContent += newText;
+                        console.log('🔍 Gemini New Text:', newText);
+                        observer.next(newText);
+                      }
+                    } catch (e) {
+                      console.warn('🔍 Gemini Parse Error:', e, 'Line:', line);
+                      // Ignore parsing errors for incomplete JSON
+                    }
+                  } else if (line.trim() && !line.trim().startsWith('data:') && !line.trim().startsWith('event:')) {
+                    // Some APIs send raw JSON without "data:" prefix
+                    try {
+                      const parsed = JSON.parse(line.trim());
+                      console.log('🔍 Gemini Raw JSON Chunk:', parsed);
+                      
+                      if (parsed.candidates?.[0]?.content?.parts?.[0]?.text) {
+                        const newText = parsed.candidates[0].content.parts[0].text;
+                        accumulatedContent += newText;
+                        console.log('🔍 Gemini New Text (Raw):', newText);
+                        observer.next(newText);
+                      }
+                    } catch (e) {
+                      // Not JSON, ignore
+                    }
                   }
-                } catch (e) {
-                  // Ignore parsing errors for incomplete JSON
                 }
               }
             }
