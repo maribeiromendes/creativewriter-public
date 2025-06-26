@@ -325,8 +325,8 @@ export class GoogleGeminiApiService {
     // Store request metadata for abort handling
     this.requestMetadata.set(requestId, { logId, startTime });
 
-    // Try without alt=sse first, as the proxy might handle streaming differently
-    const url = `${this.API_BASE_URL}/${model}:streamGenerateContent`;
+    // Use alt=sse for proper Server-Sent Events streaming
+    const url = `${this.API_BASE_URL}/${model}:streamGenerateContent?alt=sse`;
 
     // Debug logging for Gemini API
     console.log('🔍 Gemini Streaming API Debug:', {
@@ -431,61 +431,44 @@ export class GoogleGeminiApiService {
             
             const chunk = decoder.decode(value, { stream: true });
             console.log('🔍 Gemini Raw Chunk:', chunk);
-            const lines = chunk.split('\n');
             
-            // Try to parse the entire chunk as JSON first (Gemini might send complete JSON objects)
-            if (chunk.trim()) {
-              try {
-                const parsed = JSON.parse(chunk.trim());
-                console.log('🔍 Gemini Complete JSON Chunk:', parsed);
+            // Process SSE format for Gemini API
+            // Buffer incomplete chunks
+            buffer += chunk;
+            const lines = buffer.split('\n');
+            
+            // Keep the last potentially incomplete line in the buffer
+            buffer = lines.pop() || '';
+            
+            for (const line of lines) {
+              console.log('🔍 Gemini Processing Line:', line);
+              
+              if (line.trim().startsWith('data: ')) {
+                const data = line.substring(6).trim();
                 
-                if (parsed.candidates?.[0]?.content?.parts?.[0]?.text) {
-                  const newText = parsed.candidates[0].content.parts[0].text;
-                  accumulatedContent += newText;
-                  console.log('🔍 Gemini New Text (Complete):', newText);
-                  observer.next(newText);
+                // Skip empty data or [DONE] signal
+                if (!data || data === '[DONE]') {
+                  continue;
                 }
-              } catch (e) {
-                // Not complete JSON, try line by line
-                for (const line of lines) {
-                  console.log('🔍 Gemini Processing Line:', line);
+                
+                try {
+                  const parsed = JSON.parse(data);
+                  console.log('🔍 Gemini SSE Chunk:', parsed);
                   
-                  if (line.trim().startsWith('data: ')) {
-                    const data = line.substring(6).trim();
-                    if (data === '[DONE]') {
-                      continue;
-                    }
-                    
-                    try {
-                      const parsed = JSON.parse(data);
-                      console.log('🔍 Gemini Streaming Chunk:', parsed);
-                      
-                      if (parsed.candidates?.[0]?.content?.parts?.[0]?.text) {
-                        const newText = parsed.candidates[0].content.parts[0].text;
-                        accumulatedContent += newText;
-                        console.log('🔍 Gemini New Text:', newText);
-                        observer.next(newText);
-                      }
-                    } catch (e) {
-                      console.warn('🔍 Gemini Parse Error:', e, 'Line:', line);
-                      // Ignore parsing errors for incomplete JSON
-                    }
-                  } else if (line.trim() && !line.trim().startsWith('data:') && !line.trim().startsWith('event:')) {
-                    // Some APIs send raw JSON without "data:" prefix
-                    try {
-                      const parsed = JSON.parse(line.trim());
-                      console.log('🔍 Gemini Raw JSON Chunk:', parsed);
-                      
-                      if (parsed.candidates?.[0]?.content?.parts?.[0]?.text) {
-                        const newText = parsed.candidates[0].content.parts[0].text;
-                        accumulatedContent += newText;
-                        console.log('🔍 Gemini New Text (Raw):', newText);
-                        observer.next(newText);
-                      }
-                    } catch (e) {
-                      // Not JSON, ignore
-                    }
+                  // Gemini API sends partial text in each chunk
+                  if (parsed.candidates?.[0]?.content?.parts?.[0]?.text) {
+                    const newText = parsed.candidates[0].content.parts[0].text;
+                    accumulatedContent += newText;
+                    console.log('🔍 Gemini New Text:', newText);
+                    observer.next(newText);
                   }
+                  
+                  // Check for finish reason
+                  if (parsed.candidates?.[0]?.finishReason) {
+                    console.log('🔍 Gemini Finish Reason:', parsed.candidates[0].finishReason);
+                  }
+                } catch (e) {
+                  console.warn('🔍 Gemini Parse Error:', e, 'Data:', data);
                 }
               }
             }
