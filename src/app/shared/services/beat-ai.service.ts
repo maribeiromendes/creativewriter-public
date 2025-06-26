@@ -316,8 +316,10 @@ ${story.settings.beatInstruction === 'continue' ? 'Setze die Geschichte fort' : 
     return mapping[category] || 'other';
   }
 
-  private escapeXml(text: string): string {
-    return text
+  private escapeXml(text: string | any): string {
+    // Ensure the input is a string
+    const str = String(text || '');
+    return str
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
@@ -325,9 +327,10 @@ ${story.settings.beatInstruction === 'continue' ? 'Setze die Geschichte fort' : 
       .replace(/'/g, '&apos;');
   }
 
-  private sanitizeXmlTagName(name: string): string {
+  private sanitizeXmlTagName(name: string | any): string {
     // Convert to camelCase and remove invalid characters
-    return name
+    const str = String(name || '');
+    return str
       .toLowerCase()
       .replace(/[^a-z0-9]+(.)/g, (_, chr) => chr.toUpperCase())
       .replace(/[^a-zA-Z0-9]/g, '');

@@ -334,8 +334,10 @@ export class PromptManagerService {
     return xml;
   }
 
-  private escapeXml(text: string): string {
-    return text
+  private escapeXml(text: string | any): string {
+    // Ensure the input is a string
+    const str = String(text || '');
+    return str
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
