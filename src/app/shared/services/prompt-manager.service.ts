@@ -258,8 +258,10 @@ export class PromptManagerService {
   }
 
   /**
-   * Get full text of current scene if it has content, otherwise get previous scene's text
-   * This is used for beat prompt generation to provide context
+   * Get text content for beat prompt generation context
+   * If beatId is provided: checks for text before that beat, falls back to previous scene if none
+   * If no beatId: uses full scene text if available, falls back to previous scene if none
+   * This ensures AI generation always has relevant context
    * @param targetSceneId The ID of the target scene
    * @param beatId Optional beat ID - if provided, only return text before this beat
    */
@@ -271,16 +273,21 @@ export class PromptManagerService {
     
     const currentScene = flatScenes[targetIndex];
     
-    // If current scene has text content, return it
-    if (currentScene.fullText && currentScene.fullText.trim().length > 0) {
-      // If beat ID is provided, extract text before that beat
-      if (beatId) {
-        return await this.extractTextBeforeBeat(currentScene, beatId);
+    // If beat ID is provided, check if there's text before that beat
+    if (beatId) {
+      const textBeforeBeat = await this.extractTextBeforeBeat(currentScene, beatId);
+      if (textBeforeBeat && textBeforeBeat.trim().length > 0) {
+        return textBeforeBeat;
       }
-      return currentScene.fullText;
+      // No text before beat, fall through to use previous scene
+    } else {
+      // No beat ID provided, use full scene text if available
+      if (currentScene.fullText && currentScene.fullText.trim().length > 0) {
+        return currentScene.fullText;
+      }
     }
     
-    // Otherwise, return previous scene's text
+    // No text before beat or no text in current scene, use previous scene's text
     if (targetIndex > 0) {
       const previousScene = flatScenes[targetIndex - 1];
       return previousScene.fullText;
