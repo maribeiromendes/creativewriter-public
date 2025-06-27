@@ -499,8 +499,10 @@ export class BeatAIService {
         // Extract aliases from metadata
         const aliases: string[] = [];
         if (entry.metadata?.['aliases']) {
-          const aliasString = entry.metadata['aliases'];
-          aliases.push(...aliasString.split(',').map((a: string) => a.trim()).filter((a: string) => a));
+          const aliasValue = entry.metadata['aliases'];
+          if (typeof aliasValue === 'string' && aliasValue) {
+            aliases.push(...aliasValue.split(',').map((a: string) => a.trim()).filter((a: string) => a));
+          }
         }
         
         // Extract keywords from tags and content
