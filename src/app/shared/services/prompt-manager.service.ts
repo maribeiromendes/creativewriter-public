@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, from } from 'rxjs';
+import { BehaviorSubject, from } from 'rxjs';
 import { map, distinctUntilChanged, switchMap } from 'rxjs/operators';
-import { Story, Scene, Chapter } from '../../stories/models/story.interface';
+import { Story, Scene } from '../../stories/models/story.interface';
 import { StoryService } from '../../stories/services/story.service';
 
 export interface FlatScene {
@@ -260,8 +260,10 @@ export class PromptManagerService {
   /**
    * Get full text of current scene if it has content, otherwise get previous scene's text
    * This is used for beat prompt generation to provide context
+   * @param targetSceneId The ID of the target scene
+   * @param beatId Optional beat ID - if provided, only return text before this beat
    */
-  getCurrentOrPreviousSceneText(targetSceneId: string): string {
+  async getCurrentOrPreviousSceneText(targetSceneId: string, beatId?: string): Promise<string> {
     const flatScenes = this.getCurrentFlatScenes();
     const targetIndex = flatScenes.findIndex(scene => scene.id === targetSceneId);
     
@@ -271,6 +273,10 @@ export class PromptManagerService {
     
     // If current scene has text content, return it
     if (currentScene.fullText && currentScene.fullText.trim().length > 0) {
+      // If beat ID is provided, extract text before that beat
+      if (beatId) {
+        return await this.extractTextBeforeBeat(currentScene, beatId);
+      }
       return currentScene.fullText;
     }
     
@@ -360,6 +366,114 @@ export class PromptManagerService {
         console.log('PromptManager refreshed with', flatScenes.length, 'scenes');
       }
     }
+  }
+
+  /**
+   * Extract text content from scene until a specific beat ID is encountered
+   * @param flatScene The scene to extract text from
+   * @param beatId The beat ID to stop at
+   * @returns Text content before the specified beat
+   */
+  private async extractTextBeforeBeat(flatScene: FlatScene, beatId: string): Promise<string> {
+    const currentStoryId = this.currentStoryIdSubject.value;
+    if (!currentStoryId) return flatScene.fullText;
+
+    try {
+      // Get the full scene with HTML content
+      const scene = await this.storyService.getScene(currentStoryId, flatScene.chapterId, flatScene.id);
+      if (!scene || !scene.content) return flatScene.fullText;
+
+      // Parse the HTML content
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(scene.content, 'text/html');
+      
+      // Find the target beat node
+      const targetBeatNode = doc.querySelector(`.beat-ai-node[data-id="${beatId}"]`);
+      if (!targetBeatNode) {
+        // Beat not found, return full text
+        return flatScene.fullText;
+      }
+
+      // Create a temporary container and add all content before the beat
+      const tempContainer = document.createElement('div');
+      let currentNode = doc.body.firstChild;
+      
+      while (currentNode && currentNode !== targetBeatNode) {
+        // Clone the node and add it to temp container
+        const clonedNode = currentNode.cloneNode(true);
+        tempContainer.appendChild(clonedNode);
+        currentNode = currentNode.nextSibling;
+      }
+
+      // Extract clean text from the content before the beat
+      return this.extractFullTextFromContent(tempContainer.innerHTML);
+    } catch (error) {
+      console.error('Error extracting text before beat:', error);
+      return flatScene.fullText;
+    }
+  }
+
+  /**
+   * Extract full text content from HTML, removing beat metadata
+   * This is similar to extractFullTextFromScene but works on any HTML content
+   */
+  private extractFullTextFromContent(htmlContent: string): string {
+    if (!htmlContent) return '';
+
+    // Use DOM parser for more reliable HTML parsing
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(htmlContent, 'text/html');
+    
+    // Remove all beat AI wrapper elements and their contents
+    const beatWrappers = doc.querySelectorAll('.beat-ai-wrapper, .beat-ai-node');
+    beatWrappers.forEach(element => element.remove());
+    
+    // Remove beat markers and comments
+    const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT);
+    const textNodes: Text[] = [];
+    let node;
+    while (node = walker.nextNode()) {
+      textNodes.push(node as Text);
+    }
+    
+    textNodes.forEach(textNode => {
+      // Remove beat markers like [Beat: description]
+      textNode.textContent = textNode.textContent?.replace(/\[Beat:[^\]]*\]/g, '') || '';
+    });
+    
+    // Remove HTML comments
+    const comments = doc.evaluate('//comment()', doc, null, XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE, null);
+    for (let i = 0; i < comments.snapshotLength; i++) {
+      const comment = comments.snapshotItem(i);
+      if (comment && comment.textContent?.includes('Beat')) {
+        comment.parentNode?.removeChild(comment);
+      }
+    }
+    
+    // Convert to text while preserving paragraph structure
+    let cleanText = '';
+    const paragraphs = doc.querySelectorAll('p');
+    
+    for (const p of paragraphs) {
+      const text = p.textContent?.trim() || '';
+      if (text) {
+        cleanText += text + '\n\n';
+      } else {
+        // Empty paragraph becomes single newline
+        cleanText += '\n';
+      }
+    }
+    
+    // If no paragraphs found, fall back to body text
+    if (!paragraphs.length) {
+      cleanText = doc.body.textContent || '';
+    }
+    
+    // Clean up extra whitespace
+    cleanText = cleanText.replace(/\n\s*\n\s*\n/g, '\n\n');
+    cleanText = cleanText.trim();
+
+    return cleanText;
   }
 
   /**

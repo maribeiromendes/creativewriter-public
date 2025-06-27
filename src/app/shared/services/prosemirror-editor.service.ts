@@ -473,7 +473,8 @@ export class ProseMirrorEditorService {
       model: event.model,
       storyId: event.storyId,
       chapterId: event.chapterId,
-      sceneId: event.sceneId
+      sceneId: event.sceneId,
+      beatPosition: beatNodePosition
     }).subscribe({
       next: (finalContent) => {
         // Final content received - ensure beat node is updated

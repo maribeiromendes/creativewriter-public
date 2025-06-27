@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { Observable, Subject, delay, map, scan, timer, catchError, of, switchMap, from, tap } from 'rxjs';
-import { BeatAI, BeatAIGenerationEvent, BeatAIPromptEvent } from '../../stories/models/beat-ai.interface';
+import { Observable, Subject, map, scan, catchError, of, switchMap, from, tap } from 'rxjs';
+import { BeatAI, BeatAIGenerationEvent } from '../../stories/models/beat-ai.interface';
 import { OpenRouterApiService } from '../../core/services/openrouter-api.service';
 import { GoogleGeminiApiService } from '../../core/services/google-gemini-api.service';
 import { SettingsService } from '../../core/services/settings.service';
@@ -33,6 +33,7 @@ export class BeatAIService {
     storyId?: string;
     chapterId?: string;
     sceneId?: string;
+    beatPosition?: number;
   } = {}): Observable<string> {
     const settings = this.settingsService.getSettings();
     
@@ -55,7 +56,7 @@ export class BeatAIService {
     // Create structured prompt using template
     const wordCount = options.wordCount || 400;
     
-    return this.buildStructuredPromptFromTemplate(prompt, { ...options, wordCount }).pipe(
+    return this.buildStructuredPromptFromTemplate(prompt, beatId, { ...options, wordCount }).pipe(
       switchMap(enhancedPrompt => {
         // Calculate max tokens based on word count (roughly 2.5 tokens per German word for Gemini)
         // Set a high minimum to avoid MAX_TOKENS cutoff
@@ -196,7 +197,7 @@ export class BeatAIService {
 
   // Legacy template - now replaced by story.settings.beatGenerationTemplate
 
-  private buildStructuredPromptFromTemplate(userPrompt: string, options: {
+  private buildStructuredPromptFromTemplate(userPrompt: string, beatId: string, options: {
     storyId?: string;
     chapterId?: string;
     sceneId?: string;
@@ -227,7 +228,7 @@ export class BeatAIService {
         
         // Get current scene text first
         const sceneText = options.sceneId 
-          ? this.promptManager.getCurrentOrPreviousSceneText(options.sceneId)
+          ? await this.promptManager.getCurrentOrPreviousSceneText(options.sceneId, beatId)
           : '';
         
         // Convert to relevance service format and filter
@@ -404,7 +405,7 @@ export class BeatAIService {
     sceneId?: string;
     wordCount?: number;
   }): Observable<string> {
-    return this.buildStructuredPromptFromTemplate(userPrompt, options);
+    return this.buildStructuredPromptFromTemplate(userPrompt, '', options);
   }
 
   stopGeneration(beatId: string): void {
