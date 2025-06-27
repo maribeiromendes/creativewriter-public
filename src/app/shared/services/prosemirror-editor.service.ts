@@ -6,6 +6,7 @@ import { schema } from 'prosemirror-schema-basic';
 import { addListNodes } from 'prosemirror-schema-list';
 import { keymap } from 'prosemirror-keymap';
 import { baseKeymap } from 'prosemirror-commands';
+import { history, undo, redo } from 'prosemirror-history';
 import { Subject } from 'rxjs';
 import { BeatAINodeView } from './beat-ai-nodeview';
 import { BeatAI, BeatAIPromptEvent, BeatContentInsertEvent } from '../../stories/models/beat-ai.interface';
@@ -152,6 +153,12 @@ export class ProseMirrorEditorService {
     const state = EditorState.create({
       schema: this.editorSchema,
       plugins: [
+        history(),
+        keymap({
+          'Mod-z': undo,
+          'Mod-y': redo,
+          'Mod-Shift-z': redo
+        }),
         keymap(baseKeymap),
         keymap({
           'Mod-Enter': () => {
@@ -406,7 +413,21 @@ export class ProseMirrorEditorService {
     
     const state = EditorState.create({
       schema: this.editorSchema,
-      plugins: this.editorView.state.plugins
+      plugins: [
+        history(),
+        keymap({
+          'Mod-z': undo,
+          'Mod-y': redo,
+          'Mod-Shift-z': redo
+        }),
+        keymap(baseKeymap),
+        keymap({
+          'Mod-Enter': () => {
+            return false;
+          }
+        }),
+        this.createBeatAIPlugin({})
+      ]
     });
     
     this.editorView.updateState(state);
