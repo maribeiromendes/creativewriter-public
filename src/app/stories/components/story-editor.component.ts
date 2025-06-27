@@ -1073,12 +1073,20 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     
     try {
       const { state } = this.editorView;
-      const doc = state.doc;
-      const endPos = doc.content.size;
+      const { doc } = state;
       
-      // Set cursor to end of document
-      const endSelection = TextSelection.create(doc, endPos);
-      const tr = state.tr.setSelection(endSelection);
+      // Find a valid text position at the end of the document
+      let endPos = doc.content.size;
+      
+      // If the document ends with a non-text node, find the last valid text position
+      const lastChild = doc.lastChild;
+      if (lastChild && !lastChild.isText && lastChild.isBlock) {
+        // Position at the end of the last block's content
+        endPos = doc.content.size - 1;
+      }
+      
+      // Create selection at the end position
+      const tr = state.tr.setSelection(TextSelection.near(doc.resolve(endPos)));
       this.editorView.dispatch(tr);
       
       // Scroll the editor view to show the cursor
