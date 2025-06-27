@@ -442,8 +442,7 @@ export class ProseMirrorEditorService {
     const beatNodePosition = this.findBeatNodePosition(event.beatId);
     if (beatNodePosition === null) return;
     
-    // Clear any existing content after the beat node first
-    this.clearContentAfterBeatNode(event.beatId);
+    // Don't clear content - we'll insert new content right after the beat node
     
     // Track accumulating content for real-time insertion
     let accumulatedContent = '';
@@ -456,7 +455,7 @@ export class ProseMirrorEditorService {
       if (!generationEvent.isComplete && generationEvent.chunk) {
         // Stream chunk received - append to accumulated content and insert
         accumulatedContent += generationEvent.chunk;
-        this.replaceContentAfterBeatNode(event.beatId, accumulatedContent);
+        this.insertContentAfterBeatNode(event.beatId, accumulatedContent);
       } else if (generationEvent.isComplete) {
         // Generation completed
         this.updateBeatNode(event.beatId, { 
@@ -488,7 +487,7 @@ export class ProseMirrorEditorService {
         console.error('Beat generation failed:', error);
         
         // Insert error message
-        this.replaceContentAfterBeatNode(event.beatId, 'Fehler bei der Generierung. Bitte versuchen Sie es erneut.');
+        this.insertContentAfterBeatNode(event.beatId, 'Fehler bei der Generierung. Bitte versuchen Sie es erneut.');
         
         this.updateBeatNode(event.beatId, { 
           isGenerating: false,
@@ -547,55 +546,6 @@ export class ProseMirrorEditorService {
     return nodePos;
   }
 
-  private insertContentAfterBeatNode(beatId: string, content: string): void {
-    if (!this.editorView) return;
-    
-    const beatPos = this.findBeatNodePosition(beatId);
-    if (beatPos === null) return;
-    
-    const { state } = this.editorView;
-    const beatNode = state.doc.nodeAt(beatPos);
-    if (!beatNode) return;
-    
-    // Position after the beat node
-    const insertPos = beatPos + beatNode.nodeSize;
-    
-    // Parse content into multiple paragraphs if needed
-    const paragraphNodes = this.createParagraphsFromContent(content, state);
-    
-    // Check if there's already generated content after this beat node
-    const nextNode = state.doc.nodeAt(insertPos);
-    let tr = state.tr;
-    
-    if (nextNode && nextNode.type.name === 'paragraph' && this.isGeneratedContent(nextNode, beatId)) {
-      // Find and replace all existing generated content paragraphs
-      let endPos = insertPos;
-      let currentPos = insertPos;
-      
-      // Find the end of existing generated content
-      while (currentPos < state.doc.content.size) {
-        const node = state.doc.nodeAt(currentPos);
-        if (node && node.type.name === 'paragraph' && this.isGeneratedContent(node, beatId)) {
-          endPos = currentPos + node.nodeSize;
-          currentPos = endPos;
-        } else {
-          break;
-        }
-      }
-      
-      // Delete existing content first
-      tr = tr.delete(insertPos, endPos);
-    }
-    
-    // Insert all new paragraphs sequentially
-    let currentPos = insertPos;
-    paragraphNodes.forEach((para, index) => {
-      tr = tr.insert(currentPos, para);
-      currentPos += para.nodeSize;
-    });
-    
-    this.editorView.dispatch(tr);
-  }
 
   private deleteContentAfterBeat(beatId: string): void {
     if (!this.editorView) return;
@@ -890,5 +840,67 @@ export class ProseMirrorEditorService {
     const slice = new Slice(fragment, 0, 0);
     const tr = state.tr.replaceRange(afterBeatPos, endPos, slice);
     this.editorView.dispatch(tr);
+  }
+
+  private insertContentAfterBeatNode(beatId: string, newContent: string): void {
+    if (!this.editorView) return;
+    
+    const beatPos = this.findBeatNodePosition(beatId);
+    if (beatPos === null) return;
+    
+    const { state } = this.editorView;
+    const beatNode = state.doc.nodeAt(beatPos);
+    if (!beatNode) return;
+    
+    // Position after the beat node where we'll insert new content
+    const insertPos = beatPos + beatNode.nodeSize;
+    
+    // Check if there's already generated content from this beat
+    const currentContent = beatNode.attrs['generatedContent'] || '';
+    
+    if (currentContent) {
+      // Replace only the previously generated content from this beat
+      // Find the range that contains the previously generated content
+      let endPos = insertPos;
+      let pos = insertPos;
+      let contentLength = 0;
+      
+      // Calculate approximately how much content to replace based on current generated content
+      const currentParagraphs = currentContent.split('\n\n').filter((p: string) => p.trim());
+      let paragraphsToReplace = currentParagraphs.length;
+      
+      while (pos < state.doc.content.size && paragraphsToReplace > 0) {
+        const node = state.doc.nodeAt(pos);
+        if (!node) break;
+        
+        // Stop if we hit another beat node
+        if (node.type.name === 'beatAI') {
+          break;
+        }
+        
+        // Replace paragraphs that are likely from the previous generation
+        if (node.type.name === 'paragraph') {
+          endPos = pos + node.nodeSize;
+          pos = endPos;
+          paragraphsToReplace--;
+        } else {
+          // Stop at other node types
+          break;
+        }
+      }
+      
+      // Replace the range with new content
+      const paragraphNodes = this.createParagraphsFromContent(newContent, state);
+      const fragment = Fragment.from(paragraphNodes);
+      const slice = new Slice(fragment, 0, 0);
+      const tr = state.tr.replaceRange(insertPos, endPos, slice);
+      this.editorView.dispatch(tr);
+    } else {
+      // First generation - just insert the content
+      const paragraphNodes = this.createParagraphsFromContent(newContent, state);
+      const fragment = Fragment.from(paragraphNodes);
+      const tr = state.tr.insert(insertPos, fragment);
+      this.editorView.dispatch(tr);
+    }
   }
 }
