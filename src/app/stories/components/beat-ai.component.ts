@@ -925,7 +925,7 @@ export class BeatAIComponent implements OnInit, OnDestroy {
 
     // Use the context provided via Input properties
     // These will be set by the BeatAINodeView from the story editor context
-    this.beatAIService.previewPrompt(this.currentPrompt, {
+    this.beatAIService.previewPrompt(this.currentPrompt, this.beatData.id, {
       storyId: this.storyId,
       chapterId: this.chapterId,
       sceneId: this.sceneId,

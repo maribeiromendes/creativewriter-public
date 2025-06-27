@@ -399,13 +399,13 @@ export class BeatAIService {
   }
 
   // Public method to preview the structured prompt
-  previewPrompt(userPrompt: string, options: {
+  previewPrompt(userPrompt: string, beatId: string, options: {
     storyId?: string;
     chapterId?: string;
     sceneId?: string;
     wordCount?: number;
   }): Observable<string> {
-    return this.buildStructuredPromptFromTemplate(userPrompt, '', options);
+    return this.buildStructuredPromptFromTemplate(userPrompt, beatId, options);
   }
 
   stopGeneration(beatId: string): void {
