@@ -54,7 +54,7 @@ import { Subscription } from 'rxjs';
         </ion-toolbar>
       </ion-header>
       
-      <ion-content class="structure-content">
+      <ion-content class="structure-content" [scrollEvents]="true">
         <div id="add-chapter-help" class="sr-only">
           Fügt ein neues Kapitel zur Geschichte hinzu
         </div>
@@ -264,6 +264,7 @@ import { Subscription } from 'rxjs';
       left: 0;
       height: calc(100vh - 128px);
       z-index: 100;
+      overflow: hidden; /* Prevent container overflow */
     }
 
     /* Tablet and small desktop */
@@ -315,12 +316,18 @@ import { Subscription } from 'rxjs';
       --background: var(--ion-background-color);
       flex: 1;
       overflow-y: auto;
+      height: 100%;
+    }
+    
+    /* Fix for IonContent scrolling */
+    .structure-content::part(scroll) {
+      padding-bottom: 10rem;
     }
     
     .chapters-list {
       background: transparent;
       padding-top: 0.5rem; /* Add top padding to prevent header overlap */
-      padding-bottom: 6rem; /* Extra bottom padding to ensure last items are reachable */
+      padding-bottom: 10rem; /* Increased bottom padding to ensure last items are reachable */
     }
     
     .chapter-item {
@@ -559,7 +566,7 @@ import { Subscription } from 'rxjs';
       
       .chapters-list {
         padding-top: 0.75rem; /* Extra top padding on mobile */
-        padding-bottom: 8rem; /* Increased padding to ensure last button is reachable */
+        padding-bottom: 12rem; /* Further increased padding for mobile */
       }
       
       .scenes-list {
