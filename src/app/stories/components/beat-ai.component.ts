@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgSelectModule } from '@ng-select/ng-select';
@@ -51,7 +51,8 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
             class="prompt-input"
             [(ngModel)]="currentPrompt"
             placeholder="Beschreibe den Beat, den die AI generieren soll..."
-            rows="3"
+            (input)="autoResizeTextarea($event)"
+            (ngModelChange)="onPromptChange()"
             (keydown.enter)="onPromptKeydown($event)"
             (click)="onTextareaClick($event)"
             (focus)="onTextareaFocus($event)"
@@ -241,8 +242,13 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
       font-family: inherit;
       font-size: 0.9rem;
       line-height: 1.4;
-      resize: vertical;
+      resize: none;
       min-height: 60px;
+      max-height: 300px;
+      height: 60px;
+      overflow-y: auto;
+      transition: height 0.15s ease;
+      box-sizing: border-box;
     }
     
     .prompt-input:focus {
@@ -713,7 +719,7 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
     }
   `]
 })
-export class BeatAIComponent implements OnInit, OnDestroy {
+export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
   @Input() beatData!: BeatAI;
   @Input() storyId?: string;
   @Input() chapterId?: string;
@@ -786,11 +792,23 @@ export class BeatAIComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.subscription.unsubscribe();
   }
+
+  ngAfterViewInit(): void {
+    // Auto-resize textarea on initial load if it has content
+    if (this.promptInput && this.currentPrompt) {
+      setTimeout(() => {
+        this.resizeTextareaToContent();
+      }, 100);
+    }
+  }
   
   startEditing(): void {
     this.beatData.isEditing = true;
     this.currentPrompt = this.beatData.prompt;
-    setTimeout(() => this.focusPromptInput(), 200);
+    setTimeout(() => {
+      this.focusPromptInput();
+      this.resizeTextareaToContent();
+    }, 200);
   }
   
   cancelEditing(): void {
@@ -867,6 +885,32 @@ export class BeatAIComponent implements OnInit, OnDestroy {
 
   onTextareaMousedown(event: Event): void {
     event.stopPropagation();
+  }
+
+  autoResizeTextarea(event: Event): void {
+    const target = event.target as HTMLTextAreaElement;
+    this.resizeTextareaToContent(target);
+  }
+
+  onPromptChange(): void {
+    // Trigger resize when model changes
+    setTimeout(() => this.resizeTextareaToContent(), 0);
+  }
+
+  private resizeTextareaToContent(textarea?: HTMLTextAreaElement): void {
+    const target = textarea || this.promptInput?.nativeElement;
+    if (target) {
+      // Reset height to get accurate scrollHeight
+      target.style.height = '0';
+      // Calculate new height based on scrollHeight
+      const scrollHeight = target.scrollHeight;
+      const minHeight = 60; // matches CSS min-height
+      const maxHeight = 300; // matches CSS max-height
+      
+      // Set the new height within bounds
+      const newHeight = Math.min(Math.max(scrollHeight, minHeight), maxHeight);
+      target.style.height = newHeight + 'px';
+    }
   }
 
   private loadAvailableModels(): void {
