@@ -89,15 +89,6 @@ export class GoogleGeminiApiService {
     const maxTokens = options.maxTokens || 500;
     const wordCount = options.wordCount || Math.floor(maxTokens / 1.3);
 
-    // Log the request
-    const logId = this.aiLogger.logRequest({
-      endpoint: `${this.API_BASE_URL}/${model}:generateContent`,
-      model: model,
-      wordCount: wordCount,
-      maxTokens: maxTokens,
-      prompt: prompt
-    });
-
     const headers = new HttpHeaders({
       'Content-Type': 'application/json'
     });
@@ -140,11 +131,30 @@ export class GoogleGeminiApiService {
     const requestId = options.requestId || this.generateRequestId();
     const abortSubject = new Subject<void>();
     this.abortSubjects.set(requestId, abortSubject);
+
+    const url = `${this.API_BASE_URL}/${model}:generateContent`;
+
+    // Log the request with comprehensive details (after all variables are declared)
+    const logId = this.aiLogger.logRequest({
+      endpoint: url,
+      model: model,
+      wordCount: wordCount,
+      maxTokens: maxTokens,
+      prompt: prompt,
+      apiProvider: 'gemini',
+      streamingMode: false,
+      requestDetails: {
+        temperature: request.generationConfig?.temperature,
+        topP: request.generationConfig?.topP,
+        contentsLength: contents.length,
+        safetySettings: request.safetySettings?.length,
+        requestId: requestId,
+        messagesFormat: options.messages ? 'structured' : 'simple'
+      }
+    });
     
     // Store request metadata for abort handling
     this.requestMetadata.set(requestId, { logId, startTime });
-
-    const url = `${this.API_BASE_URL}/${model}:generateContent`;
 
     // Debug logging for Gemini API
     console.log('🔍 Gemini API Debug:', {
@@ -171,10 +181,27 @@ export class GoogleGeminiApiService {
             wordCount: content.split(/\s+/).length,
             contentPreview: content.substring(0, 200) + '...',
             usageMetadata: response.usageMetadata,
-            finishReason: response.candidates?.[0]?.finishReason
+            finishReason: response.candidates?.[0]?.finishReason,
+            candidatesCount: response.candidates?.length,
+            safetyRatings: response.candidates?.[0]?.safetyRatings
           });
           
-          this.aiLogger.logSuccess(logId, content, duration);
+          // Log additional debug info
+          this.aiLogger.logDebugInfo(logId, {
+            responseStructure: {
+              candidatesCount: response.candidates?.length,
+              finishReason: response.candidates?.[0]?.finishReason,
+              hasUsageMetadata: !!response.usageMetadata,
+              safetyRatingsCount: response.candidates?.[0]?.safetyRatings?.length
+            },
+            usageMetadata: response.usageMetadata,
+            safetyRatings: response.candidates?.[0]?.safetyRatings
+          });
+          
+          this.aiLogger.logSuccess(logId, content, duration, {
+            httpStatus: 200,
+            responseHeaders: { 'content-type': 'application/json' }
+          });
           this.cleanupRequest(requestId);
         },
         error: (error) => {
@@ -188,10 +215,32 @@ export class GoogleGeminiApiService {
             url: error.url,
             duration: duration + 'ms',
             errorDetails,
-            fullError: error
+            fullError: error,
+            headers: error.headers,
+            errorType: error.name
           });
           
-          this.aiLogger.logError(logId, errorDetails.message, duration);
+          // Log debug info for error analysis
+          this.aiLogger.logDebugInfo(logId, {
+            errorAnalysis: {
+              httpStatus: error.status,
+              statusText: error.statusText,
+              errorName: error.name,
+              hasErrorBody: !!error.error,
+              headers: error.headers?.keys ? Object.fromEntries(error.headers.keys().map((key: string) => [key, error.headers.get(key)])) : 'none',
+              url: error.url
+            },
+            rawError: {
+              message: error.message,
+              stack: error.stack?.substring(0, 500)
+            }
+          });
+          
+          this.aiLogger.logError(logId, errorDetails.message, duration, {
+            httpStatus: error.status,
+            errorDetails: errorDetails,
+            responseHeaders: error.headers?.keys ? Object.fromEntries(error.headers.keys().map((key: string) => [key, error.headers.get(key)])) : undefined
+          });
           this.cleanupRequest(requestId);
         }
       })
@@ -282,15 +331,6 @@ export class GoogleGeminiApiService {
     const maxTokens = options.maxTokens || 500;
     const wordCount = options.wordCount || Math.floor(maxTokens / 1.3);
 
-    // Log the request
-    const logId = this.aiLogger.logRequest({
-      endpoint: `${this.API_BASE_URL}/${model}:streamGenerateContent`,
-      model: model,
-      wordCount: wordCount,
-      maxTokens: maxTokens,
-      prompt: prompt
-    });
-
     const headers = new HttpHeaders({
       'Content-Type': 'application/json'
     });
@@ -333,12 +373,32 @@ export class GoogleGeminiApiService {
     const requestId = options.requestId || this.generateRequestId();
     const abortSubject = new Subject<void>();
     this.abortSubjects.set(requestId, abortSubject);
-    
-    // Store request metadata for abort handling
-    this.requestMetadata.set(requestId, { logId, startTime });
 
     // Use alt=sse for proper Server-Sent Events streaming
     const url = `${this.API_BASE_URL}/${model}:streamGenerateContent?alt=sse`;
+
+    // Log the request with comprehensive details (after all variables are declared)
+    const logId = this.aiLogger.logRequest({
+      endpoint: url,
+      model: model,
+      wordCount: wordCount,
+      maxTokens: maxTokens,
+      prompt: prompt,
+      apiProvider: 'gemini',
+      streamingMode: true,
+      requestDetails: {
+        temperature: request.generationConfig?.temperature,
+        topP: request.generationConfig?.topP,
+        contentsLength: contents.length,
+        safetySettings: request.safetySettings?.length,
+        requestId: requestId,
+        messagesFormat: options.messages ? 'structured' : 'simple',
+        streamingUrl: url
+      }
+    });
+    
+    // Store request metadata for abort handling
+    this.requestMetadata.set(requestId, { logId, startTime });
 
     // Debug logging for Gemini API
     console.log('🔍 Gemini Streaming API Debug:', {
@@ -449,9 +509,22 @@ export class GoogleGeminiApiService {
                   console.log('🔍 Gemini Simulated Streaming Complete:', {
                     duration: duration + 'ms',
                     totalContentLength: accumulatedContent.length,
-                    wordCount: accumulatedContent.split(/\s+/).length
+                    wordCount: accumulatedContent.split(/\s+/).length,
+                    mode: 'simulated-streaming'
                   });
-                  this.aiLogger.logSuccess(logId, accumulatedContent, duration);
+                  
+                  // Log comprehensive success info
+                  this.aiLogger.logDebugInfo(logId, {
+                    streamingType: 'simulated',
+                    chunkCount: Math.ceil(fullText.length / chunkSize),
+                    chunkSize: chunkSize,
+                    totalChunks: Math.ceil(fullText.length / chunkSize)
+                  });
+                  
+                  this.aiLogger.logSuccess(logId, accumulatedContent, duration, {
+                    httpStatus: 200,
+                    responseHeaders: { 'content-type': 'application/json' }
+                  });
                   this.cleanupRequest(requestId);
                   abortSubscription.unsubscribe();
                 }
@@ -477,11 +550,22 @@ export class GoogleGeminiApiService {
                 console.log('🔍 Gemini Streaming Complete:', {
                   duration: duration + 'ms',
                   totalContentLength: accumulatedContent.length,
-                  wordCount: accumulatedContent.split(/\s+/).length
+                  wordCount: accumulatedContent.split(/\s+/).length,
+                  mode: 'real-streaming'
+                });
+                
+                // Log comprehensive success info for real streaming
+                this.aiLogger.logDebugInfo(logId, {
+                  streamingType: 'real',
+                  mode: 'server-sent-events',
+                  bufferLength: buffer.length
                 });
                 
                 observer.complete();
-                this.aiLogger.logSuccess(logId, accumulatedContent, duration);
+                this.aiLogger.logSuccess(logId, accumulatedContent, duration, {
+                  httpStatus: 200,
+                  responseHeaders: { 'content-type': 'text/event-stream' }
+                });
                 this.cleanupRequest(requestId);
                 abortSubscription.unsubscribe();
               }
@@ -554,8 +638,25 @@ export class GoogleGeminiApiService {
           stack: error.stack
         });
         
+        // Log debug info for streaming error
+        this.aiLogger.logDebugInfo(logId, {
+          streamingError: {
+            name: error.name,
+            message: error.message,
+            aborted: aborted,
+            accumulatedContentLength: accumulatedContent.length
+          },
+          connectionInfo: {
+            url: url,
+            requestMethod: 'POST'
+          }
+        });
+        
         observer.error(error);
-        this.aiLogger.logError(logId, errorDetails.message, duration);
+        this.aiLogger.logError(logId, errorDetails.message, duration, {
+          httpStatus: error.status || 0,
+          errorDetails: errorDetails
+        });
         this.cleanupRequest(requestId);
         abortSubscription.unsubscribe();
       });

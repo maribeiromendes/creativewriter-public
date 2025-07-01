@@ -13,6 +13,20 @@ export interface AIRequestLog {
   error?: string;
   duration?: number;
   status: 'pending' | 'success' | 'error' | 'aborted';
+  // Additional debugging fields
+  requestDetails?: any;
+  responseHeaders?: any;
+  httpStatus?: number;
+  retryCount?: number;
+  apiProvider?: 'openrouter' | 'gemini' | 'replicate';
+  streamingMode?: boolean;
+  errorDetails?: any;
+  networkInfo?: {
+    connectionType?: string;
+    effectiveType?: string;
+    downlink?: number;
+    rtt?: number;
+  };
 }
 
 @Injectable({
@@ -45,14 +59,41 @@ export class AIRequestLoggerService {
     wordCount: number;
     maxTokens: number;
     prompt: string;
+    apiProvider?: 'openrouter' | 'gemini' | 'replicate';
+    streamingMode?: boolean;
+    requestDetails?: any;
   }): string {
     const id = this.generateId();
+    
+    // Capture network information if available
+    const networkInfo = this.getNetworkInfo();
+    
     const newLog: AIRequestLog = {
       id,
       timestamp: new Date(),
-      ...data,
-      status: 'pending'
+      endpoint: data.endpoint,
+      model: data.model,
+      wordCount: data.wordCount,
+      maxTokens: data.maxTokens,
+      prompt: data.prompt,
+      status: 'pending',
+      apiProvider: data.apiProvider,
+      streamingMode: data.streamingMode,
+      requestDetails: data.requestDetails,
+      networkInfo: networkInfo
     };
+
+    console.log('🔍 AI Request Logger - New request:', {
+      id,
+      endpoint: data.endpoint,
+      model: data.model,
+      apiProvider: data.apiProvider,
+      streamingMode: data.streamingMode,
+      promptLength: data.prompt.length,
+      wordCount: data.wordCount,
+      maxTokens: data.maxTokens,
+      networkInfo
+    });
 
     const currentLogs = this.logsSubject.value;
     const updatedLogs = [newLog, ...currentLogs].slice(0, this.maxLogs);
@@ -71,23 +112,63 @@ export class AIRequestLoggerService {
     this.saveLogs();
   }
 
-  logSuccess(id: string, response: string, duration: number): void {
+  logSuccess(id: string, response: string, duration: number, additionalData?: {
+    responseHeaders?: any;
+    httpStatus?: number;
+    retryCount?: number;
+  }): void {
+    console.log('✅ AI Request Logger - Success:', {
+      id,
+      duration: duration + 'ms',
+      responseLength: response.length,
+      responseWordCount: response.split(/\s+/).length,
+      httpStatus: additionalData?.httpStatus,
+      retryCount: additionalData?.retryCount,
+      responsePreview: response.substring(0, 200) + '...'
+    });
+
     this.updateLog(id, {
       response,
       duration,
-      status: 'success'
+      status: 'success',
+      responseHeaders: additionalData?.responseHeaders,
+      httpStatus: additionalData?.httpStatus,
+      retryCount: additionalData?.retryCount
     });
   }
 
-  logError(id: string, error: string, duration: number): void {
+  logError(id: string, error: string, duration: number, additionalData?: {
+    errorDetails?: any;
+    httpStatus?: number;
+    retryCount?: number;
+    responseHeaders?: any;
+  }): void {
+    console.error('❌ AI Request Logger - Error:', {
+      id,
+      duration: duration + 'ms',
+      error,
+      httpStatus: additionalData?.httpStatus,
+      retryCount: additionalData?.retryCount,
+      errorDetails: additionalData?.errorDetails
+    });
+
     this.updateLog(id, {
       error,
       duration,
-      status: 'error'
+      status: 'error',
+      errorDetails: additionalData?.errorDetails,
+      httpStatus: additionalData?.httpStatus,
+      retryCount: additionalData?.retryCount,
+      responseHeaders: additionalData?.responseHeaders
     });
   }
 
   logAborted(id: string, duration: number): void {
+    console.log('⏹️ AI Request Logger - Aborted:', {
+      id,
+      duration: duration + 'ms'
+    });
+
     this.updateLog(id, {
       error: 'Request aborted by user',
       duration,
@@ -163,5 +244,62 @@ export class AIRequestLoggerService {
 
   private generateId(): string {
     return 'log-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+  }
+
+  private getNetworkInfo(): any {
+    // Get network information if available (experimental API)
+    try {
+      const nav = navigator as any;
+      const connection = nav.connection || nav.mozConnection || nav.webkitConnection;
+      
+      if (connection) {
+        return {
+          connectionType: connection.type || 'unknown',
+          effectiveType: connection.effectiveType || 'unknown',
+          downlink: connection.downlink || 0,
+          rtt: connection.rtt || 0
+        };
+      }
+    } catch (e) {
+      console.debug('Network API not available');
+    }
+    
+    return {
+      connectionType: 'unknown',
+      effectiveType: 'unknown',
+      downlink: 0,
+      rtt: 0
+    };
+  }
+
+  // Method to log additional debugging info
+  logDebugInfo(id: string, debugInfo: any): void {
+    console.log('🔍 AI Request Logger - Debug Info:', {
+      id,
+      debugInfo,
+      timestamp: new Date().toISOString()
+    });
+
+    const currentLogs = this.logsSubject.value;
+    const logIndex = currentLogs.findIndex(log => log.id === id);
+    
+    if (logIndex !== -1) {
+      const existingLog = currentLogs[logIndex];
+      const updatedLog = {
+        ...existingLog,
+        requestDetails: {
+          ...existingLog.requestDetails,
+          debugInfo: {
+            ...existingLog.requestDetails?.debugInfo,
+            ...debugInfo
+          }
+        }
+      };
+      
+      const updatedLogs = [...currentLogs];
+      updatedLogs[logIndex] = updatedLog;
+      this.logsSubject.next(updatedLogs);
+      this.saveLogs();
+    }
   }
 }
