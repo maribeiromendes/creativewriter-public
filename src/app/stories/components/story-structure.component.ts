@@ -217,6 +217,7 @@ import { Subscription } from 'rxjs';
                       
                       <ion-textarea 
                         [(ngModel)]="scene.summary"
+                        [value]="scene.summary || ''"
                         (ionBlur)="updateSceneSummary(chapter.id, scene.id, scene.summary || '')"
                         (ionInput)="autoResizeTextarea($event)"
                         [attr.data-scene-id]="scene.id"
@@ -1093,27 +1094,41 @@ Die Zusammenfassung soll die wichtigsten Handlungspunkte und Charakterentwicklun
       next: async (response) => {
         if (response.choices && response.choices.length > 0) {
           const summary = response.choices[0].message.content.trim();
-          await this.updateSceneSummary(chapterId, sceneId, summary);
           
-          // Update the scene summary generated timestamp
+          // Update the scene summary in the local object first
           if (scene) {
             scene.summary = summary;
             scene.summaryGeneratedAt = new Date();
-            await this.storyService.updateScene(this.story.id, chapterId, sceneId, {
-              summary: summary,
-              summaryGeneratedAt: scene.summaryGeneratedAt
-            });
+          }
+          
+          // Force change detection before service update
+          this.cdr.detectChanges();
+          
+          // Update in service
+          await this.updateSceneSummary(chapterId, sceneId, summary);
+          await this.storyService.updateScene(this.story.id, chapterId, sceneId, {
+            summary: summary,
+            summaryGeneratedAt: scene?.summaryGeneratedAt || new Date()
+          });
+          
+          // Refresh the story data to ensure consistency
+          const updatedStory = await this.storyService.getStory(this.story.id);
+          if (updatedStory) {
+            this.story = updatedStory;
           }
         }
         clearTimeout(timeoutId); // Clear timeout on success
         this.isGeneratingSummary.delete(sceneId);
         this.cdr.detectChanges(); // Force change detection
         
-        // Ensure textarea is properly resized after content update
+        // Ensure textarea is properly resized and updated after content update
         setTimeout(() => {
+          if (scene && scene.summary) {
+            this.updateTextareaValue(sceneId, scene.summary);
+          }
           this.resizeTextareaForScene(sceneId);
           this.cdr.detectChanges();
-        }, 100);
+        }, 150);
       },
       error: (error) => {
         console.error('Error generating scene summary:', error);
@@ -1324,6 +1339,16 @@ Antworte nur mit dem Titel, ohne weitere Erklärungen oder Anführungszeichen.`;
           this.resizeTextarea(retryTextarea);
         }
       }, 50);
+    }
+  }
+  
+  private updateTextareaValue(sceneId: string, value: string): void {
+    const textarea = document.querySelector(`textarea[data-scene-id="${sceneId}"]`) as HTMLTextAreaElement;
+    if (textarea) {
+      // Manually set the value to ensure it's displayed
+      textarea.value = value;
+      // Trigger input event to notify Angular of the change
+      textarea.dispatchEvent(new Event('input', { bubbles: true }));
     }
   }
   
