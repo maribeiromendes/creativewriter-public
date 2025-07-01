@@ -1051,22 +1051,12 @@ export class StoryStructureComponent implements AfterViewInit {
       return;
     }
     
-    // Debug logging to ensure we're using the correct scene
-    console.log('Generating summary for scene:', {
-      chapterId: chapterId,
-      sceneId: sceneId,
-      sceneTitle: scene.title,
-      sceneContentLength: scene.content.length,
-      selectedModel: this.selectedModel
-    });
-    
     this.isGeneratingSummary.add(sceneId);
     this.cdr.detectChanges(); // Force change detection for mobile
     
     // Set a timeout to clear busy state if request takes too long
     const timeoutId = setTimeout(() => {
       if (this.isGeneratingSummary.has(sceneId)) {
-        console.warn('Scene summary generation timeout reached');
         this.isGeneratingSummary.delete(sceneId);
         this.cdr.detectChanges();
         alert('Die Zusammenfassungs-Generierung dauert zu lange. Bitte versuchen Sie es erneut.');
@@ -1076,11 +1066,6 @@ export class StoryStructureComponent implements AfterViewInit {
     // Remove embedded images from content to reduce token count
     let sceneContent = this.removeEmbeddedImages(scene.content);
     
-    // Log if images were removed
-    if (sceneContent.length < scene.content.length) {
-      console.log(`Removed embedded images. Original: ${scene.content.length} chars, After removal: ${sceneContent.length} chars`);
-    }
-    
     // Limit content length to avoid token limit issues
     // Approximate: 1 token ≈ 4 characters, so for safety we limit to ~50k tokens ≈ 200k characters
     const maxContentLength = 200000;
@@ -1089,7 +1074,6 @@ export class StoryStructureComponent implements AfterViewInit {
     if (sceneContent.length > maxContentLength) {
       sceneContent = sceneContent.substring(0, maxContentLength);
       contentTruncated = true;
-      console.warn(`Scene content truncated from ${sceneContent.length} to ${maxContentLength} characters to avoid token limit`);
     }
     
     const prompt = `Erstelle eine Zusammenfassung der folgenden Szene:
@@ -1101,9 +1085,6 @@ ${sceneContent}${contentTruncated ? '\n\n[Hinweis: Der Inhalt wurde gekürzt, da
 
 Die Zusammenfassung soll die wichtigsten Handlungspunkte und Charakterentwicklungen erfassen.`;
 
-    // Log the prompt to verify we're only sending one scene
-    console.log('Sending prompt with content length:', prompt.length, 'characters');
-    
     this.openRouterApiService.generateText(prompt, {
       model: this.selectedModel,
       maxTokens: 150,
@@ -1167,15 +1148,6 @@ Die Zusammenfassung soll die wichtigsten Handlungspunkte und Charakterentwicklun
       return;
     }
     
-    // Debug logging to ensure we're using the correct scene
-    console.log('Generating title for scene:', {
-      chapterId: chapterId,
-      sceneId: sceneId,
-      currentSceneTitle: scene.title,
-      sceneContentLength: scene.content.length,
-      selectedModel: this.selectedModel
-    });
-    
     // Get scene title generation settings
     const settings = this.settingsService.getSettings();
     const titleSettings = settings.sceneTitleGeneration;
@@ -1186,7 +1158,6 @@ Die Zusammenfassung soll die wichtigsten Handlungspunkte und Charakterentwicklun
     // Set a timeout to clear busy state if request takes too long
     const timeoutId = setTimeout(() => {
       if (this.isGeneratingTitle.has(sceneId)) {
-        console.warn('Scene title generation timeout reached');
         this.isGeneratingTitle.delete(sceneId);
         this.cdr.detectChanges();
         alert('Die Titel-Generierung dauert zu lange. Bitte versuchen Sie es erneut.');
@@ -1196,18 +1167,12 @@ Die Zusammenfassung soll die wichtigsten Handlungspunkte und Charakterentwicklun
     // Remove embedded images from content to reduce token count
     let sceneContent = this.removeEmbeddedImages(scene.content);
     
-    // Log if images were removed
-    if (sceneContent.length < scene.content.length) {
-      console.log(`Removed embedded images for title generation. Original: ${scene.content.length} chars, After removal: ${sceneContent.length} chars`);
-    }
-    
     // Limit content length for title generation - we need even less content for a title
     // For title generation, 50k characters should be more than enough
     const maxContentLength = 50000;
     
     if (sceneContent.length > maxContentLength) {
       sceneContent = sceneContent.substring(0, maxContentLength);
-      console.warn(`Scene content truncated from ${sceneContent.length} to ${maxContentLength} characters for title generation`);
     }
     
     // Build style instructions based on settings

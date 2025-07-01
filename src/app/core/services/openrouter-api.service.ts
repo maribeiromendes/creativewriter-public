@@ -151,24 +151,6 @@ export class OpenRouterApiService {
             errorMessage += error.message;
           }
           
-          // Log detailed error for debugging
-          console.error('OpenRouter API Error:', {
-            status: error.status,
-            statusText: error.statusText,
-            url: error.url,
-            error: error.error,
-            request: {
-              model: model,
-              maxTokens: maxTokens,
-              promptLength: prompt.length,
-              fullRequest: request
-            }
-          });
-          
-          // Log the full error response
-          if (error.error) {
-            console.error('Full error response:', error.error);
-          }
           
           this.aiLogger.logError(logId, errorMessage, duration);
           this.cleanupRequest(requestId);
@@ -255,13 +237,6 @@ export class OpenRouterApiService {
     // Store request metadata for abort handling
     this.requestMetadata.set(requestId, { logId, startTime });
 
-    console.log('🔍 OpenRouter Streaming API Debug:', {
-      model: model,
-      maxTokens: maxTokens,
-      wordCount: options.wordCount,
-      temperature: request.temperature,
-      requestUrl: this.API_URL
-    });
 
     return new Observable<string>(observer => {
       let accumulatedContent = '';
@@ -293,12 +268,6 @@ export class OpenRouterApiService {
         if (!response.ok) {
           // Try to get error body
           const errorBody = await response.text();
-          console.error('OpenRouter Streaming Error:', {
-            status: response.status,
-            statusText: response.statusText,
-            body: errorBody,
-            request: request
-          });
           throw new Error(`HTTP error! status: ${response.status}, body: ${errorBody}`);
         }
         
@@ -314,12 +283,6 @@ export class OpenRouterApiService {
             if (aborted || done) {
               if (done && !aborted) {
                 const duration = Date.now() - startTime;
-                console.log('🔍 OpenRouter Streaming Complete:', {
-                  duration: duration + 'ms',
-                  totalContentLength: accumulatedContent.length,
-                  wordCount: accumulatedContent.split(/\s+/).length
-                });
-                
                 observer.complete();
                 this.aiLogger.logSuccess(logId, accumulatedContent, duration);
                 this.cleanupRequest(requestId);
@@ -367,14 +330,6 @@ export class OpenRouterApiService {
           errorMessage = error.message;
         }
         
-        console.error('OpenRouter Streaming API Error:', {
-          error: error,
-          request: {
-            model: model,
-            maxTokens: maxTokens,
-            promptLength: prompt.length
-          }
-        });
         
         observer.error(error);
         this.aiLogger.logError(logId, errorMessage, duration);
