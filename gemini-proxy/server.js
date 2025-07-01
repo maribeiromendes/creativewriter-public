@@ -167,8 +167,19 @@ app.all('/api/gemini/*', async (req, res) => {
       console.log(`[${requestId}] Non-streaming request completed successfully in ${duration}ms:`, {
         status: response.status,
         responseSize: JSON.stringify(response.data).length + ' bytes',
-        model: req.body?.generationConfig ? 'configured' : 'default'
+        model: req.body?.generationConfig ? 'configured' : 'default',
+        hasPromptFeedback: !!response.data.promptFeedback,
+        promptFeedbackBlockReason: response.data.promptFeedback?.blockReason,
+        safetyRatingsInPromptFeedback: response.data.promptFeedback?.safetyRatings?.length || 0
       });
+      
+      // Log prompt feedback if present
+      if (response.data.promptFeedback) {
+        console.log(`[${requestId}] 🛡️ Prompt Feedback present:`, {
+          blockReason: response.data.promptFeedback.blockReason,
+          safetyRatings: response.data.promptFeedback.safetyRatings
+        });
+      }
       
       // Forward response
       res.status(response.status).json(response.data);

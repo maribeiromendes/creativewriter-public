@@ -262,7 +262,11 @@ import { Subscription } from 'rxjs';
               </ion-item>
               <div class="accordion-content" slot="content">
                 <div class="debug-info-section">
-                  <h4><ion-icon name="warning-outline"></ion-icon> Prompt Safety Analysis</h4>
+                  <h4><ion-icon name="warning-outline"></ion-icon> Prompt Safety Analysis
+                    <span *ngIf="getPromptFeedback(log)?.synthetic" style="font-size: 0.8em; color: var(--ion-color-medium); margin-left: 1rem;">
+                      (Generated from response safety ratings)
+                    </span>
+                  </h4>
                   
                   <!-- Block Reason if present -->
                   <div *ngIf="getPromptFeedback(log)?.blockReason" class="alert-section">
@@ -892,14 +896,38 @@ export class AILogTabComponent implements OnInit, OnDestroy {
   getPromptFeedback(log: AIRequestLog): any {
     // Check in debug info first
     if (log.requestDetails?.debugInfo?.promptFeedback) {
+      console.log('Found promptFeedback in debugInfo:', log.requestDetails.debugInfo.promptFeedback);
       return log.requestDetails.debugInfo.promptFeedback;
     }
     
     // Check in request details
     if (log.requestDetails?.promptFeedback) {
+      console.log('Found promptFeedback in requestDetails:', log.requestDetails.promptFeedback);
       return log.requestDetails.promptFeedback;
     }
     
+    // Check if there's any safety information in the response
+    if (log.requestDetails?.debugInfo?.safetyRatings) {
+      console.log('Creating promptFeedback from safetyRatings:', log.requestDetails.debugInfo.safetyRatings);
+      // Create a synthetic promptFeedback from safety ratings
+      return {
+        safetyRatings: log.requestDetails.debugInfo.safetyRatings,
+        synthetic: true
+      };
+    }
+    
+    // Check for streaming prompt feedback
+    if (log.requestDetails?.debugInfo?.streamingPromptFeedback) {
+      console.log('Found streaming promptFeedback:', log.requestDetails.debugInfo.streamingPromptFeedback);
+      return log.requestDetails.debugInfo.streamingPromptFeedback;
+    }
+    
+    // Log entire structure to debug
+    if (log.requestDetails) {
+      console.log('Full requestDetails structure:', log.requestDetails);
+    }
+    
+    console.log('No promptFeedback found for log:', log.id);
     return null;
   }
 

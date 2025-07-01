@@ -200,7 +200,8 @@ export class GoogleGeminiApiService {
             finishReason: response.candidates?.[0]?.finishReason,
             candidatesCount: response.candidates?.length,
             safetyRatings: response.candidates?.[0]?.safetyRatings,
-            promptFeedback: response.promptFeedback
+            promptFeedback: response.promptFeedback,
+            fullResponse: response // Log full response to see structure
           });
 
           // Special logging for prompt feedback
@@ -211,6 +212,8 @@ export class GoogleGeminiApiService {
               hasBlockReason: !!response.promptFeedback.blockReason,
               safetyRatingsCount: response.promptFeedback.safetyRatings?.length
             });
+          } else {
+            console.log('ℹ️ No promptFeedback in response');
           }
           
           // Log additional debug info including prompt feedback
@@ -654,6 +657,15 @@ export class GoogleGeminiApiService {
                   // Check for finish reason
                   if (parsed.candidates?.[0]?.finishReason) {
                     console.log('🔍 Gemini Finish Reason:', parsed.candidates[0].finishReason);
+                  }
+                  
+                  // Check for prompt feedback in streaming chunk
+                  if (parsed.promptFeedback) {
+                    console.log('🛡️ Gemini Streaming Prompt Feedback:', parsed.promptFeedback);
+                    // Store prompt feedback for later logging
+                    this.aiLogger.logDebugInfo(logId, {
+                      streamingPromptFeedback: parsed.promptFeedback
+                    });
                   }
                 } catch (e) {
                   console.warn('🔍 Gemini Parse Error:', e, 'Data:', data);
