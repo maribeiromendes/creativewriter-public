@@ -42,6 +42,7 @@ export interface GoogleGeminiResponse {
       category: string;
       probability: string;
     }>;
+    blockReason?: string;
   };
   usageMetadata?: {
     promptTokenCount: number;
@@ -198,19 +199,32 @@ export class GoogleGeminiApiService {
             usageMetadata: response.usageMetadata,
             finishReason: response.candidates?.[0]?.finishReason,
             candidatesCount: response.candidates?.length,
-            safetyRatings: response.candidates?.[0]?.safetyRatings
+            safetyRatings: response.candidates?.[0]?.safetyRatings,
+            promptFeedback: response.promptFeedback
           });
+
+          // Special logging for prompt feedback
+          if (response.promptFeedback) {
+            console.log('🛡️ Gemini Prompt Feedback:', {
+              blockReason: response.promptFeedback.blockReason,
+              safetyRatings: response.promptFeedback.safetyRatings,
+              hasBlockReason: !!response.promptFeedback.blockReason,
+              safetyRatingsCount: response.promptFeedback.safetyRatings?.length
+            });
+          }
           
-          // Log additional debug info
+          // Log additional debug info including prompt feedback
           this.aiLogger.logDebugInfo(logId, {
             responseStructure: {
               candidatesCount: response.candidates?.length,
               finishReason: response.candidates?.[0]?.finishReason,
               hasUsageMetadata: !!response.usageMetadata,
-              safetyRatingsCount: response.candidates?.[0]?.safetyRatings?.length
+              safetyRatingsCount: response.candidates?.[0]?.safetyRatings?.length,
+              hasPromptFeedback: !!response.promptFeedback
             },
             usageMetadata: response.usageMetadata,
-            safetyRatings: response.candidates?.[0]?.safetyRatings
+            safetyRatings: response.candidates?.[0]?.safetyRatings,
+            promptFeedback: response.promptFeedback
           });
           
           this.aiLogger.logSuccess(logId, content, duration, {
@@ -543,12 +557,13 @@ export class GoogleGeminiApiService {
                     mode: 'simulated-streaming'
                   });
                   
-                  // Log comprehensive success info
+                  // Log comprehensive success info including prompt feedback
                   this.aiLogger.logDebugInfo(logId, {
                     streamingType: 'simulated',
                     chunkCount: Math.ceil(fullText.length / chunkSize),
                     chunkSize: chunkSize,
-                    totalChunks: Math.ceil(fullText.length / chunkSize)
+                    totalChunks: Math.ceil(fullText.length / chunkSize),
+                    promptFeedback: data.promptFeedback || (Array.isArray(data) && data[0]?.promptFeedback)
                   });
                   
                   this.aiLogger.logSuccess(logId, accumulatedContent, duration, {

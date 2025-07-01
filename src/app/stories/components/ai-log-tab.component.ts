@@ -12,7 +12,8 @@ import {
   codeSlashOutline, warningOutline, informationCircleOutline,
   settingsOutline, cloudOutline, bugOutline, speedometerOutline,
   playCircleOutline, radioOutline, globeOutline, cogOutline,
-  checkmarkCircleOutline, refreshOutline, copyOutline
+  checkmarkCircleOutline, refreshOutline, copyOutline, shieldCheckmarkOutline,
+  shieldOutline, stopCircleOutline, codeOutline
 } from 'ionicons/icons';
 import { AIRequestLoggerService, AIRequestLog } from '../../core/services/ai-request-logger.service';
 import { Subscription } from 'rxjs';
@@ -250,6 +251,55 @@ import { Subscription } from 'rxjs';
               </div>
             </ion-accordion>
             
+            <!-- Prompt Feedback -->
+            <ion-accordion value="prompt-feedback" *ngIf="hasPromptFeedback(log)">
+              <ion-item slot="header" color="light">
+                <ion-icon name="shield-checkmark-outline" slot="start" color="warning"></ion-icon>
+                <ion-label>
+                  <h3>Prompt Feedback</h3>
+                  <p>Gemini API prompt analysis and safety ratings</p>
+                </ion-label>
+              </ion-item>
+              <div class="accordion-content" slot="content">
+                <div class="debug-info-section">
+                  <h4><ion-icon name="warning-outline"></ion-icon> Prompt Safety Analysis</h4>
+                  
+                  <!-- Block Reason if present -->
+                  <div *ngIf="getPromptFeedback(log)?.blockReason" class="alert-section">
+                    <div class="alert-box blocked">
+                      <ion-icon name="stop-circle-outline"></ion-icon>
+                      <strong>Prompt Blocked:</strong> {{ getPromptFeedback(log)?.blockReason }}
+                    </div>
+                  </div>
+                  
+                  <!-- Safety Ratings -->
+                  <div *ngIf="getPromptFeedback(log)?.safetyRatings?.length" class="safety-ratings-grid">
+                    <h5><ion-icon name="shield-outline"></ion-icon> Safety Ratings</h5>
+                    <div class="safety-rating" 
+                         *ngFor="let rating of getPromptFeedback(log)?.safetyRatings"
+                         [class.high-risk]="rating.probability === 'HIGH'"
+                         [class.medium-risk]="rating.probability === 'MEDIUM'"
+                         [class.low-risk]="rating.probability === 'LOW' || rating.probability === 'NEGLIGIBLE'">
+                      <div class="rating-category">
+                        <ion-label>{{ formatSafetyCategory(rating.category) }}</ion-label>
+                      </div>
+                      <div class="rating-probability">
+                        <ion-badge [color]="getSafetyColor(rating.probability)">
+                          {{ rating.probability || 'UNKNOWN' }}
+                        </ion-badge>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Raw Prompt Feedback Data -->
+                  <div class="debug-subsection">
+                    <h5><ion-icon name="code-outline"></ion-icon> Raw Prompt Feedback</h5>
+                    <pre class="debug-info">{{ formatJson(getPromptFeedback(log)) }}</pre>
+                  </div>
+                </div>
+              </div>
+            </ion-accordion>
+
             <!-- Response Headers -->
             <ion-accordion value="response-headers" *ngIf="log.responseHeaders">
               <ion-item slot="header" color="light">
@@ -633,6 +683,84 @@ import { Subscription } from 'rxjs';
         padding: 0.5rem;
       }
     }
+
+    /* Prompt Feedback specific styles */
+    .alert-section {
+      margin-bottom: 1.5rem;
+    }
+
+    .alert-box {
+      display: flex;
+      align-items: center;
+      padding: 1rem;
+      border-radius: 8px;
+      font-weight: 500;
+      margin-bottom: 1rem;
+    }
+
+    .alert-box ion-icon {
+      margin-right: 0.75rem;
+      font-size: 1.2rem;
+    }
+
+    .alert-box.blocked {
+      background: var(--ion-color-danger-tint);
+      color: var(--ion-color-danger-contrast);
+      border: 1px solid var(--ion-color-danger);
+    }
+
+    .safety-ratings-grid {
+      margin-bottom: 1.5rem;
+    }
+
+    .safety-ratings-grid h5 {
+      margin-bottom: 1rem;
+    }
+
+    .safety-rating {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem 1rem;
+      margin-bottom: 0.5rem;
+      background: var(--ion-color-step-50);
+      border-radius: 8px;
+      border: 1px solid var(--ion-color-step-150);
+      transition: all 0.2s ease;
+    }
+
+    .safety-rating.high-risk {
+      background: rgba(var(--ion-color-danger-rgb), 0.1);
+      border-color: var(--ion-color-danger);
+    }
+
+    .safety-rating.medium-risk {
+      background: rgba(var(--ion-color-warning-rgb), 0.1);
+      border-color: var(--ion-color-warning);
+    }
+
+    .safety-rating.low-risk {
+      background: rgba(var(--ion-color-success-rgb), 0.1);
+      border-color: var(--ion-color-success);
+    }
+
+    .rating-category ion-label {
+      font-weight: 500;
+      color: var(--ion-text-color);
+    }
+
+    .rating-probability {
+      display: flex;
+      align-items: center;
+    }
+
+    /* Dark mode specific adjustments */
+    @media (prefers-color-scheme: dark) {
+      .alert-box.blocked {
+        background: rgba(var(--ion-color-danger-rgb), 0.2);
+        color: var(--ion-color-danger-tint);
+      }
+    }
   `]
 })
 export class AILogTabComponent implements OnInit, OnDestroy {
@@ -647,7 +775,8 @@ export class AILogTabComponent implements OnInit, OnDestroy {
       codeSlashOutline, warningOutline, informationCircleOutline,
       settingsOutline, cloudOutline, bugOutline, speedometerOutline,
       playCircleOutline, radioOutline, globeOutline, cogOutline,
-      checkmarkCircleOutline, refreshOutline, copyOutline
+      checkmarkCircleOutline, refreshOutline, copyOutline, shieldCheckmarkOutline,
+      shieldOutline, stopCircleOutline, codeOutline
     });
   }
 
@@ -754,6 +883,42 @@ export class AILogTabComponent implements OnInit, OnDestroy {
 
   hasTechnicalDetails(log: AIRequestLog): boolean {
     return !!(log.id || log.timestamp || log.requestDetails?.requestId || log.httpStatus);
+  }
+
+  hasPromptFeedback(log: AIRequestLog): boolean {
+    return !!(this.getPromptFeedback(log));
+  }
+
+  getPromptFeedback(log: AIRequestLog): any {
+    // Check in debug info first
+    if (log.requestDetails?.debugInfo?.promptFeedback) {
+      return log.requestDetails.debugInfo.promptFeedback;
+    }
+    
+    // Check in request details
+    if (log.requestDetails?.promptFeedback) {
+      return log.requestDetails.promptFeedback;
+    }
+    
+    return null;
+  }
+
+  formatSafetyCategory(category: string): string {
+    return category
+      .replace('HARM_CATEGORY_', '')
+      .replace(/_/g, ' ')
+      .toLowerCase()
+      .replace(/\b\w/g, l => l.toUpperCase());
+  }
+
+  getSafetyColor(probability: string): string {
+    switch (probability?.toUpperCase()) {
+      case 'HIGH': return 'danger';
+      case 'MEDIUM': return 'warning';
+      case 'LOW': return 'success';
+      case 'NEGLIGIBLE': return 'success';
+      default: return 'medium';
+    }
   }
 
   async copyToClipboard(text: string, event: Event): Promise<void> {
