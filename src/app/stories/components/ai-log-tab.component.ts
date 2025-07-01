@@ -12,7 +12,7 @@ import {
   codeSlashOutline, warningOutline, informationCircleOutline,
   settingsOutline, cloudOutline, bugOutline, speedometerOutline,
   playCircleOutline, radioOutline, globeOutline, cogOutline,
-  checkmarkCircleOutline, refreshOutline
+  checkmarkCircleOutline, refreshOutline, copyOutline
 } from 'ionicons/icons';
 import { AIRequestLoggerService, AIRequestLog } from '../../core/services/ai-request-logger.service';
 import { Subscription } from 'rxjs';
@@ -112,6 +112,14 @@ import { Subscription } from 'rxjs';
                   <h3>Prompt</h3>
                   <p>{{ log.prompt.length }} Zeichen</p>
                 </ion-label>
+                <ion-button 
+                  fill="clear" 
+                  size="small" 
+                  slot="end"
+                  (click)="copyToClipboard(log.prompt, $event)"
+                  title="Prompt kopieren">
+                  <ion-icon name="copy-outline" slot="icon-only"></ion-icon>
+                </ion-button>
               </ion-item>
               <div class="accordion-content" slot="content">
                 <pre class="content-pre prompt-content">{{ log.prompt }}</pre>
@@ -126,6 +134,14 @@ import { Subscription } from 'rxjs';
                   <h3>Response</h3>
                   <p>{{ log.response.length }} Zeichen, {{ getWordCount(log.response) }} Wörter</p>
                 </ion-label>
+                <ion-button 
+                  fill="clear" 
+                  size="small" 
+                  slot="end"
+                  (click)="copyToClipboard(log.response, $event)"
+                  title="Response kopieren">
+                  <ion-icon name="copy-outline" slot="icon-only"></ion-icon>
+                </ion-button>
               </ion-item>
               <div class="accordion-content" slot="content">
                 <pre class="content-pre response-content">{{ log.response }}</pre>
@@ -416,6 +432,11 @@ import { Subscription } from 'rxjs';
       max-height: 400px;
       overflow-y: auto;
       color: var(--ion-text-color);
+      user-select: text;
+      -webkit-user-select: text;
+      -moz-user-select: text;
+      -ms-user-select: text;
+      cursor: text;
     }
 
     .error-content {
@@ -533,6 +554,11 @@ import { Subscription } from 'rxjs';
       max-height: 300px;
       overflow-y: auto;
       color: var(--ion-text-color);
+      user-select: text;
+      -webkit-user-select: text;
+      -moz-user-select: text;
+      -ms-user-select: text;
+      cursor: text;
     }
 
     .url-text,
@@ -541,6 +567,11 @@ import { Subscription } from 'rxjs';
       font-size: 0.85rem;
       color: var(--ion-color-medium-tint);
       word-break: break-all;
+      user-select: text;
+      -webkit-user-select: text;
+      -moz-user-select: text;
+      -ms-user-select: text;
+      cursor: text;
     }
 
     /* Ion Accordion custom styling */
@@ -557,6 +588,26 @@ import { Subscription } from 'rxjs';
 
     ion-accordion[slot="content"] {
       --background: transparent;
+    }
+
+    /* Copy button styling */
+    ion-item ion-button {
+      --color: var(--ion-color-medium);
+    }
+
+    ion-item ion-button:hover {
+      --color: var(--ion-color-primary);
+    }
+
+    /* Override any global user-select: none that might be applied */
+    .content-pre *,
+    .debug-info *,
+    .url-text *,
+    .monospace-text * {
+      user-select: text !important;
+      -webkit-user-select: text !important;
+      -moz-user-select: text !important;
+      -ms-user-select: text !important;
     }
 
     /* Mobile responsiveness */
@@ -596,7 +647,7 @@ export class AILogTabComponent implements OnInit, OnDestroy {
       codeSlashOutline, warningOutline, informationCircleOutline,
       settingsOutline, cloudOutline, bugOutline, speedometerOutline,
       playCircleOutline, radioOutline, globeOutline, cogOutline,
-      checkmarkCircleOutline, refreshOutline
+      checkmarkCircleOutline, refreshOutline, copyOutline
     });
   }
 
@@ -703,5 +754,63 @@ export class AILogTabComponent implements OnInit, OnDestroy {
 
   hasTechnicalDetails(log: AIRequestLog): boolean {
     return !!(log.id || log.timestamp || log.requestDetails?.requestId || log.httpStatus);
+  }
+
+  async copyToClipboard(text: string, event: Event): Promise<void> {
+    // Prevent accordion toggle when clicking copy button
+    event.stopPropagation();
+    
+    try {
+      await navigator.clipboard.writeText(text);
+      
+      // Show temporary success feedback
+      const button = event.target as HTMLElement;
+      const icon = button.querySelector('ion-icon') || button;
+      const originalName = icon.getAttribute('name');
+      
+      // Change icon to checkmark temporarily
+      icon.setAttribute('name', 'checkmark-outline');
+      icon.setAttribute('style', 'color: var(--ion-color-success)');
+      
+      // Reset icon after 1.5 seconds
+      setTimeout(() => {
+        icon.setAttribute('name', originalName || 'copy-outline');
+        icon.removeAttribute('style');
+      }, 1500);
+      
+    } catch (err) {
+      console.error('Failed to copy text to clipboard:', err);
+      
+      // Fallback for older browsers or when clipboard API fails
+      try {
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        textArea.style.top = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        
+        // Show success feedback for fallback method too
+        const button = event.target as HTMLElement;
+        const icon = button.querySelector('ion-icon') || button;
+        const originalName = icon.getAttribute('name');
+        
+        icon.setAttribute('name', 'checkmark-outline');
+        icon.setAttribute('style', 'color: var(--ion-color-success)');
+        
+        setTimeout(() => {
+          icon.setAttribute('name', originalName || 'copy-outline');
+          icon.removeAttribute('style');
+        }, 1500);
+        
+      } catch (fallbackErr) {
+        console.error('Clipboard fallback also failed:', fallbackErr);
+        // Could show an error toast here if needed
+      }
+    }
   }
 }
