@@ -1051,6 +1051,15 @@ export class StoryStructureComponent implements AfterViewInit {
       return;
     }
     
+    // Debug logging to ensure we're using the correct scene
+    console.log('Generating summary for scene:', {
+      chapterId: chapterId,
+      sceneId: sceneId,
+      sceneTitle: scene.title,
+      sceneContentLength: scene.content.length,
+      selectedModel: this.selectedModel
+    });
+    
     this.isGeneratingSummary.add(sceneId);
     this.cdr.detectChanges(); // Force change detection for mobile
     
@@ -1085,6 +1094,9 @@ ${sceneContent}${contentTruncated ? '\n\n[Hinweis: Der Inhalt wurde gekürzt, da
 
 Die Zusammenfassung soll die wichtigsten Handlungspunkte und Charakterentwicklungen erfassen.`;
 
+    // Log the prompt to verify we're only sending one scene
+    console.log('Sending prompt with content length:', prompt.length, 'characters');
+    
     this.openRouterApiService.generateText(prompt, {
       model: this.selectedModel,
       maxTokens: 150,
@@ -1147,6 +1159,15 @@ Die Zusammenfassung soll die wichtigsten Handlungspunkte und Charakterentwicklun
     if (!scene || !scene.content.trim() || !this.selectedModel) {
       return;
     }
+    
+    // Debug logging to ensure we're using the correct scene
+    console.log('Generating title for scene:', {
+      chapterId: chapterId,
+      sceneId: sceneId,
+      currentSceneTitle: scene.title,
+      sceneContentLength: scene.content.length,
+      selectedModel: this.selectedModel
+    });
     
     // Get scene title generation settings
     const settings = this.settingsService.getSettings();
