@@ -1112,16 +1112,27 @@ Titel: ${scene.title || 'Ohne Titel'}
 Inhalt:
 ${sceneContent}${contentTruncated ? '\n\n[Hinweis: Der Inhalt wurde gekürzt, da er zu lang war]' : ''}
 
-Die Zusammenfassung soll die wichtigsten Handlungspunkte und Charakterentwicklungen erfassen.`;
+Die Zusammenfassung soll die wichtigsten Handlungspunkte und Charakterentwicklungen erfassen. Schreibe eine vollständige und umfassende Zusammenfassung mit mindestens 3-5 Sätzen.`;
 
     this.openRouterApiService.generateText(prompt, {
       model: this.selectedModel,
-      maxTokens: 150,
+      maxTokens: 500,
       temperature: 0.3
     }).subscribe({
       next: async (response) => {
         if (response.choices && response.choices.length > 0) {
-          const summary = response.choices[0].message.content.trim();
+          let summary = response.choices[0].message.content.trim();
+          
+          // Check if summary seems incomplete (ends abruptly without proper punctuation)
+          if (summary && !summary.match(/[.!?]$/)) {
+            summary += '.'; // Add period if missing
+          }
+          
+          // Check if response was truncated due to max_tokens limit
+          if (response.choices[0].finish_reason === 'length') {
+            console.warn('Summary was truncated due to token limit. Consider increasing maxTokens.');
+            summary += ' [Zusammenfassung wurde aufgrund der Token-Begrenzung gekürzt]';
+          }
           
           // Update the scene summary in the local object first
           if (scene) {
