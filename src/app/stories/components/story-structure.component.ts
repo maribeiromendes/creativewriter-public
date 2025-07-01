@@ -186,21 +186,38 @@ import { Subscription } from 'rxjs';
                       <ion-label position="stacked">
                         <div class="summary-header">
                           <span>Zusammenfassung</span>
-                          <ion-button 
-                            size="small"
-                            fill="solid"
-                            [color]="isGeneratingSummary.has(scene.id) ? 'medium' : 'success'"
-                            (click)="generateSceneSummary(chapter.id, scene.id)"
-                            [disabled]="isGeneratingSummary.has(scene.id) || !selectedModel || !scene.content.trim()"
-                            [attr.aria-label]="isGeneratingSummary.has(scene.id) ? 'Zusammenfassung wird generiert...' : 'AI-Zusammenfassung für Szene generieren'"
-                            (touchstart)="$event.stopPropagation()"
-                            (touchend)="$event.stopPropagation()">
-                            <ion-icon 
-                              [name]="isGeneratingSummary.has(scene.id) ? 'time-outline' : 'flash-outline'" 
-                              slot="icon-only"
-                              [attr.aria-hidden]="true">
-                            </ion-icon>
-                          </ion-button>
+                          <div class="summary-buttons">
+                            <ion-button 
+                              size="small"
+                              fill="solid"
+                              [color]="isGeneratingSummary.has(scene.id) ? 'medium' : 'success'"
+                              (click)="generateSceneSummary(chapter.id, scene.id)"
+                              [disabled]="isGeneratingSummary.has(scene.id) || !selectedModel || !scene.content.trim()"
+                              [attr.aria-label]="isGeneratingSummary.has(scene.id) ? 'Zusammenfassung wird generiert...' : 'AI-Zusammenfassung für Szene generieren'"
+                              (touchstart)="$event.stopPropagation()"
+                              (touchend)="$event.stopPropagation()">
+                              <ion-icon 
+                                [name]="isGeneratingSummary.has(scene.id) ? 'time-outline' : 'flash-outline'" 
+                                slot="icon-only"
+                                [attr.aria-hidden]="true">
+                              </ion-icon>
+                            </ion-button>
+                            <ion-button 
+                              *ngIf="scene.summary"
+                              size="small"
+                              fill="solid"
+                              color="danger"
+                              (click)="deleteSceneSummary(chapter.id, scene.id)"
+                              [attr.aria-label]="'Zusammenfassung für Szene löschen'"
+                              (touchstart)="$event.stopPropagation()"
+                              (touchend)="$event.stopPropagation()">
+                              <ion-icon 
+                                name="trash" 
+                                slot="icon-only"
+                                [attr.aria-hidden]="true">
+                              </ion-icon>
+                            </ion-button>
+                          </div>
                         </div>
                       </ion-label>
                       
@@ -471,6 +488,12 @@ import { Subscription } from 'rxjs';
       font-size: 0.9rem;
       color: var(--ion-color-medium);
       font-weight: 500;
+    }
+    
+    .summary-buttons {
+      display: flex;
+      gap: 0.25rem;
+      align-items: center;
     }
     
     .model-select {
@@ -1302,6 +1325,25 @@ Antworte nur mit dem Titel, ohne weitere Erklärungen oder Anführungszeichen.`;
       await this.storyService.updateScene(this.story.id, chapterId, sceneId, { summary });
       // Refresh prompt manager when scene summary changes
       this.promptManager.refresh();
+    }
+  }
+  
+  async deleteSceneSummary(chapterId: string, sceneId: string): Promise<void> {
+    if (confirm('Möchten Sie die Zusammenfassung wirklich löschen?')) {
+      const chapter = this.story.chapters.find(c => c.id === chapterId);
+      const scene = chapter?.scenes.find(s => s.id === sceneId);
+      if (scene) {
+        scene.summary = '';
+        scene.summaryGeneratedAt = undefined;
+        await this.storyService.updateScene(this.story.id, chapterId, sceneId, { 
+          summary: '',
+          summaryGeneratedAt: undefined 
+        });
+        // Refresh prompt manager when scene summary changes
+        this.promptManager.refresh();
+        // Force change detection to update UI
+        this.cdr.detectChanges();
+      }
     }
   }
   
