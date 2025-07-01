@@ -1064,12 +1064,24 @@ export class StoryStructureComponent implements AfterViewInit {
       }
     }, 30000); // 30 second timeout
     
+    // Limit content length to avoid token limit issues
+    // Approximate: 1 token ≈ 4 characters, so for safety we limit to ~50k tokens ≈ 200k characters
+    const maxContentLength = 200000;
+    let sceneContent = scene.content;
+    let contentTruncated = false;
+    
+    if (sceneContent.length > maxContentLength) {
+      sceneContent = sceneContent.substring(0, maxContentLength);
+      contentTruncated = true;
+      console.warn(`Scene content truncated from ${scene.content.length} to ${maxContentLength} characters to avoid token limit`);
+    }
+    
     const prompt = `Erstelle eine Zusammenfassung der folgenden Szene:
 
-Titel: ${scene.title}
+Titel: ${scene.title || 'Ohne Titel'}
 
 Inhalt:
-${scene.content}
+${sceneContent}${contentTruncated ? '\n\n[Hinweis: Der Inhalt wurde gekürzt, da er zu lang war]' : ''}
 
 Die Zusammenfassung soll die wichtigsten Handlungspunkte und Charakterentwicklungen erfassen.`;
 
@@ -1153,6 +1165,16 @@ Die Zusammenfassung soll die wichtigsten Handlungspunkte und Charakterentwicklun
       }
     }, 30000); // 30 second timeout
     
+    // Limit content length for title generation - we need even less content for a title
+    // For title generation, 50k characters should be more than enough
+    const maxContentLength = 50000;
+    let sceneContent = scene.content;
+    
+    if (sceneContent.length > maxContentLength) {
+      sceneContent = sceneContent.substring(0, maxContentLength);
+      console.warn(`Scene content truncated from ${scene.content.length} to ${maxContentLength} characters for title generation`);
+    }
+    
     // Build style instructions based on settings
     let styleInstruction = '';
     switch (titleSettings.style) {
@@ -1191,7 +1213,7 @@ ${genreInstruction}
 ${languageInstruction}${customInstruction}
 
 Szenencontent (nur diese eine Szene):
-${scene.content}
+${sceneContent}
 
 Antworte nur mit dem Titel, ohne weitere Erklärungen oder Anführungszeichen.`;
 
