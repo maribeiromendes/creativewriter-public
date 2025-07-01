@@ -35,7 +35,11 @@ export class SettingsService {
           },
           googleGemini: {
             ...DEFAULT_SETTINGS.googleGemini,
-            ...parsed.googleGemini
+            ...parsed.googleGemini,
+            contentFilter: {
+              ...DEFAULT_SETTINGS.googleGemini.contentFilter,
+              ...parsed.googleGemini?.contentFilter
+            }
           },
           sceneTitleGeneration: {
             ...DEFAULT_SETTINGS.sceneTitleGeneration,

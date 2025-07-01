@@ -106,23 +106,23 @@ export class GoogleGeminiApiService {
       safetySettings: [
         {
           category: "HARM_CATEGORY_HARASSMENT",
-          threshold: settings.googleGemini.contentFilter.harassment
+          threshold: settings.googleGemini.contentFilter?.harassment || 'BLOCK_NONE'
         },
         {
           category: "HARM_CATEGORY_HATE_SPEECH",
-          threshold: settings.googleGemini.contentFilter.hateSpeech
+          threshold: settings.googleGemini.contentFilter?.hateSpeech || 'BLOCK_NONE'
         },
         {
           category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-          threshold: settings.googleGemini.contentFilter.sexuallyExplicit
+          threshold: settings.googleGemini.contentFilter?.sexuallyExplicit || 'BLOCK_NONE'
         },
         {
           category: "HARM_CATEGORY_DANGEROUS_CONTENT",
-          threshold: settings.googleGemini.contentFilter.dangerousContent
+          threshold: settings.googleGemini.contentFilter?.dangerousContent || 'BLOCK_NONE'
         },
         {
           category: "HARM_CATEGORY_CIVIC_INTEGRITY",
-          threshold: settings.googleGemini.contentFilter.civicIntegrity
+          threshold: settings.googleGemini.contentFilter?.civicIntegrity || 'BLOCK_NONE'
         }
       ]
     };
@@ -149,7 +149,14 @@ export class GoogleGeminiApiService {
         contentsLength: contents.length,
         safetySettings: request.safetySettings?.length,
         requestId: requestId,
-        messagesFormat: options.messages ? 'structured' : 'simple'
+        messagesFormat: options.messages ? 'structured' : 'simple',
+        contentFilterSettings: {
+          harassment: settings.googleGemini.contentFilter?.harassment || 'BLOCK_NONE',
+          hateSpeech: settings.googleGemini.contentFilter?.hateSpeech || 'BLOCK_NONE',
+          sexuallyExplicit: settings.googleGemini.contentFilter?.sexuallyExplicit || 'BLOCK_NONE',
+          dangerousContent: settings.googleGemini.contentFilter?.dangerousContent || 'BLOCK_NONE',
+          civicIntegrity: settings.googleGemini.contentFilter?.civicIntegrity || 'BLOCK_NONE'
+        }
       }
     });
     
@@ -164,7 +171,15 @@ export class GoogleGeminiApiService {
       contentsLength: contents.length,
       temperature: request.generationConfig?.temperature,
       requestUrl: url,
-      contentsPreview: contents.map(c => ({ role: c.role, textLength: c.parts[0].text.length }))
+      contentsPreview: contents.map(c => ({ role: c.role, textLength: c.parts[0].text.length })),
+      contentFilterSettings: {
+        harassment: settings.googleGemini.contentFilter?.harassment || 'BLOCK_NONE',
+        hateSpeech: settings.googleGemini.contentFilter?.hateSpeech || 'BLOCK_NONE',
+        sexuallyExplicit: settings.googleGemini.contentFilter?.sexuallyExplicit || 'BLOCK_NONE',
+        dangerousContent: settings.googleGemini.contentFilter?.dangerousContent || 'BLOCK_NONE',
+        civicIntegrity: settings.googleGemini.contentFilter?.civicIntegrity || 'BLOCK_NONE'
+      },
+      safetySettingsCount: request.safetySettings?.length
     });
 
     return this.http.post<GoogleGeminiResponse>(url, request, { headers }).pipe(
@@ -348,23 +363,23 @@ export class GoogleGeminiApiService {
       safetySettings: [
         {
           category: "HARM_CATEGORY_HARASSMENT",
-          threshold: settings.googleGemini.contentFilter.harassment
+          threshold: settings.googleGemini.contentFilter?.harassment || 'BLOCK_NONE'
         },
         {
           category: "HARM_CATEGORY_HATE_SPEECH",
-          threshold: settings.googleGemini.contentFilter.hateSpeech
+          threshold: settings.googleGemini.contentFilter?.hateSpeech || 'BLOCK_NONE'
         },
         {
           category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-          threshold: settings.googleGemini.contentFilter.sexuallyExplicit
+          threshold: settings.googleGemini.contentFilter?.sexuallyExplicit || 'BLOCK_NONE'
         },
         {
           category: "HARM_CATEGORY_DANGEROUS_CONTENT",
-          threshold: settings.googleGemini.contentFilter.dangerousContent
+          threshold: settings.googleGemini.contentFilter?.dangerousContent || 'BLOCK_NONE'
         },
         {
           category: "HARM_CATEGORY_CIVIC_INTEGRITY",
-          threshold: settings.googleGemini.contentFilter.civicIntegrity
+          threshold: settings.googleGemini.contentFilter?.civicIntegrity || 'BLOCK_NONE'
         }
       ]
     };
@@ -393,6 +408,13 @@ export class GoogleGeminiApiService {
         safetySettings: request.safetySettings?.length,
         requestId: requestId,
         messagesFormat: options.messages ? 'structured' : 'simple',
+        contentFilterSettings: {
+          harassment: settings.googleGemini.contentFilter?.harassment || 'BLOCK_NONE',
+          hateSpeech: settings.googleGemini.contentFilter?.hateSpeech || 'BLOCK_NONE',
+          sexuallyExplicit: settings.googleGemini.contentFilter?.sexuallyExplicit || 'BLOCK_NONE',
+          dangerousContent: settings.googleGemini.contentFilter?.dangerousContent || 'BLOCK_NONE',
+          civicIntegrity: settings.googleGemini.contentFilter?.civicIntegrity || 'BLOCK_NONE'
+        },
         streamingUrl: url
       }
     });
@@ -408,7 +430,15 @@ export class GoogleGeminiApiService {
       contentsLength: contents.length,
       temperature: request.generationConfig?.temperature,
       requestUrl: url,
-      contentsPreview: contents.map(c => ({ role: c.role, textLength: c.parts[0].text.length }))
+      contentsPreview: contents.map(c => ({ role: c.role, textLength: c.parts[0].text.length })),
+      contentFilterSettings: {
+        harassment: settings.googleGemini.contentFilter?.harassment || 'BLOCK_NONE',
+        hateSpeech: settings.googleGemini.contentFilter?.hateSpeech || 'BLOCK_NONE',
+        sexuallyExplicit: settings.googleGemini.contentFilter?.sexuallyExplicit || 'BLOCK_NONE',
+        dangerousContent: settings.googleGemini.contentFilter?.dangerousContent || 'BLOCK_NONE',
+        civicIntegrity: settings.googleGemini.contentFilter?.civicIntegrity || 'BLOCK_NONE'
+      },
+      safetySettingsCount: request.safetySettings?.length
     });
 
     return new Observable<string>(observer => {
