@@ -14,10 +14,6 @@ export interface OpenRouterRequest {
   temperature?: number;
   top_p?: number;
   stream?: boolean;
-  safety_settings?: Array<{
-    category: string;
-    threshold: string;
-  }>;
 }
 
 export interface OpenRouterResponse {
@@ -104,25 +100,7 @@ export class OpenRouterApiService {
       ],
       max_tokens: maxTokens,
       temperature: options.temperature !== undefined ? options.temperature : settings.openRouter.temperature,
-      top_p: options.topP !== undefined ? options.topP : settings.openRouter.topP,
-      safety_settings: [
-        {
-          category: "HARM_CATEGORY_HARASSMENT",
-          threshold: "BLOCK_NONE"
-        },
-        {
-          category: "HARM_CATEGORY_HATE_SPEECH",
-          threshold: "BLOCK_NONE"
-        },
-        {
-          category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-          threshold: "BLOCK_NONE"
-        },
-        {
-          category: "HARM_CATEGORY_DANGEROUS_CONTENT",
-          threshold: "BLOCK_NONE"
-        }
-      ]
+      top_p: options.topP !== undefined ? options.topP : settings.openRouter.topP
     };
 
     // Create abort subject for this request
@@ -144,7 +122,48 @@ export class OpenRouterApiService {
         },
         error: (error) => {
           const duration = Date.now() - startTime;
-          const errorMessage = error.message || error.error?.message || 'Unknown error';
+          let errorMessage = 'Unknown error';
+          
+          // Extract detailed error information
+          if (error.status) {
+            errorMessage = `HTTP ${error.status}: `;
+            if (error.status === 400) {
+              errorMessage += 'Bad Request - ';
+            } else if (error.status === 401) {
+              errorMessage += 'Unauthorized - ';
+            } else if (error.status === 403) {
+              errorMessage += 'Forbidden - ';
+            } else if (error.status === 404) {
+              errorMessage += 'Not Found - ';
+            } else if (error.status === 429) {
+              errorMessage += 'Rate Limited - ';
+            } else if (error.status === 500) {
+              errorMessage += 'Server Error - ';
+            }
+          }
+          
+          // Add error details
+          if (error.error?.error?.message) {
+            errorMessage += error.error.error.message;
+          } else if (error.error?.message) {
+            errorMessage += error.error.message;
+          } else if (error.message) {
+            errorMessage += error.message;
+          }
+          
+          // Log detailed error for debugging
+          console.error('OpenRouter API Error:', {
+            status: error.status,
+            statusText: error.statusText,
+            url: error.url,
+            error: error.error,
+            request: {
+              model: model,
+              maxTokens: maxTokens,
+              promptLength: prompt.length
+            }
+          });
+          
           this.aiLogger.logError(logId, errorMessage, duration);
           this.cleanupRequest(requestId);
         }
@@ -219,25 +238,7 @@ export class OpenRouterApiService {
       max_tokens: maxTokens,
       temperature: options.temperature !== undefined ? options.temperature : settings.openRouter.temperature,
       top_p: options.topP !== undefined ? options.topP : settings.openRouter.topP,
-      stream: true,
-      safety_settings: [
-        {
-          category: "HARM_CATEGORY_HARASSMENT",
-          threshold: "BLOCK_NONE"
-        },
-        {
-          category: "HARM_CATEGORY_HATE_SPEECH",
-          threshold: "BLOCK_NONE"
-        },
-        {
-          category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-          threshold: "BLOCK_NONE"
-        },
-        {
-          category: "HARM_CATEGORY_DANGEROUS_CONTENT",
-          threshold: "BLOCK_NONE"
-        }
-      ]
+      stream: true
     };
 
     // Create abort subject for this request
@@ -345,7 +346,21 @@ export class OpenRouterApiService {
         if (aborted) return; // Don't handle errors if we aborted
         
         const duration = Date.now() - startTime;
-        const errorMessage = error.message || 'Unknown error';
+        let errorMessage = 'Unknown error';
+        
+        // Extract detailed error information for streaming
+        if (error.message) {
+          errorMessage = error.message;
+        }
+        
+        console.error('OpenRouter Streaming API Error:', {
+          error: error,
+          request: {
+            model: model,
+            maxTokens: maxTokens,
+            promptLength: prompt.length
+          }
+        });
         
         observer.error(error);
         this.aiLogger.logError(logId, errorMessage, duration);

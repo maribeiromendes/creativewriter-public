@@ -1101,7 +1101,25 @@ Die Zusammenfassung soll die wichtigsten Handlungspunkte und Charakterentwicklun
       error: (error) => {
         console.error('Error generating scene summary:', error);
         clearTimeout(timeoutId); // Clear timeout on error
-        alert('Fehler beim Generieren der Zusammenfassung. Bitte versuchen Sie es erneut.');
+        
+        let errorMessage = 'Fehler beim Generieren der Zusammenfassung.';
+        
+        // Check for specific error types
+        if (error.status === 400) {
+          errorMessage = 'Ungültige Anfrage. Bitte überprüfen Sie Ihre API-Einstellungen.';
+        } else if (error.status === 401) {
+          errorMessage = 'API-Schlüssel ungültig. Bitte überprüfen Sie Ihren OpenRouter API-Key in den Einstellungen.';
+        } else if (error.status === 403) {
+          errorMessage = 'Zugriff verweigert. Ihr API-Schlüssel hat möglicherweise nicht die erforderlichen Berechtigungen.';
+        } else if (error.status === 429) {
+          errorMessage = 'Rate-Limit erreicht. Bitte warten Sie einen Moment und versuchen Sie es erneut.';
+        } else if (error.status === 500) {
+          errorMessage = 'Server-Fehler bei OpenRouter. Bitte versuchen Sie es später erneut.';
+        } else if (error.message?.includes('nicht aktiviert')) {
+          errorMessage = error.message;
+        }
+        
+        alert(errorMessage);
         this.isGeneratingSummary.delete(sceneId);
         this.cdr.detectChanges(); // Force change detection
       }
@@ -1208,7 +1226,25 @@ Antworte nur mit dem Titel, ohne weitere Erklärungen oder Anführungszeichen.`;
       error: (error) => {
         console.error('Error generating scene title:', error);
         clearTimeout(timeoutId); // Clear timeout on error
-        alert('Fehler beim Generieren des Titels. Bitte versuchen Sie es erneut.');
+        
+        let errorMessage = 'Fehler beim Generieren des Titels.';
+        
+        // Check for specific error types
+        if (error.status === 400) {
+          errorMessage = 'Ungültige Anfrage. Bitte überprüfen Sie Ihre API-Einstellungen.';
+        } else if (error.status === 401) {
+          errorMessage = 'API-Schlüssel ungültig. Bitte überprüfen Sie Ihren OpenRouter API-Key in den Einstellungen.';
+        } else if (error.status === 403) {
+          errorMessage = 'Zugriff verweigert. Ihr API-Schlüssel hat möglicherweise nicht die erforderlichen Berechtigungen.';
+        } else if (error.status === 429) {
+          errorMessage = 'Rate-Limit erreicht. Bitte warten Sie einen Moment und versuchen Sie es erneut.';
+        } else if (error.status === 500) {
+          errorMessage = 'Server-Fehler bei OpenRouter. Bitte versuchen Sie es später erneut.';
+        } else if (error.message?.includes('nicht aktiviert')) {
+          errorMessage = error.message;
+        }
+        
+        alert(errorMessage);
         this.isGeneratingTitle.delete(sceneId);
         this.cdr.detectChanges(); // Force change detection
       }
