@@ -160,9 +160,15 @@ export class OpenRouterApiService {
             request: {
               model: model,
               maxTokens: maxTokens,
-              promptLength: prompt.length
+              promptLength: prompt.length,
+              fullRequest: request
             }
           });
+          
+          // Log the full error response
+          if (error.error) {
+            console.error('Full error response:', error.error);
+          }
           
           this.aiLogger.logError(logId, errorMessage, duration);
           this.cleanupRequest(requestId);
@@ -283,9 +289,17 @@ export class OpenRouterApiService {
         },
         body: JSON.stringify(request),
         signal: abortController.signal
-      }).then(response => {
+      }).then(async response => {
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          // Try to get error body
+          const errorBody = await response.text();
+          console.error('OpenRouter Streaming Error:', {
+            status: response.status,
+            statusText: response.statusText,
+            body: errorBody,
+            request: request
+          });
+          throw new Error(`HTTP error! status: ${response.status}, body: ${errorBody}`);
         }
         
         const reader = response.body?.getReader();
