@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, tap, takeUntil, Subject, map } from 'rxjs';
+import { Observable, tap, takeUntil, Subject, map, catchError } from 'rxjs';
 import { SettingsService } from './settings.service';
 import { AIRequestLoggerService } from './ai-request-logger.service';
 
@@ -372,6 +372,12 @@ export class GoogleGeminiApiService {
       });
       
       // Use fetch for streaming since Angular HttpClient doesn't support streaming responses well
+      console.log('🔍 Gemini Streaming Request:', {
+        url: url,
+        method: 'POST',
+        request: JSON.stringify(request, null, 2)
+      });
+      
       fetch(url, {
         method: 'POST',
         headers: {
@@ -384,11 +390,16 @@ export class GoogleGeminiApiService {
         console.log('🔍 Gemini Streaming Response:', {
           status: response.status,
           headers: Object.fromEntries(response.headers.entries()),
-          url: url
+          url: url,
+          ok: response.ok,
+          statusText: response.statusText
         });
         
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          return response.text().then(errorText => {
+            console.error('🔍 Gemini Error Response Body:', errorText);
+            throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
+          });
         }
         
         // Check if response is JSON (proxy doesn't support streaming)
@@ -538,7 +549,9 @@ export class GoogleGeminiApiService {
           message: error.message,
           duration: duration + 'ms',
           errorDetails,
-          aborted: aborted
+          aborted: aborted,
+          fullError: error,
+          stack: error.stack
         });
         
         observer.error(error);
@@ -562,6 +575,21 @@ export class GoogleGeminiApiService {
 
   private generateRequestId(): string {
     return 'gemini_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
+  }
+
+  testConnection(): Observable<any> {
+    const url = '/api/gemini/test';
+    console.log('🔍 Testing Gemini proxy connection at:', url);
+    
+    return this.http.get(url).pipe(
+      tap(response => {
+        console.log('✅ Gemini proxy test successful:', response);
+      }),
+      catchError(error => {
+        console.error('❌ Gemini proxy test failed:', error);
+        throw error;
+      })
+    );
   }
 
   private extractErrorDetails(error: any): { message: string; code?: string; status?: number; details?: any } {

@@ -1,0 +1,20 @@
+{
+  "/api/gemini": {
+    "target": "http://localhost:3002",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  },
+  "/api/replicate": {
+    "target": "http://localhost:3001",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  },
+  "/_db": {
+    "target": "http://localhost:5984",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  }
+}

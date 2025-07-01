@@ -20,6 +20,16 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
+// Test endpoint
+app.get('/api/gemini/test', (req, res) => {
+  res.json({ 
+    status: 'ok',
+    message: 'Gemini proxy is running',
+    apiKeyConfigured: !!GEMINI_API_KEY,
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Proxy all requests to Gemini API
 app.all('/api/gemini/*', async (req, res) => {
   const requestId = Date.now() + '-' + Math.random().toString(36).substring(2, 9);
@@ -28,10 +38,19 @@ app.all('/api/gemini/*', async (req, res) => {
   try {
     const path = req.params[0];
     const queryString = req.url.split('?')[1] || '';
-    const url = `https://generativelanguage.googleapis.com/v1beta/${path}?key=${GEMINI_API_KEY}${queryString ? '&' + queryString : ''}`;
+    
+    // Ensure API key is included in URL
+    let apiKeyParam = `key=${GEMINI_API_KEY}`;
+    if (queryString && queryString.includes('key=')) {
+      // API key already in query string, don't add it again
+      apiKeyParam = '';
+    }
+    
+    const url = `https://generativelanguage.googleapis.com/v1beta/${path}${queryString || apiKeyParam ? '?' : ''}${apiKeyParam}${queryString && apiKeyParam ? '&' : ''}${queryString || ''}`;
     
     console.log(`[${requestId}] Proxying ${req.method} request to: ${url.replace(GEMINI_API_KEY, '[REDACTED]')}`);
     console.log(`[${requestId}] Request body size: ${JSON.stringify(req.body || {}).length} bytes`);
+    console.log(`[${requestId}] API Key present: ${!!GEMINI_API_KEY}`);
     
     // Check if this is a streaming request
     const isStreaming = url.includes('streamGenerateContent') && url.includes('alt=sse');
@@ -41,10 +60,13 @@ app.all('/api/gemini/*', async (req, res) => {
       console.log('Handling streaming request...');
       
       // Use native fetch for streaming support (Node.js 18+)
+      console.log(`[${requestId}] Making streaming request with native fetch`);
+      
       const response = await fetch(url, {
         method: req.method,
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'text/event-stream'
         },
         body: req.method !== 'GET' ? JSON.stringify(req.body) : undefined
       });

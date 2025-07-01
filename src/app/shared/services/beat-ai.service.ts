@@ -133,9 +133,56 @@ export class BeatAIService {
           
           // Clean up active generation
           this.activeGenerations.delete(beatId);
+        },
+        error: (error) => {
+          console.error('🔍 Gemini streaming error:', error);
+          // Clean up on error
+          this.activeGenerations.delete(beatId);
         }
       }),
-      map(() => accumulatedContent) // Return full content at the end
+      map(() => accumulatedContent), // Return full content at the end
+      catchError(error => {
+        console.error('🔍 Gemini API streaming failed, trying non-streaming fallback:', error);
+        
+        // Try non-streaming API as fallback
+        return this.googleGeminiApi.generateText(prompt, {
+          model: options.model,
+          maxTokens: maxTokens,
+          temperature: options.temperature,
+          topP: options.topP,
+          wordCount: wordCount,
+          requestId: requestId,
+          messages: messages
+        }).pipe(
+          map(response => {
+            const content = response.candidates?.[0]?.content?.parts?.[0]?.text || '';
+            accumulatedContent = content;
+            
+            // Simulate streaming by emitting in chunks
+            const chunkSize = 50;
+            for (let i = 0; i < content.length; i += chunkSize) {
+              const chunk = content.substring(i, i + chunkSize);
+              this.generationSubject.next({
+                beatId,
+                chunk: chunk,
+                isComplete: false
+              });
+            }
+            
+            // Emit completion
+            this.generationSubject.next({
+              beatId,
+              chunk: '',
+              isComplete: true
+            });
+            
+            // Clean up
+            this.activeGenerations.delete(beatId);
+            
+            return content;
+          })
+        );
+      })
     );
   }
 
