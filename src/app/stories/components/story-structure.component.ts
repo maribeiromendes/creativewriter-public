@@ -1116,7 +1116,7 @@ Die Zusammenfassung soll die wichtigsten Handlungspunkte und Charakterentwicklun
 
     this.openRouterApiService.generateText(prompt, {
       model: this.selectedModel,
-      maxTokens: 500,
+      maxTokens: 3000,
       temperature: 0.3
     }).subscribe({
       next: async (response) => {
