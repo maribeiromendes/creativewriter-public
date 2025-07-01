@@ -179,15 +179,19 @@ export class GoogleGeminiApiService {
         },
         error: (error) => {
           const duration = Date.now() - startTime;
-          let errorMessage = 'Unknown error';
+          const errorDetails = this.extractErrorDetails(error);
           
-          if (error.error?.error?.message) {
-            errorMessage = error.error.error.message;
-          } else if (error.message) {
-            errorMessage = error.message;
-          }
+          // Log comprehensive error information
+          console.error('🔍 Gemini API Error Debug:', {
+            status: error.status,
+            statusText: error.statusText,
+            url: error.url,
+            duration: duration + 'ms',
+            errorDetails,
+            fullError: error
+          });
           
-          this.aiLogger.logError(logId, errorMessage, duration);
+          this.aiLogger.logError(logId, errorDetails.message, duration);
           this.cleanupRequest(requestId);
         }
       })
@@ -526,14 +530,19 @@ export class GoogleGeminiApiService {
         if (aborted) return; // Don't handle errors if we aborted
         
         const duration = Date.now() - startTime;
-        let errorMessage = 'Unknown error';
+        const errorDetails = this.extractErrorDetails(error);
         
-        if (error.message) {
-          errorMessage = error.message;
-        }
+        // Log comprehensive error information for streaming
+        console.error('🔍 Gemini Streaming API Error Debug:', {
+          name: error.name,
+          message: error.message,
+          duration: duration + 'ms',
+          errorDetails,
+          aborted: aborted
+        });
         
         observer.error(error);
-        this.aiLogger.logError(logId, errorMessage, duration);
+        this.aiLogger.logError(logId, errorDetails.message, duration);
         this.cleanupRequest(requestId);
         abortSubscription.unsubscribe();
       });
@@ -553,5 +562,146 @@ export class GoogleGeminiApiService {
 
   private generateRequestId(): string {
     return 'gemini_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
+  }
+
+  private extractErrorDetails(error: any): { message: string; code?: string; status?: number; details?: any } {
+    // Handle different error structures from Google API
+    let message = 'Unknown error';
+    let code: string | undefined;
+    let status: number | undefined;
+    let details: any;
+
+    // Check for content filter errors first
+    const contentFilterError = this.extractContentFilterError(error);
+    if (contentFilterError) {
+      return contentFilterError;
+    }
+
+    // HTTP error response from Angular HttpClient
+    if (error.error) {
+      status = error.status;
+      
+      // Google API error structure: error.error.error.message
+      if (error.error.error) {
+        const apiError = error.error.error;
+        message = apiError.message || message;
+        code = apiError.code || apiError.status;
+        details = apiError.details;
+      }
+      // Direct error object: error.error.message
+      else if (error.error.message) {
+        message = error.error.message;
+        code = error.error.code;
+      }
+      // String error response
+      else if (typeof error.error === 'string') {
+        message = error.error;
+      }
+    }
+    // Network or other errors
+    else if (error.message) {
+      message = error.message;
+      code = error.code || error.name;
+    }
+
+    // Add HTTP status context
+    if (status) {
+      const statusText = this.getStatusText(status);
+      message = `${statusText} (${status}): ${message}`;
+    }
+
+    // Add specific error codes context
+    if (code) {
+      switch (code) {
+        case 'PERMISSION_DENIED':
+          message += ' - Check your API key and billing account';
+          break;
+        case 'RESOURCE_EXHAUSTED':
+          message += ' - API quota exceeded';
+          break;
+        case 'INVALID_ARGUMENT':
+          message += ' - Invalid request parameters';
+          break;
+        case 'FAILED_PRECONDITION':
+          message += ' - Request precondition failed';
+          break;
+        case 'UNAVAILABLE':
+          message += ' - Service temporarily unavailable';
+          break;
+        case 'DEADLINE_EXCEEDED':
+          message += ' - Request timeout';
+          break;
+      }
+    }
+
+    return { message, code, status, details };
+  }
+
+  private extractContentFilterError(error: any): { message: string; code?: string; status?: number; details?: any } | null {
+    let contentFilterMessage: string | null = null;
+    let details: any = {};
+
+    // Check for content filtering in successful responses with SAFETY finish reason
+    if (error.candidates?.[0]?.finishReason === 'SAFETY') {
+      contentFilterMessage = 'Content blocked by safety filters';
+      details.finishReason = 'SAFETY';
+      details.safetyRatings = error.candidates[0].safetyRatings;
+    }
+    // Check for OTHER finish reason which can indicate content filtering
+    else if (error.candidates?.[0]?.finishReason === 'OTHER') {
+      contentFilterMessage = 'Content generation stopped due to safety or other constraints';
+      details.finishReason = 'OTHER';
+      details.safetyRatings = error.candidates[0].safetyRatings;
+    }
+    // Check prompt feedback for blocking
+    else if (error.promptFeedback?.blockReason) {
+      contentFilterMessage = `Prompt blocked: ${error.promptFeedback.blockReason}`;
+      details.blockReason = error.promptFeedback.blockReason;
+      details.safetyRatings = error.promptFeedback.safetyRatings;
+    }
+    // Check for safety-related error messages
+    else if (error.error?.error?.message?.toLowerCase().includes('blocked')) {
+      contentFilterMessage = `Content blocked: ${error.error.error.message}`;
+      details.originalError = error.error.error;
+    }
+    // Check for safety ratings that might indicate high-risk content
+    else if (error.candidates?.[0]?.safetyRatings) {
+      const highRiskRatings = error.candidates[0].safetyRatings.filter((rating: any) => 
+        rating.probability === 'HIGH' || rating.probability === 'MEDIUM'
+      );
+      
+      if (highRiskRatings.length > 0) {
+        const categories = highRiskRatings.map((r: any) => r.category).join(', ');
+        contentFilterMessage = `Content flagged for safety categories: ${categories}`;
+        details.safetyRatings = error.candidates[0].safetyRatings;
+        details.highRiskCategories = categories;
+      }
+    }
+
+    if (contentFilterMessage) {
+      return {
+        message: contentFilterMessage,
+        code: 'CONTENT_FILTER',
+        status: error.status || 200, // Content filtering can happen with 200 status
+        details
+      };
+    }
+
+    return null;
+  }
+
+  private getStatusText(status: number): string {
+    switch (status) {
+      case 400: return 'Bad Request';
+      case 401: return 'Unauthorized';
+      case 403: return 'Forbidden';
+      case 404: return 'Not Found';
+      case 429: return 'Too Many Requests';
+      case 500: return 'Internal Server Error';
+      case 502: return 'Bad Gateway';
+      case 503: return 'Service Unavailable';
+      case 504: return 'Gateway Timeout';
+      default: return 'HTTP Error';
+    }
   }
 }
