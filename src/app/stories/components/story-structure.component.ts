@@ -222,8 +222,8 @@ import { Subscription } from 'rxjs';
                         [attr.data-scene-id]="scene.id"
                         placeholder="Hier wird die AI-generierte Zusammenfassung der Szene angezeigt..."
                         class="summary-textarea"
-                        rows="2"
-                        auto-grow="true"
+                        [rows]="2"
+                        [autoGrow]="true"
                         [attr.aria-label]="'Zusammenfassung für Szene: ' + (scene.title || 'Ohne Titel')">
                       </ion-textarea>
                       
@@ -1097,18 +1097,23 @@ Die Zusammenfassung soll die wichtigsten Handlungspunkte und Charakterentwicklun
           
           // Update the scene summary generated timestamp
           if (scene) {
+            scene.summary = summary;
             scene.summaryGeneratedAt = new Date();
             await this.storyService.updateScene(this.story.id, chapterId, sceneId, {
               summary: summary,
               summaryGeneratedAt: scene.summaryGeneratedAt
             });
-            // Resize textarea after content update
-            setTimeout(() => this.resizeTextareaForScene(sceneId), 50);
           }
         }
         clearTimeout(timeoutId); // Clear timeout on success
         this.isGeneratingSummary.delete(sceneId);
         this.cdr.detectChanges(); // Force change detection
+        
+        // Ensure textarea is properly resized after content update
+        setTimeout(() => {
+          this.resizeTextareaForScene(sceneId);
+          this.cdr.detectChanges();
+        }, 100);
       },
       error: (error) => {
         console.error('Error generating scene summary:', error);
@@ -1311,6 +1316,14 @@ Antworte nur mit dem Titel, ohne weitere Erklärungen oder Anführungszeichen.`;
     const textarea = document.querySelector(`textarea[data-scene-id="${sceneId}"]`) as HTMLTextAreaElement;
     if (textarea) {
       this.resizeTextarea(textarea);
+    } else {
+      // Retry after a short delay if textarea is not yet available
+      setTimeout(() => {
+        const retryTextarea = document.querySelector(`textarea[data-scene-id="${sceneId}"]`) as HTMLTextAreaElement;
+        if (retryTextarea) {
+          this.resizeTextarea(retryTextarea);
+        }
+      }, 50);
     }
   }
   
