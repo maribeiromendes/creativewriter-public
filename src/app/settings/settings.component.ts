@@ -306,9 +306,84 @@ import { NgSelectModule } from '@ng-select/ng-select';
               </ion-item>
             </div>
 
+            <!-- Content Filter Settings -->
+            <div *ngIf="settings.googleGemini.enabled" class="content-filter-section">
+              <h4 class="section-title">Content Filter Einstellungen</h4>
+              
+              <ion-item>
+                <ion-label>Belästigung</ion-label>
+                <ion-select
+                  [(ngModel)]="settings.googleGemini.contentFilter.harassment"
+                  (ngModelChange)="onSettingsChange()"
+                  interface="popover"
+                  slot="end">
+                  <ion-select-option value="BLOCK_NONE">Nicht blockieren</ion-select-option>
+                  <ion-select-option value="BLOCK_ONLY_HIGH">Nur hohe Risiken</ion-select-option>
+                  <ion-select-option value="BLOCK_MEDIUM_AND_ABOVE">Mittlere und hohe Risiken</ion-select-option>
+                  <ion-select-option value="BLOCK_LOW_AND_ABOVE">Niedrige und höhere Risiken</ion-select-option>
+                </ion-select>
+              </ion-item>
+
+              <ion-item>
+                <ion-label>Hassrede</ion-label>
+                <ion-select
+                  [(ngModel)]="settings.googleGemini.contentFilter.hateSpeech"
+                  (ngModelChange)="onSettingsChange()"
+                  interface="popover"
+                  slot="end">
+                  <ion-select-option value="BLOCK_NONE">Nicht blockieren</ion-select-option>
+                  <ion-select-option value="BLOCK_ONLY_HIGH">Nur hohe Risiken</ion-select-option>
+                  <ion-select-option value="BLOCK_MEDIUM_AND_ABOVE">Mittlere und hohe Risiken</ion-select-option>
+                  <ion-select-option value="BLOCK_LOW_AND_ABOVE">Niedrige und höhere Risiken</ion-select-option>
+                </ion-select>
+              </ion-item>
+
+              <ion-item>
+                <ion-label>Sexuell explizit</ion-label>
+                <ion-select
+                  [(ngModel)]="settings.googleGemini.contentFilter.sexuallyExplicit"
+                  (ngModelChange)="onSettingsChange()"
+                  interface="popover"
+                  slot="end">
+                  <ion-select-option value="BLOCK_NONE">Nicht blockieren</ion-select-option>
+                  <ion-select-option value="BLOCK_ONLY_HIGH">Nur hohe Risiken</ion-select-option>
+                  <ion-select-option value="BLOCK_MEDIUM_AND_ABOVE">Mittlere und hohe Risiken</ion-select-option>
+                  <ion-select-option value="BLOCK_LOW_AND_ABOVE">Niedrige und höhere Risiken</ion-select-option>
+                </ion-select>
+              </ion-item>
+
+              <ion-item>
+                <ion-label>Gefährlicher Inhalt</ion-label>
+                <ion-select
+                  [(ngModel)]="settings.googleGemini.contentFilter.dangerousContent"
+                  (ngModelChange)="onSettingsChange()"
+                  interface="popover"
+                  slot="end">
+                  <ion-select-option value="BLOCK_NONE">Nicht blockieren</ion-select-option>
+                  <ion-select-option value="BLOCK_ONLY_HIGH">Nur hohe Risiken</ion-select-option>
+                  <ion-select-option value="BLOCK_MEDIUM_AND_ABOVE">Mittlere und hohe Risiken</ion-select-option>
+                  <ion-select-option value="BLOCK_LOW_AND_ABOVE">Niedrige und höhere Risiken</ion-select-option>
+                </ion-select>
+              </ion-item>
+
+              <ion-item>
+                <ion-label>Bürgerliche Integrität</ion-label>
+                <ion-select
+                  [(ngModel)]="settings.googleGemini.contentFilter.civicIntegrity"
+                  (ngModelChange)="onSettingsChange()"
+                  interface="popover"
+                  slot="end">
+                  <ion-select-option value="BLOCK_NONE">Nicht blockieren</ion-select-option>
+                  <ion-select-option value="BLOCK_ONLY_HIGH">Nur hohe Risiken</ion-select-option>
+                  <ion-select-option value="BLOCK_MEDIUM_AND_ABOVE">Mittlere und hohe Risiken</ion-select-option>
+                  <ion-select-option value="BLOCK_LOW_AND_ABOVE">Niedrige und höhere Risiken</ion-select-option>
+                </ion-select>
+              </ion-item>
+            </div>
+
             <div class="model-info" *ngIf="settings.googleGemini.enabled">
               <p class="info-text">
-                <strong>Direkte Google API:</strong> Umgeht Content-Filter von Proxy-Services. Safety Settings werden automatisch auf BLOCK_NONE gesetzt.
+                <strong>Content Filter:</strong> Konfigurierbare Sicherheitseinstellungen für verschiedene Inhaltskategorien.
               </p>
             </div>
           </ion-card-content>
@@ -518,6 +593,20 @@ import { NgSelectModule } from '@ng-select/ng-select';
 
     .info-text {
       color: #6c757d;
+    }
+
+    .content-filter-section {
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .section-title {
+      color: #f8f9fa;
+      font-size: 1rem;
+      font-weight: 600;
+      margin: 0 0 1rem 0;
+      padding: 0 1rem;
     }
     
     .model-option {
