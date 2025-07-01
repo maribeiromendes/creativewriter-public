@@ -1073,16 +1073,23 @@ export class StoryStructureComponent implements AfterViewInit {
       }
     }, 30000); // 30 second timeout
     
+    // Remove embedded images from content to reduce token count
+    let sceneContent = this.removeEmbeddedImages(scene.content);
+    
+    // Log if images were removed
+    if (sceneContent.length < scene.content.length) {
+      console.log(`Removed embedded images. Original: ${scene.content.length} chars, After removal: ${sceneContent.length} chars`);
+    }
+    
     // Limit content length to avoid token limit issues
     // Approximate: 1 token ≈ 4 characters, so for safety we limit to ~50k tokens ≈ 200k characters
     const maxContentLength = 200000;
-    let sceneContent = scene.content;
     let contentTruncated = false;
     
     if (sceneContent.length > maxContentLength) {
       sceneContent = sceneContent.substring(0, maxContentLength);
       contentTruncated = true;
-      console.warn(`Scene content truncated from ${scene.content.length} to ${maxContentLength} characters to avoid token limit`);
+      console.warn(`Scene content truncated from ${sceneContent.length} to ${maxContentLength} characters to avoid token limit`);
     }
     
     const prompt = `Erstelle eine Zusammenfassung der folgenden Szene:
@@ -1186,14 +1193,21 @@ Die Zusammenfassung soll die wichtigsten Handlungspunkte und Charakterentwicklun
       }
     }, 30000); // 30 second timeout
     
+    // Remove embedded images from content to reduce token count
+    let sceneContent = this.removeEmbeddedImages(scene.content);
+    
+    // Log if images were removed
+    if (sceneContent.length < scene.content.length) {
+      console.log(`Removed embedded images for title generation. Original: ${scene.content.length} chars, After removal: ${sceneContent.length} chars`);
+    }
+    
     // Limit content length for title generation - we need even less content for a title
     // For title generation, 50k characters should be more than enough
     const maxContentLength = 50000;
-    let sceneContent = scene.content;
     
     if (sceneContent.length > maxContentLength) {
       sceneContent = sceneContent.substring(0, maxContentLength);
-      console.warn(`Scene content truncated from ${scene.content.length} to ${maxContentLength} characters for title generation`);
+      console.warn(`Scene content truncated from ${sceneContent.length} to ${maxContentLength} characters for title generation`);
     }
     
     // Build style instructions based on settings
@@ -1401,5 +1415,21 @@ Antworte nur mit dem Titel, ohne weitere Erklärungen oder Anführungszeichen.`;
   
   onCloseSidebar(): void {
     this.closeSidebar.emit();
+  }
+  
+  private removeEmbeddedImages(content: string): string {
+    // Remove base64 encoded images
+    // Matches: <img src="data:image/[type];base64,[data]" ...>
+    let cleanedContent = content.replace(/<img[^>]*src="data:image\/[^"]*"[^>]*>/gi, '[Bild entfernt]');
+    
+    // Also remove markdown-style base64 images
+    // Matches: ![alt](data:image/[type];base64,[data])
+    cleanedContent = cleanedContent.replace(/!\[[^\]]*\]\(data:image\/[^)]*\)/gi, '[Bild entfernt]');
+    
+    // Remove any remaining large base64 strings that might be in the content
+    // This catches base64 strings that are at least 1000 characters long
+    cleanedContent = cleanedContent.replace(/data:image\/[a-zA-Z]+;base64,[A-Za-z0-9+/]{1000,}={0,2}/g, '[Bild-Daten entfernt]');
+    
+    return cleanedContent;
   }
 }
