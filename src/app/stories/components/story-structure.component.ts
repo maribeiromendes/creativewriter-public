@@ -182,44 +182,42 @@ import { Subscription } from 'rxjs';
                   </ion-item>
                   
                   <div class="scene-details" *ngIf="expandedScenes.has(scene.id)">
-                    <ion-item class="scene-summary-section">
-                      <ion-label position="stacked">
-                        <div class="summary-header">
-                          <span>Zusammenfassung</span>
-                          <div class="summary-buttons">
-                            <ion-button 
-                              size="small"
-                              fill="solid"
-                              [color]="isGeneratingSummary.has(scene.id) ? 'medium' : 'success'"
-                              (click)="generateSceneSummary(chapter.id, scene.id)"
-                              [disabled]="isGeneratingSummary.has(scene.id) || !selectedModel || !scene.content.trim()"
-                              [attr.aria-label]="isGeneratingSummary.has(scene.id) ? 'Zusammenfassung wird generiert...' : 'AI-Zusammenfassung für Szene generieren'"
-                              (touchstart)="$event.stopPropagation()"
-                              (touchend)="$event.stopPropagation()">
-                              <ion-icon 
-                                [name]="isGeneratingSummary.has(scene.id) ? 'time-outline' : 'flash-outline'" 
-                                slot="icon-only"
-                                [attr.aria-hidden]="true">
-                              </ion-icon>
-                            </ion-button>
-                            <ion-button 
-                              *ngIf="scene.summary"
-                              size="small"
-                              fill="solid"
-                              color="danger"
-                              (click)="deleteSceneSummary(chapter.id, scene.id)"
-                              [attr.aria-label]="'Zusammenfassung für Szene löschen'"
-                              (touchstart)="$event.stopPropagation()"
-                              (touchend)="$event.stopPropagation()">
-                              <ion-icon 
-                                name="trash" 
-                                slot="icon-only"
-                                [attr.aria-hidden]="true">
-                              </ion-icon>
-                            </ion-button>
-                          </div>
+                    <div class="scene-summary-section">
+                      <div class="summary-header">
+                        <span>Zusammenfassung</span>
+                        <div class="summary-buttons">
+                          <ion-button 
+                            size="small"
+                            fill="solid"
+                            [color]="isGeneratingSummary.has(scene.id) ? 'medium' : 'success'"
+                            (click)="generateSceneSummary(chapter.id, scene.id)"
+                            [disabled]="isGeneratingSummary.has(scene.id) || !selectedModel || !scene.content.trim()"
+                            [attr.aria-label]="isGeneratingSummary.has(scene.id) ? 'Zusammenfassung wird generiert...' : 'AI-Zusammenfassung für Szene generieren'"
+                            (touchstart)="$event.stopPropagation()"
+                            (touchend)="$event.stopPropagation()">
+                            <ion-icon 
+                              [name]="isGeneratingSummary.has(scene.id) ? 'time-outline' : 'flash-outline'" 
+                              slot="icon-only"
+                              [attr.aria-hidden]="true">
+                            </ion-icon>
+                          </ion-button>
+                          <ion-button 
+                            *ngIf="scene.summary"
+                            size="small"
+                            fill="solid"
+                            color="danger"
+                            (click)="deleteSceneSummary(chapter.id, scene.id)"
+                            [attr.aria-label]="'Zusammenfassung für Szene löschen'"
+                            (touchstart)="$event.stopPropagation()"
+                            (touchend)="$event.stopPropagation()">
+                            <ion-icon 
+                              name="trash" 
+                              slot="icon-only"
+                              [attr.aria-hidden]="true">
+                            </ion-icon>
+                          </ion-button>
                         </div>
-                      </ion-label>
+                      </div>
                       
                       <ion-select 
                         [(ngModel)]="selectedModel"
@@ -249,7 +247,7 @@ import { Subscription } from 'rxjs';
                         <ion-icon name="time-outline"></ion-icon>
                         <ion-label>{{ scene.summaryGeneratedAt | date:'short' }}</ion-label>
                       </ion-chip>
-                    </ion-item>
+                    </div>
                   </div>
                 </ng-container>
               </ion-list>
@@ -474,10 +472,11 @@ import { Subscription } from 'rxjs';
     }
     
     .scene-summary-section {
-      --background: var(--ion-color-step-100);
-      --padding-start: 8px;
-      --padding-end: 8px;
-      margin: 0;
+      background: var(--ion-color-step-100);
+      padding: 1rem;
+      margin: 0.5rem 0;
+      border-radius: 8px;
+      border: 1px solid var(--ion-color-step-200);
     }
     
     .summary-header {
@@ -506,10 +505,16 @@ import { Subscription } from 'rxjs';
       --background: var(--ion-background-color);
       --color: var(--ion-text-color);
       --placeholder-color: var(--ion-color-medium);
-      --padding-start: 8px;
-      --padding-end: 8px;
-      font-size: 0.85rem;
+      --padding-start: 12px;
+      --padding-end: 12px;
+      --padding-top: 12px;
+      --padding-bottom: 12px;
+      font-size: 0.9rem;
       margin-top: 0.5rem;
+      width: 100%;
+      border: 1px solid var(--ion-color-step-200);
+      border-radius: 6px;
+      min-height: 60px;
     }
     
     .summary-info {
