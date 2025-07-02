@@ -260,6 +260,10 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
       padding: 2rem 1rem;
       width: 100%;
       box-sizing: border-box;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0; /* Important for flexbox */
     }
 
     /* Optimal reading width container */
@@ -268,6 +272,9 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
       margin: 0 auto;
       width: 100%;
       padding-bottom: 4rem; /* Extra space at bottom for better scrolling */
+      flex: 1;
+      display: flex;
+      flex-direction: column;
     }
 
     /* Different max-widths for different screens */
@@ -300,6 +307,7 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
       display: flex;
       flex-direction: column;
       min-height: 0; /* Allow shrinking */
+      flex: 1;
     }
     
     .scene-title-input {
@@ -383,6 +391,10 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
       margin: var(--ion-padding, 16px) 0;
       box-shadow: var(--ion-box-shadow, 0 2px 8px rgba(0, 0, 0, 0.1));
       transition: all 0.2s ease;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
     }
     
     .editor-wrapper:hover {
@@ -399,6 +411,9 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
       background: transparent;
       color: var(--ion-text-color, var(--ion-color-step-850, #e0e0e0));
       min-height: 300px;
+      max-height: calc(100vh - 300px); /* Account for headers and navigation */
+      overflow-y: auto;
+      overflow-x: hidden;
     }
     
     .content-editor :global(.prosemirror-editor) {
@@ -764,10 +779,13 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
         setTimeout(() => {
           if (this.editorContainer) {
             this.initializeProseMirrorEditor();
-            // Ensure scrolling happens after editor is fully initialized
-            setTimeout(() => {
-              this.scrollToEndOfContent();
-            }, 300);
+            // Ensure scrolling happens after editor is fully initialized and content is rendered
+            // Use requestAnimationFrame to ensure DOM is updated
+            requestAnimationFrame(() => {
+              setTimeout(() => {
+                this.scrollToEndOfContent();
+              }, 500);
+            });
           }
         }, 0);
       } else {
@@ -1050,8 +1068,8 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
       }
     );
     
-    // Set initial content if we have an active scene
-    this.updateEditorContent();
+    // Set initial content if we have an active scene (skip scroll, will be done in ngOnInit)
+    this.updateEditorContent(true);
     
     // Add click listener to hide dropdown when clicking in editor
     this.editorContainer.nativeElement.addEventListener('click', () => {
@@ -1061,19 +1079,26 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     });
   }
 
-  private updateEditorContent(): void {
+  private updateEditorContent(skipScroll: boolean = false): void {
     if (this.editorView && this.activeScene) {
       this.proseMirrorService.setContent(this.activeScene.content || '');
       this.updateWordCount();
-      // Scroll to end of content after setting content
-      setTimeout(() => {
-        this.scrollToEndOfContent();
-      }, 200);
+      // Scroll to end of content after setting content (unless skipped)
+      if (!skipScroll) {
+        setTimeout(() => {
+          this.scrollToEndOfContent();
+        }, 200);
+      }
     }
   }
 
   private scrollToEndOfContent(): void {
-    if (!this.editorView) return;
+    if (!this.editorView) {
+      console.log('scrollToEndOfContent: No editor view');
+      return;
+    }
+    
+    console.log('scrollToEndOfContent: Starting scroll');
     
     try {
       const { state } = this.editorView;
@@ -1101,6 +1126,12 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
         if (this.editorView) {
           const editorElement = this.editorView.dom as HTMLElement;
           if (editorElement) {
+            console.log('Scrolling editor element:', {
+              scrollTop: editorElement.scrollTop,
+              scrollHeight: editorElement.scrollHeight,
+              clientHeight: editorElement.clientHeight
+            });
+            
             // Ensure the element is visible and has height
             editorElement.scrollTop = editorElement.scrollHeight;
             
@@ -1112,6 +1143,12 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
           // Also scroll the parent container if needed
           const contentEditor = editorElement?.closest('.content-editor') as HTMLElement;
           if (contentEditor) {
+            console.log('Scrolling content editor:', {
+              scrollTop: contentEditor.scrollTop,
+              scrollHeight: contentEditor.scrollHeight,
+              clientHeight: contentEditor.clientHeight
+            });
+            
             contentEditor.scrollTop = contentEditor.scrollHeight;
             
             // Force a reflow here too
