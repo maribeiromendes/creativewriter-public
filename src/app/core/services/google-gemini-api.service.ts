@@ -91,7 +91,10 @@ export class GoogleGeminiApiService {
     const wordCount = options.wordCount || Math.floor(maxTokens / 1.3);
 
     const headers = new HttpHeaders({
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'User-Agent': 'NovelCrafter/1.0',
+      'X-Client-Name': 'NovelCrafter',
+      'X-Client-Version': '1.0'
     });
 
     // Convert messages format to Gemini format
@@ -364,7 +367,10 @@ export class GoogleGeminiApiService {
     const wordCount = options.wordCount || Math.floor(maxTokens / 1.3);
 
     const headers = new HttpHeaders({
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'User-Agent': 'NovelCrafter/1.0',
+      'X-Client-Name': 'NovelCrafter',
+      'X-Client-Version': '1.0'
     });
 
     // Convert messages format to Gemini format
@@ -489,7 +495,10 @@ export class GoogleGeminiApiService {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'text/event-stream'
+          'Accept': 'text/event-stream',
+          'User-Agent': 'NovelCrafter/1.0',
+          'X-Client-Name': 'NovelCrafter',
+          'X-Client-Version': '1.0'
         },
         body: JSON.stringify(request),
         signal: abortController.signal

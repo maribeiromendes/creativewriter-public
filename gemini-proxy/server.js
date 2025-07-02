@@ -62,12 +62,19 @@ app.all('/api/gemini/*', async (req, res) => {
       // Use native fetch for streaming support (Node.js 18+)
       console.log(`[${requestId}] Making streaming request with native fetch`);
       
+      const streamingHeaders = {
+        'Content-Type': 'application/json',
+        'Accept': 'text/event-stream',
+        'User-Agent': 'NovelCrafter/1.0',
+        'X-Client-Name': 'NovelCrafter',
+        'X-Client-Version': '1.0'
+      };
+      
+      console.log(`[${requestId}] Streaming headers:`, streamingHeaders);
+      
       const response = await fetch(url, {
         method: req.method,
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'text/event-stream'
-        },
+        headers: streamingHeaders,
         body: req.method !== 'GET' ? JSON.stringify(req.body) : undefined
       });
       
@@ -151,10 +158,15 @@ app.all('/api/gemini/*', async (req, res) => {
         url,
         headers: {
           'Content-Type': 'application/json',
+          'User-Agent': 'NovelCrafter/1.0',
+          'X-Client-Name': 'NovelCrafter',
+          'X-Client-Version': '1.0',
           ...req.headers,
         },
         data: req.body,
       };
+      
+      console.log(`[${requestId}] Non-streaming headers:`, config.headers);
       
       // Remove host header and other headers that might cause conflicts
       delete config.headers.host;
