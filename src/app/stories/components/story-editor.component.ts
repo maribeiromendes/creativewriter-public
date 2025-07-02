@@ -764,6 +764,10 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
         setTimeout(() => {
           if (this.editorContainer) {
             this.initializeProseMirrorEditor();
+            // Ensure scrolling happens after editor is fully initialized
+            setTimeout(() => {
+              this.scrollToEndOfContent();
+            }, 300);
           }
         }, 0);
       } else {
@@ -1064,7 +1068,7 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
       // Scroll to end of content after setting content
       setTimeout(() => {
         this.scrollToEndOfContent();
-      }, 100);
+      }, 200);
     }
   }
 
@@ -1097,6 +1101,11 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
         if (this.editorView) {
           const editorElement = this.editorView.dom as HTMLElement;
           if (editorElement) {
+            // Ensure the element is visible and has height
+            editorElement.scrollTop = editorElement.scrollHeight;
+            
+            // Force a reflow to ensure scrollHeight is calculated
+            editorElement.offsetHeight;
             editorElement.scrollTop = editorElement.scrollHeight;
           }
           
@@ -1104,9 +1113,13 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
           const contentEditor = editorElement?.closest('.content-editor') as HTMLElement;
           if (contentEditor) {
             contentEditor.scrollTop = contentEditor.scrollHeight;
+            
+            // Force a reflow here too
+            contentEditor.offsetHeight;
+            contentEditor.scrollTop = contentEditor.scrollHeight;
           }
         }
-      }, 50);
+      }, 100);
     } catch (error) {
       console.warn('Failed to scroll to end of content:', error);
     }
