@@ -88,8 +88,7 @@ export class SceneChatService {
         context,
         chatId,
         {
-          wordCount: 300, // max words
-          model: 'default' // Let service choose best model
+          wordCount: 300 // max words - service will auto-select model based on settings
         }
       );
 
