@@ -3,6 +3,7 @@ import { BehaviorSubject, Observable, Subject } from 'rxjs';
 import { SceneChat, ChatMessage, ChatRequest } from '../models/chat.interface';
 import { BeatAIService } from '../../shared/services/beat-ai.service';
 import { SettingsService } from '../../core/services/settings.service';
+import { PromptManagerService } from '../../shared/services/prompt-manager.service';
 
 @Injectable({
   providedIn: 'root'
@@ -15,7 +16,8 @@ export class SceneChatService {
 
   constructor(
     private beatAIService: BeatAIService,
-    private settingsService: SettingsService
+    private settingsService: SettingsService,
+    private promptManager: PromptManagerService
   ) {
     this.loadChats();
   }
@@ -152,9 +154,10 @@ export class SceneChatService {
   private buildChatContext(chatRequest: ChatRequest): string {
     const context = [];
     
-    // Add scene context
+    // Add clean scene content using PromptManager
+    const cleanSceneContent = this.extractCleanSceneContent(chatRequest.sceneContent);
     context.push('**Scene Content:**');
-    context.push(chatRequest.sceneContent);
+    context.push(cleanSceneContent);
     context.push('');
     
     // Add story context if available
@@ -183,6 +186,58 @@ export class SceneChatService {
     context.push('You are an AI assistant helping with creative writing. Based on the scene content and context provided, please respond to the user\'s question. You can help with character analysis, plot development, dialogue suggestions, scene improvements, or any other creative writing tasks.');
     
     return context.join('\n');
+  }
+
+  private extractCleanSceneContent(sceneContent: string): string {
+    if (!sceneContent) return '';
+
+    // Use DOM parser for reliable HTML parsing (same approach as PromptManager)
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(sceneContent, 'text/html');
+    
+    // Remove all beat AI wrapper elements and their contents
+    const beatWrappers = doc.querySelectorAll('.beat-ai-wrapper, .beat-ai-node');
+    beatWrappers.forEach(element => element.remove());
+    
+    // Remove beat markers and comments
+    const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT);
+    const textNodes: Text[] = [];
+    let node;
+    while (node = walker.nextNode()) {
+      textNodes.push(node as Text);
+    }
+    
+    textNodes.forEach(textNode => {
+      // Remove beat markers like [Beat: description]
+      textNode.textContent = textNode.textContent?.replace(/\[Beat:[^\]]*\]/g, '') || '';
+    });
+    
+    // Remove HTML comments that contain Beat information
+    const comments = doc.evaluate('//comment()', doc, null, XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE, null);
+    for (let i = 0; i < comments.snapshotLength; i++) {
+      const comment = comments.snapshotItem(i);
+      if (comment && comment.textContent?.includes('Beat')) {
+        comment.parentNode?.removeChild(comment);
+      }
+    }
+    
+    // Convert to text while preserving paragraph structure
+    let cleanText = '';
+    const paragraphs = doc.querySelectorAll('p');
+    
+    if (paragraphs.length > 0) {
+      paragraphs.forEach(p => {
+        const text = p.textContent?.trim();
+        if (text) {
+          cleanText += text + '\n\n';
+        }
+      });
+    } else {
+      // Fallback: use body text content
+      cleanText = doc.body.textContent?.trim() || '';
+    }
+    
+    return cleanText.trim();
   }
 
   private loadChats(): void {
