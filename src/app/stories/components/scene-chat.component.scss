@@ -80,6 +80,15 @@
     cursor: not-allowed;
   }
 
+  &.new-chat-button {
+    background: #28a745;
+    color: white;
+
+    &:hover:not(:disabled) {
+      background: #218838;
+    }
+  }
+
   &.clear-button {
     background: #dc3545;
     color: white;

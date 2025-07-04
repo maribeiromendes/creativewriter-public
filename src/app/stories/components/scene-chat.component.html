@@ -16,17 +16,24 @@
       <!-- Chat Actions -->
       <div class="chat-actions">
         <button 
+          class="action-button new-chat-button" 
+          (click)="startNewChat()"
+          [disabled]="isGenerating"
+          title="Neuen Chat starten">
+          <i class="fas fa-plus"></i>
+        </button>
+        <button 
           class="action-button clear-button" 
           (click)="clearChat()"
           [disabled]="isGenerating || !messages.length"
-          title="Clear chat">
+          title="Chat leeren">
           <i class="fas fa-trash"></i>
         </button>
         <button 
           class="action-button stop-button" 
           (click)="stopGeneration()"
           [disabled]="!isGenerating"
-          title="Stop generation">
+          title="Generation stoppen">
           <i class="fas fa-stop"></i>
         </button>
       </div>

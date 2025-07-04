@@ -133,6 +133,12 @@ export class SceneChatComponent implements OnInit, OnDestroy, AfterViewChecked {
     this.sceneChatService.stopGeneration();
   }
 
+  startNewChat(): void {
+    if (this.story && this.scene) {
+      this.sceneChatService.clearChat(this.story.id, this.scene.id);
+    }
+  }
+
   clearChat(): void {
     if (this.story && this.scene) {
       this.sceneChatService.clearChat(this.story.id, this.scene.id);
