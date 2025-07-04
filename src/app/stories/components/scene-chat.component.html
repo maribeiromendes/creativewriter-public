@@ -1,0 +1,99 @@
+<div class="scene-chat-container">
+  <!-- Header -->
+  <div class="chat-header">
+    <div class="header-left">
+      <button class="back-button" (click)="goBack()">
+        <i class="fas fa-arrow-left"></i>
+        Back to Editor
+      </button>
+      <div class="scene-info">
+        <h1 class="scene-title">{{ scene?.title }}</h1>
+        <p class="story-title">{{ story?.title }}</p>
+      </div>
+    </div>
+    
+    <div class="header-right">
+      <!-- Chat Actions -->
+      <div class="chat-actions">
+        <button 
+          class="action-button clear-button" 
+          (click)="clearChat()"
+          [disabled]="isGenerating || !messages.length"
+          title="Clear chat">
+          <i class="fas fa-trash"></i>
+        </button>
+        <button 
+          class="action-button stop-button" 
+          (click)="stopGeneration()"
+          [disabled]="!isGenerating"
+          title="Stop generation">
+          <i class="fas fa-stop"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chat Messages -->
+  <div class="chat-messages" #chatContainer>
+    <div class="messages-container">
+      <!-- Welcome Message -->
+      <div class="message assistant-message" *ngIf="!messages.length">
+        <div class="message-content">
+          <p><strong>Welcome to Scene Chat!</strong></p>
+          <p>I can help you analyze this scene, extract characters, improve dialogue, and assist with your creative writing. Try one of these quick actions:</p>
+          <div class="preset-actions">
+            <button class="preset-button" (click)="extractCharacters()">Extract Characters</button>
+            <button class="preset-button" (click)="analyzeDialogue()">Analyze Dialogue</button>
+            <button class="preset-button" (click)="suggestImprovements()">Suggest Improvements</button>
+            <button class="preset-button" (click)="analyzePlot()">Analyze Plot</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chat Messages -->
+      <div 
+        class="message" 
+        [class.user-message]="message.role === 'user'"
+        [class.assistant-message]="message.role === 'assistant'"
+        *ngFor="let message of messages; trackBy: trackByMessageId">
+        <div class="message-content">
+          <div class="message-text" [innerHTML]="formatMessage(message.content)"></div>
+          <div class="message-time">{{ message.timestamp | date:'short' }}</div>
+        </div>
+        <div class="typing-indicator" *ngIf="message.isGenerating">
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Message Input -->
+  <div class="message-input-container">
+    <div class="input-row">
+      <textarea 
+        #messageInput
+        [(ngModel)]="currentMessage"
+        (keypress)="onKeyPress($event)"
+        placeholder="Ask me about this scene, characters, dialogue, or anything else..."
+        class="message-input"
+        rows="3"
+        [disabled]="isGenerating"></textarea>
+      <button 
+        class="send-button" 
+        (click)="sendMessage()"
+        [disabled]="!currentMessage.trim() || isGenerating">
+        <i class="fas fa-paper-plane"></i>
+      </button>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="quick-actions" *ngIf="!isGenerating">
+      <button class="quick-action" (click)="extractCharacters()">Extract Characters</button>
+      <button class="quick-action" (click)="analyzeDialogue()">Analyze Dialogue</button>
+      <button class="quick-action" (click)="suggestImprovements()">Suggest Improvements</button>
+      <button class="quick-action" (click)="analyzePlot()">Analyze Plot</button>
+    </div>
+  </div>
+</div>

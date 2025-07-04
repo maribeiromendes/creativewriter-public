@@ -1,6 +1,7 @@
 import { Component, Input, Output, EventEmitter, AfterViewInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import {
   IonContent, IonList, IonItem, IonLabel, IonButton, IonIcon, IonInput,
   IonChip, IonTextarea, IonSelect, IonSelectOption,
@@ -9,7 +10,7 @@ import {
 import { addIcons } from 'ionicons';
 import { 
   chevronForward, chevronDown, add, trash, createOutline,
-  flashOutline, documentTextOutline, timeOutline, sparklesOutline, close
+  flashOutline, documentTextOutline, timeOutline, sparklesOutline, close, chatbubbleOutline
 } from 'ionicons/icons';
 import { Story, Chapter, Scene } from '../models/story.interface';
 import { StoryService } from '../services/story.service';
@@ -164,6 +165,18 @@ import { Subscription } from 'rxjs';
                               slot="icon-only"
                               [attr.aria-hidden]="true">
                             </ion-icon>
+                          </ion-button>
+                          
+                          <ion-button 
+                            fill="clear" 
+                            size="small"
+                            color="primary" 
+                            (click)="openSceneChat(chapter.id, scene.id, $event)"
+                            [attr.aria-label]="'Chat mit Szene: ' + (scene.title || 'Ohne Titel')"
+                            [disabled]="!scene.content.trim()"
+                            (touchstart)="$event.stopPropagation()"
+                            (touchend)="$event.stopPropagation()">
+                            <ion-icon name="chatbubble-outline" slot="icon-only" [attr.aria-hidden]="true"></ion-icon>
                           </ion-button>
                           
                           <ion-button 
@@ -932,11 +945,12 @@ export class StoryStructureComponent implements AfterViewInit {
     private modelService: ModelService,
     private settingsService: SettingsService,
     private cdr: ChangeDetectorRef,
-    private promptManager: PromptManagerService
+    private promptManager: PromptManagerService,
+    private router: Router
   ) {
     addIcons({ 
       chevronForward, chevronDown, add, trash, createOutline,
-      flashOutline, documentTextOutline, timeOutline, sparklesOutline, close
+      flashOutline, documentTextOutline, timeOutline, sparklesOutline, close, chatbubbleOutline
     });
   }
 
@@ -1046,6 +1060,11 @@ export class StoryStructureComponent implements AfterViewInit {
         this.story = updatedStory;
       }
     }
+  }
+
+  openSceneChat(chapterId: string, sceneId: string, event: Event): void {
+    event.stopPropagation();
+    this.router.navigate(['/stories/scene-chat', this.story.id, sceneId]);
   }
 
   selectScene(chapterId: string, sceneId: string): void {
