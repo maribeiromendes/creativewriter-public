@@ -243,4 +243,46 @@ STOPPE nach dem letzten Charakter. Keine weiteren Erklärungen.`;
       .replace(/\n/g, '<br>')
       .replace(/`(.*?)`/g, '<code>$1</code>');
   }
+
+  copyMessage(content: string): void {
+    // Remove any HTML formatting for plain text copy
+    const plainText = content
+      .replace(/\*\*(.*?)\*\*/g, '$1')
+      .replace(/\*(.*?)\*/g, '$1')
+      .replace(/`(.*?)`/g, '$1');
+    
+    if (navigator.clipboard && window.isSecureContext) {
+      // Use modern clipboard API
+      navigator.clipboard.writeText(plainText).then(() => {
+        // Optional: Show success feedback
+        console.log('Message copied to clipboard');
+      }).catch(err => {
+        console.error('Failed to copy message:', err);
+        this.fallbackCopy(plainText);
+      });
+    } else {
+      // Fallback for older browsers
+      this.fallbackCopy(plainText);
+    }
+  }
+
+  private fallbackCopy(text: string): void {
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-999999px';
+    textArea.style.top = '-999999px';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    try {
+      document.execCommand('copy');
+      console.log('Message copied to clipboard (fallback)');
+    } catch (err) {
+      console.error('Failed to copy message (fallback):', err);
+    }
+    
+    document.body.removeChild(textArea);
+  }
 }

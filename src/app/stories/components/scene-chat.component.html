@@ -65,7 +65,15 @@
         *ngFor="let message of messages; trackBy: trackByMessageId">
         <div class="message-content">
           <div class="message-text" [innerHTML]="formatMessage(message.content)"></div>
-          <div class="message-time">{{ message.timestamp | date:'short' }}</div>
+          <div class="message-actions">
+            <button 
+              class="copy-button" 
+              (click)="copyMessage(message.content)"
+              title="Nachricht kopieren">
+              <i class="fas fa-copy"></i>
+            </button>
+            <div class="message-time">{{ message.timestamp | date:'short' }}</div>
+          </div>
         </div>
         <div class="typing-indicator" *ngIf="message.isGenerating">
           <div class="typing-dot"></div>
