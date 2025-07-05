@@ -193,27 +193,26 @@ export class SceneChatComponent implements OnInit, OnDestroy, AfterViewChecked {
 
   // Preset prompts for character extraction
   extractCharacters(): void {
-    this.currentMessage = `Bitte extrahiere alle Charaktere aus dieser Szene und erstelle für jeden Charakter GENAU EINEN strukturierten Codex-Eintrag. 
+    this.currentMessage = `Liste alle Charaktere aus dieser Szene auf und erstelle für jeden einen strukturierten Codex-Eintrag.
 
-WICHTIG: 
-- Gib pro Charakter nur EINE zusammenhängende Analyse aus
-- Keine Wiederholungen oder mehrfache Einträge pro Charakter
-- Fasse alle Informationen zu einem Charakter in EINEM Eintrag zusammen
+REGELN:
+1. Jeder Charakter wird NUR EINMAL aufgeführt
+2. Beginne direkt mit dem ersten Charakter
+3. Keine Einleitung, keine Zusammenfassung am Ende
+4. Nutze dieses exakte Format:
 
-**Für jeden Charakter EINMALIG:**
-- **Name/Titel**: [Vollständiger Name]
+**Charakter: [Name]**
 - **Rolle**: [Protagonist/Nebencharakter/Antagonist/Love-Interest/Hintergrundcharakter]
-- **Beschreibung**: [Detaillierte Beschreibung der Person in einem zusammenhängenden Text]
-- **Tags**: [Relevante Schlagwörter, z.B. Beruf, Eigenschaften]
-- **Benutzerdefinierte Felder**:
-  - Alter: [falls erwähnt]
-  - Aussehen: [Physische Beschreibung]
-  - Persönlichkeit: [Charaktereigenschaften]
-  - Beziehungen: [Zu anderen Charakteren]
-  - Motivation: [Ziele und Beweggründe]
-  - Besonderheiten: [Spezielle Fähigkeiten oder Merkmale]
+- **Beschreibung**: [Detaillierte Beschreibung]
+- **Tags**: [Schlagwörter]
+- **Alter**: [falls erwähnt]
+- **Aussehen**: [Physische Beschreibung]
+- **Persönlichkeit**: [Charaktereigenschaften]
+- **Beziehungen**: [Zu anderen Charakteren]
+- **Motivation**: [Ziele und Beweggründe]
+- **Besonderheiten**: [Spezielle Merkmale]
 
-Formatiere die Ausgabe so, dass sie direkt in den Codex übernommen werden kann. Gib jeden Charakter nur EINMAL aus.`;
+STOPPE nach dem letzten Charakter. Keine weiteren Erklärungen.`;
     this.sendMessage();
   }
 
