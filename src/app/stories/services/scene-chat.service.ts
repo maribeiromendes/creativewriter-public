@@ -89,9 +89,7 @@ export class SceneChatService {
       const response = this.beatAIService.generateBeatContent(
         context,
         chatId,
-        {
-          wordCount: 5000 // max words - service will auto-select model based on settings
-        }
+        {} // no word limit - let AI respond naturally
       );
 
       // Handle streaming response
