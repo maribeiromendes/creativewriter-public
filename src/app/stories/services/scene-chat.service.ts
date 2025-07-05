@@ -96,19 +96,10 @@ export class SceneChatService {
       response.subscribe({
         next: (chunk) => {
           assistantMessage.content += chunk;
-          // Apply duplicate removal for character analyses
-          if (chatRequest.message.toLowerCase().includes('charakter') || 
-              chatRequest.message.toLowerCase().includes('character')) {
-            assistantMessage.content = this.removeDuplicateCharacterAnalyses(assistantMessage.content);
-          }
+          // Don't apply duplicate removal during streaming - only update the UI
           this.currentChat$.next(currentChat);
         },
         complete: () => {
-          // Final duplicate removal on complete
-          if (chatRequest.message.toLowerCase().includes('charakter') || 
-              chatRequest.message.toLowerCase().includes('character')) {
-            assistantMessage.content = this.removeDuplicateCharacterAnalyses(assistantMessage.content);
-          }
           assistantMessage.isGenerating = false;
           currentChat.updatedAt = new Date();
           this.currentChat$.next(currentChat);
@@ -283,75 +274,4 @@ export class SceneChatService {
     return Date.now().toString(36) + Math.random().toString(36).substr(2);
   }
 
-  /**
-   * Remove duplicate character analyses from AI-generated content
-   * Keeps only the first occurrence of each character analysis
-   */
-  private removeDuplicateCharacterAnalyses(content: string): string {
-    // Pattern to detect character analysis sections
-    const characterPattern = /(?:^|\n)(?:\*\*)?(?:Character|Charakter|Figur|Person)(?:\s+\d+)?:?\s*([^*\n]+)(?:\*\*)?/gi;
-    
-    const seenCharacters = new Set<string>();
-    const lines = content.split('\n');
-    const filteredLines: string[] = [];
-    let currentCharacterBlock: string[] = [];
-    let currentCharacterName: string | null = null;
-    let isInCharacterBlock = false;
-    
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-      const match = characterPattern.exec(line);
-      characterPattern.lastIndex = 0; // Reset regex state
-      
-      if (match) {
-        // Found a character header
-        const characterName = match[1].trim().toLowerCase();
-        
-        // Process any previous character block
-        if (isInCharacterBlock && currentCharacterName) {
-          if (!seenCharacters.has(currentCharacterName)) {
-            seenCharacters.add(currentCharacterName);
-            filteredLines.push(...currentCharacterBlock);
-          }
-          currentCharacterBlock = [];
-        }
-        
-        // Start new character block
-        currentCharacterName = characterName;
-        isInCharacterBlock = true;
-        currentCharacterBlock = [line];
-      } else if (isInCharacterBlock) {
-        // Check if this line starts a new section (not part of character block)
-        if (line.trim() === '' && i + 1 < lines.length && 
-            (lines[i + 1].startsWith('**') || lines[i + 1].match(/^(?:Chapter|Kapitel|Scene|Szene)/i))) {
-          // End of character block
-          if (currentCharacterName && !seenCharacters.has(currentCharacterName)) {
-            seenCharacters.add(currentCharacterName);
-            filteredLines.push(...currentCharacterBlock);
-          }
-          filteredLines.push(line);
-          currentCharacterBlock = [];
-          isInCharacterBlock = false;
-          currentCharacterName = null;
-        } else {
-          currentCharacterBlock.push(line);
-        }
-      } else {
-        // Not in character block
-        filteredLines.push(line);
-      }
-    }
-    
-    // Process final character block if any
-    if (isInCharacterBlock && currentCharacterName && !seenCharacters.has(currentCharacterName)) {
-      seenCharacters.add(currentCharacterName);
-      filteredLines.push(...currentCharacterBlock);
-    }
-    
-    // Clean up excessive newlines
-    return filteredLines
-      .join('\n')
-      .replace(/\n{3,}/g, '\n\n')
-      .trim();
-  }
 }
