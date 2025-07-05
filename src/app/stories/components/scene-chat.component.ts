@@ -193,7 +193,22 @@ export class SceneChatComponent implements OnInit, OnDestroy, AfterViewChecked {
 
   // Preset prompts for character extraction
   extractCharacters(): void {
-    this.currentMessage = 'Please extract all characters mentioned in this scene and provide a brief description of each character, including their role, personality traits, and relationships to other characters.';
+    this.currentMessage = `Bitte extrahiere alle Charaktere aus dieser Szene und erstelle für jeden Charakter einen strukturierten Codex-Eintrag mit folgenden Informationen:
+
+**Für jeden Charakter:**
+- **Name/Titel**: [Vollständiger Name]
+- **Rolle**: [Protagonist/Nebencharakter/Antagonist/Love-Interest/Hintergrundcharakter]
+- **Beschreibung**: [Detaillierte Beschreibung der Person]
+- **Tags**: [Relevante Schlagwörter, z.B. Beruf, Eigenschaften]
+- **Benutzerdefinierte Felder**:
+  - Alter: [falls erwähnt]
+  - Aussehen: [Physische Beschreibung]
+  - Persönlichkeit: [Charaktereigenschaften]
+  - Beziehungen: [Zu anderen Charakteren]
+  - Motivation: [Ziele und Beweggründe]
+  - Besonderheiten: [Spezielle Fähigkeiten oder Merkmale]
+
+Formatiere die Ausgabe so, dass sie direkt in den Codex übernommen werden kann.`;
     this.sendMessage();
   }
 

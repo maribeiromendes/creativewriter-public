@@ -182,6 +182,8 @@ export class SceneChatService {
     // Add instruction
     context.push('**Instructions:**');
     context.push('You are an AI assistant helping with creative writing. Based on the scene content and context provided, please respond to the user\'s question. You can help with character analysis, plot development, dialogue suggestions, scene improvements, or any other creative writing tasks.');
+    context.push('');
+    context.push('When extracting characters or other information for the Codex, please provide structured output that can be directly used in the story\'s Codex system. Use clear formatting with consistent headings and structure.');
     
     return context.join('\n');
   }
