@@ -147,6 +147,9 @@ export class BeatAIService {
       scan((acc, chunk) => acc + chunk, ''), // Accumulate chunks
       tap({
         complete: () => {
+          // Post-process to remove duplicate character analyses
+          accumulatedContent = this.removeDuplicateCharacterAnalyses(accumulatedContent);
+          
           // Emit completion
           this.generationSubject.next({
             beatId,
@@ -241,6 +244,9 @@ export class BeatAIService {
       scan((acc, chunk) => acc + chunk, ''), // Accumulate chunks
       tap({
         complete: () => {
+          // Post-process to remove duplicate character analyses
+          accumulatedContent = this.removeDuplicateCharacterAnalyses(accumulatedContent);
+          
           // Emit completion
           this.generationSubject.next({
             beatId,
@@ -638,5 +644,63 @@ export class BeatAIService {
         entries: categoryData.entries.filter((entry: any) => relevantIds.has(entry.id))
       };
     }).filter(categoryData => categoryData.entries.length > 0);
+  }
+
+  private removeDuplicateCharacterAnalyses(content: string): string {
+    // Pattern to detect character analysis sections
+    // Look for patterns like "Character: Name" or "Charakter: Name" or similar variations
+    const characterAnalysisPattern = /(?:^|\n)((?:Character|Charakter|Figur|Person)[:\s]+[^\n]+(?:\n(?!(?:Character|Charakter|Figur|Person)[:\s])[^\n]*)*)/gi;
+    
+    // Find all character analysis sections
+    const analyses = new Map<string, string>();
+    let match;
+    
+    while ((match = characterAnalysisPattern.exec(content)) !== null) {
+      const fullAnalysis = match[1];
+      // Extract character name (first line)
+      const firstLine = fullAnalysis.split('\n')[0];
+      const characterName = firstLine.replace(/^(?:Character|Charakter|Figur|Person)[:\s]+/i, '').trim();
+      
+      // Store only the first occurrence of each character analysis
+      if (characterName && !analyses.has(characterName.toLowerCase())) {
+        analyses.set(characterName.toLowerCase(), match[0]);
+      }
+    }
+    
+    // If we found duplicate analyses, rebuild the content without duplicates
+    if (analyses.size > 0) {
+      let processedContent = content;
+      const seenCharacters = new Set<string>();
+      
+      // Replace all character analyses with markers first
+      let markerIndex = 0;
+      const markers = new Map<string, string>();
+      
+      processedContent = content.replace(characterAnalysisPattern, (match, analysis) => {
+        const firstLine = analysis.split('\n')[0];
+        const characterName = firstLine.replace(/^(?:Character|Charakter|Figur|Person)[:\s]+/i, '').trim().toLowerCase();
+        
+        if (characterName && !seenCharacters.has(characterName)) {
+          seenCharacters.add(characterName);
+          const marker = `###CHAR_ANALYSIS_${markerIndex}###`;
+          markers.set(marker, match);
+          markerIndex++;
+          return marker;
+        }
+        return ''; // Remove duplicate
+      });
+      
+      // Replace markers back with original content
+      markers.forEach((original, marker) => {
+        processedContent = processedContent.replace(marker, original);
+      });
+      
+      // Clean up any resulting double newlines
+      processedContent = processedContent.replace(/\n{3,}/g, '\n\n');
+      
+      return processedContent.trim();
+    }
+    
+    return content;
   }
 }

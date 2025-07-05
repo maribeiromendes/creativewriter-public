@@ -463,10 +463,14 @@ export class ProseMirrorEditorService {
     const beatNodePosition = this.findBeatNodePosition(event.beatId);
     if (beatNodePosition === null) return;
     
-    // Don't clear content - we'll insert new content right after the beat node
+    // Clear any existing content after the beat node for regeneration
+    if (event.action === 'regenerate') {
+      this.clearContentAfterBeatNode(event.beatId);
+    }
     
     // Track accumulating content for real-time insertion
     let accumulatedContent = '';
+    let lastInsertedLength = 0;
     const startPosition = beatNodePosition + 1; // Position right after beat node
     
     // Subscribe to streaming generation events
@@ -474,9 +478,15 @@ export class ProseMirrorEditorService {
       if (generationEvent.beatId !== event.beatId) return;
       
       if (!generationEvent.isComplete && generationEvent.chunk) {
-        // Stream chunk received - append to accumulated content and insert
+        // Stream chunk received - append to accumulated content
         accumulatedContent += generationEvent.chunk;
-        this.insertContentAfterBeatNode(event.beatId, accumulatedContent);
+        
+        // Only insert the new part (avoid replacing entire content each time)
+        const newContent = accumulatedContent.substring(lastInsertedLength);
+        if (newContent) {
+          this.appendContentAfterBeatNode(event.beatId, newContent, lastInsertedLength === 0);
+          lastInsertedLength = accumulatedContent.length;
+        }
       } else if (generationEvent.isComplete) {
         // Generation completed
         this.updateBeatNode(event.beatId, { 
@@ -509,7 +519,7 @@ export class ProseMirrorEditorService {
         console.error('Beat generation failed:', error);
         
         // Insert error message
-        this.insertContentAfterBeatNode(event.beatId, 'Fehler bei der Generierung. Bitte versuchen Sie es erneut.');
+        this.appendContentAfterBeatNode(event.beatId, 'Fehler bei der Generierung. Bitte versuchen Sie es erneut.', true);
         
         this.updateBeatNode(event.beatId, { 
           isGenerating: false,
@@ -923,6 +933,85 @@ export class ProseMirrorEditorService {
       const fragment = Fragment.from(paragraphNodes);
       const tr = state.tr.insert(insertPos, fragment);
       this.editorView.dispatch(tr);
+    }
+  }
+
+  private appendContentAfterBeatNode(beatId: string, newContent: string, isFirstChunk: boolean = false): void {
+    if (!this.editorView) return;
+    
+    const beatPos = this.findBeatNodePosition(beatId);
+    if (beatPos === null) return;
+    
+    const { state } = this.editorView;
+    const beatNode = state.doc.nodeAt(beatPos);
+    if (!beatNode) return;
+    
+    // Position after the beat node
+    const afterBeatPos = beatPos + beatNode.nodeSize;
+    
+    if (isFirstChunk) {
+      // First chunk - insert at the position after beat node
+      const paragraphNodes = this.createParagraphsFromContent(newContent, state);
+      const fragment = Fragment.from(paragraphNodes);
+      const tr = state.tr.insert(afterBeatPos, fragment);
+      this.editorView.dispatch(tr);
+    } else {
+      // Subsequent chunks - find the last position and append
+      let lastPos = afterBeatPos;
+      let pos = afterBeatPos;
+      
+      // Find the end of generated content
+      while (pos < state.doc.content.size) {
+        const node = state.doc.nodeAt(pos);
+        if (!node) break;
+        
+        // Stop if we hit another beat node
+        if (node.type.name === 'beatAI') {
+          break;
+        }
+        
+        // Track position through paragraphs
+        if (node.type.name === 'paragraph') {
+          lastPos = pos + node.nodeSize;
+          pos = lastPos;
+        } else {
+          // Stop at other node types
+          break;
+        }
+      }
+      
+      // Get the last paragraph node to potentially append to it
+      const lastParaPos = lastPos - 1;
+      const resolvedPos = state.doc.resolve(lastParaPos);
+      const lastPara = resolvedPos.parent;
+      
+      // Check if we should append to the last paragraph or create new ones
+      if (lastPara.type.name === 'paragraph' && !newContent.startsWith('\n\n')) {
+        // Append to the last paragraph
+        const currentText = lastPara.textContent;
+        const combinedText = currentText + newContent;
+        
+        // Check if the combined text should be split into paragraphs
+        if (combinedText.includes('\n\n')) {
+          // Split and create multiple paragraphs
+          const paragraphNodes = this.createParagraphsFromContent(combinedText, state);
+          const fragment = Fragment.from(paragraphNodes);
+          const paraStart = resolvedPos.before();
+          const paraEnd = resolvedPos.after();
+          const tr = state.tr.replaceRange(paraStart, paraEnd, new Slice(fragment, 0, 0));
+          this.editorView.dispatch(tr);
+        } else {
+          // Just append the text to the existing paragraph
+          const tr = state.tr.insertText(newContent, lastParaPos);
+          this.editorView.dispatch(tr);
+        }
+      } else {
+        // Create new paragraph(s)
+        const paragraphNodes = this.createParagraphsFromContent(newContent, state);
+        const fragment = Fragment.from(paragraphNodes);
+        const tr = state.tr.insert(lastPos, fragment);
+        this.editorView.dispatch(tr);
+      }
     }
   }
 }
