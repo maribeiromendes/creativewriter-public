@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewChecked, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -13,7 +13,8 @@ import { Story, Scene } from '../models/story.interface';
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './scene-chat.component.html',
-  styleUrls: ['./scene-chat.component.scss']
+  styleUrls: ['./scene-chat.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SceneChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   @ViewChild('chatContainer', { static: false }) chatContainer!: ElementRef;
@@ -33,7 +34,8 @@ export class SceneChatComponent implements OnInit, OnDestroy, AfterViewChecked {
     private route: ActivatedRoute,
     private router: Router,
     private sceneChatService: SceneChatService,
-    private storyService: StoryService
+    private storyService: StoryService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   async ngOnInit(): Promise<void> {
@@ -87,6 +89,7 @@ export class SceneChatComponent implements OnInit, OnDestroy, AfterViewChecked {
           this.messages = chat.messages;
           this.isGenerating = chat.messages.some(msg => msg.isGenerating);
           this.shouldScrollToBottom = true;
+          this.cdr.markForCheck();
         }
       });
   }
@@ -235,13 +238,25 @@ STOPPE nach dem letzten Charakter. Keine weiteren Erklärungen.`;
     return message.id;
   }
 
+  private formatCache = new Map<string, string>();
+
   formatMessage(content: string): string {
+    if (!content) return '';
+    
+    // Use cache to avoid re-formatting the same content
+    if (this.formatCache.has(content)) {
+      return this.formatCache.get(content)!;
+    }
+    
     // Basic markdown-like formatting
-    return content
+    const formatted = content
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
       .replace(/\*(.*?)\*/g, '<em>$1</em>')
       .replace(/\n/g, '<br>')
       .replace(/`(.*?)`/g, '<code>$1</code>');
+    
+    this.formatCache.set(content, formatted);
+    return formatted;
   }
 
   copyMessage(content: string): void {
