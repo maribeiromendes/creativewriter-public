@@ -334,13 +334,21 @@ export class BeatAIService {
           relevantEntries
         );
         
-        // Always include all Notizen entries
-        const notizenCategory = allCodexEntries.find(cat => cat.category === 'Notizen');
-        if (notizenCategory) {
-          // Check if Notizen category already exists in filtered entries
-          const existingNotizenIndex = filteredCodexEntries.findIndex(cat => cat.category === 'Notizen');
+        // Always include all Notizen entries (check multiple possible names)
+        const notizenKeywords = ['notizen', 'notes', 'note'];
+        const notizenCategory = allCodexEntries.find(cat => 
+          notizenKeywords.some(keyword => 
+            cat.category.toLowerCase().includes(keyword)
+          )
+        );
+        
+        if (notizenCategory && notizenCategory.entries.length > 0) {
+          // Check if this category already exists in filtered entries
+          const existingNotizenIndex = filteredCodexEntries.findIndex(cat => 
+            cat.category === notizenCategory.category
+          );
           if (existingNotizenIndex >= 0) {
-            // Replace with full Notizen category
+            // Replace with full Notizen category (ensure all entries are included)
             filteredCodexEntries[existingNotizenIndex] = notizenCategory;
           } else {
             // Add full Notizen category
@@ -353,6 +361,7 @@ export class BeatAIService {
         const pointOfView = protagonist 
           ? `<pointOfView type="first person" character="${this.escapeXml(protagonist)}"/>`
           : '';
+        
         
         const codexText = filteredCodexEntries.length > 0 
           ? '<codex>\n' + filteredCodexEntries.map(categoryData => {
@@ -402,6 +411,7 @@ export class BeatAIService {
             }).join('\n') + '\n</codex>'
           : '';
 
+
         // Get story so far in XML format
         const storySoFar = options.sceneId 
           ? await this.promptManager.getStoryXmlFormat(options.sceneId)
@@ -422,6 +432,8 @@ export class BeatAIService {
             : 'Bleibe im Moment'
         };
 
+        // Log the final codex text to debug
+        
         // Use template from story settings and replace placeholders
         let processedTemplate = story.settings.beatGenerationTemplate;
         
