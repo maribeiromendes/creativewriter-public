@@ -334,6 +334,20 @@ export class BeatAIService {
           relevantEntries
         );
         
+        // Always include all Notizen entries
+        const notizenCategory = allCodexEntries.find(cat => cat.category === 'Notizen');
+        if (notizenCategory) {
+          // Check if Notizen category already exists in filtered entries
+          const existingNotizenIndex = filteredCodexEntries.findIndex(cat => cat.category === 'Notizen');
+          if (existingNotizenIndex >= 0) {
+            // Replace with full Notizen category
+            filteredCodexEntries[existingNotizenIndex] = notizenCategory;
+          } else {
+            // Add full Notizen category
+            filteredCodexEntries.push(notizenCategory);
+          }
+        }
+        
         // Find protagonist for point of view
         const protagonist = this.findProtagonist(filteredCodexEntries);
         const pointOfView = protagonist 
