@@ -10,7 +10,7 @@ import {
 import { addIcons } from 'ionicons';
 import { 
   chevronForward, chevronDown, add, trash, createOutline,
-  flashOutline, documentTextOutline, timeOutline, sparklesOutline, close, chatbubbleOutline
+  flashOutline, documentTextOutline, timeOutline, sparklesOutline, close
 } from 'ionicons/icons';
 import { Story, Chapter, Scene } from '../models/story.interface';
 import { StoryService } from '../services/story.service';
@@ -950,7 +950,7 @@ export class StoryStructureComponent implements AfterViewInit {
   ) {
     addIcons({ 
       chevronForward, chevronDown, add, trash, createOutline,
-      flashOutline, documentTextOutline, timeOutline, sparklesOutline, close, chatbubbleOutline
+      flashOutline, documentTextOutline, timeOutline, sparklesOutline, close
     });
   }
 

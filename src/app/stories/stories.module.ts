@@ -7,7 +7,6 @@ import { StoryEditorComponent } from './components/story-editor.component';
 import { BeatAIComponent } from './components/beat-ai.component';
 import { CodexComponent } from './components/codex.component';
 import { ImageGenerationComponent } from './components/image-generation.component';
-import { SceneChatComponent } from './components/scene-chat.component';
 
 @NgModule({
   imports: [
@@ -19,7 +18,6 @@ import { SceneChatComponent } from './components/scene-chat.component';
     BeatAIComponent,
     CodexComponent,
     ImageGenerationComponent,
-    SceneChatComponent
   ]
 })
 export class StoriesModule { }
