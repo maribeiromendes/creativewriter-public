@@ -10,12 +10,14 @@ import {
 import { addIcons } from 'ionicons';
 import { 
   arrowBack, sendOutline, peopleOutline, documentTextOutline, 
-  addOutline, checkmarkOutline, closeOutline
+  addOutline, checkmarkOutline, closeOutline, sparklesOutline,
+  personOutline, locationOutline, cubeOutline
 } from 'ionicons/icons';
 import { StoryService } from '../services/story.service';
 import { SettingsService } from '../../core/services/settings.service';
 import { BeatAIService } from '../../shared/services/beat-ai.service';
 import { PromptManagerService } from '../../shared/services/prompt-manager.service';
+import { CodexService } from '../services/codex.service';
 import { Story, Scene, Chapter } from '../models/story.interface';
 import { Subscription } from 'rxjs';
 
@@ -23,6 +25,8 @@ interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
+  isPresetPrompt?: boolean;
+  extractionType?: 'characters' | 'locations' | 'objects';
 }
 
 interface SceneContext {
@@ -32,6 +36,15 @@ interface SceneContext {
   sceneTitle: string;
   content: string;
   selected: boolean;
+}
+
+interface PresetPrompt {
+  id: string;
+  title: string;
+  description: string;
+  prompt: string;
+  extractionType: 'characters' | 'locations' | 'objects';
+  icon: string;
 }
 
 @Component({
@@ -54,6 +67,9 @@ interface SceneContext {
           </ion-buttons>
           <ion-title>Szenen-Chat</ion-title>
           <ion-buttons slot="end">
+            <ion-button (click)="showPresetPrompts = true">
+              <ion-icon name="sparkles-outline" slot="icon-only"></ion-icon>
+            </ion-button>
             <ion-button (click)="showSceneSelector = true">
               <ion-icon name="add-outline" slot="icon-only"></ion-icon>
             </ion-button>
@@ -86,6 +102,16 @@ interface SceneContext {
             <div class="message-content">
               <div class="message-text" [innerHTML]="formatMessage(message.content)"></div>
               <div class="message-time">{{ formatTime(message.timestamp) }}</div>
+              <div class="message-actions" *ngIf="message.role === 'assistant' && message.extractionType">
+                <ion-button 
+                  size="small" 
+                  fill="outline" 
+                  color="primary"
+                  (click)="addToCodex(message)">
+                  <ion-icon name="add-outline" slot="start"></ion-icon>
+                  Zum Codex hinzufügen
+                </ion-button>
+              </div>
             </div>
           </div>
           
@@ -174,6 +200,36 @@ interface SceneContext {
         </ion-content>
       </ng-template>
     </ion-modal>
+
+    <!-- Preset Prompts Modal -->
+    <ion-modal [isOpen]="showPresetPrompts" (didDismiss)="showPresetPrompts = false">
+      <ng-template>
+        <ion-header>
+          <ion-toolbar>
+            <ion-title>Vorgefertigte Prompts</ion-title>
+            <ion-buttons slot="end">
+              <ion-button (click)="showPresetPrompts = false">
+                <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+              </ion-button>
+            </ion-buttons>
+          </ion-toolbar>
+        </ion-header>
+        <ion-content>
+          <ion-list>
+            <ion-item 
+              *ngFor="let preset of presetPrompts" 
+              [button]="true"
+              (click)="usePresetPrompt(preset)">
+              <ion-icon [name]="preset.icon" slot="start" [color]="getPresetColor(preset.extractionType)"></ion-icon>
+              <ion-label>
+                <h3>{{ preset.title }}</h3>
+                <p>{{ preset.description }}</p>
+              </ion-label>
+            </ion-item>
+          </ion-list>
+        </ion-content>
+      </ng-template>
+    </ion-modal>
   `,
   styles: [`
     .chat-content {
@@ -251,6 +307,19 @@ interface SceneContext {
       font-size: 0.75rem;
       opacity: 0.7;
       margin-top: 4px;
+    }
+    
+    .message-actions {
+      margin-top: 8px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    
+    .message-actions ion-button {
+      --padding-start: 8px;
+      --padding-end: 8px;
+      font-size: 0.875rem;
     }
 
     .typing-indicator {
@@ -370,6 +439,9 @@ export class SceneChatComponent implements OnInit, OnDestroy {
   showSceneSelector: boolean = false;
   sceneSearchTerm: string = '';
   
+  showPresetPrompts: boolean = false;
+  presetPrompts: PresetPrompt[] = [];
+  
   private subscriptions = new Subscription();
   private abortController: AbortController | null = null;
   keyboardVisible: boolean = false;
@@ -380,12 +452,16 @@ export class SceneChatComponent implements OnInit, OnDestroy {
     private storyService: StoryService,
     private settingsService: SettingsService,
     private beatAIService: BeatAIService,
-    private promptManager: PromptManagerService
+    private promptManager: PromptManagerService,
+    private codexService: CodexService
   ) {
     addIcons({ 
       arrowBack, sendOutline, peopleOutline, documentTextOutline, 
-      addOutline, checkmarkOutline, closeOutline
+      addOutline, checkmarkOutline, closeOutline, sparklesOutline,
+      personOutline, locationOutline, cubeOutline
     });
+    
+    this.initializePresetPrompts();
   }
 
   ngOnInit() {
@@ -444,7 +520,7 @@ export class SceneChatComponent implements OnInit, OnDestroy {
     });
   }
 
-  async sendMessage() {
+  async sendMessage(extractionType?: 'characters' | 'locations' | 'objects') {
     if (!this.currentMessage.trim() || this.isGenerating) return;
 
     const userMessage = this.currentMessage;
@@ -454,7 +530,9 @@ export class SceneChatComponent implements OnInit, OnDestroy {
     this.messages.push({
       role: 'user',
       content: userMessage,
-      timestamp: new Date()
+      timestamp: new Date(),
+      isPresetPrompt: !!extractionType,
+      extractionType
     });
 
     this.isGenerating = true;
@@ -466,7 +544,11 @@ export class SceneChatComponent implements OnInit, OnDestroy {
         .map(scene => `<scene chapter="${scene.chapterTitle}" title="${scene.sceneTitle}">\n${scene.content}\n</scene>`)
         .join('\n\n');
 
-      const systemPrompt = `Du bist ein hilfreicher Assistent für kreative Schreibprojekte. 
+      const systemPrompt = extractionType 
+        ? `Du bist ein Experte für die Extraktion von ${this.getExtractionTypeLabel(extractionType)} aus literarischen Texten. 
+Analysiere die gegebenen Szenen sorgfältig und extrahiere alle relevanten Informationen strukturiert und detailliert.
+Achte auf Konsistenz und Vollständigkeit bei der Extraktion.`
+        : `Du bist ein hilfreicher Assistent für kreative Schreibprojekte. 
 Du analysierst Szenen und hilfst bei der Charakterentwicklung, Weltenbau und Ideenfindung.
 Achte besonders auf:
 - Charaktere und ihre Eigenschaften
@@ -502,7 +584,8 @@ Bitte antworte hilfreich und kreativ auf die Frage basierend auf dem Szenenkonte
           this.messages.push({
             role: 'assistant',
             content: accumulatedResponse,
-            timestamp: new Date()
+            timestamp: new Date(),
+            extractionType
           });
           this.isGenerating = false;
           this.scrollToBottom();
@@ -675,5 +758,184 @@ Bitte antworte hilfreich und kreativ auf die Frage basierend auf dem Szenenkonte
     cleanText = cleanText.trim();
 
     return cleanText;
+  }
+
+  private initializePresetPrompts() {
+    this.presetPrompts = [
+      {
+        id: 'extract-characters',
+        title: 'Charaktere extrahieren',
+        description: 'Extrahiere alle Charaktere aus den ausgewählten Szenen',
+        extractionType: 'characters',
+        icon: 'person-outline',
+        prompt: `Bitte analysiere die folgenden Szenen und extrahiere alle Charaktere. Für jeden Charakter gib folgende Informationen an:
+
+**Name:** [Charaktername]
+**Rolle:** [Hauptcharakter/Nebencharakter/Hintergrundcharakter]
+**Beschreibung:** [Physische Beschreibung, Persönlichkeit, wichtige Eigenschaften]
+**Beziehungen:** [Beziehungen zu anderen Charakteren]
+**Motivation:** [Was treibt den Charakter an]
+
+Strukturiere die Antwort klar nach Charakteren getrennt.`
+      },
+      {
+        id: 'extract-locations',
+        title: 'Orte extrahieren',
+        description: 'Extrahiere alle Schauplätze und Orte aus den Szenen',
+        extractionType: 'locations',
+        icon: 'location-outline',
+        prompt: `Bitte analysiere die folgenden Szenen und extrahiere alle Orte und Schauplätze. Für jeden Ort gib folgende Informationen an:
+
+**Name:** [Ortsname]
+**Typ:** [Stadt, Gebäude, Raum, Landschaft, etc.]
+**Beschreibung:** [Physische Beschreibung, Atmosphäre, wichtige Details]
+**Bedeutung:** [Warum ist dieser Ort wichtig für die Geschichte]
+**Stimmung:** [Welche Stimmung/Atmosphäre herrscht hier]
+
+Strukturiere die Antwort klar nach Orten getrennt.`
+      },
+      {
+        id: 'extract-objects',
+        title: 'Gegenstände extrahieren',
+        description: 'Extrahiere wichtige Objekte und Gegenstände',
+        extractionType: 'objects',
+        icon: 'cube-outline',
+        prompt: `Bitte analysiere die folgenden Szenen und extrahiere alle wichtigen Gegenstände und Objekte. Für jeden Gegenstand gib folgende Informationen an:
+
+**Name:** [Objektname]
+**Typ:** [Waffe, Werkzeug, Schmuck, Dokument, etc.]
+**Beschreibung:** [Physische Beschreibung, Material, Aussehen]
+**Bedeutung:** [Warum ist dieser Gegenstand wichtig]
+**Besitzer:** [Wem gehört der Gegenstand]
+**Eigenschaften:** [Besondere Fähigkeiten oder Eigenschaften]
+
+Strukturiere die Antwort klar nach Gegenständen getrennt.`
+      }
+    ];
+  }
+
+  usePresetPrompt(preset: PresetPrompt) {
+    this.showPresetPrompts = false;
+    this.currentMessage = preset.prompt;
+    
+    // Send the preset prompt immediately
+    setTimeout(() => {
+      this.sendMessage(preset.extractionType);
+    }, 100);
+  }
+
+  getPresetColor(extractionType: 'characters' | 'locations' | 'objects'): string {
+    switch (extractionType) {
+      case 'characters': return 'primary';
+      case 'locations': return 'secondary';
+      case 'objects': return 'tertiary';
+      default: return 'medium';
+    }
+  }
+
+  async addToCodex(message: ChatMessage) {
+    if (!message.extractionType || !this.story) return;
+
+    try {
+      // Get or create codex
+      const codex = await this.codexService.getOrCreateCodex(this.story.id);
+      
+      // Find the appropriate category
+      const categoryName = this.getCategoryName(message.extractionType);
+      const category = codex.categories.find(c => c.title === categoryName);
+      
+      if (!category) {
+        console.error(`Category ${categoryName} not found`);
+        return;
+      }
+
+      // Parse the AI response to extract entries
+      const entries = this.parseExtractionResponse(message.content, message.extractionType);
+      
+      // Add each entry to the codex
+      for (const entry of entries) {
+        await this.codexService.addEntry(this.story.id, category.id, {
+          title: entry.name,
+          content: entry.description,
+          tags: entry.tags || [],
+          storyRole: message.extractionType === 'characters' ? entry.role : undefined
+        });
+      }
+
+      // Show success message
+      this.messages.push({
+        role: 'assistant',
+        content: `✅ ${entries.length} ${this.getExtractionTypeLabel(message.extractionType)} wurden erfolgreich zum Codex hinzugefügt!`,
+        timestamp: new Date()
+      });
+      
+      this.scrollToBottom();
+    } catch (error) {
+      console.error('Error adding to codex:', error);
+      this.messages.push({
+        role: 'assistant',
+        content: '❌ Fehler beim Hinzufügen zum Codex. Bitte versuche es erneut.',
+        timestamp: new Date()
+      });
+      this.scrollToBottom();
+    }
+  }
+
+  private getExtractionTypeLabel(type: 'characters' | 'locations' | 'objects'): string {
+    switch (type) {
+      case 'characters': return 'Charaktere';
+      case 'locations': return 'Orte';
+      case 'objects': return 'Gegenstände';
+      default: return 'Einträge';
+    }
+  }
+
+  private getCategoryName(extractionType: 'characters' | 'locations' | 'objects'): string {
+    switch (extractionType) {
+      case 'characters': return 'Charaktere';
+      case 'locations': return 'Orte';
+      case 'objects': return 'Gegenstände';
+      default: return 'Notizen';
+    }
+  }
+
+  private parseExtractionResponse(content: string, type: 'characters' | 'locations' | 'objects'): any[] {
+    const entries: any[] = [];
+    
+    // Simple parsing - look for **Name:** patterns
+    const nameRegex = /\*\*Name:\*\*\s*([^\n]+)/g;
+    let match;
+    
+    while ((match = nameRegex.exec(content)) !== null) {
+      const name = match[1].trim();
+      if (name) {
+        // Extract description (text between this name and next name or end)
+        const startIndex = match.index + match[0].length;
+        const nextNameIndex = content.indexOf('**Name:**', startIndex);
+        const endIndex = nextNameIndex !== -1 ? nextNameIndex : content.length;
+        const description = content.substring(startIndex, endIndex).trim();
+        
+        // Basic role extraction for characters
+        let role = '';
+        if (type === 'characters') {
+          if (description.toLowerCase().includes('hauptcharakter') || description.toLowerCase().includes('protagonist')) {
+            role = 'Protagonist';
+          } else if (description.toLowerCase().includes('nebencharakter')) {
+            role = 'Nebencharakter';
+          } else if (description.toLowerCase().includes('hintergrundcharakter')) {
+            role = 'Hintergrundcharakter';
+          }
+        }
+        
+        entries.push({
+          name,
+          description,
+          role,
+          tags: []
+        });
+      }
+    }
+    
+    return entries;
   }
 }
