@@ -971,11 +971,8 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
   }
   
   private setupTouchGestures(): void {
-    // Only setup gestures on mobile devices
-    if (window.innerWidth > 768) return;
-    
-    document.addEventListener('touchstart', this.handleTouchStart.bind(this), { passive: true });
-    document.addEventListener('touchend', this.handleTouchEnd.bind(this), { passive: true });
+    // Touch gestures disabled to prevent accidental sidebar closing
+    return;
   }
   
   private removeTouchGestures(): void {
@@ -987,6 +984,12 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     // Only enable gestures on mobile devices, not tablets
     if (window.innerWidth > 768) return;
     
+    // Ignore touches that start on interactive elements
+    const target = event.target as HTMLElement;
+    if (this.isInteractiveElement(target)) {
+      return;
+    }
+    
     const touch = event.touches[0];
     this.touchStartX = touch.clientX;
     this.touchStartY = touch.clientY;
@@ -996,11 +999,60 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     // Only enable gestures on mobile devices, not tablets
     if (window.innerWidth > 768) return;
     
+    // Ignore touches that end on interactive elements
+    const target = event.target as HTMLElement;
+    if (this.isInteractiveElement(target)) {
+      return;
+    }
+    
     const touch = event.changedTouches[0];
     this.touchEndX = touch.clientX;
     this.touchEndY = touch.clientY;
     
     this.handleSwipeGesture();
+  }
+  
+  private isInteractiveElement(element: HTMLElement): boolean {
+    if (!element) return false;
+    
+    // Check if element or any parent is an interactive element
+    let current = element;
+    while (current && current !== document.body) {
+      const tagName = current.tagName.toLowerCase();
+      
+      // Check for form elements
+      if (['input', 'textarea', 'select', 'button'].includes(tagName)) {
+        return true;
+      }
+      
+      // Check for Ion elements that are interactive
+      if (tagName.startsWith('ion-') && (
+        tagName.includes('input') || 
+        tagName.includes('textarea') || 
+        tagName.includes('button') || 
+        tagName.includes('select') || 
+        tagName.includes('toggle') || 
+        tagName.includes('checkbox') || 
+        tagName.includes('radio')
+      )) {
+        return true;
+      }
+      
+      // Check for elements with contenteditable
+      if (current.contentEditable === 'true') {
+        return true;
+      }
+      
+      // Check for elements with role="button" or similar
+      const role = current.getAttribute('role');
+      if (role && ['button', 'textbox', 'combobox', 'listbox'].includes(role)) {
+        return true;
+      }
+      
+      current = current.parentElement as HTMLElement;
+    }
+    
+    return false;
   }
   
   private handleSwipeGesture(): void {
@@ -1012,6 +1064,9 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     
     // Check if swipe distance is sufficient
     if (Math.abs(deltaX) < this.minSwipeDistance) return;
+    
+    // Additional safety check: don't process gestures if touchStart coordinates are invalid
+    if (this.touchStartX === undefined || this.touchStartY === undefined) return;
     
     // Adjust swipe sensitivity based on screen size
     const edgeThreshold = window.innerWidth <= 480 ? 30 : 50;
