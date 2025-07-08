@@ -748,7 +748,9 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
     { value: 2000, label: '~2.000 Wörter' },
     { value: 3000, label: '~3.000 Wörter' },
     { value: 5000, label: '~5.000 Wörter' },
-    { value: 8000, label: '~8.000 Wörter' }
+    { value: 8000, label: '~8.000 Wörter' },
+    { value: 10000, label: '~10.000 Wörter' },
+    { value: 12000, label: '~12.000 Wörter' }
   ];
   showPreviewModal: boolean = false;
   previewContent: string = '';
