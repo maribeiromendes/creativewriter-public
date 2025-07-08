@@ -368,7 +368,7 @@ export class SceneChatComponent implements OnInit, OnDestroy {
   
   private subscriptions = new Subscription();
   private abortController: AbortController | null = null;
-  private keyboardVisible: boolean = false;
+  keyboardVisible: boolean = false;
 
   constructor(
     private route: ActivatedRoute,
