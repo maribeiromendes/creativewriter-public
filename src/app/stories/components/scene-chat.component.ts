@@ -330,6 +330,10 @@ interface SceneContext {
     ion-item-divider {
       font-weight: 600;
     }
+    
+    ion-modal ion-list {
+      padding-bottom: 100px; /* Extra padding at bottom of modal list */
+    }
 
     @media (max-width: 768px) {
       .message {
