@@ -77,6 +77,7 @@ import { Subscription } from 'rxjs';
                 [name]="expandedChapters.has(chapter.id) ? 'chevron-down' : 'chevron-forward'" 
                 slot="start" 
                 class="expand-icon"
+                (click)="toggleChapter(chapter.id); $event.stopPropagation()"
                 [attr.aria-hidden]="true">
               </ion-icon>
               <ion-input 
@@ -375,6 +376,9 @@ import { Subscription } from 'rxjs';
     .expand-icon {
       color: var(--ion-color-medium);
       font-size: 1rem;
+      padding: 0.5rem;
+      margin: -0.5rem;
+      cursor: pointer;
     }
     
     .chapter-title-input {
@@ -624,6 +628,26 @@ import { Subscription } from 'rxjs';
         --min-height: 48px; /* Minimum touch target size */
         --padding-top: 12px;
         --padding-bottom: 12px;
+      }
+      
+      /* Make expand icon easier to tap on mobile */
+      .expand-icon {
+        font-size: 1.25rem;
+        padding: 0.75rem;
+        margin: -0.75rem;
+        min-width: 44px;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        z-index: 5;
+      }
+      
+      /* Add tap highlight for better feedback */
+      .expand-icon:active {
+        background-color: var(--ion-color-step-200);
+        border-radius: 50%;
       }
       
       .scene-item {
