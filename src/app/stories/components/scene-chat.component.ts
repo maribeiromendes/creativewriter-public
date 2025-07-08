@@ -332,7 +332,7 @@ interface SceneContext {
     }
     
     ion-modal ion-list {
-      padding-bottom: 100px; /* Extra padding at bottom of modal list */
+      padding-bottom: 200px; /* Much more padding at bottom of modal list */
     }
 
     @media (max-width: 768px) {
