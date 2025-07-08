@@ -195,7 +195,7 @@ interface SceneContext {
 
     .chat-messages {
       padding: 16px;
-      padding-bottom: 100px; /* Reduced padding for footer */
+      padding-bottom: 80px; /* Further reduced padding for footer */
       display: flex;
       flex-direction: column;
       gap: 16px;
@@ -337,11 +337,11 @@ interface SceneContext {
       }
       
       .chat-messages {
-        padding-bottom: 250px; /* Reduced padding for mobile keyboards */
+        padding-bottom: 180px; /* Further reduced padding for mobile keyboards */
       }
       
       .chat-footer {
-        padding-bottom: max(env(safe-area-inset-bottom, 20px), 100px);
+        padding-bottom: max(env(safe-area-inset-bottom, 20px), 60px);
         transform: translateY(calc(-1 * env(keyboard-inset-height, 0px)));
       }
       
