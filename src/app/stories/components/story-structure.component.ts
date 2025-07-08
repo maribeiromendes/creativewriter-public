@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, AfterViewInit, ChangeDetectorRef } from '@angular/core';
+import { Component, Input, Output, EventEmitter, AfterViewInit, OnInit, OnChanges, OnDestroy, SimpleChanges, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -948,7 +948,7 @@ import { Subscription } from 'rxjs';
     }
   `]
 })
-export class StoryStructureComponent implements AfterViewInit {
+export class StoryStructureComponent implements OnInit, OnChanges, AfterViewInit, OnDestroy {
   @Input() story!: Story;
   @Input() activeChapterId: string | null = null;
   @Input() activeSceneId: string | null = null;
@@ -979,14 +979,19 @@ export class StoryStructureComponent implements AfterViewInit {
   }
 
   ngOnInit() {
-    // Auto-expand first chapter
-    if (this.story && this.story.chapters && this.story.chapters.length > 0) {
-      this.expandedChapters.add(this.story.chapters[0].id);
-    }
+    // Auto-expand chapter containing active scene
+    this.expandActiveChapter();
     
     // Load available models and set default
     this.loadAvailableModels();
     this.setDefaultModel();
+  }
+  
+  ngOnChanges(changes: SimpleChanges) {
+    // When activeChapterId or activeSceneId changes, expand the relevant chapter
+    if (changes['activeChapterId'] || changes['activeSceneId']) {
+      this.expandActiveChapter();
+    }
   }
   
   ngAfterViewInit() {
@@ -996,6 +1001,31 @@ export class StoryStructureComponent implements AfterViewInit {
 
   ngOnDestroy() {
     this.subscription.unsubscribe();
+  }
+  
+  private expandActiveChapter(): void {
+    if (!this.story?.chapters) return;
+    
+    // If we have an active chapter ID, expand it
+    if (this.activeChapterId) {
+      this.expandedChapters.add(this.activeChapterId);
+      return;
+    }
+    
+    // If we have an active scene ID, find and expand its chapter
+    if (this.activeSceneId) {
+      for (const chapter of this.story.chapters) {
+        if (chapter.scenes.some(scene => scene.id === this.activeSceneId)) {
+          this.expandedChapters.add(chapter.id);
+          return;
+        }
+      }
+    }
+    
+    // Fallback: expand first chapter if no active chapter/scene
+    if (this.story.chapters.length > 0) {
+      this.expandedChapters.add(this.story.chapters[0].id);
+    }
   }
 
   trackChapter(index: number, chapter: Chapter): string {
