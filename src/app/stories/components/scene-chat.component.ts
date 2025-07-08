@@ -193,7 +193,7 @@ interface SceneContext {
 
     .chat-messages {
       padding: 16px;
-      padding-bottom: 100px; /* Extra padding for mobile keyboards */
+      padding-bottom: 140px; /* Extra padding for fixed footer */
       display: flex;
       flex-direction: column;
       gap: 16px;
@@ -289,7 +289,12 @@ interface SceneContext {
     .chat-footer {
       background: var(--ion-toolbar-background);
       padding: 8px 16px;
-      padding-bottom: env(safe-area-inset-bottom, 20px);
+      padding-bottom: max(env(safe-area-inset-bottom, 20px), 40px);
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
     }
 
     .input-container {
@@ -329,7 +334,11 @@ interface SceneContext {
       }
       
       .chat-messages {
-        padding-bottom: 120px; /* More padding for mobile */
+        padding-bottom: 160px; /* More padding for mobile */
+      }
+      
+      .chat-footer {
+        padding-bottom: max(env(safe-area-inset-bottom, 20px), 60px);
       }
     }
   `]
