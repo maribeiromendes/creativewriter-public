@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { 
   IonHeader, IonToolbar, IonButtons, IonButton, IonIcon, IonTitle, 
   IonContent, IonFooter, IonItem, IonLabel, IonTextarea, IonList,
-  IonChip, IonAvatar, IonSearchbar, IonModal, IonCheckbox
+  IonChip, IonAvatar, IonSearchbar, IonModal, IonCheckbox, IonItemDivider
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { 
@@ -13,7 +13,7 @@ import {
   addOutline, checkmarkOutline, closeOutline
 } from 'ionicons/icons';
 import { StoryService } from '../services/story.service';
-import { SettingsService } from '../../shared/services/settings.service';
+import { SettingsService } from '../../core/services/settings.service';
 import { BeatAIService } from '../../shared/services/beat-ai.service';
 import { PromptManagerService } from '../../shared/services/prompt-manager.service';
 import { Story, Scene, Chapter } from '../models/story.interface';
@@ -41,7 +41,7 @@ interface SceneContext {
     CommonModule, FormsModule, 
     IonHeader, IonToolbar, IonButtons, IonButton, IonIcon, IonTitle,
     IonContent, IonFooter, IonItem, IonLabel, IonTextarea, IonList,
-    IonChip, IonAvatar, IonSearchbar, IonModal, IonCheckbox
+    IonChip, IonAvatar, IonSearchbar, IonModal, IonCheckbox, IonItemDivider
   ],
   template: `
     <div class="ion-page">
@@ -114,7 +114,7 @@ interface SceneContext {
             placeholder="Stelle eine Frage zu deiner Szene..."
             [autoGrow]="true"
             [rows]="1"
-            (keydown.enter)="onEnterKey($event)"
+            (keydown.enter)="onEnterKey($any($event))"
             class="message-input">
           </ion-textarea>
           <ion-button 
@@ -372,7 +372,10 @@ export class SceneChatComponent implements OnInit, OnDestroy {
     const sceneId = this.route.snapshot.paramMap.get('sceneId');
 
     if (storyId && chapterId && sceneId) {
-      this.loadStory(storyId, chapterId, sceneId);
+      this.loadStory(storyId, chapterId, sceneId).catch(error => {
+        console.error('Error loading story:', error);
+        this.goBack();
+      });
     }
   }
 
@@ -383,8 +386,8 @@ export class SceneChatComponent implements OnInit, OnDestroy {
     }
   }
 
-  private loadStory(storyId: string, chapterId: string, sceneId: string) {
-    this.story = this.storyService.getStory(storyId);
+  private async loadStory(storyId: string, chapterId: string, sceneId: string) {
+    this.story = await this.storyService.getStory(storyId);
     if (this.story) {
       this.activeChapterId = chapterId;
       this.activeSceneId = sceneId;
@@ -399,7 +402,7 @@ export class SceneChatComponent implements OnInit, OnDestroy {
           sceneId: scene.id,
           chapterTitle: chapter.title,
           sceneTitle: scene.title,
-          content: this.promptManager.getCleanSceneText(scene),
+          content: this.extractFullTextFromScene(scene),
           selected: true
         });
       }
@@ -457,18 +460,45 @@ Frage des Nutzers: ${userMessage}
 Bitte antworte hilfreich und kreativ auf die Frage basierend auf dem Szenenkontext.`;
 
       const settings = this.settingsService.getSettings();
-      const response = await this.beatAIService.generateContent(
+      // Generate a unique beat ID for this chat message
+      const beatId = 'chat-' + Date.now();
+      
+      // Use generateBeatContent method
+      let accumulatedResponse = '';
+      const subscription = this.beatAIService.generateBeatContent(
         prompt,
-        systemPrompt,
-        settings,
-        { useStreaming: false }
-      );
-
-      this.messages.push({
-        role: 'assistant',
-        content: response,
-        timestamp: new Date()
+        beatId,
+        {
+          wordCount: 400,
+          storyId: this.story?.id
+        }
+      ).subscribe({
+        next: (chunk) => {
+          accumulatedResponse = chunk;
+        },
+        complete: () => {
+          this.messages.push({
+            role: 'assistant',
+            content: accumulatedResponse,
+            timestamp: new Date()
+          });
+          this.isGenerating = false;
+          this.scrollToBottom();
+        },
+        error: (error) => {
+          console.error('Error generating response:', error);
+          this.messages.push({
+            role: 'assistant',
+            content: 'Entschuldigung, es ist ein Fehler aufgetreten. Bitte versuche es erneut.',
+            timestamp: new Date()
+          });
+          this.isGenerating = false;
+          this.scrollToBottom();
+        }
       });
+      
+      this.subscriptions.add(subscription);
+
     } catch (error) {
       console.error('Error generating response:', error);
       this.messages.push({
@@ -476,7 +506,6 @@ Bitte antworte hilfreich und kreativ auf die Frage basierend auf dem Szenenkonte
         content: 'Entschuldigung, es ist ein Fehler aufgetreten. Bitte versuche es erneut.',
         timestamp: new Date()
       });
-    } finally {
       this.isGenerating = false;
       this.scrollToBottom();
     }
@@ -530,7 +559,7 @@ Bitte antworte hilfreich und kreativ auf die Frage basierend auf dem Szenenkonte
           sceneId: scene.id,
           chapterTitle: chapter.title,
           sceneTitle: scene.title,
-          content: this.promptManager.getCleanSceneText(scene),
+          content: this.extractFullTextFromScene(scene),
           selected: true
         });
       }
@@ -561,7 +590,57 @@ Bitte antworte hilfreich und kreativ auf die Frage basierend auf dem Szenenkonte
   }
 
   getScenePreview(scene: Scene): string {
-    const cleanText = this.promptManager.getCleanSceneText(scene);
+    const cleanText = this.extractFullTextFromScene(scene);
     return cleanText.substring(0, 100) + (cleanText.length > 100 ? '...' : '');
+  }
+
+  private extractFullTextFromScene(scene: Scene): string {
+    if (!scene.content) return '';
+
+    // Use DOM parser for more reliable HTML parsing
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(scene.content, 'text/html');
+    
+    // Remove all beat AI wrapper elements and their contents
+    const beatWrappers = doc.querySelectorAll('.beat-ai-wrapper, .beat-ai-node');
+    beatWrappers.forEach(element => element.remove());
+    
+    // Remove beat markers and comments
+    const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT);
+    const textNodes: Text[] = [];
+    let node;
+    while (node = walker.nextNode()) {
+      textNodes.push(node as Text);
+    }
+    
+    textNodes.forEach(textNode => {
+      // Remove beat markers like [Beat: description]
+      textNode.textContent = textNode.textContent?.replace(/\[Beat:[^\]]*\]/g, '') || '';
+    });
+    
+    // Convert to text while preserving paragraph structure
+    let cleanText = '';
+    const paragraphs = doc.querySelectorAll('p');
+    
+    for (const p of paragraphs) {
+      const text = p.textContent?.trim() || '';
+      if (text) {
+        cleanText += text + '\n\n';
+      } else {
+        // Empty paragraph becomes single newline
+        cleanText += '\n';
+      }
+    }
+    
+    // If no paragraphs found, fall back to body text
+    if (!paragraphs.length) {
+      cleanText = doc.body.textContent || '';
+    }
+    
+    // Clean up extra whitespace
+    cleanText = cleanText.replace(/\n\s*\n\s*\n/g, '\n\n');
+    cleanText = cleanText.trim();
+
+    return cleanText;
   }
 }
