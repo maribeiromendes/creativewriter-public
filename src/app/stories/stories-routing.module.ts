@@ -5,6 +5,7 @@ import { StorySettingsComponent } from './components/story-settings.component';
 import { CodexComponent } from './components/codex.component';
 import { NovelCrafterImportComponent } from './components/novelcrafter-import.component';
 import { ImageGenerationComponent } from './components/image-generation.component';
+import { SceneChatComponent } from './components/scene-chat.component';
 
 const routes: Routes = [
   {
@@ -26,6 +27,10 @@ const routes: Routes = [
   {
     path: 'image-generation',
     component: ImageGenerationComponent
+  },
+  {
+    path: 'chat/:storyId/:chapterId/:sceneId',
+    component: SceneChatComponent
   },
 ];
 

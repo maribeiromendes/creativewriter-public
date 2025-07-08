@@ -9,7 +9,8 @@ import {
 import { addIcons } from 'ionicons';
 import { 
   arrowBack, bookOutline, book, settingsOutline, statsChartOutline,
-  saveOutline, checkmarkCircleOutline, menuOutline, chevronBack, chevronForward
+  saveOutline, checkmarkCircleOutline, menuOutline, chevronBack, chevronForward,
+  chatbubblesOutline
 } from 'ionicons/icons';
 import { StoryService } from '../services/story.service';
 import { Story, Scene } from '../models/story.interface';
@@ -60,6 +61,9 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
             </ion-button>
             <ion-button (click)="goToAILogs()">
               <ion-icon name="stats-chart-outline" slot="icon-only"></ion-icon>
+            </ion-button>
+            <ion-button (click)="goToSceneChat()">
+              <ion-icon name="chatbubbles-outline" slot="icon-only"></ion-icon>
             </ion-button>
           </ion-buttons>
         </ion-toolbar>
@@ -744,7 +748,8 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
   ) {
     addIcons({ 
       arrowBack, bookOutline, book, settingsOutline, statsChartOutline,
-      saveOutline, checkmarkCircleOutline, menuOutline, chevronBack, chevronForward
+      saveOutline, checkmarkCircleOutline, menuOutline, chevronBack, chevronForward,
+      chatbubblesOutline
     });
   }
 
@@ -938,6 +943,19 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
       await this.saveStory();
     }
     this.router.navigate(['/ai-logs']);
+  }
+
+  async goToSceneChat(): Promise<void> {
+    if (this.hasUnsavedChanges) {
+      await this.saveStory();
+    }
+    // Navigate to scene chat with current story, chapter, and scene IDs
+    if (this.activeChapterId && this.activeSceneId) {
+      this.router.navigate(['/stories/chat', this.story.id, this.activeChapterId, this.activeSceneId]);
+    } else {
+      // If no scene is selected, navigate with just the story ID (scene chat can handle this)
+      this.router.navigate(['/stories/chat', this.story.id, '', '']);
+    }
   }
 
   getCurrentChapterTitle(): string {
