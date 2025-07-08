@@ -1025,10 +1025,14 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
       this.showSidebar = true;
       this.cdr.detectChanges();
     }
-    // Swipe right to left to close sidebar
+    // Swipe right to left to close sidebar - only if swipe started from within sidebar area
     else if (deltaX < 0 && this.showSidebar) {
-      this.showSidebar = false;
-      this.cdr.detectChanges();
+      // On mobile, sidebar takes full width, so only close if swipe starts from left portion
+      const sidebarWidth = window.innerWidth <= 480 ? 320 : 280;
+      if (this.touchStartX < sidebarWidth) {
+        this.showSidebar = false;
+        this.cdr.detectChanges();
+      }
     }
   }
 
