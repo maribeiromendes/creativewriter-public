@@ -61,7 +61,7 @@ interface SceneContext {
         </ion-toolbar>
       </ion-header>
       
-      <ion-content class="chat-content">
+      <ion-content class="chat-content" [scrollEvents]="true">
         <div class="context-chips" *ngIf="selectedScenes.length > 0">
           <ion-chip *ngFor="let scene of selectedScenes" [color]="scene.sceneId === activeSceneId ? 'primary' : 'medium'">
             <ion-label>{{ scene.chapterTitle }} - {{ scene.sceneTitle }}</ion-label>
@@ -106,7 +106,7 @@ interface SceneContext {
         </div>
       </ion-content>
       
-      <ion-footer class="chat-footer">
+      <ion-footer class="chat-footer" [class.keyboard-visible]="keyboardVisible">
         <div class="input-container">
           <ion-textarea
             #messageInput
@@ -115,6 +115,8 @@ interface SceneContext {
             [autoGrow]="true"
             [rows]="1"
             (keydown.enter)="onEnterKey($any($event))"
+            (ionFocus)="onInputFocus()"
+            (ionBlur)="onInputBlur()"
             class="message-input">
           </ion-textarea>
           <ion-button 
@@ -290,11 +292,12 @@ interface SceneContext {
       background: var(--ion-toolbar-background);
       padding: 8px 16px;
       padding-bottom: max(env(safe-area-inset-bottom, 20px), 40px);
-      position: fixed;
+      position: sticky;
       bottom: 0;
       left: 0;
       right: 0;
       z-index: 1000;
+      margin-bottom: env(keyboard-inset-height, 0px);
     }
 
     .input-container {
@@ -334,11 +337,16 @@ interface SceneContext {
       }
       
       .chat-messages {
-        padding-bottom: 160px; /* More padding for mobile */
+        padding-bottom: 400px; /* Much more padding for mobile keyboards */
       }
       
       .chat-footer {
-        padding-bottom: max(env(safe-area-inset-bottom, 20px), 60px);
+        padding-bottom: max(env(safe-area-inset-bottom, 20px), 200px);
+        transform: translateY(calc(-1 * env(keyboard-inset-height, 0px)));
+      }
+      
+      .chat-footer.keyboard-visible {
+        transform: translateY(-250px);
       }
     }
   `]
@@ -360,6 +368,7 @@ export class SceneChatComponent implements OnInit, OnDestroy {
   
   private subscriptions = new Subscription();
   private abortController: AbortController | null = null;
+  private keyboardVisible: boolean = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -601,6 +610,17 @@ Bitte antworte hilfreich und kreativ auf die Frage basierend auf dem Szenenkonte
   getScenePreview(scene: Scene): string {
     const cleanText = this.extractFullTextFromScene(scene);
     return cleanText.substring(0, 100) + (cleanText.length > 100 ? '...' : '');
+  }
+
+  onInputFocus() {
+    this.keyboardVisible = true;
+    setTimeout(() => {
+      this.scrollToBottom();
+    }, 300);
+  }
+
+  onInputBlur() {
+    this.keyboardVisible = false;
   }
 
   private extractFullTextFromScene(scene: Scene): string {
