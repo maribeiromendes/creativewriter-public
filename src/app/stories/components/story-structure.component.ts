@@ -991,12 +991,17 @@ export class StoryStructureComponent implements OnInit, OnChanges, AfterViewInit
     // When activeChapterId or activeSceneId changes, expand the relevant chapter
     if (changes['activeChapterId'] || changes['activeSceneId']) {
       this.expandActiveChapter();
+      // Auto-scroll to active scene when active scene changes
+      setTimeout(() => this.scrollToActiveScene(), 100);
     }
   }
   
   ngAfterViewInit() {
     // Resize all existing textareas after view initialization
     setTimeout(() => this.resizeAllTextareas(), 100);
+    
+    // Auto-scroll to active scene when component loads
+    this.scrollToActiveScene();
   }
 
   ngOnDestroy() {
@@ -1551,6 +1556,22 @@ Antworte nur mit dem Titel, ohne weitere Erklärungen oder Anführungszeichen.`;
     this.closeSidebar.emit();
   }
   
+  private scrollToActiveScene(): void {
+    if (!this.activeSceneId) return;
+    
+    // Wait for DOM to be updated
+    setTimeout(() => {
+      const activeSceneElement = document.querySelector(`.scene-item.active-scene`);
+      if (activeSceneElement) {
+        activeSceneElement.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+          inline: 'nearest'
+        });
+      }
+    }, 200);
+  }
+
   private removeEmbeddedImages(content: string): string {
     // Remove base64 encoded images
     // Matches: <img src="data:image/[type];base64,[data]" ...>
