@@ -71,8 +71,18 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
                            [searchable]="false"
                            placeholder="Wortanzahl wählen..."
                            class="model-select"
-                           appendTo="body">
+                           appendTo="body"
+                           (change)="onWordCountChange()">
                 </ng-select>
+                <input 
+                  *ngIf="showCustomWordCount"
+                  type="number"
+                  [(ngModel)]="customWordCount"
+                  class="custom-word-count"
+                  placeholder="Anzahl eingeben..."
+                  min="10"
+                  max="50000"
+                  (blur)="validateCustomWordCount()">
               </div>
               <div class="option-group">
                 <ng-select [(ngModel)]="selectedModel"
@@ -282,10 +292,31 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
     .option-group {
       display: flex;
       flex-direction: column;
+      gap: 0.5rem;
     }
     
     .model-select {
       font-size: 0.9rem;
+    }
+    
+    .custom-word-count {
+      width: 100%;
+      padding: 0.5rem;
+      background: #1a1a1a;
+      border: 1px solid #404040;
+      border-radius: 6px;
+      color: #f8f9fa;
+      font-size: 0.9rem;
+      transition: border-color 0.2s;
+    }
+    
+    .custom-word-count:focus {
+      outline: none;
+      border-color: #0d6efd;
+    }
+    
+    .custom-word-count::placeholder {
+      color: #6c757d;
     }
     
     .model-name {
@@ -732,7 +763,9 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('promptInput') promptInput!: ElementRef<HTMLTextAreaElement>;
   
   currentPrompt: string = '';
-  selectedWordCount: number = 400;
+  selectedWordCount: number | string = 400;
+  customWordCount: number = 400;
+  showCustomWordCount: boolean = false;
   selectedModel: string = '';
   availableModels: ModelOption[] = [];
   wordCountOptions = [
@@ -750,7 +783,8 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
     { value: 5000, label: '~5.000 Wörter' },
     { value: 8000, label: '~8.000 Wörter' },
     { value: 10000, label: '~10.000 Wörter' },
-    { value: 12000, label: '~12.000 Wörter' }
+    { value: 12000, label: '~12.000 Wörter' },
+    { value: 'custom', label: 'Eigene Anzahl...' }
   ];
   showPreviewModal: boolean = false;
   previewContent: string = '';
@@ -830,7 +864,7 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
       beatId: this.beatData.id,
       prompt: this.beatData.prompt,
       action: this.beatData.generatedContent ? 'regenerate' : 'generate',
-      wordCount: this.selectedWordCount,
+      wordCount: this.getActualWordCount(),
       model: this.selectedModel,
       storyId: this.storyId,
       chapterId: this.chapterId,
@@ -849,7 +883,7 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
       beatId: this.beatData.id,
       prompt: this.beatData.prompt,
       action: 'regenerate',
-      wordCount: this.selectedWordCount,
+      wordCount: this.getActualWordCount(),
       model: this.selectedModel,
       storyId: this.storyId,
       chapterId: this.chapterId,
@@ -915,6 +949,38 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
+  onWordCountChange(): void {
+    if (this.selectedWordCount === 'custom') {
+      this.showCustomWordCount = true;
+      // Focus the custom input after Angular updates the view
+      setTimeout(() => {
+        const customInput = document.querySelector('.custom-word-count') as HTMLInputElement;
+        if (customInput) {
+          customInput.focus();
+          customInput.select();
+        }
+      }, 0);
+    } else {
+      this.showCustomWordCount = false;
+      this.customWordCount = this.selectedWordCount as number;
+    }
+  }
+
+  validateCustomWordCount(): void {
+    if (this.customWordCount < 10) {
+      this.customWordCount = 10;
+    } else if (this.customWordCount > 50000) {
+      this.customWordCount = 50000;
+    }
+  }
+
+  private getActualWordCount(): number {
+    if (this.selectedWordCount === 'custom') {
+      return this.customWordCount;
+    }
+    return this.selectedWordCount as number;
+  }
+
   private loadAvailableModels(): void {
     // Subscribe to settings changes to reload models when API switches
     this.subscription.add(
@@ -975,7 +1041,7 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
       storyId: this.storyId,
       chapterId: this.chapterId,
       sceneId: this.sceneId,
-      wordCount: this.selectedWordCount
+      wordCount: this.getActualWordCount()
     }).subscribe(content => {
       this.previewContent = content;
       this.showPreviewModal = true;
