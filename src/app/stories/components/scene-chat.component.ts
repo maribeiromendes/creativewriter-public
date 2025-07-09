@@ -11,7 +11,7 @@ import { addIcons } from 'ionicons';
 import { 
   arrowBack, sendOutline, peopleOutline, documentTextOutline, 
   addOutline, checkmarkOutline, closeOutline, sparklesOutline,
-  personOutline, locationOutline, cubeOutline
+  personOutline, locationOutline, cubeOutline, readerOutline
 } from 'ionicons/icons';
 import { StoryService } from '../services/story.service';
 import { SettingsService } from '../../core/services/settings.service';
@@ -70,6 +70,9 @@ interface PresetPrompt {
             <ion-button (click)="showPresetPrompts = true">
               <ion-icon name="sparkles-outline" slot="icon-only"></ion-icon>
             </ion-button>
+            <ion-button (click)="includeStoryOutline = !includeStoryOutline" [color]="includeStoryOutline ? 'primary' : 'medium'">
+              <ion-icon name="reader-outline" slot="icon-only"></ion-icon>
+            </ion-button>
             <ion-button (click)="showSceneSelector = true">
               <ion-icon name="add-outline" slot="icon-only"></ion-icon>
             </ion-button>
@@ -78,7 +81,14 @@ interface PresetPrompt {
       </ion-header>
       
       <ion-content class="chat-content" [scrollEvents]="true">
-        <div class="context-chips" *ngIf="selectedScenes.length > 0">
+        <div class="context-chips" *ngIf="selectedScenes.length > 0 || includeStoryOutline">
+          <ion-chip *ngIf="includeStoryOutline" color="success">
+            <ion-label>Geschichte-Überblick</ion-label>
+            <ion-icon 
+              name="close-outline" 
+              (click)="includeStoryOutline = false">
+            </ion-icon>
+          </ion-chip>
           <ion-chip *ngFor="let scene of selectedScenes" [color]="scene.sceneId === activeSceneId ? 'primary' : 'medium'">
             <ion-label>{{ scene.chapterTitle }} - {{ scene.sceneTitle }}</ion-label>
             <ion-icon 
@@ -440,6 +450,8 @@ export class SceneChatComponent implements OnInit, OnDestroy {
   showPresetPrompts: boolean = false;
   presetPrompts: PresetPrompt[] = [];
   
+  includeStoryOutline: boolean = false;
+  
   private subscriptions = new Subscription();
   private abortController: AbortController | null = null;
   keyboardVisible: boolean = false;
@@ -456,7 +468,7 @@ export class SceneChatComponent implements OnInit, OnDestroy {
     addIcons({ 
       arrowBack, sendOutline, peopleOutline, documentTextOutline, 
       addOutline, checkmarkOutline, closeOutline, sparklesOutline,
-      personOutline, locationOutline, cubeOutline
+      personOutline, locationOutline, cubeOutline, readerOutline
     });
     
     this.initializePresetPrompts();
@@ -537,10 +549,16 @@ export class SceneChatComponent implements OnInit, OnDestroy {
     this.scrollToBottom();
 
     try {
-      // Prepare context
+      // Prepare scene context
       const sceneContext = this.selectedScenes
         .map(scene => `<scene chapter="${scene.chapterTitle}" title="${scene.sceneTitle}">\n${scene.content}\n</scene>`)
         .join('\n\n');
+
+      // Prepare story outline if enabled
+      let storyOutline = '';
+      if (this.includeStoryOutline) {
+        storyOutline = this.buildStoryOutline();
+      }
 
       const systemPrompt = extractionType 
         ? `Du bist ein Experte für die Extraktion von ${this.getExtractionTypeLabel(extractionType)} aus literarischen Texten. 
@@ -554,12 +572,17 @@ Achte besonders auf:
 - Wichtige Orte und Objekte
 - Handlungsstränge und Konflikte`;
 
-      const prompt = `Kontext der aktuellen Szene(n):
-${sceneContext}
+      let contextText = '';
+      if (storyOutline) {
+        contextText += `Geschichte-Überblick:\n${storyOutline}\n\n`;
+      }
+      if (sceneContext) {
+        contextText += `Detaillierte Szenen:\n${sceneContext}\n\n`;
+      }
 
-Frage des Nutzers: ${userMessage}
+      const prompt = `${contextText}Frage des Nutzers: ${userMessage}
 
-Bitte antworte hilfreich und kreativ auf die Frage basierend auf dem Szenenkontext.`;
+Bitte antworte hilfreich und kreativ auf die Frage basierend auf dem gegebenen Kontext.`;
 
       const settings = this.settingsService.getSettings();
       // Generate a unique beat ID for this chat message
@@ -891,6 +914,31 @@ Strukturiere die Antwort klar nach Gegenständen getrennt.`
       case 'objects': return 'Gegenstände';
       default: return 'Notizen';
     }
+  }
+
+  private buildStoryOutline(): string {
+    if (!this.story) return '';
+    
+    let outline = '';
+    
+    this.story.chapters.forEach(chapter => {
+      outline += `\n## ${chapter.title}\n`;
+      
+      chapter.scenes.forEach(scene => {
+        outline += `\n### ${scene.title}\n`;
+        
+        if (scene.summary) {
+          outline += `${scene.summary}\n`;
+        } else {
+          // Fallback to truncated content if no summary
+          const cleanText = this.extractFullTextFromScene(scene);
+          const truncated = cleanText.substring(0, 200);
+          outline += `${truncated}${cleanText.length > 200 ? '...' : ''}\n`;
+        }
+      });
+    });
+    
+    return outline;
   }
 
   private parseExtractionResponse(content: string, type: 'characters' | 'locations' | 'objects'): any[] {
