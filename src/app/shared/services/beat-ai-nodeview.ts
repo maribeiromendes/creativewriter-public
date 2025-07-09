@@ -183,7 +183,8 @@ export class BeatAINodeView implements NodeView {
       isGenerating: attrs['isGenerating'] || false,
       isEditing: attrs['isEditing'] || false,
       createdAt: attrs['createdAt'] ? new Date(attrs['createdAt']) : new Date(),
-      updatedAt: attrs['updatedAt'] ? new Date(attrs['updatedAt']) : new Date()
+      updatedAt: attrs['updatedAt'] ? new Date(attrs['updatedAt']) : new Date(),
+      wordCount: attrs['wordCount'] || 400
     };
   }
 
@@ -198,7 +199,8 @@ export class BeatAINodeView implements NodeView {
       isGenerating: beatData.isGenerating,
       isEditing: beatData.isEditing,
       createdAt: beatData.createdAt.toISOString(),
-      updatedAt: beatData.updatedAt.toISOString()
+      updatedAt: beatData.updatedAt.toISOString(),
+      wordCount: beatData.wordCount || 400
     });
 
     this.view.dispatch(tr);

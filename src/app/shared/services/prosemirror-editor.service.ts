@@ -92,7 +92,8 @@ export class ProseMirrorEditorService {
           isGenerating: { default: false },
           isEditing: { default: false },
           createdAt: { default: '' },
-          updatedAt: { default: '' }
+          updatedAt: { default: '' },
+          wordCount: { default: 400 }
         },
         group: 'block',
         atom: true,
@@ -105,7 +106,8 @@ export class ProseMirrorEditorService {
             'data-generating': node.attrs.isGenerating ? 'true' : 'false',
             'data-editing': node.attrs.isEditing ? 'true' : 'false',
             'data-created': node.attrs.createdAt || '',
-            'data-updated': node.attrs.updatedAt || ''
+            'data-updated': node.attrs.updatedAt || '',
+            'data-word-count': node.attrs.wordCount || 400
           };
           
           // Create content to make the beat visible in saved HTML
@@ -129,7 +131,8 @@ export class ProseMirrorEditorService {
               isGenerating: dom.getAttribute('data-generating') === 'true',
               isEditing: dom.getAttribute('data-editing') === 'true',
               createdAt: dom.getAttribute('data-created') || '',
-              updatedAt: dom.getAttribute('data-updated') || ''
+              updatedAt: dom.getAttribute('data-updated') || '',
+              wordCount: parseInt(dom.getAttribute('data-word-count') || '400', 10)
             };
             
             return attrs;
@@ -340,7 +343,8 @@ export class ProseMirrorEditorService {
         isGenerating: beatData.isGenerating,
         isEditing: beatData.isEditing,
         createdAt: beatData.createdAt.toISOString(),
-        updatedAt: beatData.updatedAt.toISOString()
+        updatedAt: beatData.updatedAt.toISOString(),
+        wordCount: beatData.wordCount
       });
       
       let tr;

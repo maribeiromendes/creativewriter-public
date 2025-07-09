@@ -510,7 +510,8 @@ export class BeatAIService {
       isGenerating: false,
       isEditing: true,
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
+      wordCount: 400
     };
   }
 

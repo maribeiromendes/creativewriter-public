@@ -799,6 +799,23 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
   ngOnInit(): void {
     this.currentPrompt = this.beatData.prompt;
     
+    // Load saved word count or use default
+    if (this.beatData.wordCount) {
+      // Check if it's a custom value
+      const isPresetValue = this.wordCountOptions.some(option => 
+        typeof option.value === 'number' && option.value === this.beatData.wordCount
+      );
+      
+      if (isPresetValue) {
+        this.selectedWordCount = this.beatData.wordCount;
+      } else {
+        // It's a custom value
+        this.selectedWordCount = 'custom';
+        this.customWordCount = this.beatData.wordCount;
+        this.showCustomWordCount = true;
+      }
+    }
+    
     // Load available models and set default
     this.loadAvailableModels();
     this.setDefaultModel();
@@ -859,6 +876,7 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
     this.beatData.isEditing = false;
     this.beatData.isGenerating = true;
     this.beatData.updatedAt = new Date();
+    this.beatData.wordCount = this.getActualWordCount();
     
     this.promptSubmit.emit({
       beatId: this.beatData.id,
@@ -878,6 +896,7 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
     if (!this.beatData.prompt) return;
     
     this.beatData.isGenerating = true;
+    this.beatData.wordCount = this.getActualWordCount();
     
     this.promptSubmit.emit({
       beatId: this.beatData.id,
@@ -889,6 +908,8 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
       chapterId: this.chapterId,
       sceneId: this.sceneId
     } as any);
+    
+    this.contentUpdate.emit(this.beatData);
   }
   
   deleteContentAfterBeat(): void {

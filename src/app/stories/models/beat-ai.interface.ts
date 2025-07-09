@@ -6,6 +6,7 @@ export interface BeatAI {
   isEditing: boolean;
   createdAt: Date;
   updatedAt: Date;
+  wordCount?: number;
 }
 
 export interface BeatAIGenerationEvent {
