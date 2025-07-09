@@ -83,8 +83,7 @@ interface PresetPrompt {
             <ion-label>{{ scene.chapterTitle }} - {{ scene.sceneTitle }}</ion-label>
             <ion-icon 
               name="close-outline" 
-              (click)="removeSceneContext(scene)"
-              *ngIf="scene.sceneId !== activeSceneId">
+              (click)="removeSceneContext(scene)">
             </ion-icon>
           </ion-chip>
         </div>
@@ -187,8 +186,7 @@ interface PresetPrompt {
                 (click)="toggleSceneSelection(chapter.id, scene.id)">
                 <ion-checkbox 
                   slot="start" 
-                  [checked]="isSceneSelected(scene.id)"
-                  [disabled]="scene.id === activeSceneId">
+                  [checked]="isSceneSelected(scene.id)">
                 </ion-checkbox>
                 <ion-label>
                   <h3>{{ scene.title }}</h3>
@@ -648,8 +646,6 @@ Bitte antworte hilfreich und kreativ auf die Frage basierend auf dem Szenenkonte
   }
 
   toggleSceneSelection(chapterId: string, sceneId: string) {
-    if (sceneId === this.activeSceneId) return; // Can't deselect active scene
-
     const index = this.selectedScenes.findIndex(s => s.sceneId === sceneId);
     
     if (index > -1) {
@@ -676,8 +672,6 @@ Bitte antworte hilfreich und kreativ auf die Frage basierend auf dem Szenenkonte
   }
 
   removeSceneContext(scene: SceneContext) {
-    if (scene.sceneId === this.activeSceneId) return;
-    
     const index = this.selectedScenes.findIndex(s => s.sceneId === scene.sceneId);
     if (index > -1) {
       this.selectedScenes.splice(index, 1);
