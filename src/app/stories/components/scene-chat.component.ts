@@ -19,7 +19,8 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
 import { PromptManagerService } from '../../shared/services/prompt-manager.service';
 import { CodexService } from '../services/codex.service';
 import { Story, Scene, Chapter } from '../models/story.interface';
-import { Subscription } from 'rxjs';
+import { Subscription, Observable, of, from } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 
 interface ChatMessage {
   role: 'user' | 'assistant';
@@ -560,11 +561,61 @@ export class SceneChatComponent implements OnInit, OnDestroy {
         storyOutline = this.buildStoryOutline();
       }
 
-      const systemPrompt = extractionType 
-        ? `Du bist ein Experte für die Extraktion von ${this.getExtractionTypeLabel(extractionType)} aus literarischen Texten. 
-Analysiere die gegebenen Szenen sorgfältig und extrahiere alle relevanten Informationen strukturiert und detailliert.
-Achte auf Konsistenz und Vollständigkeit bei der Extraktion.`
-        : `Du bist ein hilfreicher Assistent für kreative Schreibprojekte. 
+      const settings = this.settingsService.getSettings();
+      // Generate a unique beat ID for this chat message
+      const beatId = 'chat-' + Date.now();
+      
+      let prompt = '';
+      
+      if (extractionType) {
+        // For extraction tasks, build a simple prompt without system message and codex
+        let contextText = '';
+        if (storyOutline) {
+          contextText += `Geschichte-Überblick:\n${storyOutline}\n\n`;
+        }
+        if (sceneContext) {
+          contextText += `Szenen-Text:\n${sceneContext}\n\n`;
+        }
+        
+        // Use the extraction prompt directly
+        prompt = `${contextText}${userMessage}`;
+        
+        // Call AI directly without the beat generation template
+        let accumulatedResponse = '';
+        const subscription = this.callAIDirectly(
+          prompt,
+          beatId,
+          { wordCount: 400 }
+        ).subscribe({
+          next: (chunk) => {
+            accumulatedResponse = chunk;
+          },
+          complete: () => {
+            this.messages.push({
+              role: 'assistant',
+              content: accumulatedResponse,
+              timestamp: new Date(),
+              extractionType
+            });
+            this.isGenerating = false;
+            this.scrollToBottom();
+          },
+          error: (error) => {
+            console.error('Error generating response:', error);
+            this.messages.push({
+              role: 'assistant',
+              content: 'Entschuldigung, es ist ein Fehler aufgetreten. Bitte versuche es erneut.',
+              timestamp: new Date()
+            });
+            this.isGenerating = false;
+            this.scrollToBottom();
+          }
+        });
+        
+        this.subscriptions.add(subscription);
+      } else {
+        // For normal chat, use the full beat generation with system prompt
+        const systemPrompt = `Du bist ein hilfreicher Assistent für kreative Schreibprojekte. 
 Du analysierst Szenen und hilfst bei der Charakterentwicklung, Weltenbau und Ideenfindung.
 Achte besonders auf:
 - Charaktere und ihre Eigenschaften
@@ -572,46 +623,40 @@ Achte besonders auf:
 - Wichtige Orte und Objekte
 - Handlungsstränge und Konflikte`;
 
-      let contextText = '';
-      if (storyOutline) {
-        contextText += `Geschichte-Überblick:\n${storyOutline}\n\n`;
-      }
-      if (sceneContext) {
-        contextText += `Detaillierte Szenen:\n${sceneContext}\n\n`;
-      }
-
-      const prompt = `${contextText}Frage des Nutzers: ${userMessage}
-
-Bitte antworte hilfreich und kreativ auf die Frage basierend auf dem gegebenen Kontext.`;
-
-      const settings = this.settingsService.getSettings();
-      // Generate a unique beat ID for this chat message
-      const beatId = 'chat-' + Date.now();
-      
-      // Use generateBeatContent method
-      let accumulatedResponse = '';
-      const subscription = this.beatAIService.generateBeatContent(
-        prompt,
-        beatId,
-        {
-          wordCount: 400,
-          storyId: this.story?.id
+        let contextText = '';
+        if (storyOutline) {
+          contextText += `Geschichte-Überblick:\n${storyOutline}\n\n`;
         }
-      ).subscribe({
-        next: (chunk) => {
-          accumulatedResponse = chunk;
-        },
-        complete: () => {
-          this.messages.push({
-            role: 'assistant',
-            content: accumulatedResponse,
-            timestamp: new Date(),
-            extractionType
-          });
-          this.isGenerating = false;
-          this.scrollToBottom();
-        },
-        error: (error) => {
+        if (sceneContext) {
+          contextText += `Detaillierte Szenen:\n${sceneContext}\n\n`;
+        }
+
+        prompt = `${contextText}Frage des Nutzers: ${userMessage}\n\nBitte antworte hilfreich und kreativ auf die Frage basierend auf dem gegebenen Kontext.`;
+        
+        // Use generateBeatContent method
+        let accumulatedResponse = '';
+        const subscription = this.beatAIService.generateBeatContent(
+          prompt,
+          beatId,
+          {
+            wordCount: 400,
+            storyId: this.story?.id
+          }
+        ).subscribe({
+          next: (chunk) => {
+            accumulatedResponse = chunk;
+          },
+          complete: () => {
+            this.messages.push({
+              role: 'assistant',
+              content: accumulatedResponse,
+              timestamp: new Date(),
+              extractionType
+            });
+            this.isGenerating = false;
+            this.scrollToBottom();
+          },
+          error: (error) => {
           console.error('Error generating response:', error);
           this.messages.push({
             role: 'assistant',
@@ -623,7 +668,8 @@ Bitte antworte hilfreich und kreativ auf die Frage basierend auf dem gegebenen K
         }
       });
       
-      this.subscriptions.add(subscription);
+        this.subscriptions.add(subscription);
+      }
 
     } catch (error) {
       console.error('Error generating response:', error);
@@ -939,6 +985,168 @@ Strukturiere die Antwort klar nach Gegenständen getrennt.`
     });
     
     return outline;
+  }
+
+  private callAIDirectly(prompt: string, beatId: string, options: { wordCount: number }): Observable<string> {
+    const settings = this.settingsService.getSettings();
+    
+    // Check which API is enabled
+    const useGoogleGemini = settings.googleGemini.enabled && settings.googleGemini.apiKey;
+    const useOpenRouter = settings.openRouter.enabled && settings.openRouter.apiKey;
+    
+    if (!useGoogleGemini && !useOpenRouter) {
+      console.warn('No AI API configured');
+      return of('Entschuldigung, keine AI API konfiguriert.');
+    }
+    
+    // For direct calls, we bypass the beat AI service and call the API directly
+    // We'll use the beat AI service's internal methods by creating a minimal wrapper
+    return new Observable<string>(observer => {
+      let accumulatedResponse = '';
+      
+      // Create a simple API call based on configuration
+      const apiCall = useGoogleGemini 
+        ? this.callGeminiAPI(prompt, options, beatId)
+        : this.callOpenRouterAPI(prompt, options, beatId);
+        
+      apiCall.subscribe({
+        next: (chunk) => {
+          accumulatedResponse += chunk;
+          observer.next(accumulatedResponse);
+        },
+        complete: () => {
+          observer.complete();
+        },
+        error: (error) => {
+          observer.error(error);
+        }
+      });
+    });
+  }
+  
+  private callGeminiAPI(prompt: string, options: { wordCount: number }, beatId: string): Observable<string> {
+    const settings = this.settingsService.getSettings();
+    const apiKey = settings.googleGemini.apiKey;
+    const model = settings.googleGemini.model || 'gemini-1.5-flash';
+    
+    const requestBody = {
+      contents: [{
+        role: 'user',
+        parts: [{ text: prompt }]
+      }],
+      generationConfig: {
+        temperature: 0.7,
+        maxOutputTokens: Math.ceil(options.wordCount * 2.5),
+        topP: 0.95,
+        topK: 40
+      }
+    };
+    
+    return from(fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?key=${apiKey}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestBody)
+    })).pipe(
+      switchMap(response => {
+        if (!response.ok) {
+          throw new Error(`API error: ${response.statusText}`);
+        }
+        return this.processStreamResponse(response);
+      })
+    );
+  }
+  
+  private callOpenRouterAPI(prompt: string, options: { wordCount: number }, beatId: string): Observable<string> {
+    const settings = this.settingsService.getSettings();
+    const apiKey = settings.openRouter.apiKey;
+    const model = settings.openRouter.model || 'anthropic/claude-3-haiku';
+    
+    const requestBody = {
+      model: model,
+      messages: [{
+        role: 'user',
+        content: prompt
+      }],
+      stream: true,
+      max_tokens: Math.ceil(options.wordCount * 2.5),
+      temperature: 0.7
+    };
+    
+    return from(fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': window.location.href,
+        'X-Title': 'Creative Writer'
+      },
+      body: JSON.stringify(requestBody)
+    })).pipe(
+      switchMap(response => {
+        if (!response.ok) {
+          throw new Error(`API error: ${response.statusText}`);
+        }
+        return this.processStreamResponse(response);
+      })
+    );
+  }
+  
+  private processStreamResponse(response: Response): Observable<string> {
+    return new Observable<string>(observer => {
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      let accumulatedText = '';
+      
+      const processChunk = async () => {
+        try {
+          const { done, value } = await reader!.read();
+          
+          if (done) {
+            observer.complete();
+            return;
+          }
+          
+          const chunk = decoder.decode(value, { stream: true });
+          const lines = chunk.split('\n');
+          
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const jsonStr = line.slice(6);
+              if (jsonStr === '[DONE]') continue;
+              
+              try {
+                const json = JSON.parse(jsonStr);
+                let text = '';
+                
+                // Handle different response formats
+                if (json.candidates?.[0]?.content?.parts?.[0]?.text) {
+                  // Gemini format
+                  text = json.candidates[0].content.parts[0].text;
+                } else if (json.choices?.[0]?.delta?.content) {
+                  // OpenRouter format
+                  text = json.choices[0].delta.content;
+                }
+                
+                if (text) {
+                  accumulatedText += text;
+                  observer.next(text);
+                }
+              } catch (e) {
+                // Ignore JSON parse errors
+              }
+            }
+          }
+          
+          processChunk();
+        } catch (error) {
+          observer.error(error);
+        }
+      };
+      
+      processChunk();
+    });
   }
 
   private parseExtractionResponse(content: string, type: 'characters' | 'locations' | 'objects'): any[] {
