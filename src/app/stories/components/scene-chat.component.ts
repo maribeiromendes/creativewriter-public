@@ -519,7 +519,7 @@ export class SceneChatComponent implements OnInit, OnDestroy {
       // Add initial system message
       this.messages.push({
         role: 'assistant',
-        content: 'Hallo! Ich bin dein KI-Assistent für diese Szene. Du kannst mir Fragen stellen, um Charaktere zu extrahieren, Details zu analysieren oder Ideen zu entwickeln.',
+        content: 'Hallo! Ich bin dein KI-Assistent für diese Szene. Ich arbeite ausschließlich mit dem Kontext der ausgewählten Szenen. Du kannst mir Fragen stellen, um Charaktere zu extrahieren, Details zu analysieren oder Ideen zu entwickeln.',
         timestamp: new Date()
       });
     }
@@ -567,96 +567,45 @@ export class SceneChatComponent implements OnInit, OnDestroy {
       
       let prompt = '';
       
+      // Always use direct AI calls without system prompt or codex
+      let contextText = '';
+      if (storyOutline) {
+        contextText += `Geschichte-Überblick:\n${storyOutline}\n\n`;
+      }
+      if (sceneContext) {
+        contextText += `Szenen-Text:\n${sceneContext}\n\n`;
+      }
+      
+      // Build prompt based on type
       if (extractionType) {
-        // For extraction tasks, build a simple prompt without system message and codex
-        let contextText = '';
-        if (storyOutline) {
-          contextText += `Geschichte-Überblick:\n${storyOutline}\n\n`;
-        }
-        if (sceneContext) {
-          contextText += `Szenen-Text:\n${sceneContext}\n\n`;
-        }
-        
         // Use the extraction prompt directly
         prompt = `${contextText}${userMessage}`;
-        
-        // Call AI directly without the beat generation template
-        let accumulatedResponse = '';
-        const subscription = this.callAIDirectly(
-          prompt,
-          beatId,
-          { wordCount: 400 }
-        ).subscribe({
-          next: (chunk) => {
-            accumulatedResponse = chunk;
-          },
-          complete: () => {
-            this.messages.push({
-              role: 'assistant',
-              content: accumulatedResponse,
-              timestamp: new Date(),
-              extractionType
-            });
-            this.isGenerating = false;
-            this.scrollToBottom();
-          },
-          error: (error) => {
-            console.error('Error generating response:', error);
-            this.messages.push({
-              role: 'assistant',
-              content: 'Entschuldigung, es ist ein Fehler aufgetreten. Bitte versuche es erneut.',
-              timestamp: new Date()
-            });
-            this.isGenerating = false;
-            this.scrollToBottom();
-          }
-        });
-        
-        this.subscriptions.add(subscription);
       } else {
-        // For normal chat, use the full beat generation with system prompt
-        const systemPrompt = `Du bist ein hilfreicher Assistent für kreative Schreibprojekte. 
-Du analysierst Szenen und hilfst bei der Charakterentwicklung, Weltenbau und Ideenfindung.
-Achte besonders auf:
-- Charaktere und ihre Eigenschaften
-- Beziehungen zwischen Charakteren
-- Wichtige Orte und Objekte
-- Handlungsstränge und Konflikte`;
-
-        let contextText = '';
-        if (storyOutline) {
-          contextText += `Geschichte-Überblick:\n${storyOutline}\n\n`;
-        }
-        if (sceneContext) {
-          contextText += `Detaillierte Szenen:\n${sceneContext}\n\n`;
-        }
-
+        // For normal chat, just add the user's question
         prompt = `${contextText}Frage des Nutzers: ${userMessage}\n\nBitte antworte hilfreich und kreativ auf die Frage basierend auf dem gegebenen Kontext.`;
-        
-        // Use generateBeatContent method
-        let accumulatedResponse = '';
-        const subscription = this.beatAIService.generateBeatContent(
-          prompt,
-          beatId,
-          {
-            wordCount: 400,
-            storyId: this.story?.id
-          }
-        ).subscribe({
-          next: (chunk) => {
-            accumulatedResponse = chunk;
-          },
-          complete: () => {
-            this.messages.push({
-              role: 'assistant',
-              content: accumulatedResponse,
-              timestamp: new Date(),
-              extractionType
-            });
-            this.isGenerating = false;
-            this.scrollToBottom();
-          },
-          error: (error) => {
+      }
+      
+      // Call AI directly without the beat generation template
+      let accumulatedResponse = '';
+      const subscription = this.callAIDirectly(
+        prompt,
+        beatId,
+        { wordCount: 400 }
+      ).subscribe({
+        next: (chunk) => {
+          accumulatedResponse = chunk;
+        },
+        complete: () => {
+          this.messages.push({
+            role: 'assistant',
+            content: accumulatedResponse,
+            timestamp: new Date(),
+            extractionType
+          });
+          this.isGenerating = false;
+          this.scrollToBottom();
+        },
+        error: (error) => {
           console.error('Error generating response:', error);
           this.messages.push({
             role: 'assistant',
@@ -668,8 +617,7 @@ Achte besonders auf:
         }
       });
       
-        this.subscriptions.add(subscription);
-      }
+      this.subscriptions.add(subscription);
 
     } catch (error) {
       console.error('Error generating response:', error);
