@@ -18,6 +18,7 @@ import { SettingsService } from '../../core/services/settings.service';
 import { BeatAIService } from '../../shared/services/beat-ai.service';
 import { PromptManagerService } from '../../shared/services/prompt-manager.service';
 import { CodexService } from '../services/codex.service';
+import { AIRequestLoggerService } from '../../core/services/ai-request-logger.service';
 import { Story, Scene, Chapter } from '../models/story.interface';
 import { Subscription, Observable, of, from } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
@@ -464,7 +465,8 @@ export class SceneChatComponent implements OnInit, OnDestroy {
     private settingsService: SettingsService,
     private beatAIService: BeatAIService,
     private promptManager: PromptManagerService,
-    private codexService: CodexService
+    private codexService: CodexService,
+    private aiLogger: AIRequestLoggerService
   ) {
     addIcons({ 
       arrowBack, sendOutline, peopleOutline, documentTextOutline, 
@@ -951,6 +953,8 @@ Strukturiere die Antwort klar nach Gegenständen getrennt.`
     // We'll use the beat AI service's internal methods by creating a minimal wrapper
     return new Observable<string>(observer => {
       let accumulatedResponse = '';
+      let logId: string;
+      const startTime = Date.now();
       
       // Create a simple API call based on configuration
       const apiCall = useGoogleGemini 
@@ -963,12 +967,36 @@ Strukturiere die Antwort klar nach Gegenständen getrennt.`
           observer.next(accumulatedResponse);
         },
         complete: () => {
+          // Log success
+          if (logId) {
+            this.aiLogger.logSuccess(
+              logId,
+              accumulatedResponse,
+              Date.now() - startTime
+            );
+          }
           observer.complete();
         },
         error: (error) => {
+          // Log error
+          if (logId) {
+            this.aiLogger.logError(
+              logId,
+              error.message || 'Unknown error',
+              Date.now() - startTime,
+              { errorDetails: error }
+            );
+          }
           observer.error(error);
         }
       });
+      
+      // Store log ID for later use
+      if (useGoogleGemini) {
+        logId = this.logGeminiRequest(prompt, options);
+      } else {
+        logId = this.logOpenRouterRequest(prompt, options);
+      }
     });
   }
   
@@ -1094,6 +1122,48 @@ Strukturiere die Antwort klar nach Gegenständen getrennt.`
       };
       
       processChunk();
+    });
+  }
+
+  private logGeminiRequest(prompt: string, options: { wordCount: number }): string {
+    const settings = this.settingsService.getSettings();
+    const model = settings.googleGemini.model || 'gemini-1.5-flash';
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent`;
+    
+    return this.aiLogger.logRequest({
+      endpoint: endpoint,
+      model: model,
+      wordCount: options.wordCount,
+      maxTokens: Math.ceil(options.wordCount * 2.5),
+      prompt: prompt,
+      apiProvider: 'gemini',
+      streamingMode: true,
+      requestDetails: {
+        source: 'scene-chat',
+        temperature: 0.7,
+        topP: 0.95,
+        topK: 40
+      }
+    });
+  }
+  
+  private logOpenRouterRequest(prompt: string, options: { wordCount: number }): string {
+    const settings = this.settingsService.getSettings();
+    const model = settings.openRouter.model || 'anthropic/claude-3-haiku';
+    const endpoint = 'https://openrouter.ai/api/v1/chat/completions';
+    
+    return this.aiLogger.logRequest({
+      endpoint: endpoint,
+      model: model,
+      wordCount: options.wordCount,
+      maxTokens: Math.ceil(options.wordCount * 2.5),
+      prompt: prompt,
+      apiProvider: 'openrouter',
+      streamingMode: true,
+      requestDetails: {
+        source: 'scene-chat',
+        temperature: 0.7
+      }
     });
   }
 
