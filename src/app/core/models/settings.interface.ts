@@ -3,6 +3,7 @@ export interface Settings {
   replicate: ReplicateSettings;
   googleGemini: GoogleGeminiSettings;
   sceneTitleGeneration: SceneTitleGenerationSettings;
+  selectedModel: string; // Global selected model (format: "provider:model_id")
   updatedAt: Date;
 }
 
@@ -81,5 +82,6 @@ export const DEFAULT_SETTINGS: Settings = {
     temperature: 0.3,
     customInstruction: ''
   },
+  selectedModel: '',
   updatedAt: new Date()
 };

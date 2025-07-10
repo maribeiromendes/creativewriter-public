@@ -9,7 +9,7 @@ import {
   IonChip, IonItem, IonLabel, IonSelect, IonSelectOption, IonRange, IonTextarea
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { arrowBack, analytics, warning, checkmarkCircle } from 'ionicons/icons';
+import { arrowBack, analytics, warning, checkmarkCircle, globeOutline, logoGoogle } from 'ionicons/icons';
 import { SettingsService } from '../core/services/settings.service';
 import { ModelService } from '../core/services/model.service';
 import { Settings } from '../core/models/settings.interface';
@@ -50,6 +50,65 @@ import { NgSelectModule } from '@ng-select/ng-select';
 
     <ion-content>
       <div class="settings-content">
+        <!-- Global Model Selection -->
+        <ion-card>
+          <ion-card-header>
+            <ion-card-title>AI Model Auswahl</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <div class="model-selection-wrapper">
+              <div class="model-selection-container">
+                <div class="model-header">
+                  <ion-label>Globales Model</ion-label>
+                  <ion-button 
+                    size="small"
+                    fill="outline"
+                    (click)="loadCombinedModels()" 
+                    [disabled]="(!settings.openRouter.enabled || !settings.openRouter.apiKey) && (!settings.googleGemini.enabled || !settings.googleGemini.apiKey) || loadingModels"
+                    title="Modelle laden">
+                    {{ loadingModels ? 'Laden...' : 'Modelle laden' }}
+                  </ion-button>
+                </div>
+                <ng-select [(ngModel)]="settings.selectedModel"
+                           [items]="combinedModels"
+                           bindLabel="label"
+                           bindValue="id"
+                           [searchable]="true"
+                           [clearable]="true"
+                           [disabled]="(!settings.openRouter.enabled || !settings.openRouter.apiKey) && (!settings.googleGemini.enabled || !settings.googleGemini.apiKey)"
+                           placeholder="Modell auswählen oder suchen..."
+                           (ngModelChange)="onGlobalModelChange()"
+                           [loading]="loadingModels"
+                           [virtualScroll]="true"
+                           class="ng-select-custom">
+                  <ng-template ng-option-tmp let-item="item">
+                    <div class="model-option">
+                      <div class="model-option-header">
+                        <ion-icon [name]="item.provider === 'gemini' ? 'logo-google' : 'globe-outline'" class="provider-icon" [class.gemini]="item.provider === 'gemini'" [class.openrouter]="item.provider === 'openrouter'"></ion-icon>
+                        <span class="model-label">{{ item.label }}</span>
+                      </div>
+                      <div class="model-option-details">
+                        <span class="model-cost">Input: {{ item.costInputEur }} | Output: {{ item.costOutputEur }}</span>
+                        <span class="model-context">Context: {{ formatContextLength(item.contextLength) }}</span>
+                      </div>
+                      <div class="model-description" *ngIf="item.description">{{ item.description }}</div>
+                    </div>
+                  </ng-template>
+                </ng-select>
+                <div class="model-info">
+                  <p *ngIf="modelLoadError" class="error-text">{{ modelLoadError }}</p>
+                  <p *ngIf="!modelLoadError && combinedModels.length > 0" class="info-text">
+                    {{ combinedModels.length }} Modelle verfügbar. Preise in EUR pro 1M Tokens.
+                  </p>
+                  <p *ngIf="!modelLoadError && combinedModels.length === 0 && (settings.openRouter.enabled || settings.googleGemini.enabled)" class="info-text">
+                    Klicken Sie "Modelle laden" um verfügbare Modelle anzuzeigen.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </ion-card-content>
+        </ion-card>
+
         <!-- OpenRouter Settings -->
         <ion-card>
           <ion-card-header>
@@ -78,44 +137,8 @@ import { NgSelectModule } from '@ng-select/ng-select';
               </ion-input>
             </ion-item>
 
-            <div class="model-selection-wrapper" [class.disabled]="!settings.openRouter.enabled">
-              <div class="model-selection-container">
-                <div class="model-header">
-                  <ion-label>Model</ion-label>
-                  <ion-button 
-                    size="small"
-                    fill="outline"
-                    (click)="loadModels()" 
-                    [disabled]="!settings.openRouter.enabled || !settings.openRouter.apiKey || loadingModels"
-                    title="Modelle von OpenRouter laden">
-                    {{ loadingModels ? 'Laden...' : 'Modelle laden' }}
-                  </ion-button>
-                </div>
-                <ng-select [(ngModel)]="settings.openRouter.model"
-                           [items]="openRouterModels"
-                           bindLabel="label"
-                           bindValue="id"
-                           [searchable]="true"
-                           [clearable]="true"
-                           [disabled]="!settings.openRouter.enabled"
-                           placeholder="Modell auswählen oder suchen..."
-                           (ngModelChange)="onSettingsChange()"
-                           (open)="onDropdownOpen('openRouter')"
-                           (close)="onDropdownClose('openRouter')"
-                           [loading]="loadingModels"
-                           [virtualScroll]="true"
-                           class="ng-select-custom">
-                </ng-select>
-                <div class="model-info">
-                  <p *ngIf="modelLoadError" class="error-text">{{ modelLoadError }}</p>
-                  <p *ngIf="!modelLoadError && openRouterModels.length > 0" class="info-text">
-                    {{ openRouterModels.length }} Modelle verfügbar. Preise in EUR pro 1M Tokens.
-                  </p>
-                  <p *ngIf="!modelLoadError && openRouterModels.length === 0 && settings.openRouter.enabled" class="info-text">
-                    Klicken Sie "Modelle laden" um verfügbare Modelle anzuzeigen.
-                  </p>
-                </div>
-              </div>
+            <div class="model-info" [class.disabled]="!settings.openRouter.enabled">
+              <p class="info-text">Nutzen Sie die globale Model-Auswahl oben.</p>
             </div>
 
             <div class="settings-row" [class.disabled]="!settings.openRouter.enabled">
@@ -262,20 +285,9 @@ import { NgSelectModule } from '@ng-select/ng-select';
               </ion-input>
             </ion-item>
 
-            <ion-item [class.disabled]="!settings.googleGemini.enabled">
-              <ion-label>Model</ion-label>
-              <ion-select
-                [(ngModel)]="settings.googleGemini.model"
-                (ngModelChange)="onSettingsChange()"
-                interface="popover"
-                [disabled]="!settings.googleGemini.enabled"
-                slot="end">
-                <ion-select-option value="gemini-2.5-flash">Gemini 2.5 Flash</ion-select-option>
-                <ion-select-option value="gemini-2.5-pro">Gemini 2.5 Pro</ion-select-option>
-                <ion-select-option value="gemini-1.5-flash">Gemini 1.5 Flash</ion-select-option>
-                <ion-select-option value="gemini-1.5-pro">Gemini 1.5 Pro</ion-select-option>
-              </ion-select>
-            </ion-item>
+            <div class="model-info" [class.disabled]="!settings.googleGemini.enabled">
+              <p class="info-text">Nutzen Sie die globale Model-Auswahl oben.</p>
+            </div>
 
             <div class="settings-row" [class.disabled]="!settings.googleGemini.enabled">
               <ion-item>
@@ -595,6 +607,50 @@ import { NgSelectModule } from '@ng-select/ng-select';
       color: #6c757d;
     }
 
+    .model-option {
+      padding: 0.5rem 0;
+    }
+
+    .model-option-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .provider-icon {
+      font-size: 1.2rem;
+      width: 1.2rem;
+      height: 1.2rem;
+    }
+
+    .provider-icon.gemini {
+      color: #4285f4;
+    }
+
+    .provider-icon.openrouter {
+      color: #00a67e;
+    }
+
+    .model-label {
+      font-weight: 500;
+      color: #e0e0e0;
+    }
+
+    .model-option-details {
+      display: flex;
+      gap: 1rem;
+      font-size: 0.85rem;
+      color: #999;
+      margin-bottom: 0.25rem;
+    }
+
+    .model-description {
+      font-size: 0.8rem;
+      color: #777;
+      line-height: 1.3;
+    }
+
     .content-filter-section {
       margin-top: 1rem;
       padding-top: 1rem;
@@ -761,6 +817,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
   openRouterModels: ModelOption[] = [];
   replicateModels: ModelOption[] = [];
   geminiModels: ModelOption[] = [];
+  combinedModels: ModelOption[] = [];
   loadingModels = false;
   modelLoadError: string | null = null;
 
@@ -771,7 +828,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
   ) {
     this.settings = this.settingsService.getSettings();
     // Register Ionic icons
-    addIcons({ arrowBack, analytics, warning, checkmarkCircle });
+    addIcons({ arrowBack, analytics, warning, checkmarkCircle, globeOutline, logoGoogle });
   }
 
   ngOnInit(): void {
@@ -815,6 +872,12 @@ export class SettingsComponent implements OnInit, OnDestroy {
     
     // Initial auto-load check
     this.autoLoadModelsIfNeeded();
+    
+    // Load combined models if any API is enabled
+    if ((this.settings.openRouter.enabled && this.settings.openRouter.apiKey) ||
+        (this.settings.googleGemini.enabled && this.settings.googleGemini.apiKey)) {
+      this.loadCombinedModels();
+    }
   }
 
   ngOnDestroy(): void {
@@ -867,17 +930,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
   }
   
   onProviderToggle(provider: 'openRouter' | 'replicate' | 'googleGemini'): void {
-    // Handle mutual exclusion for text generation APIs
-    if (provider === 'openRouter' && this.settings.openRouter.enabled) {
-      // If OpenRouter is being enabled, disable Gemini
-      this.settings.googleGemini.enabled = false;
-      console.log('OpenRouter enabled, disabling Gemini');
-    } else if (provider === 'googleGemini' && this.settings.googleGemini.enabled) {
-      // If Gemini is being enabled, disable OpenRouter
-      this.settings.openRouter.enabled = false;
-      console.log('Gemini enabled, disabling OpenRouter');
-    }
-    
+    // No more mutual exclusion - both can be enabled at the same time
     this.onSettingsChange();
     
     // Load models when provider is enabled and has API key
@@ -994,5 +1047,42 @@ export class SettingsComponent implements OnInit, OnDestroy {
     console.log('OpenRouter models:', this.openRouterModels);
     console.log('Replicate enabled:', this.settings.replicate.enabled);
     console.log('Replicate models:', this.replicateModels);
+  }
+
+  loadCombinedModels(): void {
+    this.modelLoadError = null;
+    this.modelService.getCombinedModels().subscribe({
+      next: (models) => {
+        this.combinedModels = models;
+        console.log('Combined models loaded successfully:', models);
+        
+        // If there's a previously selected model, ensure it's still in the list
+        if (this.settings.selectedModel && !models.find(m => m.id === this.settings.selectedModel)) {
+          console.warn('Previously selected model not found in combined models:', this.settings.selectedModel);
+        }
+      },
+      error: (error) => {
+        console.error('Failed to load combined models:', error);
+        this.modelLoadError = 'Fehler beim Laden der Modelle. Überprüfen Sie Ihre API-Keys und Internetverbindung.';
+      }
+    });
+  }
+
+  onGlobalModelChange(): void {
+    console.log('Global model changed to:', this.settings.selectedModel);
+    
+    // Update the individual API model settings based on the selected model
+    if (this.settings.selectedModel) {
+      const [provider, ...modelIdParts] = this.settings.selectedModel.split(':');
+      const modelId = modelIdParts.join(':'); // Rejoin in case model ID contains colons
+      
+      if (provider === 'openrouter') {
+        this.settings.openRouter.model = modelId;
+      } else if (provider === 'gemini') {
+        this.settings.googleGemini.model = modelId;
+      }
+    }
+    
+    this.onSettingsChange();
   }
 }

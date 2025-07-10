@@ -2,6 +2,7 @@ import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, AfterViewIni
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgSelectModule } from '@ng-select/ng-select';
+import { IonIcon } from '@ionic/angular/standalone';
 import { BeatAI, BeatAIPromptEvent } from '../models/beat-ai.interface';
 import { Subscription } from 'rxjs';
 import { ModelOption } from '../../core/models/model.interface';
@@ -12,7 +13,7 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
 @Component({
   selector: 'app-beat-ai',
   standalone: true,
-  imports: [CommonModule, FormsModule, NgSelectModule],
+  imports: [CommonModule, FormsModule, NgSelectModule, IonIcon],
   template: `
     <div class="beat-ai-container" [class.editing]="beatData.isEditing" [class.generating]="beatData.isGenerating">
       <!-- Prompt Input Section -->
@@ -94,6 +95,12 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
                            placeholder="Modell auswählen..."
                            class="model-select"
                            appendTo="body">
+                  <ng-template ng-option-tmp let-item="item">
+                    <div class="model-option-inline">
+                      <ion-icon [name]="getProviderIcon(item.provider)" class="provider-icon-inline" [class.gemini]="item.provider === 'gemini'" [class.openrouter]="item.provider === 'openrouter'"></ion-icon>
+                      <span class="model-label">{{ item.label }}</span>
+                    </div>
+                  </ng-template>
                 </ng-select>
               </div>
             </div>
@@ -327,6 +334,26 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
     .model-cost {
       color: #28a745;
       font-weight: 500;
+    }
+    
+    .model-option-inline {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .provider-icon-inline {
+      font-size: 1rem;
+      width: 1rem;
+      height: 1rem;
+    }
+    
+    .provider-icon-inline.gemini {
+      color: #4285f4;
+    }
+    
+    .provider-icon-inline.openrouter {
+      color: #00a67e;
     }
 
     .prompt-actions {
@@ -1015,9 +1042,9 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
   }
   
   private reloadModels(): void {
-    // Load models based on currently active API
+    // Load combined models from all active APIs
     this.subscription.add(
-      this.modelService.getAvailableModels().subscribe(models => {
+      this.modelService.getCombinedModels().subscribe(models => {
         this.availableModels = models;
         if (models.length > 0 && !this.selectedModel) {
           this.setDefaultModel();
@@ -1029,12 +1056,9 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
   private setDefaultModel(): void {
     const settings = this.settingsService.getSettings();
     
-    if (settings.googleGemini.enabled && settings.googleGemini.model) {
-      this.selectedModel = settings.googleGemini.model;
-    } else if (settings.openRouter.enabled && settings.openRouter.model) {
-      this.selectedModel = settings.openRouter.model;
-    } else if (settings.replicate.enabled && settings.replicate.model) {
-      this.selectedModel = settings.replicate.model;
+    // Use the global selected model if available
+    if (settings.selectedModel) {
+      this.selectedModel = settings.selectedModel;
     } else if (this.availableModels.length > 0) {
       // Fallback to first available model
       this.selectedModel = this.availableModels[0].id;
@@ -1078,5 +1102,9 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
     this.beatAIService.stopGeneration(this.beatData.id);
     this.beatData.isGenerating = false;
     this.contentUpdate.emit(this.beatData);
+  }
+
+  getProviderIcon(provider: string): string {
+    return provider === 'gemini' ? 'logo-google' : 'globe-outline';
   }
 }

@@ -37,9 +37,19 @@ export class BeatAIService {
   } = {}): Observable<string> {
     const settings = this.settingsService.getSettings();
     
-    // Check which API is enabled and configured
-    const useGoogleGemini = settings.googleGemini.enabled && settings.googleGemini.apiKey;
-    const useOpenRouter = settings.openRouter.enabled && settings.openRouter.apiKey;
+    // Extract provider and model ID from the combined format
+    let provider: string | null = null;
+    let actualModelId: string | null = null;
+    
+    if (options.model) {
+      const [modelProvider, ...modelIdParts] = options.model.split(':');
+      provider = modelProvider;
+      actualModelId = modelIdParts.join(':'); // Rejoin in case model ID contains colons
+    }
+    
+    // Check which API to use based on the model's provider
+    const useGoogleGemini = provider === 'gemini' && settings.googleGemini.enabled && settings.googleGemini.apiKey;
+    const useOpenRouter = provider === 'openrouter' && settings.openRouter.enabled && settings.openRouter.apiKey;
     
     if (!useGoogleGemini && !useOpenRouter) {
       console.warn('No AI API configured, using fallback content');
@@ -89,10 +99,13 @@ export class BeatAIService {
         // Store the active generation
         this.activeGenerations.set(beatId, requestId);
 
+        // Update options with the actual model ID
+        const updatedOptions = { ...options, model: actualModelId };
+        
         // Choose API based on configuration (prefer Google Gemini if available)
         const apiCall = useGoogleGemini 
-          ? this.callGoogleGeminiStreamingAPI(enhancedPrompt, options, maxTokens, wordCount, requestId, beatId)
-          : this.callOpenRouterStreamingAPI(enhancedPrompt, options, maxTokens, wordCount, requestId, beatId);
+          ? this.callGoogleGeminiStreamingAPI(enhancedPrompt, updatedOptions, maxTokens, wordCount, requestId, beatId)
+          : this.callOpenRouterStreamingAPI(enhancedPrompt, updatedOptions, maxTokens, wordCount, requestId, beatId);
 
         return apiCall.pipe(
           catchError(error => {

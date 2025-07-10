@@ -293,6 +293,39 @@ export class ModelService {
   }
 
   /**
+   * Get combined models from both OpenRouter and Gemini APIs
+   */
+  getCombinedModels(): Observable<ModelOption[]> {
+    const settings = this.settingsService.getSettings();
+    const modelsToLoad: Observable<ModelOption[]>[] = [];
+    
+    if (settings.openRouter.enabled && settings.openRouter.apiKey) {
+      modelsToLoad.push(this.loadOpenRouterModels());
+    }
+    
+    if (settings.googleGemini.enabled && settings.googleGemini.apiKey) {
+      modelsToLoad.push(this.loadGeminiModels());
+    }
+    
+    if (modelsToLoad.length === 0) {
+      return of([]);
+    }
+    
+    return forkJoin(modelsToLoad).pipe(
+      map(results => {
+        // Flatten and combine all models
+        const allModels = results.flat();
+        
+        // Add provider prefix to model IDs to ensure uniqueness
+        return allModels.map(model => ({
+          ...model,
+          id: `${model.provider}:${model.id}`
+        }));
+      })
+    );
+  }
+
+  /**
    * Get currently loaded models based on the active API
    */
   getCurrentAvailableModels(): ModelOption[] {
@@ -307,5 +340,31 @@ export class ModelService {
     }
     
     return [];
+  }
+
+  /**
+   * Get currently loaded combined models from both APIs
+   */
+  getCurrentCombinedModels(): ModelOption[] {
+    const settings = this.settingsService.getSettings();
+    const allModels: ModelOption[] = [];
+    
+    if (settings.openRouter.enabled && settings.openRouter.apiKey) {
+      const openRouterModels = this.getCurrentOpenRouterModels().map(model => ({
+        ...model,
+        id: `openrouter:${model.id}`
+      }));
+      allModels.push(...openRouterModels);
+    }
+    
+    if (settings.googleGemini.enabled && settings.googleGemini.apiKey) {
+      const geminiModels = this.getCurrentGeminiModels().map(model => ({
+        ...model,
+        id: `gemini:${model.id}`
+      }));
+      allModels.push(...geminiModels);
+    }
+    
+    return allModels;
   }
 }

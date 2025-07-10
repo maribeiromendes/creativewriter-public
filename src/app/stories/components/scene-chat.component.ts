@@ -940,13 +940,23 @@ Strukturiere die Antwort klar nach Gegenständen getrennt.`
   private callAIDirectly(prompt: string, beatId: string, options: { wordCount: number }): Observable<string> {
     const settings = this.settingsService.getSettings();
     
-    // Check which API is enabled
-    const useGoogleGemini = settings.googleGemini.enabled && settings.googleGemini.apiKey;
-    const useOpenRouter = settings.openRouter.enabled && settings.openRouter.apiKey;
+    // Extract provider from the global selected model
+    let provider: string | null = null;
+    let actualModelId: string | null = null;
+    
+    if (settings.selectedModel) {
+      const [modelProvider, ...modelIdParts] = settings.selectedModel.split(':');
+      provider = modelProvider;
+      actualModelId = modelIdParts.join(':'); // Rejoin in case model ID contains colons
+    }
+    
+    // Check which API to use based on the selected model's provider
+    const useGoogleGemini = provider === 'gemini' && settings.googleGemini.enabled && settings.googleGemini.apiKey;
+    const useOpenRouter = provider === 'openrouter' && settings.openRouter.enabled && settings.openRouter.apiKey;
     
     if (!useGoogleGemini && !useOpenRouter) {
-      console.warn('No AI API configured');
-      return of('Entschuldigung, keine AI API konfiguriert.');
+      console.warn('No AI API configured or no model selected');
+      return of('Entschuldigung, keine AI API konfiguriert oder kein Modell ausgewählt.');
     }
     
     // For direct calls, we bypass the beat AI service and call the API directly
@@ -958,8 +968,8 @@ Strukturiere die Antwort klar nach Gegenständen getrennt.`
       
       // Create a simple API call based on configuration
       const apiCall = useGoogleGemini 
-        ? this.callGeminiAPI(prompt, options, beatId)
-        : this.callOpenRouterAPI(prompt, options, beatId);
+        ? this.callGeminiAPI(prompt, { ...options, model: actualModelId }, beatId)
+        : this.callOpenRouterAPI(prompt, { ...options, model: actualModelId }, beatId);
         
       apiCall.subscribe({
         next: (chunk) => {
@@ -993,17 +1003,17 @@ Strukturiere die Antwort klar nach Gegenständen getrennt.`
       
       // Store log ID for later use
       if (useGoogleGemini) {
-        logId = this.logGeminiRequest(prompt, options);
+        logId = this.logGeminiRequest(prompt, { ...options, model: actualModelId });
       } else {
-        logId = this.logOpenRouterRequest(prompt, options);
+        logId = this.logOpenRouterRequest(prompt, { ...options, model: actualModelId });
       }
     });
   }
   
-  private callGeminiAPI(prompt: string, options: { wordCount: number }, beatId: string): Observable<string> {
+  private callGeminiAPI(prompt: string, options: { wordCount: number; model?: string | null }, beatId: string): Observable<string> {
     const settings = this.settingsService.getSettings();
     const apiKey = settings.googleGemini.apiKey;
-    const model = settings.googleGemini.model || 'gemini-1.5-flash';
+    const model = options.model || settings.googleGemini.model || 'gemini-1.5-flash';
     
     const requestBody = {
       contents: [{
@@ -1034,10 +1044,10 @@ Strukturiere die Antwort klar nach Gegenständen getrennt.`
     );
   }
   
-  private callOpenRouterAPI(prompt: string, options: { wordCount: number }, beatId: string): Observable<string> {
+  private callOpenRouterAPI(prompt: string, options: { wordCount: number; model?: string | null }, beatId: string): Observable<string> {
     const settings = this.settingsService.getSettings();
     const apiKey = settings.openRouter.apiKey;
-    const model = settings.openRouter.model || 'anthropic/claude-3-haiku';
+    const model = options.model || settings.openRouter.model || 'anthropic/claude-3-haiku';
     
     const requestBody = {
       model: model,
@@ -1125,9 +1135,9 @@ Strukturiere die Antwort klar nach Gegenständen getrennt.`
     });
   }
 
-  private logGeminiRequest(prompt: string, options: { wordCount: number }): string {
+  private logGeminiRequest(prompt: string, options: { wordCount: number; model?: string | null }): string {
     const settings = this.settingsService.getSettings();
-    const model = settings.googleGemini.model || 'gemini-1.5-flash';
+    const model = options.model || settings.googleGemini.model || 'gemini-1.5-flash';
     const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent`;
     
     return this.aiLogger.logRequest({
@@ -1147,9 +1157,9 @@ Strukturiere die Antwort klar nach Gegenständen getrennt.`
     });
   }
   
-  private logOpenRouterRequest(prompt: string, options: { wordCount: number }): string {
+  private logOpenRouterRequest(prompt: string, options: { wordCount: number; model?: string | null }): string {
     const settings = this.settingsService.getSettings();
-    const model = settings.openRouter.model || 'anthropic/claude-3-haiku';
+    const model = options.model || settings.openRouter.model || 'anthropic/claude-3-haiku';
     const endpoint = 'https://openrouter.ai/api/v1/chat/completions';
     
     return this.aiLogger.logRequest({
