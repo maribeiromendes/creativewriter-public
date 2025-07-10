@@ -80,7 +80,8 @@ import { NgSelectModule } from '@ng-select/ng-select';
                            (ngModelChange)="onGlobalModelChange()"
                            [loading]="loadingModels"
                            [virtualScroll]="true"
-                           class="ng-select-custom">
+                           class="ng-select-custom"
+                           appendTo="body">
                   <ng-template ng-option-tmp let-item="item">
                     <div class="model-option">
                       <div class="model-option-header">
@@ -508,6 +509,11 @@ import { NgSelectModule } from '@ng-select/ng-select';
       --color: #e0e0e0;
     }
 
+    /* Ensure ng-dropdown-panel appears above everything */
+    :global(.ng-dropdown-panel-open) {
+      overflow: visible !important;
+    }
+
     .settings-content {
       max-width: 800px;
       margin: 0 auto;
@@ -519,11 +525,16 @@ import { NgSelectModule } from '@ng-select/ng-select';
       margin-bottom: 1rem;
       --background: #2d2d2d;
       --color: #e0e0e0;
+      overflow: visible !important;
     }
 
     ion-card-title {
       color: #f8f9fa;
       font-size: 1.2rem;
+    }
+
+    ion-card-content {
+      overflow: visible !important;
     }
 
     ion-item {
@@ -695,7 +706,11 @@ import { NgSelectModule } from '@ng-select/ng-select';
     :global(.ng-select) {
       font-size: 1rem;
       position: relative !important;
-      z-index: 1000 !important;
+    }
+    
+    /* Ensure dropdown appears above modals and other overlays */
+    :global(.ng-select.ng-select-opened > .ng-select-container) {
+      z-index: 1050 !important;
     }
     
     :global(.ng-select-custom) {
@@ -755,8 +770,10 @@ import { NgSelectModule } from '@ng-select/ng-select';
       border: 1px solid #404040 !important;
       border-radius: 6px !important;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
-      z-index: 10000 !important;
+      z-index: 100000 !important;
       position: fixed !important;
+      max-height: 400px !important;
+      overflow-y: auto !important;
     }
     
     :global(.ng-dropdown-panel .ng-dropdown-panel-items) {
