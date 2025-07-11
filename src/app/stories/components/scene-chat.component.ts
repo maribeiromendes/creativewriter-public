@@ -707,13 +707,19 @@ export class SceneChatComponent implements OnInit, OnDestroy {
         contextText += `Szenen-Text:\n${sceneContext}\n\n`;
       }
       
+      // Add chat history context (exclude initial system message and preset prompts)
+      const chatHistory = this.buildChatHistory();
+      if (chatHistory) {
+        contextText += `Bisheriger Chat-Verlauf:\n${chatHistory}\n\n`;
+      }
+      
       // Build prompt based on type
       if (extractionType) {
         // Use the extraction prompt directly
         prompt = `${contextText}${userMessage}`;
       } else {
         // For normal chat, just add the user's question
-        prompt = `${contextText}Frage des Nutzers: ${userMessage}\n\nBitte antworte hilfreich und kreativ auf die Frage basierend auf dem gegebenen Kontext.`;
+        prompt = `${contextText}Frage des Nutzers: ${userMessage}\n\nBitte antworte hilfreich und kreativ auf die Frage basierend auf dem gegebenen Kontext und dem bisherigen Gespräch.`;
       }
       
       // Call AI directly without the beat generation template
@@ -1436,5 +1442,40 @@ Strukturiere die Antwort klar nach Gegenständen getrennt.`
   
   getProviderIcon(provider: string): string {
     return provider === 'gemini' ? 'logo-google' : 'globe-outline';
+  }
+  
+  private buildChatHistory(): string {
+    // Filter out system messages, preset prompts, and the current message being processed
+    const relevantMessages = this.messages.filter(message => {
+      // Skip initial system message
+      if (message.content.includes('Hallo! Ich bin dein KI-Assistent')) {
+        return false;
+      }
+      // Skip preset prompt messages (they have extractionType but we want to keep extraction results)
+      if (message.isPresetPrompt) {
+        return false;
+      }
+      return true;
+    });
+    
+    // If no relevant messages, return empty string
+    if (relevantMessages.length === 0) {
+      return '';
+    }
+    
+    // Format messages for AI context
+    const formattedMessages = relevantMessages.map(message => {
+      const role = message.role === 'user' ? 'Nutzer' : 'Assistent';
+      // Clean up any HTML formatting for AI context
+      const content = message.content
+        .replace(/<br>/g, '\n')
+        .replace(/<strong>(.*?)<\/strong>/g, '**$1**')
+        .replace(/<em>(.*?)<\/em>/g, '*$1*')
+        .replace(/<[^>]*>/g, ''); // Remove any other HTML tags
+      
+      return `${role}: ${content}`;
+    });
+    
+    return formattedMessages.join('\n\n');
   }
 }
