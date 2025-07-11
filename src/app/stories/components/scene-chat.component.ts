@@ -11,7 +11,8 @@ import { addIcons } from 'ionicons';
 import { 
   arrowBack, sendOutline, peopleOutline, documentTextOutline, 
   addOutline, checkmarkOutline, closeOutline, sparklesOutline,
-  personOutline, locationOutline, cubeOutline, readerOutline
+  personOutline, locationOutline, cubeOutline, readerOutline,
+  copyOutline
 } from 'ionicons/icons';
 import { StoryService } from '../services/story.service';
 import { SettingsService } from '../../core/services/settings.service';
@@ -113,8 +114,17 @@ interface PresetPrompt {
             <div class="message-content">
               <div class="message-text" [innerHTML]="formatMessage(message.content)"></div>
               <div class="message-time">{{ formatTime(message.timestamp) }}</div>
-              <div class="message-actions" *ngIf="message.role === 'assistant' && message.extractionType">
+              <div class="message-actions">
                 <ion-button 
+                  size="small" 
+                  fill="clear" 
+                  color="medium"
+                  (click)="copyToClipboard(message.content, $event)"
+                  title="Nachricht kopieren">
+                  <ion-icon name="copy-outline" slot="icon-only"></ion-icon>
+                </ion-button>
+                <ion-button 
+                  *ngIf="message.role === 'assistant' && message.extractionType"
                   size="small" 
                   fill="outline" 
                   color="primary"
@@ -324,12 +334,24 @@ interface PresetPrompt {
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
+      align-items: center;
     }
     
     .message-actions ion-button {
       --padding-start: 8px;
       --padding-end: 8px;
       font-size: 0.875rem;
+    }
+
+    .message-actions ion-button[fill="clear"] {
+      --color: var(--ion-color-medium);
+      opacity: 0.6;
+      transition: opacity 0.2s;
+    }
+
+    .message-actions ion-button[fill="clear"]:hover {
+      opacity: 1;
+      --color: var(--ion-color-primary);
     }
 
     .typing-indicator {
@@ -431,6 +453,10 @@ interface PresetPrompt {
       .chat-footer.keyboard-visible {
         transform: translateY(-250px);
       }
+
+      .message-actions ion-button[fill="clear"] {
+        opacity: 1; /* Always visible on mobile */
+      }
     }
   `]
 })
@@ -471,7 +497,8 @@ export class SceneChatComponent implements OnInit, OnDestroy {
     addIcons({ 
       arrowBack, sendOutline, peopleOutline, documentTextOutline, 
       addOutline, checkmarkOutline, closeOutline, sparklesOutline,
-      personOutline, locationOutline, cubeOutline, readerOutline
+      personOutline, locationOutline, cubeOutline, readerOutline,
+      copyOutline
     });
     
     this.initializePresetPrompts();
@@ -1215,5 +1242,61 @@ Strukturiere die Antwort klar nach Gegenständen getrennt.`
     }
     
     return entries;
+  }
+
+  async copyToClipboard(text: string, event: Event): Promise<void> {
+    // Prevent event bubbling
+    event.stopPropagation();
+    
+    try {
+      await navigator.clipboard.writeText(text);
+      
+      // Show temporary success feedback
+      const button = event.target as HTMLElement;
+      const icon = button.querySelector('ion-icon') || button;
+      const originalName = icon.getAttribute('name');
+      
+      // Change icon to checkmark temporarily
+      icon.setAttribute('name', 'checkmark-outline');
+      icon.setAttribute('style', 'color: var(--ion-color-success)');
+      
+      // Reset icon after 1.5 seconds
+      setTimeout(() => {
+        icon.setAttribute('name', originalName || 'copy-outline');
+        icon.removeAttribute('style');
+      }, 1500);
+      
+    } catch (err) {
+      console.error('Failed to copy text to clipboard:', err);
+      
+      // Fallback for older browsers or when clipboard API fails
+      try {
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        textArea.style.top = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        
+        // Show success feedback for fallback method too
+        const button = event.target as HTMLElement;
+        const icon = button.querySelector('ion-icon') || button;
+        const originalName = icon.getAttribute('name');
+        
+        icon.setAttribute('name', 'checkmark-outline');
+        icon.setAttribute('style', 'color: var(--ion-color-success)');
+        
+        setTimeout(() => {
+          icon.setAttribute('name', originalName || 'copy-outline');
+          icon.removeAttribute('style');
+        }, 1500);
+      } catch (fallbackErr) {
+        console.error('Fallback copy method also failed:', fallbackErr);
+      }
+    }
   }
 }
