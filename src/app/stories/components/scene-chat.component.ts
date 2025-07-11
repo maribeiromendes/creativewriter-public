@@ -12,7 +12,7 @@ import {
   arrowBack, sendOutline, peopleOutline, documentTextOutline, 
   addOutline, checkmarkOutline, closeOutline, sparklesOutline,
   personOutline, locationOutline, cubeOutline, readerOutline,
-  copyOutline, logoGoogle, globeOutline, helpCircleOutline
+  copyOutline, logoGoogle, globeOutline
 } from 'ionicons/icons';
 import { StoryService } from '../services/story.service';
 import { SettingsService } from '../../core/services/settings.service';
@@ -86,15 +86,15 @@ interface PresetPrompt {
         </ion-toolbar>
         <ion-toolbar class="model-toolbar">
           <div class="model-selection-container">
-            <ng-select 
-              [(ngModel)]="selectedModel"
-              [items]="availableModels"
-              bindLabel="label"
-              bindValue="id"
-              [searchable]="true"
-              placeholder="Modell auswählen..."
-              appendTo="body"
-              class="model-select">
+            <ng-select [(ngModel)]="selectedModel"
+                       [items]="availableModels"
+                       bindLabel="label"
+                       bindValue="id"
+                       [clearable]="false"
+                       [searchable]="true"
+                       placeholder="Modell auswählen..."
+                       class="model-select"
+                       appendTo="body">
               <ng-template ng-option-tmp let-item="item">
                 <div class="model-option-inline">
                   <ion-icon [name]="getProviderIcon(item.provider)" 
@@ -103,9 +103,6 @@ interface PresetPrompt {
                             [class.openrouter]="item.provider === 'openrouter'">
                   </ion-icon>
                   <span class="model-label">{{ item.label }}</span>
-                  <span class="model-cost" *ngIf="item.costInputEur !== '0' || item.costOutputEur !== '0'">
-                    (€{{ item.costInputEur }}/€{{ item.costOutputEur }})
-                  </span>
                 </div>
               </ng-template>
             </ng-select>
@@ -515,19 +512,13 @@ interface PresetPrompt {
     }
 
     .provider-icon-inline.openrouter {
-      color: #ff6b6b;
+      color: #00a67e;
     }
 
     .model-label {
       flex: 1;
       overflow: hidden;
       text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .model-cost {
-      font-size: 12px;
-      color: var(--ion-color-medium);
       white-space: nowrap;
     }
 
@@ -606,7 +597,7 @@ export class SceneChatComponent implements OnInit, OnDestroy {
       arrowBack, sendOutline, peopleOutline, documentTextOutline, 
       addOutline, checkmarkOutline, closeOutline, sparklesOutline,
       personOutline, locationOutline, cubeOutline, readerOutline,
-      copyOutline, logoGoogle, globeOutline, helpCircleOutline
+      copyOutline, logoGoogle, globeOutline
     });
     
     this.initializePresetPrompts();
@@ -626,12 +617,6 @@ export class SceneChatComponent implements OnInit, OnDestroy {
     
     // Load available models
     this.loadAvailableModels();
-    
-    // Set default model from settings
-    const settings = this.settingsService.getSettings();
-    if (settings.selectedModel) {
-      this.selectedModel = settings.selectedModel;
-    }
   }
 
   ngOnDestroy() {
@@ -1084,7 +1069,7 @@ Strukturiere die Antwort klar nach Gegenständen getrennt.`
   private callAIDirectly(prompt: string, beatId: string, options: { wordCount: number }): Observable<string> {
     const settings = this.settingsService.getSettings();
     
-    // Use local selected model if available, otherwise fall back to global
+    // Use selected model if available, otherwise fall back to global
     const modelToUse = this.selectedModel || settings.selectedModel;
     
     // Extract provider from the selected model
@@ -1420,24 +1405,36 @@ Strukturiere die Antwort klar nach Gegenständen getrennt.`
     }
   }
   
-  private loadAvailableModels() {
-    const subscription = this.modelService.getCombinedModels().subscribe(models => {
-      this.availableModels = models;
-    });
-    this.subscriptions.add(subscription);
+  private loadAvailableModels(): void {
+    this.subscriptions.add(
+      this.settingsService.settings$.subscribe(() => {
+        this.reloadModels();
+      })
+    );
+    this.reloadModels();
   }
-  
-  getProviderIcon(provider: string): string {
-    switch (provider) {
-      case 'gemini':
-        return 'logo-google';
-      case 'openrouter':
-        return 'globe-outline';
-      case 'replicate':
-        return 'cube-outline';
-      default:
-        return 'help-circle-outline';
+
+  private reloadModels(): void {
+    this.subscriptions.add(
+      this.modelService.getCombinedModels().subscribe(models => {
+        this.availableModels = models;
+        if (models.length > 0 && !this.selectedModel) {
+          this.setDefaultModel();
+        }
+      })
+    );
+  }
+
+  private setDefaultModel(): void {
+    const settings = this.settingsService.getSettings();
+    if (settings.selectedModel) {
+      this.selectedModel = settings.selectedModel;
+    } else if (this.availableModels.length > 0) {
+      this.selectedModel = this.availableModels[0].id;
     }
   }
   
+  getProviderIcon(provider: string): string {
+    return provider === 'gemini' ? 'logo-google' : 'globe-outline';
+  }
 }
