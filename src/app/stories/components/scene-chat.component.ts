@@ -12,7 +12,7 @@ import {
   arrowBack, sendOutline, peopleOutline, documentTextOutline, 
   addOutline, checkmarkOutline, closeOutline, sparklesOutline,
   personOutline, locationOutline, cubeOutline, readerOutline,
-  copyOutline
+  copyOutline, logoGoogle, globeOutline, helpCircleOutline
 } from 'ionicons/icons';
 import { StoryService } from '../services/story.service';
 import { SettingsService } from '../../core/services/settings.service';
@@ -20,9 +20,12 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
 import { PromptManagerService } from '../../shared/services/prompt-manager.service';
 import { CodexService } from '../services/codex.service';
 import { AIRequestLoggerService } from '../../core/services/ai-request-logger.service';
+import { ModelService } from '../../core/services/model.service';
 import { Story, Scene, Chapter } from '../models/story.interface';
+import { ModelOption } from '../../core/models/model.interface';
 import { Subscription, Observable, of, from } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
+import { NgSelectModule } from '@ng-select/ng-select';
 
 interface ChatMessage {
   role: 'user' | 'assistant';
@@ -54,7 +57,7 @@ interface PresetPrompt {
   selector: 'app-scene-chat',
   standalone: true,
   imports: [
-    CommonModule, FormsModule, 
+    CommonModule, FormsModule, NgSelectModule,
     IonHeader, IonToolbar, IonButtons, IonButton, IonIcon, IonTitle,
     IonContent, IonFooter, IonItem, IonLabel, IonTextarea, IonList,
     IonChip, IonAvatar, IonSearchbar, IonModal, IonCheckbox, IonItemDivider
@@ -80,6 +83,33 @@ interface PresetPrompt {
               <ion-icon name="add-outline" slot="icon-only"></ion-icon>
             </ion-button>
           </ion-buttons>
+        </ion-toolbar>
+        <ion-toolbar class="model-toolbar">
+          <div class="model-selection-container">
+            <ng-select 
+              [(ngModel)]="selectedModel"
+              [items]="availableModels"
+              bindLabel="label"
+              bindValue="id"
+              [searchable]="true"
+              placeholder="Modell auswählen..."
+              appendTo="body"
+              class="model-select">
+              <ng-template ng-option-tmp let-item="item">
+                <div class="model-option-inline">
+                  <ion-icon [name]="getProviderIcon(item.provider)" 
+                            class="provider-icon-inline" 
+                            [class.gemini]="item.provider === 'gemini'" 
+                            [class.openrouter]="item.provider === 'openrouter'">
+                  </ion-icon>
+                  <span class="model-label">{{ item.label }}</span>
+                  <span class="model-cost" *ngIf="item.costInputEur !== '0' || item.costOutputEur !== '0'">
+                    (€{{ item.costInputEur }}/€{{ item.costOutputEur }})
+                  </span>
+                </div>
+              </ng-template>
+            </ng-select>
+          </div>
         </ion-toolbar>
       </ion-header>
       
@@ -436,6 +466,71 @@ interface PresetPrompt {
       padding-bottom: 200px; /* Much more padding at bottom of modal list */
     }
 
+    .model-toolbar {
+      --background: var(--ion-background-color);
+      --border-width: 0 0 1px 0;
+      --border-color: var(--ion-border-color);
+      padding: 8px 16px;
+    }
+
+    .model-selection-container {
+      width: 100%;
+    }
+
+    .model-select {
+      --ng-select-height: 38px;
+      --ng-select-value-font-size: 14px;
+      --ng-select-bg: var(--ion-color-light);
+      --ng-select-border-color: var(--ion-border-color);
+      --ng-select-border-radius: 8px;
+      --ng-select-highlight: var(--ion-color-primary);
+      --ng-select-dropdown-bg: var(--ion-background-color);
+      --ng-select-dropdown-border-color: var(--ion-border-color);
+      --ng-select-option-bg: var(--ion-background-color);
+      --ng-select-option-hover-bg: var(--ion-color-light);
+      --ng-select-option-selected-bg: var(--ion-color-light-tint);
+    }
+
+    :host-context(.dark) .model-select {
+      --ng-select-bg: var(--ion-color-dark);
+      --ng-select-dropdown-bg: var(--ion-color-dark);
+      --ng-select-option-bg: var(--ion-color-dark);
+      --ng-select-option-hover-bg: var(--ion-color-medium);
+    }
+
+    .model-option-inline {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+    }
+
+    .provider-icon-inline {
+      font-size: 16px;
+      color: var(--ion-color-medium);
+    }
+
+    .provider-icon-inline.gemini {
+      color: #4285f4;
+    }
+
+    .provider-icon-inline.openrouter {
+      color: #ff6b6b;
+    }
+
+    .model-label {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .model-cost {
+      font-size: 12px;
+      color: var(--ion-color-medium);
+      white-space: nowrap;
+    }
+
     @media (max-width: 768px) {
       .message {
         max-width: 90%;
@@ -456,6 +551,15 @@ interface PresetPrompt {
 
       .message-actions ion-button[fill="clear"] {
         opacity: 1; /* Always visible on mobile */
+      }
+
+      .model-toolbar {
+        padding: 4px 8px;
+      }
+
+      .model-select {
+        --ng-select-height: 36px;
+        --ng-select-value-font-size: 13px;
       }
     }
   `]
@@ -480,6 +584,9 @@ export class SceneChatComponent implements OnInit, OnDestroy {
   
   includeStoryOutline: boolean = false;
   
+  selectedModel: string = '';
+  availableModels: ModelOption[] = [];
+  
   private subscriptions = new Subscription();
   private abortController: AbortController | null = null;
   keyboardVisible: boolean = false;
@@ -492,13 +599,14 @@ export class SceneChatComponent implements OnInit, OnDestroy {
     private beatAIService: BeatAIService,
     private promptManager: PromptManagerService,
     private codexService: CodexService,
-    private aiLogger: AIRequestLoggerService
+    private aiLogger: AIRequestLoggerService,
+    private modelService: ModelService
   ) {
     addIcons({ 
       arrowBack, sendOutline, peopleOutline, documentTextOutline, 
       addOutline, checkmarkOutline, closeOutline, sparklesOutline,
       personOutline, locationOutline, cubeOutline, readerOutline,
-      copyOutline
+      copyOutline, logoGoogle, globeOutline, helpCircleOutline
     });
     
     this.initializePresetPrompts();
@@ -514,6 +622,15 @@ export class SceneChatComponent implements OnInit, OnDestroy {
         console.error('Error loading story:', error);
         this.goBack();
       });
+    }
+    
+    // Load available models
+    this.loadAvailableModels();
+    
+    // Set default model from settings
+    const settings = this.settingsService.getSettings();
+    if (settings.selectedModel) {
+      this.selectedModel = settings.selectedModel;
     }
   }
 
@@ -967,12 +1084,15 @@ Strukturiere die Antwort klar nach Gegenständen getrennt.`
   private callAIDirectly(prompt: string, beatId: string, options: { wordCount: number }): Observable<string> {
     const settings = this.settingsService.getSettings();
     
-    // Extract provider from the global selected model
+    // Use local selected model if available, otherwise fall back to global
+    const modelToUse = this.selectedModel || settings.selectedModel;
+    
+    // Extract provider from the selected model
     let provider: string | null = null;
     let actualModelId: string | null = null;
     
-    if (settings.selectedModel) {
-      const [modelProvider, ...modelIdParts] = settings.selectedModel.split(':');
+    if (modelToUse) {
+      const [modelProvider, ...modelIdParts] = modelToUse.split(':');
       provider = modelProvider;
       actualModelId = modelIdParts.join(':'); // Rejoin in case model ID contains colons
     }
@@ -1299,4 +1419,25 @@ Strukturiere die Antwort klar nach Gegenständen getrennt.`
       }
     }
   }
+  
+  private loadAvailableModels() {
+    const subscription = this.modelService.getCombinedModels().subscribe(models => {
+      this.availableModels = models;
+    });
+    this.subscriptions.add(subscription);
+  }
+  
+  getProviderIcon(provider: string): string {
+    switch (provider) {
+      case 'gemini':
+        return 'logo-google';
+      case 'openrouter':
+        return 'globe-outline';
+      case 'replicate':
+        return 'cube-outline';
+      default:
+        return 'help-circle-outline';
+    }
+  }
+  
 }
