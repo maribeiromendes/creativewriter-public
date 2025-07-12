@@ -202,9 +202,9 @@ import { AuthService, User } from '../../core/services/auth.service';
       .mobile-fab-container {
         display: block;
         position: fixed;
-        bottom: 20px;
+        bottom: 60px;
         right: 20px;
-        z-index: 1000;
+        z-index: 9999;
       }
     }
     
@@ -212,15 +212,20 @@ import { AuthService, User } from '../../core/services/auth.service';
       width: 56px;
       height: 56px;
       border-radius: 50%;
-      background-color: var(--ion-color-primary);
+      background-color: #3880ff;
       color: white;
       border: none;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 24px;
       cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+    
+    .mobile-fab-button:active {
+      transform: scale(0.95);
     }
     
     .mobile-fab-menu {
@@ -259,7 +264,7 @@ import { AuthService, User } from '../../core/services/auth.service';
     /* Hide action buttons on mobile, show FAB */
     @media (max-width: 767px) {
       .story-list-container {
-        padding-bottom: 10rem;
+        padding-bottom: 8rem;
       }
       
       .action-buttons {
@@ -293,7 +298,7 @@ import { AuthService, User } from '../../core/services/auth.service';
     
     @media (max-width: 480px) {
       .story-list-container {
-        padding: 1rem 0.5rem 12rem;
+        padding: 1rem 0.5rem 10rem;
       }
       
       .user-info {
