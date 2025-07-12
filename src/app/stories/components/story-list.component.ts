@@ -196,6 +196,10 @@ import { AuthService, User } from '../../core/services/auth.service';
     
     /* Hide action buttons on mobile, show FAB */
     @media (max-width: 767px) {
+      .story-list-container {
+        padding-bottom: 6rem;
+      }
+      
       .action-buttons {
         display: none;
       }
@@ -226,7 +230,7 @@ import { AuthService, User } from '../../core/services/auth.service';
     
     @media (max-width: 480px) {
       .story-list-container {
-        padding: 1rem 0.5rem 5rem;
+        padding: 1rem 0.5rem 8rem;
       }
       
       .user-info {
