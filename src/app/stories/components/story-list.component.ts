@@ -202,7 +202,7 @@ import { AuthService, User } from '../../core/services/auth.service';
       .mobile-fab-container {
         display: block;
         position: fixed;
-        bottom: 60px;
+        bottom: 100px;
         right: 20px;
         z-index: 9999;
       }
@@ -264,7 +264,7 @@ import { AuthService, User } from '../../core/services/auth.service';
     /* Hide action buttons on mobile, show FAB */
     @media (max-width: 767px) {
       .story-list-container {
-        padding-bottom: 24rem;
+        padding-bottom: 8rem;
       }
       
       .action-buttons {
@@ -298,7 +298,7 @@ import { AuthService, User } from '../../core/services/auth.service';
     
     @media (max-width: 480px) {
       .story-list-container {
-        padding: 1rem 0.5rem 28rem;
+        padding: 1rem 0.5rem 10rem;
       }
       
       .user-info {
