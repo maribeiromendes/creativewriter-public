@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { 
   IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonChip, IonIcon, IonButton, 
-  IonFab, IonFabButton, IonFabList, IonHeader, IonToolbar, IonTitle, IonButtons, IonContent
+  IonHeader, IonToolbar, IonTitle, IonButtons, IonContent
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { add, download, settings, analytics, trash, create, image } from 'ionicons/icons';
@@ -19,7 +19,7 @@ import { AuthService, User } from '../../core/services/auth.service';
   imports: [
     CommonModule, 
     IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonChip, IonIcon, IonButton, 
-    IonFab, IonFabButton, IonFabList, IonHeader, IonToolbar, IonTitle, IonButtons, IonContent,
+    IonHeader, IonToolbar, IonTitle, IonButtons, IonContent,
     SyncStatusComponent, LoginComponent
   ],
   template: `
@@ -106,25 +106,28 @@ import { AuthService, User } from '../../core/services/auth.service';
       
       <!-- Login Modal -->
       <app-login></app-login>
-      </div>
       
-      <!-- Mobile FAB - außerhalb des containers -->
-      <ion-fab vertical="bottom" horizontal="end">
-        <ion-fab-button color="primary">
+      <!-- Mobile FAB Button -->
+      <div class="mobile-fab-container">
+        <button class="mobile-fab-button" (click)="toggleFabMenu()">
           <ion-icon name="add"></ion-icon>
-        </ion-fab-button>
-        <ion-fab-list side="top">
-          <ion-fab-button color="primary" (click)="createNewStory()">
+        </button>
+        <div class="mobile-fab-menu" *ngIf="fabMenuOpen">
+          <button class="mobile-fab-option" (click)="createNewStory()">
             <ion-icon name="create"></ion-icon>
-          </ion-fab-button>
-          <ion-fab-button color="secondary" (click)="importNovelCrafter()">
+            <span>Neue Geschichte</span>
+          </button>
+          <button class="mobile-fab-option" (click)="importNovelCrafter()">
             <ion-icon name="download"></ion-icon>
-          </ion-fab-button>
-          <ion-fab-button color="tertiary" (click)="goToImageGeneration()">
+            <span>Import</span>
+          </button>
+          <button class="mobile-fab-option" (click)="goToImageGeneration()">
             <ion-icon name="image"></ion-icon>
-          </ion-fab-button>
-        </ion-fab-list>
-      </ion-fab>
+            <span>Bilder</span>
+          </button>
+        </div>
+      </div>
+      </div>
     </ion-content>
   `,
   styles: [`
@@ -190,23 +193,68 @@ import { AuthService, User } from '../../core/services/auth.service';
       min-width: 200px;
     }
     
-    /* FAB positioning fix */
-    ion-fab {
-      z-index: 999;
+    /* Custom Mobile FAB */
+    .mobile-fab-container {
+      display: none;
     }
     
-    ion-fab-button {
-      --background: var(--ion-color-primary);
-      --background-activated: var(--ion-color-primary-shade);
-      --background-hover: var(--ion-color-primary-tint);
-    }
-    
-    /* Hide FAB on desktop, show action buttons */
-    @media (min-width: 768px) {
-      ion-fab {
-        display: none;
+    @media (max-width: 767px) {
+      .mobile-fab-container {
+        display: block;
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 1000;
       }
     }
+    
+    .mobile-fab-button {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background-color: var(--ion-color-primary);
+      color: white;
+      border: none;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      cursor: pointer;
+    }
+    
+    .mobile-fab-menu {
+      position: absolute;
+      bottom: 70px;
+      right: 0;
+      background: var(--ion-color-dark);
+      border-radius: 8px;
+      padding: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    }
+    
+    .mobile-fab-option {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: transparent;
+      color: white;
+      border: none;
+      padding: 12px 16px;
+      width: 100%;
+      text-align: left;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    
+    .mobile-fab-option:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+    
+    .mobile-fab-option ion-icon {
+      font-size: 20px;
+    }
+    
     
     /* Hide action buttons on mobile, show FAB */
     @media (max-width: 767px) {
@@ -218,10 +266,6 @@ import { AuthService, User } from '../../core/services/auth.service';
         display: none;
       }
       
-      ion-fab {
-        display: block !important;
-        opacity: 1 !important;
-      }
       
       .desktop-only {
         display: none;
@@ -333,6 +377,7 @@ import { AuthService, User } from '../../core/services/auth.service';
 export class StoryListComponent implements OnInit {
   stories: Story[] = [];
   currentUser: User | null = null;
+  fabMenuOpen = false;
 
   constructor(
     private storyService: StoryService,
@@ -364,7 +409,12 @@ export class StoryListComponent implements OnInit {
     this.stories = await this.storyService.getAllStories();
   }
 
+  toggleFabMenu(): void {
+    this.fabMenuOpen = !this.fabMenuOpen;
+  }
+
   async createNewStory(): Promise<void> {
+    this.fabMenuOpen = false;
     const newStory = await this.storyService.createStory();
     this.router.navigate(['/stories/editor', newStory.id]);
   }
@@ -382,10 +432,12 @@ export class StoryListComponent implements OnInit {
   }
 
   importNovelCrafter(): void {
+    this.fabMenuOpen = false;
     this.router.navigate(['/stories/import/novelcrafter']);
   }
 
   goToImageGeneration(): void {
+    this.fabMenuOpen = false;
     this.router.navigate(['/stories/image-generation']);
   }
 
