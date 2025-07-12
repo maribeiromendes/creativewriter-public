@@ -104,7 +104,11 @@ import { AuthService, User } from '../../core/services/auth.service';
         </div>
       </ng-template>
       
-      <!-- Mobile FAB -->
+      <!-- Login Modal -->
+      <app-login></app-login>
+      </div>
+      
+      <!-- Mobile FAB - außerhalb des containers -->
       <ion-fab vertical="bottom" horizontal="end" slot="fixed">
         <ion-fab-button color="primary">
           <ion-icon name="add"></ion-icon>
@@ -116,12 +120,11 @@ import { AuthService, User } from '../../core/services/auth.service';
           <ion-fab-button color="secondary" (click)="importNovelCrafter()">
             <ion-icon name="download"></ion-icon>
           </ion-fab-button>
+          <ion-fab-button color="tertiary" (click)="goToImageGeneration()">
+            <ion-icon name="image"></ion-icon>
+          </ion-fab-button>
         </ion-fab-list>
       </ion-fab>
-      
-      <!-- Login Modal -->
-      <app-login></app-login>
-      </div>
     </ion-content>
   `,
   styles: [`
