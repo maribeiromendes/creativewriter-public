@@ -190,6 +190,11 @@ import { AuthService, User } from '../../core/services/auth.service';
       min-width: 200px;
     }
     
+    /* FAB positioning fix */
+    ion-fab {
+      z-index: 999;
+    }
+    
     /* Hide FAB on desktop, show action buttons */
     @media (min-width: 768px) {
       ion-fab {
