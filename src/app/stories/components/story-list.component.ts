@@ -192,7 +192,16 @@ import { AuthService, User } from '../../core/services/auth.service';
     
     /* FAB positioning fix */
     ion-fab {
-      z-index: 999;
+      z-index: 999 !important;
+      position: fixed !important;
+      bottom: 20px !important;
+      right: 20px !important;
+    }
+    
+    ion-fab-button {
+      --background: var(--ion-color-primary);
+      --background-activated: var(--ion-color-primary-shade);
+      --background-hover: var(--ion-color-primary-tint);
     }
     
     /* Hide FAB on desktop, show action buttons */
@@ -210,6 +219,11 @@ import { AuthService, User } from '../../core/services/auth.service';
       
       .action-buttons {
         display: none;
+      }
+      
+      ion-fab {
+        display: block !important;
+        visibility: visible !important;
       }
       
       .desktop-only {
