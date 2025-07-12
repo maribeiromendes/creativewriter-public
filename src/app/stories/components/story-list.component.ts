@@ -141,7 +141,6 @@ import { AuthService, User } from '../../core/services/auth.service';
       margin: 0 auto;
       padding: 2rem;
       background-color: #1a1a1a;
-      min-height: 100vh;
     }
     
     .user-toolbar {
@@ -227,7 +226,7 @@ import { AuthService, User } from '../../core/services/auth.service';
     
     @media (max-width: 480px) {
       .story-list-container {
-        padding: 1rem 0.5rem;
+        padding: 1rem 0.5rem 5rem;
       }
       
       .user-info {
