@@ -109,7 +109,7 @@ import { AuthService, User } from '../../core/services/auth.service';
       </div>
       
       <!-- Mobile FAB - außerhalb des containers -->
-      <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+      <ion-fab vertical="bottom" horizontal="end">
         <ion-fab-button color="primary">
           <ion-icon name="add"></ion-icon>
         </ion-fab-button>
@@ -219,7 +219,8 @@ import { AuthService, User } from '../../core/services/auth.service';
       }
       
       ion-fab {
-        display: block;
+        display: block !important;
+        opacity: 1 !important;
       }
       
       .desktop-only {
