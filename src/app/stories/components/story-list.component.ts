@@ -192,10 +192,7 @@ import { AuthService, User } from '../../core/services/auth.service';
     
     /* FAB positioning fix */
     ion-fab {
-      z-index: 999 !important;
-      position: fixed !important;
-      bottom: 20px !important;
-      right: 20px !important;
+      z-index: 999;
     }
     
     ion-fab-button {
@@ -214,7 +211,7 @@ import { AuthService, User } from '../../core/services/auth.service';
     /* Hide action buttons on mobile, show FAB */
     @media (max-width: 767px) {
       .story-list-container {
-        padding-bottom: 6rem;
+        padding-bottom: 10rem;
       }
       
       .action-buttons {
@@ -222,8 +219,7 @@ import { AuthService, User } from '../../core/services/auth.service';
       }
       
       ion-fab {
-        display: block !important;
-        visibility: visible !important;
+        display: block;
       }
       
       .desktop-only {
@@ -252,7 +248,7 @@ import { AuthService, User } from '../../core/services/auth.service';
     
     @media (max-width: 480px) {
       .story-list-container {
-        padding: 1rem 0.5rem 8rem;
+        padding: 1rem 0.5rem 12rem;
       }
       
       .user-info {
