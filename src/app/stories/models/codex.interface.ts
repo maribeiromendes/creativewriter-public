@@ -8,6 +8,7 @@ export interface CodexEntry {
   metadata?: Record<string, any>;
   customFields?: CustomField[];
   storyRole?: StoryRole | '';
+  alwaysInclude?: boolean;
   order: number;
   createdAt: Date;
   updatedAt: Date;

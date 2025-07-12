@@ -662,7 +662,7 @@ export class BeatAIService {
           aliases: aliases,
           keywords: keywords,
           importance: importance,
-          globalInclude: entry.metadata?.['globalInclude'] || false,
+          globalInclude: entry.metadata?.['globalInclude'] || entry.alwaysInclude || false,
           lastMentioned: entry.metadata?.['lastMentioned'],
           mentionCount: entry.metadata?.['mentionCount']
         });

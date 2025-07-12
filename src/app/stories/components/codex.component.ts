@@ -9,12 +9,12 @@ import {
   IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonItem, IonLabel,
   IonSearchbar, IonList, IonChip, IonTextarea, IonInput,
   IonModal, IonGrid, IonRow, IonCol, IonText, IonNote,
-  IonSelect, IonSelectOption
+  IonSelect, IonSelectOption, IonToggle
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
   arrowBack, add, ellipsisVertical, create, trash, save, close,
-  search, person, bookmark, pricetag
+  search, person, bookmark, pricetag, star
 } from 'ionicons/icons';
 import { CodexService } from '../services/codex.service';
 import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField } from '../models/codex.interface';
@@ -28,7 +28,7 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
     IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonItem, IonLabel,
     IonSearchbar, IonList, IonChip, IonTextarea, IonInput,
     IonModal, IonGrid, IonRow, IonCol, IonText, IonNote,
-    IonSelect, IonSelectOption
+    IonSelect, IonSelectOption, IonToggle
   ],
   template: `
     <div class="ion-page">
@@ -130,6 +130,10 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
                                 <ion-chip color="primary">
                                   <ion-label>{{ getCategoryName(entry.categoryId) }}</ion-label>
                                 </ion-chip>
+                                <ion-chip *ngIf="entry.alwaysInclude" color="warning">
+                                  <ion-icon name="star"></ion-icon>
+                                  <ion-label>Immer inkludiert</ion-label>
+                                </ion-chip>
                                 <ion-chip *ngIf="entry.metadata?.['storyRole']" color="success">
                                   <ion-icon name="person"></ion-icon>
                                   <ion-label>{{ entry.metadata?.['storyRole'] }}</ion-label>
@@ -185,6 +189,10 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
                                   <p>{{ getContentPreview(entry.content) }}</p>
                                 </ion-text>
                                 <div class="entry-meta">
+                                  <ion-chip *ngIf="entry.alwaysInclude" color="warning">
+                                    <ion-icon name="star"></ion-icon>
+                                    <ion-label>Immer inkludiert</ion-label>
+                                  </ion-chip>
                                   <ion-chip *ngIf="entry.metadata?.['storyRole']" color="success">
                                     <ion-icon name="person"></ion-icon>
                                     <ion-label>{{ entry.metadata?.['storyRole'] }}</ion-label>
@@ -322,6 +330,25 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
                       </ion-select-option>
                     </ion-select>
                   </ion-item>
+                </div>
+              </div>
+              
+              <!-- Always Include Section -->
+              <div class="form-section">
+                <h3 class="section-title">AI-Einstellungen</h3>
+                
+                <div class="form-group">
+                  <ion-item lines="none" class="form-item">
+                    <ion-label position="stacked">Immer in Beat-Prompt inkludieren</ion-label>
+                    <ion-toggle 
+                      [(ngModel)]="editingEntry.alwaysInclude"
+                      slot="end"
+                      color="primary">
+                    </ion-toggle>
+                  </ion-item>
+                  <ion-note color="medium" style="padding: 0 16px; font-size: 0.9rem;">
+                    Wenn aktiviert, wird dieser Eintrag immer in den Beat-Prompt eingeschlossen, unabhängig von der Relevanz-Bewertung.
+                  </ion-note>
                 </div>
               </div>
                 
@@ -927,7 +954,7 @@ export class CodexComponent implements OnInit, OnDestroy {
   constructor() {
     addIcons({
       arrowBack, add, ellipsisVertical, create, trash, save, close,
-      search, person, bookmark, pricetag
+      search, person, bookmark, pricetag, star
     });
   }
 
@@ -1013,7 +1040,8 @@ export class CodexComponent implements OnInit, OnDestroy {
       ...entry,
       tags: [...(entry.tags || [])],
       storyRole: entry.metadata?.['storyRole'] || null,
-      customFields: entry.metadata?.['customFields'] ? [...entry.metadata['customFields']] : []
+      customFields: entry.metadata?.['customFields'] ? [...entry.metadata['customFields']] : [],
+      alwaysInclude: entry.alwaysInclude || false
     };
     this.tagInput = '';
     this.resetCustomFieldInputs();
@@ -1091,6 +1119,7 @@ export class CodexComponent implements OnInit, OnDestroy {
       // Prepare the updated entry with story role and custom fields in metadata
       const updatedEntry = {
         ...this.editingEntry,
+        alwaysInclude: this.editingEntry.alwaysInclude || false,
         metadata: {
           ...this.editingEntry.metadata,
           storyRole: this.editingEntry.storyRole,
