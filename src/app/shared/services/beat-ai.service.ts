@@ -16,6 +16,8 @@ export class BeatAIService {
   private generationSubject = new Subject<BeatAIGenerationEvent>();
   public generation$ = this.generationSubject.asObservable();
   private activeGenerations = new Map<string, string>(); // beatId -> requestId
+  private isStreamingSubject = new Subject<boolean>();
+  public isStreaming$ = this.isStreamingSubject.asObservable();
 
   constructor(
     private openRouterApi: OpenRouterApiService,
@@ -57,6 +59,7 @@ export class BeatAIService {
     }
 
     // Emit generation start
+    this.isStreamingSubject.next(true);
     this.generationSubject.next({
       beatId,
       chunk: '',
@@ -122,6 +125,12 @@ export class BeatAIService {
             
             // Clean up active generation
             this.activeGenerations.delete(beatId);
+            
+            // Signal streaming stopped if no more active generations
+            if (this.activeGenerations.size === 0) {
+              this.isStreamingSubject.next(false);
+            }
+            
             // Emit error and fall back to sample content
             this.generationSubject.next({
               beatId,
@@ -172,6 +181,11 @@ export class BeatAIService {
           
           // Clean up active generation
           this.activeGenerations.delete(beatId);
+          
+          // Signal streaming stopped if no more active generations
+          if (this.activeGenerations.size === 0) {
+            this.isStreamingSubject.next(false);
+          }
         },
         error: (error) => {
           console.error('🔍 Beat AI Service - Gemini streaming error:', {
@@ -183,6 +197,11 @@ export class BeatAIService {
           });
           // Clean up on error
           this.activeGenerations.delete(beatId);
+          
+          // Signal streaming stopped if no more active generations
+          if (this.activeGenerations.size === 0) {
+            this.isStreamingSubject.next(false);
+          }
         }
       }),
       map(() => accumulatedContent), // Return full content at the end
@@ -229,6 +248,11 @@ export class BeatAIService {
             // Clean up
             this.activeGenerations.delete(beatId);
             
+            // Signal streaming stopped if no more active generations
+            if (this.activeGenerations.size === 0) {
+              this.isStreamingSubject.next(false);
+            }
+            
             return content;
           })
         );
@@ -269,6 +293,11 @@ export class BeatAIService {
           
           // Clean up active generation
           this.activeGenerations.delete(beatId);
+          
+          // Signal streaming stopped if no more active generations
+          if (this.activeGenerations.size === 0) {
+            this.isStreamingSubject.next(false);
+          }
         }
       }),
       map(() => accumulatedContent) // Return full content at the end
@@ -479,6 +508,9 @@ export class BeatAIService {
       isComplete: true
     });
     
+    // Signal streaming stopped
+    this.isStreamingSubject.next(false);
+    
     return of(fallbackContent);
   }
 
@@ -560,6 +592,11 @@ export class BeatAIService {
         chunk: '',
         isComplete: true
       });
+      
+      // Signal streaming stopped if no more active generations
+      if (this.activeGenerations.size === 0) {
+        this.isStreamingSubject.next(false);
+      }
     }
   }
 

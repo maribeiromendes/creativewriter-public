@@ -728,6 +728,7 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
   hasUnsavedChanges = false;
   private saveSubject = new Subject<void>();
   private subscription: Subscription = new Subscription();
+  private isStreamingActive = false;
   
   // Touch/swipe gesture properties
   private touchStartX = 0;
@@ -807,6 +808,14 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
         this.saveStory();
       })
     );
+    
+    // Subscribe to streaming state to pause auto-save during generation
+    this.subscription.add(
+      this.beatAIService.isStreaming$.subscribe(isStreaming => {
+        this.isStreamingActive = isStreaming;
+        console.log('Streaming state changed:', isStreaming ? 'ACTIVE' : 'STOPPED');
+      })
+    );
 
     // Listen for window resize to handle sidebar visibility
     window.addEventListener('resize', () => {
@@ -868,12 +877,15 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   onContentChange(): void {
-    if (this.activeScene && this.activeChapterId) {
+    if (this.activeScene && this.activeChapterId && !this.isStreamingActive) {
       this.hasUnsavedChanges = true;
       this.saveSubject.next();
       
       // Refresh prompt manager when content changes
       this.promptManager.refresh();
+    } else if (this.isStreamingActive) {
+      // During streaming, only mark as unsaved but don't trigger auto-save
+      this.hasUnsavedChanges = true;
     }
   }
 
