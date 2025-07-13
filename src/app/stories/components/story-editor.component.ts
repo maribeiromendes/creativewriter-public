@@ -134,15 +134,20 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
                     </ion-button>
                   </div>
                   
-                  <ion-input 
-                    type="text" 
-                    class="scene-title-input" 
-                    placeholder="Szenen-Titel..." 
-                    [(ngModel)]="activeScene.title"
-                    (ngModelChange)="onSceneTitleChange()"
-                    fill="outline"
-                    color="medium"
-                  ></ion-input>
+                  <div class="scene-title-editor-container">
+                    <div class="scene-id-badge" *ngIf="activeScene && activeChapterId">
+                      {{ getSceneIdDisplay() }}
+                    </div>
+                    <ion-input 
+                      type="text" 
+                      class="scene-title-input" 
+                      placeholder="Szenen-Titel..." 
+                      [(ngModel)]="activeScene.title"
+                      (ngModelChange)="onSceneTitleChange()"
+                      fill="outline"
+                      color="medium"
+                    ></ion-input>
+                  </div>
                   
                   <div class="editor-wrapper">
                     <div 
@@ -314,6 +319,26 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
       flex: 1;
     }
     
+    .scene-title-editor-container {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 1rem;
+    }
+
+    .scene-id-badge {
+      background: var(--ion-color-secondary);
+      color: var(--ion-color-secondary-contrast);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      min-width: 50px;
+      text-align: center;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
     .scene-title-input {
       --background: #2d2d2d;
       --color: #e0e0e0;
@@ -324,7 +349,8 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
       --padding-bottom: 12px;
       font-size: 1.3rem;
       font-weight: 500;
-      margin-bottom: 1rem;
+      flex: 1;
+      margin-bottom: 0;
     }
     
     /* Scene Navigation Styles */
@@ -983,6 +1009,15 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     const chapterNum = chapter.chapterNumber || chapter.order;
     const sceneNum = this.activeScene.sceneNumber || this.activeScene.order;
     return `C${chapterNum}S${sceneNum}:${this.activeScene.title}`;
+  }
+
+  getSceneIdDisplay(): string {
+    if (!this.activeScene || !this.activeChapterId || !this.story.chapters) return '';
+    const chapter = this.story.chapters.find(c => c.id === this.activeChapterId);
+    if (!chapter) return '';
+    const chapterNum = chapter.chapterNumber || chapter.order;
+    const sceneNum = this.activeScene.sceneNumber || this.activeScene.order;
+    return `C${chapterNum}S${sceneNum}`;
   }
 
   toggleSidebar(): void {
