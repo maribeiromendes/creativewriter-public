@@ -64,6 +64,25 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
           <div class="generation-options" *ngIf="beatData.isEditing || !beatData.prompt">
             <div class="options-row">
               <div class="option-group">
+                <ng-select [(ngModel)]="selectedBeatType"
+                           [items]="beatTypeOptions"
+                           bindLabel="label"
+                           bindValue="value"
+                           [clearable]="false"
+                           [searchable]="false"
+                           placeholder="Beat-Typ wählen..."
+                           class="model-select"
+                           appendTo="body"
+                           (change)="onBeatTypeChange()">
+                  <ng-template ng-option-tmp let-item="item">
+                    <div class="beat-type-option">
+                      <span class="beat-type-label">{{ item.label }}</span>
+                      <span class="beat-type-description">{{ item.description }}</span>
+                    </div>
+                  </ng-template>
+                </ng-select>
+              </div>
+              <div class="option-group">
                 <ng-select [(ngModel)]="selectedWordCount"
                            [items]="wordCountOptions"
                            bindLabel="label"
@@ -131,6 +150,11 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
         
         <div class="prompt-display" *ngIf="!beatData.isEditing && beatData.prompt">
           <div class="prompt-text">{{ beatData.prompt }}</div>
+          <div class="beat-info">
+            <span class="beat-type-badge" [class.story-beat]="(beatData.beatType || 'story') === 'story'" [class.scene-beat]="(beatData.beatType || 'story') === 'scene'">
+              {{ (beatData.beatType || 'story') === 'story' ? 'StoryBeat' : 'SceneBeat' }}
+            </span>
+          </div>
         </div>
       </div>
       
@@ -354,6 +378,50 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
     
     .provider-icon-inline.openrouter {
       color: #00a67e;
+    }
+
+    .beat-type-option {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+    }
+    
+    .beat-type-label {
+      font-weight: 500;
+      color: #f8f9fa;
+    }
+    
+    .beat-type-description {
+      font-size: 0.8rem;
+      color: #adb5bd;
+      font-style: italic;
+    }
+
+    .beat-info {
+      margin-top: 0.5rem;
+      display: flex;
+      justify-content: flex-end;
+    }
+    
+    .beat-type-badge {
+      font-size: 0.75rem;
+      padding: 0.25rem 0.5rem;
+      border-radius: 12px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .beat-type-badge.story-beat {
+      background: rgba(13, 110, 253, 0.2);
+      color: #4dabf7;
+      border: 1px solid rgba(13, 110, 253, 0.3);
+    }
+    
+    .beat-type-badge.scene-beat {
+      background: rgba(40, 167, 69, 0.2);
+      color: #51cf66;
+      border: 1px solid rgba(40, 167, 69, 0.3);
     }
 
     .prompt-actions {
@@ -795,6 +863,11 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
   showCustomWordCount: boolean = false;
   selectedModel: string = '';
   availableModels: ModelOption[] = [];
+  selectedBeatType: 'story' | 'scene' = 'story';
+  beatTypeOptions = [
+    { value: 'story', label: 'StoryBeat', description: 'Mit vollständigem Story-Kontext' },
+    { value: 'scene', label: 'SceneBeat', description: 'Ohne Szenen-Zusammenfassungen' }
+  ];
   wordCountOptions = [
     { value: 20, label: '~20 Wörter' },
     { value: 50, label: '~50 Wörter' },
@@ -825,6 +898,9 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
   
   ngOnInit(): void {
     this.currentPrompt = this.beatData.prompt;
+    
+    // Load saved beat type or use default
+    this.selectedBeatType = this.beatData.beatType || 'story';
     
     // Load saved word count or use default
     if (this.beatData.wordCount) {
@@ -1023,6 +1099,15 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
     } else if (this.customWordCount > 50000) {
       this.customWordCount = 50000;
     }
+  }
+
+  onBeatTypeChange(): void {
+    // Update the beat data with the new type
+    this.beatData.beatType = this.selectedBeatType;
+    this.beatData.updatedAt = new Date();
+    
+    // Emit the content update to save the change
+    this.contentUpdate.emit(this.beatData);
   }
 
   private getActualWordCount(): number {
