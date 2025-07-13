@@ -601,14 +601,14 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
     .preview-body {
       flex: 1;
       overflow-y: auto;
-      padding: 1.5rem;
+      padding: 1.5rem 1.5rem 3rem 1.5rem;
     }
 
     .prompt-preview {
       background: #1a1a1a;
       border: 1px solid #404040;
       border-radius: 6px;
-      padding: 0.5rem;
+      padding: 1rem 1rem 2rem 1rem;
       color: #e0e0e0;
       font-family: 'Courier New', monospace;
       font-size: 0.9rem;
