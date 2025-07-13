@@ -85,11 +85,13 @@ export class StoryService {
       id: this.generateId(),
       title: 'Kapitel 1',
       order: 1,
+      chapterNumber: 1,
       scenes: [{
         id: this.generateId(),
         title: 'Szene 1',
         content: '',
         order: 1,
+        sceneNumber: 1,
         createdAt: new Date(),
         updatedAt: new Date()
       }],
@@ -199,11 +201,13 @@ export class StoryService {
         id: this.generateId(),
         title: 'Kapitel 1',
         order: 1,
+        chapterNumber: 1,
         scenes: [{
           id: this.generateId(),
           title: 'Szene 1',
           content: story.content,
           order: 1,
+          sceneNumber: 1,
           createdAt: new Date(story.createdAt),
           updatedAt: new Date(story.updatedAt)
         }],
@@ -217,14 +221,16 @@ export class StoryService {
       // Migration will be automatically saved when story is next updated
     }
 
-    // Ensure chapters have proper date objects
+    // Ensure chapters have proper date objects and number fields
     if (migrated.chapters) {
-      migrated.chapters = migrated.chapters.map(chapter => ({
+      migrated.chapters = migrated.chapters.map((chapter, chapterIndex) => ({
         ...chapter,
+        chapterNumber: chapter.chapterNumber || chapterIndex + 1,
         createdAt: new Date(chapter.createdAt),
         updatedAt: new Date(chapter.updatedAt),
-        scenes: chapter.scenes.map(scene => ({
+        scenes: chapter.scenes.map((scene, sceneIndex) => ({
           ...scene,
+          sceneNumber: scene.sceneNumber || sceneIndex + 1,
           createdAt: new Date(scene.createdAt),
           updatedAt: new Date(scene.updatedAt),
           summaryGeneratedAt: scene.summaryGeneratedAt ? new Date(scene.summaryGeneratedAt) : undefined
@@ -241,15 +247,18 @@ export class StoryService {
     const story = await this.getStory(storyId);
     if (!story) throw new Error('Story not found');
 
+    const chapterNumber = story.chapters.length + 1;
     const newChapter: Chapter = {
       id: this.generateId(),
-      title: title || `Kapitel ${story.chapters.length + 1}`,
-      order: story.chapters.length + 1,
+      title: title || `Kapitel ${chapterNumber}`,
+      order: chapterNumber,
+      chapterNumber: chapterNumber,
       scenes: [{
         id: this.generateId(),
         title: 'Szene 1',
         content: '',
         order: 1,
+        sceneNumber: 1,
         createdAt: new Date(),
         updatedAt: new Date()
       }],
@@ -287,9 +296,10 @@ export class StoryService {
     if (!story) return;
 
     story.chapters = story.chapters.filter(c => c.id !== chapterId);
-    // Reorder remaining chapters
+    // Reorder remaining chapters and update chapter numbers
     story.chapters.forEach((chapter, index) => {
       chapter.order = index + 1;
+      chapter.chapterNumber = index + 1;
     });
     story.updatedAt = new Date();
     await this.updateStory(story);
@@ -304,11 +314,13 @@ export class StoryService {
     const chapter = story.chapters.find(c => c.id === chapterId);
     if (!chapter) throw new Error('Chapter not found');
 
+    const sceneNumber = chapter.scenes.length + 1;
     const newScene: Scene = {
       id: this.generateId(),
-      title: title || `Szene ${chapter.scenes.length + 1}`,
+      title: title || `Szene ${sceneNumber}`,
       content: '',
-      order: chapter.scenes.length + 1,
+      order: sceneNumber,
+      sceneNumber: sceneNumber,
       createdAt: new Date(),
       updatedAt: new Date()
     };
@@ -351,9 +363,10 @@ export class StoryService {
     if (!chapter) return;
 
     chapter.scenes = chapter.scenes.filter(s => s.id !== sceneId);
-    // Reorder remaining scenes
+    // Reorder remaining scenes and update scene numbers
     chapter.scenes.forEach((scene, index) => {
       scene.order = index + 1;
+      scene.sceneNumber = index + 1;
     });
     chapter.updatedAt = new Date();
     story.updatedAt = new Date();
@@ -373,5 +386,16 @@ export class StoryService {
 
   private generateId(): string {
     return Date.now().toString(36) + Math.random().toString(36).substring(2);
+  }
+
+  // Helper methods for formatting chapter and scene displays
+  formatChapterDisplay(chapter: Chapter): string {
+    return `C${chapter.chapterNumber || chapter.order}:${chapter.title}`;
+  }
+
+  formatSceneDisplay(chapter: Chapter, scene: Scene): string {
+    const chapterNum = chapter.chapterNumber || chapter.order;
+    const sceneNum = scene.sceneNumber || scene.order;
+    return `C${chapterNum}S${sceneNum}:${scene.title}`;
   }
 }

@@ -49,7 +49,7 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
           </ion-buttons>
           
           <ion-title *ngIf="activeScene">
-            {{ getCurrentChapterTitle() }} - {{ activeScene.title }}
+            {{ getCurrentChapterTitle() }} - {{ getCurrentSceneTitle() }}
           </ion-title>
           
           <ion-buttons slot="end">
@@ -973,7 +973,16 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
   getCurrentChapterTitle(): string {
     if (!this.activeChapterId || !this.story.chapters) return '';
     const chapter = this.story.chapters.find(c => c.id === this.activeChapterId);
-    return chapter ? chapter.title : '';
+    return chapter ? `C${chapter.chapterNumber || chapter.order}:${chapter.title}` : '';
+  }
+
+  getCurrentSceneTitle(): string {
+    if (!this.activeScene || !this.activeChapterId || !this.story.chapters) return '';
+    const chapter = this.story.chapters.find(c => c.id === this.activeChapterId);
+    if (!chapter) return '';
+    const chapterNum = chapter.chapterNumber || chapter.order;
+    const sceneNum = this.activeScene.sceneNumber || this.activeScene.order;
+    return `C${chapterNum}S${sceneNum}:${this.activeScene.title}`;
   }
 
   toggleSidebar(): void {

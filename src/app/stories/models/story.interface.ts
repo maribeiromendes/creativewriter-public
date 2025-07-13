@@ -5,6 +5,7 @@ export interface Scene {
   summary?: string;
   summaryGeneratedAt?: Date;
   order: number;
+  sceneNumber: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -13,6 +14,7 @@ export interface Chapter {
   id: string;
   title: string;
   order: number;
+  chapterNumber: number;
   scenes: Scene[];
   createdAt: Date;
   updatedAt: Date;

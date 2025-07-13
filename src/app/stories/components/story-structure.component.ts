@@ -80,14 +80,17 @@ import { Subscription } from 'rxjs';
                 (click)="toggleChapter(chapter.id); $event.stopPropagation()"
                 [attr.aria-hidden]="true">
               </ion-icon>
-              <ion-input 
-                [(ngModel)]="chapter.title" 
-                (ionBlur)="updateChapter(chapter)"
-                (click)="$event.stopPropagation()"
-                class="chapter-title-input"
-                placeholder="Kapitel Titel"
-                [attr.aria-label]="'Kapitel Titel bearbeiten'"
-              ></ion-input>
+              <div class="chapter-title-container">
+                <div class="chapter-id-display">{{ 'C' + (chapter.chapterNumber || chapter.order) }}</div>
+                <ion-input 
+                  [(ngModel)]="chapter.title" 
+                  (ionBlur)="updateChapter(chapter)"
+                  (click)="$event.stopPropagation()"
+                  class="chapter-title-input"
+                  placeholder="Kapitel Titel"
+                  [attr.aria-label]="'Kapitel Titel bearbeiten'"
+                ></ion-input>
+              </div>
               <ion-button 
                 fill="clear" 
                 color="danger" 
@@ -116,15 +119,18 @@ import { Subscription } from 'rxjs';
                     <div class="scene-content">
                       <!-- First line: Scene title with AI button -->
                       <div class="scene-title-row">
-                        <ion-input 
-                          [(ngModel)]="scene.title" 
-                          (ionBlur)="updateScene(chapter.id, scene)"
-                          (click)="$event.stopPropagation()"
-                          class="scene-title-input"
-                          placeholder="Szenen Titel"
-                          fill="clear"
-                          [attr.aria-label]="'Szenen Titel bearbeiten'"
-                        ></ion-input>
+                        <div class="scene-title-container">
+                          <div class="scene-id-display">{{ 'C' + (chapter.chapterNumber || chapter.order) + 'S' + (scene.sceneNumber || scene.order) }}</div>
+                          <ion-input 
+                            [(ngModel)]="scene.title" 
+                            (ionBlur)="updateScene(chapter.id, scene)"
+                            (click)="$event.stopPropagation()"
+                            class="scene-title-input"
+                            placeholder="Szenen Titel"
+                            fill="clear"
+                            [attr.aria-label]="'Szenen Titel bearbeiten'"
+                          ></ion-input>
+                        </div>
                         
                         <ion-button 
                           fill="clear" 
@@ -945,6 +951,50 @@ import { Subscription } from 'rxjs';
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
       }
+
+      /* Chapter and Scene ID displays */
+      .chapter-title-container {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex: 1;
+      }
+
+      .chapter-id-display {
+        background: var(--ion-color-primary-tint);
+        color: var(--ion-color-primary-contrast);
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 600;
+        min-width: 20px;
+        text-align: center;
+        white-space: nowrap;
+      }
+
+      .scene-title-container {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex: 1;
+      }
+
+      .scene-id-display {
+        background: var(--ion-color-secondary-tint);
+        color: var(--ion-color-secondary-contrast);
+        padding: 1px 4px;
+        border-radius: 3px;
+        font-size: 10px;
+        font-weight: 500;
+        min-width: 30px;
+        text-align: center;
+        white-space: nowrap;
+      }
+
+      .chapter-title-input,
+      .scene-title-input {
+        flex: 1;
+      }
     }
   `]
 })
@@ -1586,5 +1636,14 @@ Antworte nur mit dem Titel, ohne weitere Erklärungen oder Anführungszeichen.`;
     cleanedContent = cleanedContent.replace(/data:image\/[a-zA-Z]+;base64,[A-Za-z0-9+/]{1000,}={0,2}/g, '[Bild-Daten entfernt]');
     
     return cleanedContent;
+  }
+
+  // Methods for formatting chapter and scene displays with IDs
+  getChapterDisplayTitle(chapter: Chapter): string {
+    return this.storyService.formatChapterDisplay(chapter);
+  }
+
+  getSceneDisplayTitle(chapter: Chapter, scene: Scene): string {
+    return this.storyService.formatSceneDisplay(chapter, scene);
   }
 }

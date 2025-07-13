@@ -227,7 +227,7 @@ interface PresetPrompt {
           <ion-list>
             <div *ngFor="let chapter of story?.chapters">
               <ion-item-divider>
-                <ion-label>{{ chapter.title }}</ion-label>
+                <ion-label>C{{ chapter.chapterNumber || chapter.order }}:{{ chapter.title }}</ion-label>
               </ion-item-divider>
               <ion-item 
                 *ngFor="let scene of getFilteredScenes(chapter)" 
@@ -238,7 +238,7 @@ interface PresetPrompt {
                   [checked]="isSceneSelected(scene.id)">
                 </ion-checkbox>
                 <ion-label>
-                  <h3>{{ scene.title }}</h3>
+                  <h3>C{{ chapter.chapterNumber || chapter.order }}S{{ scene.sceneNumber || scene.order }}:{{ scene.title }}</h3>
                   <p>{{ getScenePreview(scene) }}</p>
                 </ion-label>
               </ion-item>
@@ -640,8 +640,8 @@ export class SceneChatComponent implements OnInit, OnDestroy {
         this.selectedScenes.push({
           chapterId: chapter.id,
           sceneId: scene.id,
-          chapterTitle: chapter.title,
-          sceneTitle: scene.title,
+          chapterTitle: `C${chapter.chapterNumber || chapter.order}:${chapter.title}`,
+          sceneTitle: `C${chapter.chapterNumber || chapter.order}S${scene.sceneNumber || scene.order}:${scene.title}`,
           content: this.extractFullTextFromScene(scene),
           selected: true
         });
@@ -812,8 +812,8 @@ export class SceneChatComponent implements OnInit, OnDestroy {
         this.selectedScenes.push({
           chapterId: chapter.id,
           sceneId: scene.id,
-          chapterTitle: chapter.title,
-          sceneTitle: scene.title,
+          chapterTitle: `C${chapter.chapterNumber || chapter.order}:${chapter.title}`,
+          sceneTitle: `C${chapter.chapterNumber || chapter.order}S${scene.sceneNumber || scene.order}:${scene.title}`,
           content: this.extractFullTextFromScene(scene),
           selected: true
         });

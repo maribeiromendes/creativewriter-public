@@ -313,12 +313,15 @@ export class NovelCrafterImportService {
         currentChapter = {
           id: this.generateId(),
           title: chapterTitle,
-          order: story.chapters.length,
+          order: story.chapters.length + 1,
+          chapterNumber: story.chapters.length + 1,
           scenes: [],
           createdAt: new Date(),
           updatedAt: new Date()
         };
-        story.chapters.push(currentChapter);
+        if (currentChapter) {
+          story.chapters.push(currentChapter);
+        }
         sceneOrder = 0;
         currentScene = null;
         parsingState = 'content';
@@ -339,11 +342,13 @@ export class NovelCrafterImportService {
         saveCurrentScene();
         
         // Create new scene for next summary/content pair
+        sceneOrder++;
         currentScene = {
           id: this.generateId(),
-          title: `Scene ${sceneOrder + 1}`,
+          title: `Scene ${sceneOrder}`,
           content: '',
-          order: sceneOrder++,
+          order: sceneOrder,
+          sceneNumber: sceneOrder,
           createdAt: new Date(),
           updatedAt: new Date()
         };
@@ -368,11 +373,13 @@ export class NovelCrafterImportService {
       } else if (parsingState === 'content' && currentChapter) {
         // Handle content before any --- marker (first scene in chapter)
         if (!currentScene) {
+          sceneOrder++;
           currentScene = {
             id: this.generateId(),
-            title: `Scene ${sceneOrder + 1}`,
+            title: `Scene ${sceneOrder}`,
             content: '',
-            order: sceneOrder++,
+            order: sceneOrder,
+            sceneNumber: sceneOrder,
             createdAt: new Date(),
             updatedAt: new Date()
           };
