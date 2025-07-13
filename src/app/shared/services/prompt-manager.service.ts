@@ -297,6 +297,53 @@ export class PromptManagerService {
   }
 
   /**
+   * Get story structure in XML format for beat generation without scene summaries
+   * This is used for SceneBeat type
+   */
+  async getStoryXmlFormatWithoutSummaries(targetSceneId: string): Promise<string> {
+    const currentStoryId = this.currentStoryIdSubject.value;
+    if (!currentStoryId) return '';
+
+    const story = await this.storyService.getStory(currentStoryId);
+    if (!story || !story.chapters) return '';
+
+    let xml = '<storySoFar>\n';
+    
+    // Group chapters by acts (for now, all in act 1)
+    xml += '  <act number="1">\n';
+    
+    const sortedChapters = [...story.chapters].sort((a, b) => a.order - b.order);
+    
+    for (const chapter of sortedChapters) {
+      if (!chapter.scenes || chapter.scenes.length === 0) continue;
+      
+      xml += `    <chapter title="${this.escapeXml(chapter.title)}" number="${chapter.order}">\n`;
+      
+      const sortedScenes = [...chapter.scenes].sort((a, b) => a.order - b.order);
+      
+      for (const scene of sortedScenes) {
+        // Stop before the target scene
+        if (scene.id === targetSceneId) {
+          xml += '    </chapter>\n';
+          xml += '  </act>\n';
+          xml += '</storySoFar>';
+          return xml;
+        }
+        
+        // For SceneBeat: Just include scene title without content/summary
+        xml += `      <scene title="${this.escapeXml(scene.title)}" number="${scene.order}" />\n`;
+      }
+      
+      xml += '    </chapter>\n';
+    }
+    
+    xml += '  </act>\n';
+    xml += '</storySoFar>';
+    
+    return xml;
+  }
+
+  /**
    * Get story structure in XML format for beat generation
    */
   async getStoryXmlFormat(targetSceneId: string): Promise<string> {

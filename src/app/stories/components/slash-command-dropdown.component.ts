@@ -129,11 +129,18 @@ export class SlashCommandDropdownComponent implements OnInit {
   selectedIndex = 0;
   commands: SlashCommand[] = [
     {
-      id: 'beat',
-      label: 'Beat hinzufügen',
-      description: 'Füge einen neuen Story-Beat ein',
+      id: 'story-beat',
+      label: 'StoryBeat',
+      description: 'Beat mit vollständigem Story-Kontext',
       icon: '📝',
       action: SlashCommandAction.INSERT_BEAT
+    },
+    {
+      id: 'scene-beat',
+      label: 'SceneBeat',
+      description: 'Beat ohne Szenen-Zusammenfassungen',
+      icon: '📄',
+      action: SlashCommandAction.INSERT_SCENE_BEAT
     },
     {
       id: 'image',

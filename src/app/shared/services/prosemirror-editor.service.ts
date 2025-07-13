@@ -93,7 +93,8 @@ export class ProseMirrorEditorService {
           isEditing: { default: false },
           createdAt: { default: '' },
           updatedAt: { default: '' },
-          wordCount: { default: 400 }
+          wordCount: { default: 400 },
+          beatType: { default: 'story' }
         },
         group: 'block',
         atom: true,
@@ -107,7 +108,8 @@ export class ProseMirrorEditorService {
             'data-editing': node.attrs.isEditing ? 'true' : 'false',
             'data-created': node.attrs.createdAt || '',
             'data-updated': node.attrs.updatedAt || '',
-            'data-word-count': node.attrs.wordCount || 400
+            'data-word-count': node.attrs.wordCount || 400,
+            'data-beat-type': node.attrs.beatType || 'story'
           };
           
           // Create content to make the beat visible in saved HTML
@@ -132,7 +134,8 @@ export class ProseMirrorEditorService {
               isEditing: dom.getAttribute('data-editing') === 'true',
               createdAt: dom.getAttribute('data-created') || '',
               updatedAt: dom.getAttribute('data-updated') || '',
-              wordCount: parseInt(dom.getAttribute('data-word-count') || '400', 10)
+              wordCount: parseInt(dom.getAttribute('data-word-count') || '400', 10),
+              beatType: dom.getAttribute('data-beat-type') || 'story'
             };
             
             return attrs;
@@ -327,7 +330,7 @@ export class ProseMirrorEditorService {
     }
   }
 
-  insertBeatAI(position?: number, replaceSlash: boolean = false): void {
+  insertBeatAI(position?: number, replaceSlash: boolean = false, beatType: 'story' | 'scene' = 'story'): void {
     if (!this.editorView) return;
     
     try {
@@ -335,7 +338,7 @@ export class ProseMirrorEditorService {
       const pos = position ?? state.selection.from;
       
       
-      const beatData = this.beatAIService.createNewBeat();
+      const beatData = this.beatAIService.createNewBeat(beatType);
       const beatNode = this.editorSchema.nodes['beatAI'].create({
         id: beatData.id,
         prompt: beatData.prompt,
@@ -344,7 +347,8 @@ export class ProseMirrorEditorService {
         isEditing: beatData.isEditing,
         createdAt: beatData.createdAt.toISOString(),
         updatedAt: beatData.updatedAt.toISOString(),
-        wordCount: beatData.wordCount
+        wordCount: beatData.wordCount,
+        beatType: beatData.beatType
       });
       
       let tr;

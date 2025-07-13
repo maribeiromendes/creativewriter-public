@@ -7,6 +7,7 @@ export interface BeatAI {
   createdAt: Date;
   updatedAt: Date;
   wordCount?: number;
+  beatType?: 'story' | 'scene'; // Default is 'story' for backwards compatibility
 }
 
 export interface BeatAIGenerationEvent {
@@ -24,6 +25,7 @@ export interface BeatAIPromptEvent {
   storyId?: string;
   chapterId?: string;
   sceneId?: string;
+  beatType?: 'story' | 'scene';
 }
 
 export interface BeatContentInsertEvent {

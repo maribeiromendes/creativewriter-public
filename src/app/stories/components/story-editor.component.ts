@@ -1365,7 +1365,10 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     
     switch (result.action) {
       case SlashCommandAction.INSERT_BEAT:
-        this.proseMirrorService.insertBeatAI(this.slashCursorPosition, true);
+        this.proseMirrorService.insertBeatAI(this.slashCursorPosition, true, 'story');
+        break;
+      case SlashCommandAction.INSERT_SCENE_BEAT:
+        this.proseMirrorService.insertBeatAI(this.slashCursorPosition, true, 'scene');
         break;
       case SlashCommandAction.INSERT_IMAGE:
         this.showImageDialog = true;

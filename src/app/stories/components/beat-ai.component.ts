@@ -913,7 +913,8 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
       model: this.selectedModel,
       storyId: this.storyId,
       chapterId: this.chapterId,
-      sceneId: this.sceneId
+      sceneId: this.sceneId,
+      beatType: this.beatData.beatType
     } as any);
     
     this.contentUpdate.emit(this.beatData);
@@ -933,7 +934,8 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
       model: this.selectedModel,
       storyId: this.storyId,
       chapterId: this.chapterId,
-      sceneId: this.sceneId
+      sceneId: this.sceneId,
+      beatType: this.beatData.beatType
     } as any);
     
     this.contentUpdate.emit(this.beatData);
@@ -946,7 +948,8 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
         action: 'deleteAfter',
         storyId: this.storyId,
         chapterId: this.chapterId,
-        sceneId: this.sceneId
+        sceneId: this.sceneId,
+        beatType: this.beatData.beatType
       } as any);
     }
   }

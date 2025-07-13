@@ -36,6 +36,7 @@ export class BeatAIService {
     chapterId?: string;
     sceneId?: string;
     beatPosition?: number;
+    beatType?: 'story' | 'scene';
   } = {}): Observable<string> {
     const settings = this.settingsService.getSettings();
     
@@ -331,6 +332,7 @@ export class BeatAIService {
     chapterId?: string;
     sceneId?: string;
     wordCount?: number;
+    beatType?: 'story' | 'scene';
   }): Observable<string> {
     if (!options.storyId) {
       return of(userPrompt);
@@ -455,8 +457,11 @@ export class BeatAIService {
 
 
         // Get story so far in XML format
+        // For SceneBeat, we get the story without scene summaries
         const storySoFar = options.sceneId 
-          ? await this.promptManager.getStoryXmlFormat(options.sceneId)
+          ? (options.beatType === 'scene' 
+              ? await this.promptManager.getStoryXmlFormatWithoutSummaries(options.sceneId)
+              : await this.promptManager.getStoryXmlFormat(options.sceneId))
           : '';
 
         // Build template placeholders
@@ -547,7 +552,7 @@ export class BeatAIService {
   }
 
 
-  createNewBeat(): BeatAI {
+  createNewBeat(beatType: 'story' | 'scene' = 'story'): BeatAI {
     return {
       id: this.generateId(),
       prompt: '',
@@ -556,7 +561,8 @@ export class BeatAIService {
       isEditing: true,
       createdAt: new Date(),
       updatedAt: new Date(),
-      wordCount: 400
+      wordCount: 400,
+      beatType: beatType
     };
   }
 
