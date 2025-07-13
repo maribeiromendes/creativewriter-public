@@ -436,7 +436,7 @@ import { Subscription } from 'rxjs';
     
     .scene-title-row {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       width: 100%;
     }
     
@@ -447,6 +447,8 @@ import { Subscription } from 'rxjs';
       flex: 1;
       --padding-start: 0;
       --padding-end: 8px;
+      --padding-top: 2px;
+      --padding-bottom: 2px;
     }
     
     .scene-item.active-scene .scene-title-input {
@@ -457,6 +459,8 @@ import { Subscription } from 'rxjs';
       --padding-start: 4px;
       --padding-end: 4px;
       margin-left: 4px;
+      margin-top: 2px;
+      flex-shrink: 0;
     }
     
     .scene-actions-row {
@@ -974,7 +978,7 @@ import { Subscription } from 'rxjs';
 
       .scene-title-container {
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         gap: 6px;
         flex: 1;
       }
@@ -989,11 +993,20 @@ import { Subscription } from 'rxjs';
         min-width: 30px;
         text-align: center;
         white-space: nowrap;
+        flex-shrink: 0;
+        margin-top: 3px;
       }
 
-      .chapter-title-input,
+      .chapter-title-input {
+        flex: 1;
+      }
+      
       .scene-title-input {
         flex: 1;
+        white-space: normal !important;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        line-height: 1.4;
       }
     }
   `]
