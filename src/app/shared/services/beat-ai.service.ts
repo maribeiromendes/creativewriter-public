@@ -576,6 +576,7 @@ export class BeatAIService {
     chapterId?: string;
     sceneId?: string;
     wordCount?: number;
+    beatType?: 'story' | 'scene';
   }): Observable<string> {
     return this.buildStructuredPromptFromTemplate(userPrompt, beatId, options);
   }

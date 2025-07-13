@@ -1089,7 +1089,8 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
       storyId: this.storyId,
       chapterId: this.chapterId,
       sceneId: this.sceneId,
-      wordCount: this.getActualWordCount()
+      wordCount: this.getActualWordCount(),
+      beatType: this.beatData.beatType
     }).subscribe(content => {
       this.previewContent = content;
       this.showPreviewModal = true;
