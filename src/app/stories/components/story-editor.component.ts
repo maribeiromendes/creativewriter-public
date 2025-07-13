@@ -119,7 +119,7 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
                     </ion-button>
                     
                     <div class="scene-info">
-                      <span class="scene-counter">Szene {{ getCurrentSceneIndex() }} von {{ getTotalScenes() }}</span>
+                      <span class="scene-counter">{{ getSceneIdDisplay() }}: Szene {{ getCurrentSceneIndex() }} von {{ getTotalScenes() }}</span>
                     </div>
                     
                     <ion-button 
