@@ -9,11 +9,12 @@ import { ModelOption } from '../../core/models/model.interface';
 import { ModelService } from '../../core/services/model.service';
 import { SettingsService } from '../../core/services/settings.service';
 import { BeatAIService } from '../../shared/services/beat-ai.service';
+import { SimpleCodexAwarenessDirective } from '../../shared/directives/simple-codex-awareness.directive';
 
 @Component({
   selector: 'app-beat-ai',
   standalone: true,
-  imports: [CommonModule, FormsModule, NgSelectModule, IonIcon],
+  imports: [CommonModule, FormsModule, NgSelectModule, IonIcon, SimpleCodexAwarenessDirective],
   template: `
     <div class="beat-ai-container" [class.editing]="beatData.isEditing" [class.generating]="beatData.isGenerating">
       <!-- Prompt Input Section -->
@@ -58,6 +59,9 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
             (click)="onTextareaClick($event)"
             (focus)="onTextareaFocus($event)"
             (mousedown)="onTextareaMousedown($event)"
+            appSimpleCodexAwareness
+            [storyId]="storyId"
+            [enableHighlighting]="true"
           ></textarea>
           
           <!-- Generation Options -->
@@ -300,6 +304,11 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
     
     .prompt-input::placeholder {
       color: #6c757d;
+    }
+    
+    .prompt-input.codex-matches-found {
+      border-left: 3px solid #4dabf7;
+      box-shadow: 0 0 0 1px rgba(77, 171, 247, 0.3);
     }
     
     .generation-options {
