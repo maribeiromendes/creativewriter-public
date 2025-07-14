@@ -513,7 +513,8 @@ export class ProseMirrorEditorService {
       storyId: event.storyId,
       chapterId: event.chapterId,
       sceneId: event.sceneId,
-      beatPosition: beatNodePosition
+      beatPosition: beatNodePosition,
+      beatType: event.beatType
     }).subscribe({
       next: (finalContent) => {
         // Final content received - ensure beat node is updated
