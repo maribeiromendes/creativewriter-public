@@ -2,8 +2,6 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
-import { CodexAwarenessDirective } from './directives/codex-awareness.directive';
-import { SimpleCodexAwarenessDirective } from './directives/simple-codex-awareness.directive';
 
 @NgModule({
   declarations: [],
@@ -11,17 +9,13 @@ import { SimpleCodexAwarenessDirective } from './directives/simple-codex-awarene
     CommonModule,
     ReactiveFormsModule,
     FormsModule,
-    HttpClientModule,
-    CodexAwarenessDirective,
-    SimpleCodexAwarenessDirective
+    HttpClientModule
   ],
   exports: [
     CommonModule,
     ReactiveFormsModule,
     FormsModule,
-    HttpClientModule,
-    CodexAwarenessDirective,
-    SimpleCodexAwarenessDirective
+    HttpClientModule
   ]
 })
 export class SharedModule { }

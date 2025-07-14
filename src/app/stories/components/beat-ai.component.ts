@@ -9,12 +9,11 @@ import { ModelOption } from '../../core/models/model.interface';
 import { ModelService } from '../../core/services/model.service';
 import { SettingsService } from '../../core/services/settings.service';
 import { BeatAIService } from '../../shared/services/beat-ai.service';
-import { SimpleCodexAwarenessDirective } from '../../shared/directives/simple-codex-awareness.directive';
 
 @Component({
   selector: 'app-beat-ai',
   standalone: true,
-  imports: [CommonModule, FormsModule, NgSelectModule, IonIcon, SimpleCodexAwarenessDirective],
+  imports: [CommonModule, FormsModule, NgSelectModule, IonIcon],
   template: `
     <div class="beat-ai-container" [class.editing]="beatData.isEditing" [class.generating]="beatData.isGenerating">
       <!-- Prompt Input Section -->
@@ -59,10 +58,6 @@ import { SimpleCodexAwarenessDirective } from '../../shared/directives/simple-co
             (click)="onTextareaClick($event)"
             (focus)="onTextareaFocus($event)"
             (mousedown)="onTextareaMousedown($event)"
-            appSimpleCodexAwareness
-            [storyId]="storyId"
-            [debounceMs]="300"
-            [caseSensitive]="false"
           ></textarea>
           
           <!-- Generation Options -->

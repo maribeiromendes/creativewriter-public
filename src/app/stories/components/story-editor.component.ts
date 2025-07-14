@@ -25,7 +25,6 @@ import { BeatAI, BeatAIPromptEvent } from '../models/beat-ai.interface';
 import { BeatAIService } from '../../shared/services/beat-ai.service';
 import { PromptManagerService } from '../../shared/services/prompt-manager.service';
 import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/components/image-upload-dialog.component';
-import { CodexAwarenessDirective } from '../../shared/directives/codex-awareness.directive';
 
 @Component({
   selector: 'app-story-editor',
@@ -34,8 +33,7 @@ import { CodexAwarenessDirective } from '../../shared/directives/codex-awareness
     CommonModule, FormsModule, 
     IonHeader, IonToolbar, IonButtons, IonButton, IonIcon, IonTitle,
     IonContent, IonInput, IonChip, IonLabel,
-    StoryStructureComponent, SlashCommandDropdownComponent, ImageUploadDialogComponent,
-    CodexAwarenessDirective
+    StoryStructureComponent, SlashCommandDropdownComponent, ImageUploadDialogComponent
   ],
   template: `
     <div class="ion-page">
@@ -155,10 +153,6 @@ import { CodexAwarenessDirective } from '../../shared/directives/codex-awareness
                     <div 
                       #editorContainer
                       class="content-editor ion-padding"
-                      appCodexAwareness
-                      [storyId]="story.id"
-                      [debounceMs]="300"
-                      [caseSensitive]="false"
                     ></div>
                   </div>
                   
