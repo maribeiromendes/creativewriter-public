@@ -41,6 +41,7 @@ export class ProseMirrorEditorService {
     sceneId?: string;
   } = {};
   private beatNodeViews: Set<BeatAINodeView> = new Set();
+  private beatStreamingPositions: Map<string, number> = new Map();
   
   public contentUpdate$ = new Subject<string>();
   public slashCommand$ = new Subject<number>();
@@ -500,6 +501,8 @@ export class ProseMirrorEditorService {
           generatedContent: accumulatedContent,
           prompt: event.prompt || ''
         });
+        // Clean up stored position
+        this.beatStreamingPositions.delete(event.beatId);
         generationSubscription.unsubscribe();
       }
     });
@@ -795,6 +798,9 @@ export class ProseMirrorEditorService {
   private clearContentAfterBeatNode(beatId: string): void {
     if (!this.editorView) return;
     
+    // Clear stored position when clearing content
+    this.beatStreamingPositions.delete(beatId);
+    
     const beatPos = this.findBeatNodePosition(beatId);
     if (beatPos === null) return;
     
@@ -953,79 +959,89 @@ export class ProseMirrorEditorService {
     const beatNode = state.doc.nodeAt(beatPos);
     if (!beatNode) return;
     
-    // Position after the beat node
+    // Position immediately after the beat node
     const afterBeatPos = beatPos + beatNode.nodeSize;
     
     if (isFirstChunk) {
-      // First chunk - insert at the position after beat node
+      // First chunk - clear any stored position and insert fresh
+      this.beatStreamingPositions.delete(beatId);
+      
+      // Create paragraph nodes from content
       const paragraphNodes = this.createParagraphsFromContent(newContent, state);
       const fragment = Fragment.from(paragraphNodes);
+      
+      // Insert at position directly after beat node
       const tr = state.tr.insert(afterBeatPos, fragment);
       this.editorView.dispatch(tr);
-    } else {
-      // Subsequent chunks - find the last position of generated content
-      let lastContentPos = afterBeatPos;
-      let pos = afterBeatPos;
       
-      // Find the end of generated content by looking for consecutive paragraphs
-      while (pos < state.doc.content.size) {
-        const node = state.doc.nodeAt(pos);
-        if (!node) break;
+      // Store the end position for this beat's content
+      // We need to account for the fact that the document has changed
+      const newBeatPos = this.findBeatNodePosition(beatId);
+      if (newBeatPos !== null) {
+        const newAfterBeatPos = newBeatPos + beatNode.nodeSize;
+        this.beatStreamingPositions.set(beatId, newAfterBeatPos + fragment.size);
+      }
+    } else {
+      // Subsequent chunks - use stored position or recalculate
+      let insertPos = this.beatStreamingPositions.get(beatId);
+      
+      if (!insertPos) {
+        // Fallback: recalculate position by finding end of generated content
+        insertPos = afterBeatPos;
+        let pos = afterBeatPos;
         
-        // Stop if we hit another beat node (indicates end of this beat's content)
-        if (node.type.name === 'beatAI') {
-          break;
-        }
-        
-        // Track position through paragraphs that belong to this beat
-        if (node.type.name === 'paragraph') {
-          lastContentPos = pos + node.nodeSize;
-          pos = lastContentPos;
-        } else {
-          // Stop at other node types that aren't paragraphs
-          break;
+        // Find the last paragraph after this beat before hitting another beat or non-paragraph
+        while (pos < state.doc.content.size) {
+          const node = state.doc.nodeAt(pos);
+          if (!node) break;
+          
+          if (node.type.name === 'beatAI') {
+            // Hit another beat, stop here
+            break;
+          }
+          
+          if (node.type.name === 'paragraph') {
+            // Update insert position to after this paragraph
+            insertPos = pos + node.nodeSize;
+            pos = insertPos;
+          } else {
+            // Non-paragraph content, stop
+            break;
+          }
         }
       }
       
-      // Find the last paragraph to append to
-      if (lastContentPos > afterBeatPos) {
-        // We have existing paragraphs, find the last one
-        const lastParaEnd = lastContentPos - 1;
-        const resolvedPos = state.doc.resolve(lastParaEnd);
+      // Try to append to existing paragraph if possible
+      if (insertPos > afterBeatPos) {
+        const beforeInsertPos = insertPos - 1;
+        const resolvedPos = state.doc.resolve(beforeInsertPos);
         
-        // Check if we can append to the last paragraph
-        if (resolvedPos.parent && resolvedPos.parent.type.name === 'paragraph') {
-          // Check if new content contains paragraph breaks
-          if (newContent.includes('\n\n')) {
-            // Content contains paragraph breaks, need to handle carefully
-            const currentText = resolvedPos.parent.textContent;
-            const combinedText = currentText + newContent;
-            const paragraphNodes = this.createParagraphsFromContent(combinedText, state);
-            const fragment = Fragment.from(paragraphNodes);
-            
-            // Replace the last paragraph with the combined paragraphs
-            const paraStart = resolvedPos.before();
-            const paraEnd = resolvedPos.after();
-            const tr = state.tr.replaceRange(paraStart, paraEnd, new Slice(fragment, 0, 0));
-            this.editorView.dispatch(tr);
-          } else {
-            // Simple text append to the last paragraph
-            const tr = state.tr.insertText(newContent, lastParaEnd);
-            this.editorView.dispatch(tr);
-          }
+        if (resolvedPos.parent && resolvedPos.parent.type.name === 'paragraph' && !newContent.startsWith('\n\n')) {
+          // Append to existing paragraph
+          const tr = state.tr.insertText(newContent, beforeInsertPos);
+          this.editorView.dispatch(tr);
+          
+          // Update stored position
+          this.beatStreamingPositions.set(beatId, insertPos + newContent.length);
         } else {
-          // Can't append to last paragraph, create new ones
+          // Create new paragraph(s)
           const paragraphNodes = this.createParagraphsFromContent(newContent, state);
           const fragment = Fragment.from(paragraphNodes);
-          const tr = state.tr.insert(lastContentPos, fragment);
+          const tr = state.tr.insert(insertPos, fragment);
           this.editorView.dispatch(tr);
+          
+          // Update stored position
+          this.beatStreamingPositions.set(beatId, insertPos + fragment.size);
         }
       } else {
-        // No paragraphs generated yet, create new ones right after beat
+        // No existing content, insert right after beat
         const paragraphNodes = this.createParagraphsFromContent(newContent, state);
         const fragment = Fragment.from(paragraphNodes);
         const tr = state.tr.insert(afterBeatPos, fragment);
         this.editorView.dispatch(tr);
+        
+        // Store position for next chunks
+        this.beatStreamingPositions.set(beatId, afterBeatPos + fragment.size);
       }
     }
   }
