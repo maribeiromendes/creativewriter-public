@@ -25,7 +25,6 @@ import { BeatAI, BeatAIPromptEvent } from '../models/beat-ai.interface';
 import { BeatAIService } from '../../shared/services/beat-ai.service';
 import { PromptManagerService } from '../../shared/services/prompt-manager.service';
 import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/components/image-upload-dialog.component';
-import { SimpleCodexAwarenessDirective } from '../../shared/directives/simple-codex-awareness.directive';
 
 @Component({
   selector: 'app-story-editor',
@@ -34,8 +33,7 @@ import { SimpleCodexAwarenessDirective } from '../../shared/directives/simple-co
     CommonModule, FormsModule, 
     IonHeader, IonToolbar, IonButtons, IonButton, IonIcon, IonTitle,
     IonContent, IonInput, IonChip, IonLabel,
-    StoryStructureComponent, SlashCommandDropdownComponent, ImageUploadDialogComponent,
-    SimpleCodexAwarenessDirective
+    StoryStructureComponent, SlashCommandDropdownComponent, ImageUploadDialogComponent
   ],
   template: `
     <div class="ion-page">
@@ -155,9 +153,6 @@ import { SimpleCodexAwarenessDirective } from '../../shared/directives/simple-co
                     <div 
                       #editorContainer
                       class="content-editor ion-padding"
-                      appSimpleCodexAwareness
-                      [storyId]="story.id"
-                      [enableHighlighting]="true"
                     ></div>
                   </div>
                   

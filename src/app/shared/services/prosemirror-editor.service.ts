@@ -1,6 +1,6 @@
 import { Injectable, Injector, ApplicationRef, EnvironmentInjector } from '@angular/core';
 import { EditorState, Transaction, Plugin, PluginKey } from 'prosemirror-state';
-import { EditorView } from 'prosemirror-view';
+import { EditorView, Decoration, DecorationSet } from 'prosemirror-view';
 import { Schema, DOMParser, DOMSerializer, Node as ProseMirrorNode, Fragment, Slice } from 'prosemirror-model';
 import { schema } from 'prosemirror-schema-basic';
 import { addListNodes } from 'prosemirror-schema-list';
@@ -13,6 +13,9 @@ import { BeatAI, BeatAIPromptEvent, BeatContentInsertEvent } from '../../stories
 import { BeatAIService } from './beat-ai.service';
 import { ImageInsertResult } from '../components/image-upload-dialog.component';
 import { PromptManagerService } from './prompt-manager.service';
+import { createCodexHighlightingPlugin, updateCodexHighlightingPlugin } from './codex-highlighting-plugin';
+import { CodexEntry } from '../../stories/models/codex.interface';
+import { CodexService } from '../../stories/services/codex.service';
 
 export interface EditorConfig {
   placeholder?: string;
@@ -51,7 +54,8 @@ export class ProseMirrorEditorService {
     private appRef: ApplicationRef,
     private envInjector: EnvironmentInjector,
     private beatAIService: BeatAIService,
-    private promptManager: PromptManagerService
+    private promptManager: PromptManagerService,
+    private codexService: CodexService
   ) {
     // Create schema with basic nodes, list support, and beat AI node
     const baseNodes = addListNodes(schema.spec.nodes, 'paragraph block*', 'block');
@@ -173,7 +177,8 @@ export class ProseMirrorEditorService {
             return false;
           }
         }),
-        this.createBeatAIPlugin(config)
+        this.createBeatAIPlugin(config),
+        this.createCodexHighlightingPlugin(config)
       ]
     });
 
@@ -1044,5 +1049,42 @@ export class ProseMirrorEditorService {
         this.beatStreamingPositions.set(beatId, afterBeatPos + fragment.size);
       }
     }
+  }
+
+  private createCodexHighlightingPlugin(config: EditorConfig): Plugin {
+    // Get initial codex entries
+    let codexEntries: CodexEntry[] = [];
+    
+    if (config.storyContext?.storyId) {
+      this.codexService.codex$.subscribe(codexMap => {
+        const codex = codexMap.get(config.storyContext!.storyId!);
+        if (codex) {
+          codexEntries = this.extractAllCodexEntries(codex);
+          // Update the plugin when codex entries change
+          if (this.editorView) {
+            updateCodexHighlightingPlugin(this.editorView, codexEntries);
+          }
+        }
+      });
+    }
+
+    return createCodexHighlightingPlugin({
+      codexEntries,
+      storyId: config.storyContext?.storyId
+    });
+  }
+
+  private extractAllCodexEntries(codex: any): CodexEntry[] {
+    const entries: CodexEntry[] = [];
+    
+    if (codex.categories) {
+      for (const category of codex.categories) {
+        if (category.entries) {
+          entries.push(...category.entries);
+        }
+      }
+    }
+    
+    return entries;
   }
 }

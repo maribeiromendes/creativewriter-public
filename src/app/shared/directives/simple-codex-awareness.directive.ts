@@ -186,16 +186,88 @@ export class SimpleCodexAwarenessDirective implements OnInit, OnDestroy {
   }
 
   private highlightTextarea(textarea: HTMLTextAreaElement, content: string, matches: TextMatch[]): void {
-    // For textareas, we can't modify the content directly
-    // Instead, we'll use a different approach - add a visual indicator
-    // This is a simplified implementation that just adds a CSS class
-    
+    // For textareas, we create an overlay element to show highlighting
     if (matches.length > 0) {
       textarea.classList.add('codex-matches-found');
       textarea.title = `Gefundene Codex-Einträge: ${matches.map(m => m.entry.title).join(', ')}`;
+      
+      // Create or update overlay
+      this.createTextareaOverlay(textarea, content, matches);
     } else {
       textarea.classList.remove('codex-matches-found');
       textarea.title = '';
+      this.removeTextareaOverlay(textarea);
+    }
+  }
+
+  private createTextareaOverlay(textarea: HTMLTextAreaElement, content: string, matches: TextMatch[]): void {
+    const container = textarea.parentElement;
+    if (!container) return;
+
+    // Remove existing overlay
+    this.removeTextareaOverlay(textarea);
+
+    // Create overlay div
+    const overlay = this.renderer.createElement('div');
+    this.renderer.addClass(overlay, 'codex-textarea-overlay');
+    
+    // Copy textarea styles to overlay
+    const computedStyle = window.getComputedStyle(textarea);
+    this.renderer.setStyle(overlay, 'position', 'absolute');
+    this.renderer.setStyle(overlay, 'top', '0');
+    this.renderer.setStyle(overlay, 'left', '0');
+    this.renderer.setStyle(overlay, 'width', '100%');
+    this.renderer.setStyle(overlay, 'height', '100%');
+    this.renderer.setStyle(overlay, 'pointer-events', 'none');
+    this.renderer.setStyle(overlay, 'z-index', '1');
+    this.renderer.setStyle(overlay, 'overflow', 'hidden');
+    this.renderer.setStyle(overlay, 'font-family', computedStyle.fontFamily);
+    this.renderer.setStyle(overlay, 'font-size', computedStyle.fontSize);
+    this.renderer.setStyle(overlay, 'line-height', computedStyle.lineHeight);
+    this.renderer.setStyle(overlay, 'padding', computedStyle.padding);
+    this.renderer.setStyle(overlay, 'border', 'transparent');
+    this.renderer.setStyle(overlay, 'white-space', 'pre-wrap');
+    this.renderer.setStyle(overlay, 'word-wrap', 'break-word');
+    this.renderer.setStyle(overlay, 'color', 'transparent');
+    this.renderer.setStyle(overlay, 'background', 'transparent');
+    
+    // Create highlighted content
+    let highlightedHtml = content;
+    
+    // Sort matches by position (descending to avoid index shifting)
+    matches.sort((a, b) => b.start - a.start);
+    
+    // Apply highlights from end to beginning
+    for (const match of matches) {
+      const before = highlightedHtml.slice(0, match.start);
+      const matchText = highlightedHtml.slice(match.start, match.end);
+      const after = highlightedHtml.slice(match.end);
+      
+      const color = this.getHighlightColor(match.type);
+      const highlightedText = `<span style="background-color: ${color}; opacity: 0.3; border-radius: 2px;">${matchText}</span>`;
+      
+      highlightedHtml = before + highlightedText + after;
+    }
+    
+    this.renderer.setProperty(overlay, 'innerHTML', highlightedHtml);
+    
+    // Make container relative if not already
+    if (computedStyle.position === 'static') {
+      this.renderer.setStyle(container, 'position', 'relative');
+    }
+    
+    // Insert overlay
+    this.renderer.insertBefore(container, overlay, textarea);
+    
+    // Store reference for cleanup
+    (textarea as any).__codexOverlay = overlay;
+  }
+
+  private removeTextareaOverlay(textarea: HTMLTextAreaElement): void {
+    const overlay = (textarea as any).__codexOverlay;
+    if (overlay && overlay.parentNode) {
+      this.renderer.removeChild(overlay.parentNode, overlay);
+      delete (textarea as any).__codexOverlay;
     }
   }
 
@@ -216,6 +288,7 @@ export class SimpleCodexAwarenessDirective implements OnInit, OnDestroy {
     if (element.tagName.toLowerCase() === 'textarea') {
       element.classList.remove('codex-matches-found');
       element.title = '';
+      this.removeTextareaOverlay(element);
       return;
     }
     
