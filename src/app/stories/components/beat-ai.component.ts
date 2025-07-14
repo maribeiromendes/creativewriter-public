@@ -10,12 +10,11 @@ import { ModelService } from '../../core/services/model.service';
 import { SettingsService } from '../../core/services/settings.service';
 import { BeatAIService } from '../../shared/services/beat-ai.service';
 import { SimpleCodexAwarenessDirective } from '../../shared/directives/simple-codex-awareness.directive';
-import { CodexDebugComponent } from '../../shared/components/codex-debug.component';
 
 @Component({
   selector: 'app-beat-ai',
   standalone: true,
-  imports: [CommonModule, FormsModule, NgSelectModule, IonIcon, SimpleCodexAwarenessDirective, CodexDebugComponent],
+  imports: [CommonModule, FormsModule, NgSelectModule, IonIcon, SimpleCodexAwarenessDirective],
   template: `
     <div class="beat-ai-container" [class.editing]="beatData.isEditing" [class.generating]="beatData.isGenerating">
       <!-- Prompt Input Section -->
@@ -179,12 +178,6 @@ import { CodexDebugComponent } from '../../shared/components/codex-debug.compone
         </button>
       </div>
     </div>
-
-    <!-- Debug Component (temporär) -->
-    <app-codex-debug 
-      [storyId]="storyId" 
-      [showDebug]="true">
-    </app-codex-debug>
 
     <!-- Prompt Preview Modal -->
     <div class="preview-modal" *ngIf="showPreviewModal" (click)="hidePromptPreview()">
