@@ -91,15 +91,6 @@ export class BeatAIService {
         const maxTokens = Math.max(calculatedTokens, 3000); // Minimum 3000 tokens for any response
         const requestId = this.generateRequestId();
         
-        // Debug logging
-        console.log('🔍 Beat AI Debug:', {
-          originalPrompt: prompt,
-          wordCount: wordCount,
-          maxTokens: maxTokens,
-          beatType: options.beatType || 'story',
-          enhancedPromptLength: enhancedPrompt.length,
-          enhancedPromptPreview: enhancedPrompt.substring(0, 500) + '...'
-        });
         
         // Store the active generation
         this.activeGenerations.set(beatId, requestId);
@@ -459,23 +450,11 @@ export class BeatAIService {
 
         // Get story so far in XML format
         // For SceneBeat, we get the story without scene summaries
-        console.log('🔍 Beat AI - Building prompt context:', {
-          beatType: options.beatType || 'story',
-          sceneId: options.sceneId,
-          useMinimalContext: options.beatType === 'scene'
-        });
-        
         const storySoFar = options.sceneId 
           ? (options.beatType === 'scene' 
               ? await this.promptManager.getStoryXmlFormatWithoutSummaries(options.sceneId)
               : await this.promptManager.getStoryXmlFormat(options.sceneId))
           : '';
-          
-        console.log('🔍 Beat AI - Story context length:', {
-          beatType: options.beatType || 'story',
-          storySoFarLength: storySoFar.length,
-          hasContent: storySoFar.length > 0
-        });
 
         // Build template placeholders
         const placeholders = {
