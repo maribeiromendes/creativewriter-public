@@ -235,7 +235,12 @@ export class GoogleGeminiApiService {
           
           this.aiLogger.logSuccess(logId, content, duration, {
             httpStatus: 200,
-            responseHeaders: { 'content-type': 'application/json' }
+            responseHeaders: { 'content-type': 'application/json' },
+            safetyRatings: {
+              promptFeedback: response.promptFeedback,
+              candidateSafetyRatings: response.candidates?.[0]?.safetyRatings,
+              finishReason: response.candidates?.[0]?.finishReason
+            }
           });
           this.cleanupRequest(requestId);
         },
@@ -274,7 +279,8 @@ export class GoogleGeminiApiService {
           this.aiLogger.logError(logId, errorDetails.message, duration, {
             httpStatus: error.status,
             errorDetails: errorDetails,
-            responseHeaders: error.headers?.keys ? Object.fromEntries(error.headers.keys().map((key: string) => [key, error.headers.get(key)])) : undefined
+            responseHeaders: error.headers?.keys ? Object.fromEntries(error.headers.keys().map((key: string) => [key, error.headers.get(key)])) : undefined,
+            safetyRatings: errorDetails.details // Safety ratings may be in error details for blocked content
           });
           this.cleanupRequest(requestId);
         }
@@ -580,7 +586,12 @@ export class GoogleGeminiApiService {
                   
                   this.aiLogger.logSuccess(logId, accumulatedContent, duration, {
                     httpStatus: 200,
-                    responseHeaders: { 'content-type': 'application/json' }
+                    responseHeaders: { 'content-type': 'application/json' },
+                    safetyRatings: {
+                      promptFeedback: data.promptFeedback || (Array.isArray(data) && data[0]?.promptFeedback),
+                      candidateSafetyRatings: data.candidates?.[0]?.safetyRatings || (Array.isArray(data) && data[0]?.candidates?.[0]?.safetyRatings),
+                      finishReason: data.candidates?.[0]?.finishReason || (Array.isArray(data) && data[0]?.candidates?.[0]?.finishReason)
+                    }
                   });
                   this.cleanupRequest(requestId);
                   abortSubscription.unsubscribe();
@@ -621,7 +632,10 @@ export class GoogleGeminiApiService {
                 observer.complete();
                 this.aiLogger.logSuccess(logId, accumulatedContent, duration, {
                   httpStatus: 200,
-                  responseHeaders: { 'content-type': 'text/event-stream' }
+                  responseHeaders: { 'content-type': 'text/event-stream' },
+                  safetyRatings: {
+                    // Safety ratings from streaming will be captured via logDebugInfo during streaming
+                  }
                 });
                 this.cleanupRequest(requestId);
                 abortSubscription.unsubscribe();
@@ -721,7 +735,8 @@ export class GoogleGeminiApiService {
         observer.error(error);
         this.aiLogger.logError(logId, errorDetails.message, duration, {
           httpStatus: error.status || 0,
-          errorDetails: errorDetails
+          errorDetails: errorDetails,
+          safetyRatings: errorDetails.details // Safety ratings may be in error details for blocked content
         });
         this.cleanupRequest(requestId);
         abortSubscription.unsubscribe();

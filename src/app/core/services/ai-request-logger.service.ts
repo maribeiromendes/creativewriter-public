@@ -27,6 +27,21 @@ export interface AIRequestLog {
     downlink?: number;
     rtt?: number;
   };
+  // Safety ratings from AI providers (especially Gemini)
+  safetyRatings?: {
+    promptFeedback?: {
+      blockReason?: string;
+      safetyRatings?: Array<{
+        category: string;
+        probability: string;
+      }>;
+    };
+    candidateSafetyRatings?: Array<{
+      category: string;
+      probability: string;
+    }>;
+    finishReason?: string;
+  };
 }
 
 @Injectable({
@@ -116,6 +131,7 @@ export class AIRequestLoggerService {
     responseHeaders?: any;
     httpStatus?: number;
     retryCount?: number;
+    safetyRatings?: any;
   }): void {
     console.log('✅ AI Request Logger - Success:', {
       id,
@@ -133,7 +149,8 @@ export class AIRequestLoggerService {
       status: 'success',
       responseHeaders: additionalData?.responseHeaders,
       httpStatus: additionalData?.httpStatus,
-      retryCount: additionalData?.retryCount
+      retryCount: additionalData?.retryCount,
+      safetyRatings: additionalData?.safetyRatings
     });
   }
 
@@ -142,6 +159,7 @@ export class AIRequestLoggerService {
     httpStatus?: number;
     retryCount?: number;
     responseHeaders?: any;
+    safetyRatings?: any;
   }): void {
     console.error('❌ AI Request Logger - Error:', {
       id,
@@ -159,7 +177,8 @@ export class AIRequestLoggerService {
       errorDetails: additionalData?.errorDetails,
       httpStatus: additionalData?.httpStatus,
       retryCount: additionalData?.retryCount,
-      responseHeaders: additionalData?.responseHeaders
+      responseHeaders: additionalData?.responseHeaders,
+      safetyRatings: additionalData?.safetyRatings
     });
   }
 

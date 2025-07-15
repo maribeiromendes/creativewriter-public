@@ -304,6 +304,61 @@ import { Subscription } from 'rxjs';
               </div>
             </ion-accordion>
 
+            <!-- Candidate Safety Ratings -->
+            <ion-accordion value="candidate-safety" *ngIf="hasCandidateSafetyRatings(log)">
+              <ion-item slot="header" color="light">
+                <ion-icon name="shield-half-outline" slot="start" color="success"></ion-icon>
+                <ion-label>
+                  <h3>Candidate Safety Ratings</h3>
+                  <p>Safety analysis of generated content</p>
+                </ion-label>
+              </ion-item>
+              <div class="accordion-content" slot="content">
+                <div class="debug-info-section">
+                  <h4><ion-icon name="checkmark-circle-outline"></ion-icon> Generated Content Safety Analysis</h4>
+                  
+                  <!-- Finish Reason if present -->
+                  <div *ngIf="getCandidateFinishReason(log)" class="alert-section">
+                    <div class="alert-box" [ngClass]="{'blocked': getCandidateFinishReason(log) === 'SAFETY', 'warning': getCandidateFinishReason(log) === 'OTHER'}">
+                      <ion-icon [name]="getCandidateFinishReason(log) === 'SAFETY' ? 'stop-circle-outline' : 'warning-outline'"></ion-icon>
+                      <strong>Finish Reason:</strong> {{ getCandidateFinishReason(log) }}
+                      <span *ngIf="getCandidateFinishReason(log) === 'SAFETY'" style="margin-left: 0.5rem; font-weight: normal;">
+                        (Content generation stopped due to safety filters)
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <!-- Safety Ratings -->
+                  <div *ngIf="getCandidateSafetyRatings(log)?.length" class="safety-ratings-grid">
+                    <h5><ion-icon name="shield-outline"></ion-icon> Safety Ratings</h5>
+                    <div class="safety-rating" 
+                         *ngFor="let rating of getCandidateSafetyRatings(log)"
+                         [class.high-risk]="rating.probability === 'HIGH'"
+                         [class.medium-risk]="rating.probability === 'MEDIUM'"
+                         [class.low-risk]="rating.probability === 'LOW' || rating.probability === 'NEGLIGIBLE'">
+                      <div class="rating-category">
+                        <ion-label>{{ formatSafetyCategory(rating.category) }}</ion-label>
+                      </div>
+                      <div class="rating-probability">
+                        <ion-badge [color]="getSafetyColor(rating.probability)">
+                          {{ rating.probability || 'UNKNOWN' }}
+                        </ion-badge>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Raw Candidate Safety Data -->
+                  <div class="debug-subsection">
+                    <h5><ion-icon name="code-outline"></ion-icon> Raw Candidate Safety Data</h5>
+                    <pre class="debug-info">{{ formatJson({
+                      candidateSafetyRatings: getCandidateSafetyRatings(log),
+                      finishReason: getCandidateFinishReason(log)
+                    }) }}</pre>
+                  </div>
+                </div>
+              </div>
+            </ion-accordion>
+
             <!-- Response Headers -->
             <ion-accordion value="response-headers" *ngIf="log.responseHeaders">
               <ion-item slot="header" color="light">
@@ -713,6 +768,12 @@ import { Subscription } from 'rxjs';
       border: 1px solid var(--ion-color-danger);
     }
 
+    .alert-box.warning {
+      background: var(--ion-color-warning-tint);
+      color: var(--ion-color-warning-contrast);
+      border: 1px solid var(--ion-color-warning);
+    }
+
     .safety-ratings-grid {
       margin-bottom: 1.5rem;
     }
@@ -894,7 +955,13 @@ export class AILogTabComponent implements OnInit, OnDestroy {
   }
 
   getPromptFeedback(log: AIRequestLog): any {
-    // Check in debug info first
+    // Check in the new safetyRatings field first (highest priority)
+    if (log.safetyRatings?.promptFeedback) {
+      console.log('Found promptFeedback in safetyRatings:', log.safetyRatings.promptFeedback);
+      return log.safetyRatings.promptFeedback;
+    }
+    
+    // Check in debug info
     if (log.requestDetails?.debugInfo?.promptFeedback) {
       console.log('Found promptFeedback in debugInfo:', log.requestDetails.debugInfo.promptFeedback);
       return log.requestDetails.debugInfo.promptFeedback;
@@ -904,6 +971,16 @@ export class AILogTabComponent implements OnInit, OnDestroy {
     if (log.requestDetails?.promptFeedback) {
       console.log('Found promptFeedback in requestDetails:', log.requestDetails.promptFeedback);
       return log.requestDetails.promptFeedback;
+    }
+    
+    // Create synthetic prompt feedback from new safetyRatings structure
+    if (log.safetyRatings?.candidateSafetyRatings) {
+      console.log('Creating promptFeedback from candidateSafetyRatings:', log.safetyRatings.candidateSafetyRatings);
+      return {
+        safetyRatings: log.safetyRatings.candidateSafetyRatings,
+        blockReason: log.safetyRatings.finishReason === 'SAFETY' ? 'SAFETY' : undefined,
+        synthetic: true
+      };
     }
     
     // Check if there's any safety information in the response
@@ -947,6 +1024,43 @@ export class AILogTabComponent implements OnInit, OnDestroy {
       case 'NEGLIGIBLE': return 'success';
       default: return 'medium';
     }
+  }
+
+  hasCandidateSafetyRatings(log: AIRequestLog): boolean {
+    return !!(this.getCandidateSafetyRatings(log)?.length || this.getCandidateFinishReason(log));
+  }
+
+  getCandidateSafetyRatings(log: AIRequestLog): any[] {
+    // Check in the new safetyRatings field first
+    if (log.safetyRatings?.candidateSafetyRatings) {
+      console.log('Found candidateSafetyRatings in safetyRatings:', log.safetyRatings.candidateSafetyRatings);
+      return log.safetyRatings.candidateSafetyRatings;
+    }
+    
+    // Check in debug info for candidate safety ratings
+    if (log.requestDetails?.debugInfo?.safetyRatings) {
+      console.log('Found candidateSafetyRatings in debugInfo:', log.requestDetails.debugInfo.safetyRatings);
+      return log.requestDetails.debugInfo.safetyRatings;
+    }
+    
+    console.log('No candidateSafetyRatings found for log:', log.id);
+    return [];
+  }
+
+  getCandidateFinishReason(log: AIRequestLog): string | null {
+    // Check in the new safetyRatings field first
+    if (log.safetyRatings?.finishReason) {
+      console.log('Found finishReason in safetyRatings:', log.safetyRatings.finishReason);
+      return log.safetyRatings.finishReason;
+    }
+    
+    // Check in debug info for finish reason
+    if (log.requestDetails?.debugInfo?.responseStructure?.finishReason) {
+      console.log('Found finishReason in debugInfo:', log.requestDetails.debugInfo.responseStructure.finishReason);
+      return log.requestDetails.debugInfo.responseStructure.finishReason;
+    }
+    
+    return null;
   }
 
   async copyToClipboard(text: string, event: Event): Promise<void> {
