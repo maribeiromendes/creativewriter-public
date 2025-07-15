@@ -449,6 +449,23 @@ import { Subscription } from 'rxjs';
       --padding-end: 8px;
       --padding-top: 2px;
       --padding-bottom: 2px;
+      white-space: normal !important;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      line-height: 1.4;
+      min-height: auto;
+      height: auto !important;
+    }
+    
+    /* Override Ionic's default input styles for multi-line display */
+    .scene-title-input::part(native) {
+      white-space: normal !important;
+      word-wrap: break-word !important;
+      overflow-wrap: break-word !important;
+      line-height: 1.4 !important;
+      height: auto !important;
+      min-height: 22px;
+      overflow: visible !important;
     }
     
     .scene-item.active-scene .scene-title-input {
@@ -981,6 +998,7 @@ import { Subscription } from 'rxjs';
         align-items: flex-start;
         gap: 6px;
         flex: 1;
+        min-width: 0; /* Allow flex item to shrink below content size */
       }
 
       .scene-id-display {
@@ -1007,6 +1025,19 @@ import { Subscription } from 'rxjs';
         word-wrap: break-word;
         overflow-wrap: break-word;
         line-height: 1.4;
+        min-height: auto;
+        height: auto !important;
+      }
+      
+      /* Override Ionic's default input styles for multi-line display */
+      .scene-title-input::part(native) {
+        white-space: normal !important;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+        line-height: 1.4 !important;
+        height: auto !important;
+        min-height: 22px;
+        overflow: visible !important;
       }
     }
   `]
