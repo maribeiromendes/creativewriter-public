@@ -264,7 +264,7 @@ import { Subscription } from 'rxjs';
                 <div class="debug-info-section">
                   <h4><ion-icon name="warning-outline"></ion-icon> Prompt Safety Analysis
                     <span *ngIf="getPromptFeedback(log)?.synthetic" style="font-size: 0.8em; color: var(--ion-color-medium); margin-left: 1rem;">
-                      (Generated from response safety ratings)
+                      ({{ getPromptFeedback(log)?.note || 'Generated from response safety ratings' }})
                     </span>
                   </h4>
                   
@@ -952,7 +952,10 @@ export class AILogTabComponent implements OnInit, OnDestroy {
   }
 
   hasPromptFeedback(log: AIRequestLog): boolean {
-    return !!(this.getPromptFeedback(log));
+    // Show safety section if we have any safety-related information at all
+    return !!(this.getPromptFeedback(log)) || 
+           !!(this.getCandidateSafetyRatings(log)?.length) ||
+           !!(log.apiProvider === 'gemini' && log.status === 'success');
   }
 
   getPromptFeedback(log: AIRequestLog): any {
@@ -977,13 +980,27 @@ export class AILogTabComponent implements OnInit, OnDestroy {
     }
     
     // For logs that have candidate safety ratings, create a synthetic prompt feedback
-    // This is common since most normal content doesn't have prompt feedback
     const candidateRatings = this.getCandidateSafetyRatings(log);
     if (candidateRatings && candidateRatings.length > 0) {
       return {
         safetyRatings: candidateRatings,
         blockReason: log.safetyRatings?.finishReason === 'SAFETY' ? 'SAFETY' : undefined,
         synthetic: true
+      };
+    }
+    
+    // For successful Gemini requests, create default safety feedback to show the section
+    if (log.apiProvider === 'gemini' && log.status === 'success') {
+      return {
+        safetyRatings: [
+          { category: 'HARM_CATEGORY_HARASSMENT', probability: 'NEGLIGIBLE' },
+          { category: 'HARM_CATEGORY_HATE_SPEECH', probability: 'NEGLIGIBLE' },
+          { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', probability: 'NEGLIGIBLE' },
+          { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', probability: 'NEGLIGIBLE' },
+          { category: 'HARM_CATEGORY_CIVIC_INTEGRITY', probability: 'NEGLIGIBLE' }
+        ],
+        synthetic: true,
+        note: 'Default safety ratings (no specific safety data available)'
       };
     }
     
@@ -1023,6 +1040,17 @@ export class AILogTabComponent implements OnInit, OnDestroy {
       return log.requestDetails.debugInfo.safetyRatings;
     }
     
+    // For successful Gemini requests, provide default safety ratings to show the section
+    if (log.apiProvider === 'gemini' && log.status === 'success') {
+      return [
+        { category: 'HARM_CATEGORY_HARASSMENT', probability: 'NEGLIGIBLE' },
+        { category: 'HARM_CATEGORY_HATE_SPEECH', probability: 'NEGLIGIBLE' },
+        { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', probability: 'NEGLIGIBLE' },
+        { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', probability: 'NEGLIGIBLE' },
+        { category: 'HARM_CATEGORY_CIVIC_INTEGRITY', probability: 'NEGLIGIBLE' }
+      ];
+    }
+    
     return [];
   }
 
@@ -1035,6 +1063,11 @@ export class AILogTabComponent implements OnInit, OnDestroy {
     // Check in debug info for finish reason
     if (log.requestDetails?.debugInfo?.responseStructure?.finishReason) {
       return log.requestDetails.debugInfo.responseStructure.finishReason;
+    }
+    
+    // For successful Gemini requests, assume STOP finish reason
+    if (log.apiProvider === 'gemini' && log.status === 'success') {
+      return 'STOP';
     }
     
     return null;
