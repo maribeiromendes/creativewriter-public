@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { IonIcon } from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import { logoGoogle, globeOutline } from 'ionicons/icons';
 import { BeatAI, BeatAIPromptEvent } from '../models/beat-ai.interface';
 import { Subscription } from 'rxjs';
 import { ModelOption } from '../../core/models/model.interface';
@@ -379,6 +381,12 @@ import { SimpleCodexAwarenessDirective } from '../../shared/directives/simple-co
       font-size: 1rem;
       width: 1rem;
       height: 1rem;
+    }
+    
+    .provider-icon-inline {
+      display: inline-flex;
+      align-items: center;
+      margin-right: 0.25rem;
     }
     
     .provider-icon-inline.gemini {
@@ -903,7 +911,10 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
     private modelService: ModelService,
     private settingsService: SettingsService,
     private beatAIService: BeatAIService
-  ) {}
+  ) {
+    // Register icons
+    addIcons({ logoGoogle, globeOutline });
+  }
   
   ngOnInit(): void {
     this.currentPrompt = this.beatData.prompt;
@@ -1203,6 +1214,15 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   getProviderIcon(provider: string): string {
-    return provider === 'gemini' ? 'logo-google' : 'globe-outline';
+    switch (provider) {
+      case 'gemini':
+        return 'logo-google';
+      case 'openrouter':
+        return 'globe-outline';
+      case 'anthropic':
+        return 'globe-outline'; // Oder ein spezifisches Icon wenn verfügbar
+      default:
+        return 'globe-outline';
+    }
   }
 }
