@@ -160,6 +160,9 @@ import { SimpleCodexAwarenessDirective } from '../../shared/directives/simple-co
             <span class="beat-type-badge" [class.story-beat]="(beatData.beatType || 'story') === 'story'" [class.scene-beat]="(beatData.beatType || 'story') === 'scene'">
               {{ (beatData.beatType || 'story') === 'story' ? 'StoryBeat' : 'SceneBeat' }}
             </span>
+            <span class="model-badge" *ngIf="beatData.model" title="Verwendetes AI-Modell">
+              {{ getModelDisplayName(beatData.model) }}
+            </span>
           </div>
         </div>
       </div>
@@ -418,6 +421,8 @@ import { SimpleCodexAwarenessDirective } from '../../shared/directives/simple-co
       margin-top: 0.5rem;
       display: flex;
       justify-content: flex-end;
+      gap: 0.5rem;
+      flex-wrap: wrap;
     }
     
     .beat-type-badge {
@@ -439,6 +444,17 @@ import { SimpleCodexAwarenessDirective } from '../../shared/directives/simple-co
       background: rgba(40, 167, 69, 0.2);
       color: #51cf66;
       border: 1px solid rgba(40, 167, 69, 0.3);
+    }
+
+    .model-badge {
+      font-size: 0.75rem;
+      padding: 0.25rem 0.5rem;
+      border-radius: 12px;
+      font-weight: 500;
+      background: rgba(255, 193, 7, 0.2);
+      color: #ffc107;
+      border: 1px solid rgba(255, 193, 7, 0.3);
+      cursor: help;
     }
 
     .prompt-actions {
@@ -1000,6 +1016,7 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
     this.beatData.isGenerating = true;
     this.beatData.updatedAt = new Date();
     this.beatData.wordCount = this.getActualWordCount();
+    this.beatData.model = this.selectedModel;
     
     this.promptSubmit.emit({
       beatId: this.beatData.id,
@@ -1021,6 +1038,7 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
     
     this.beatData.isGenerating = true;
     this.beatData.wordCount = this.getActualWordCount();
+    this.beatData.model = this.selectedModel;
     
     this.promptSubmit.emit({
       beatId: this.beatData.id,
@@ -1164,11 +1182,16 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
   private setDefaultModel(): void {
     const settings = this.settingsService.getSettings();
     
-    // Use the global selected model if available
-    if (settings.selectedModel) {
+    // First priority: use the model stored with this beat
+    if (this.beatData.model && this.availableModels.some(m => m.id === this.beatData.model)) {
+      this.selectedModel = this.beatData.model;
+    }
+    // Second priority: use the global selected model if available
+    else if (settings.selectedModel) {
       this.selectedModel = settings.selectedModel;
-    } else if (this.availableModels.length > 0) {
-      // Fallback to first available model
+    } 
+    // Fallback: use first available model
+    else if (this.availableModels.length > 0) {
       this.selectedModel = this.availableModels[0].id;
     }
   }
@@ -1224,5 +1247,25 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
       default:
         return 'globe-outline';
     }
+  }
+
+  getModelDisplayName(modelId: string): string {
+    if (!modelId) return '';
+    
+    // Find the model in available models to get its display name
+    const model = this.availableModels.find(m => m.id === modelId);
+    if (model) {
+      return model.label;
+    }
+    
+    // If not found in available models, try to extract a readable name from the ID
+    // Handle format like "gemini:gemini-1.5-pro" or "openrouter:anthropic/claude-3-haiku"
+    if (modelId.includes(':')) {
+      const parts = modelId.split(':');
+      const modelName = parts[1] || modelId;
+      return modelName.split('/').pop() || modelName; // Handle provider/model format
+    }
+    
+    return modelId;
   }
 }

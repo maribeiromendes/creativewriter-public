@@ -8,6 +8,7 @@ export interface BeatAI {
   updatedAt: Date;
   wordCount?: number;
   beatType?: 'story' | 'scene'; // Default is 'story' for backwards compatibility
+  model?: string; // AI model used for generation
 }
 
 export interface BeatAIGenerationEvent {
