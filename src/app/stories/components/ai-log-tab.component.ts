@@ -872,6 +872,7 @@ export class AILogTabComponent implements OnInit, OnDestroy {
     }
   }
 
+
   formatTime(date: Date): string {
     const now = new Date();
     const diff = now.getTime() - date.getTime();
@@ -957,54 +958,35 @@ export class AILogTabComponent implements OnInit, OnDestroy {
   getPromptFeedback(log: AIRequestLog): any {
     // Check in the new safetyRatings field first (highest priority)
     if (log.safetyRatings?.promptFeedback) {
-      console.log('Found promptFeedback in safetyRatings:', log.safetyRatings.promptFeedback);
       return log.safetyRatings.promptFeedback;
     }
     
     // Check in debug info
     if (log.requestDetails?.debugInfo?.promptFeedback) {
-      console.log('Found promptFeedback in debugInfo:', log.requestDetails.debugInfo.promptFeedback);
       return log.requestDetails.debugInfo.promptFeedback;
     }
     
     // Check in request details
     if (log.requestDetails?.promptFeedback) {
-      console.log('Found promptFeedback in requestDetails:', log.requestDetails.promptFeedback);
       return log.requestDetails.promptFeedback;
-    }
-    
-    // Create synthetic prompt feedback from new safetyRatings structure
-    if (log.safetyRatings?.candidateSafetyRatings) {
-      console.log('Creating promptFeedback from candidateSafetyRatings:', log.safetyRatings.candidateSafetyRatings);
-      return {
-        safetyRatings: log.safetyRatings.candidateSafetyRatings,
-        blockReason: log.safetyRatings.finishReason === 'SAFETY' ? 'SAFETY' : undefined,
-        synthetic: true
-      };
-    }
-    
-    // Check if there's any safety information in the response
-    if (log.requestDetails?.debugInfo?.safetyRatings) {
-      console.log('Creating promptFeedback from safetyRatings:', log.requestDetails.debugInfo.safetyRatings);
-      // Create a synthetic promptFeedback from safety ratings
-      return {
-        safetyRatings: log.requestDetails.debugInfo.safetyRatings,
-        synthetic: true
-      };
     }
     
     // Check for streaming prompt feedback
     if (log.requestDetails?.debugInfo?.streamingPromptFeedback) {
-      console.log('Found streaming promptFeedback:', log.requestDetails.debugInfo.streamingPromptFeedback);
       return log.requestDetails.debugInfo.streamingPromptFeedback;
     }
     
-    // Log entire structure to debug
-    if (log.requestDetails) {
-      console.log('Full requestDetails structure:', log.requestDetails);
+    // For logs that have candidate safety ratings, create a synthetic prompt feedback
+    // This is common since most normal content doesn't have prompt feedback
+    const candidateRatings = this.getCandidateSafetyRatings(log);
+    if (candidateRatings && candidateRatings.length > 0) {
+      return {
+        safetyRatings: candidateRatings,
+        blockReason: log.safetyRatings?.finishReason === 'SAFETY' ? 'SAFETY' : undefined,
+        synthetic: true
+      };
     }
     
-    console.log('No promptFeedback found for log:', log.id);
     return null;
   }
 
@@ -1033,30 +1015,25 @@ export class AILogTabComponent implements OnInit, OnDestroy {
   getCandidateSafetyRatings(log: AIRequestLog): any[] {
     // Check in the new safetyRatings field first
     if (log.safetyRatings?.candidateSafetyRatings) {
-      console.log('Found candidateSafetyRatings in safetyRatings:', log.safetyRatings.candidateSafetyRatings);
       return log.safetyRatings.candidateSafetyRatings;
     }
     
     // Check in debug info for candidate safety ratings
     if (log.requestDetails?.debugInfo?.safetyRatings) {
-      console.log('Found candidateSafetyRatings in debugInfo:', log.requestDetails.debugInfo.safetyRatings);
       return log.requestDetails.debugInfo.safetyRatings;
     }
     
-    console.log('No candidateSafetyRatings found for log:', log.id);
     return [];
   }
 
   getCandidateFinishReason(log: AIRequestLog): string | null {
     // Check in the new safetyRatings field first
     if (log.safetyRatings?.finishReason) {
-      console.log('Found finishReason in safetyRatings:', log.safetyRatings.finishReason);
       return log.safetyRatings.finishReason;
     }
     
     // Check in debug info for finish reason
     if (log.requestDetails?.debugInfo?.responseStructure?.finishReason) {
-      console.log('Found finishReason in debugInfo:', log.requestDetails.debugInfo.responseStructure.finishReason);
       return log.requestDetails.debugInfo.responseStructure.finishReason;
     }
     
