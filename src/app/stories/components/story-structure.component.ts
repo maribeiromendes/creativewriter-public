@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, AfterViewInit, OnInit, OnChanges, OnDestroy, SimpleChanges, ChangeDetectorRef } from '@angular/core';
+import { Component, Input, Output, EventEmitter, AfterViewInit, OnInit, OnChanges, OnDestroy, SimpleChanges, ChangeDetectorRef, ViewChildren, QueryList, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -121,14 +121,28 @@ import { Subscription } from 'rxjs';
                       <div class="scene-title-row">
                         <div class="scene-title-container">
                           <div class="scene-id-display">{{ 'C' + (chapter.chapterNumber || chapter.order) + 'S' + (scene.sceneNumber || scene.order) }}</div>
+                          <div 
+                            *ngIf="!isEditingTitle.has(scene.id)"
+                            class="scene-title-display"
+                            (click)="startEditingTitle(scene.id, $event)"
+                            [attr.aria-label]="'Szenen Titel: ' + (scene.title || 'Ohne Titel') + '. Klicken zum Bearbeiten.'"
+                            tabindex="0"
+                            (keydown.enter)="startEditingTitle(scene.id, $event)"
+                            (keydown.space)="startEditingTitle(scene.id, $event)">
+                            {{ scene.title || 'Szenen Titel' }}
+                          </div>
                           <ion-input 
+                            *ngIf="isEditingTitle.has(scene.id)"
                             [(ngModel)]="scene.title" 
-                            (ionBlur)="updateScene(chapter.id, scene)"
+                            (ionBlur)="stopEditingTitle(chapter.id, scene)"
+                            (keydown.enter)="stopEditingTitle(chapter.id, scene)"
+                            (keydown.escape)="cancelEditingTitle(scene)"
                             (click)="$event.stopPropagation()"
-                            class="scene-title-input"
+                            class="scene-title-input-edit"
                             placeholder="Szenen Titel"
                             fill="clear"
                             [attr.aria-label]="'Szenen Titel bearbeiten'"
+                            #titleInput
                           ></ion-input>
                         </div>
                         
@@ -440,7 +454,31 @@ import { Subscription } from 'rxjs';
       width: 100%;
     }
     
-    .scene-title-input {
+    .scene-title-display {
+      flex: 1;
+      font-size: 0.9rem;
+      color: var(--ion-text-color);
+      padding: 2px 8px 2px 0;
+      cursor: pointer;
+      white-space: normal;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      line-height: 1.4;
+      min-height: 22px;
+      transition: background-color 0.2s;
+      border-radius: 4px;
+    }
+    
+    .scene-title-display:hover {
+      background-color: var(--ion-color-step-100);
+    }
+    
+    .scene-title-display:focus {
+      outline: 2px solid var(--ion-color-primary);
+      outline-offset: 1px;
+    }
+    
+    .scene-title-input-edit {
       --color: var(--ion-text-color);
       --placeholder-color: var(--ion-color-medium);
       font-size: 0.9rem;
@@ -449,27 +487,14 @@ import { Subscription } from 'rxjs';
       --padding-end: 8px;
       --padding-top: 2px;
       --padding-bottom: 2px;
-      white-space: normal !important;
-      word-wrap: break-word;
-      overflow-wrap: break-word;
-      line-height: 1.4;
-      min-height: auto;
-      height: auto !important;
     }
     
-    /* Override Ionic's default input styles for multi-line display */
-    .scene-title-input::part(native) {
-      white-space: normal !important;
-      word-wrap: break-word !important;
-      overflow-wrap: break-word !important;
-      line-height: 1.4 !important;
-      height: auto !important;
-      min-height: 22px;
-      overflow: visible !important;
-    }
-    
-    .scene-item.active-scene .scene-title-input {
+    .scene-item.active-scene .scene-title-input-edit {
       --color: var(--ion-color-primary-contrast);
+    }
+    
+    .scene-item.active-scene .scene-title-display {
+      color: inherit;
     }
     
     .ai-title-btn {
@@ -1019,25 +1044,15 @@ import { Subscription } from 'rxjs';
         flex: 1;
       }
       
-      .scene-title-input {
-        flex: 1;
-        white-space: normal !important;
-        word-wrap: break-word;
-        overflow-wrap: break-word;
-        line-height: 1.4;
-        min-height: auto;
-        height: auto !important;
+      .scene-title-display {
+        --min-height: 44px;
+        font-size: 0.95rem;
+        padding: 8px 8px 8px 0;
       }
       
-      /* Override Ionic's default input styles for multi-line display */
-      .scene-title-input::part(native) {
-        white-space: normal !important;
-        word-wrap: break-word !important;
-        overflow-wrap: break-word !important;
-        line-height: 1.4 !important;
-        height: auto !important;
-        min-height: 22px;
-        overflow: visible !important;
+      .scene-title-input-edit {
+        --min-height: 44px;
+        font-size: 0.95rem;
       }
     }
   `]
@@ -1053,6 +1068,8 @@ export class StoryStructureComponent implements OnInit, OnChanges, AfterViewInit
   expandedScenes = new Set<string>();
   isGeneratingSummary = new Set<string>();
   isGeneratingTitle = new Set<string>();
+  isEditingTitle = new Set<string>();
+  private originalTitles = new Map<string, string>();
   selectedModel: string = '';
   availableModels: ModelOption[] = [];
   private subscription = new Subscription();
@@ -1648,6 +1665,49 @@ Antworte nur mit dem Titel, ohne weitere Erklärungen oder Anführungszeichen.`;
   
   onCloseSidebar(): void {
     this.closeSidebar.emit();
+  }
+  
+  startEditingTitle(sceneId: string, event: Event): void {
+    event.stopPropagation();
+    event.preventDefault();
+    
+    // Find the scene to store its original title
+    for (const chapter of this.story.chapters) {
+      const scene = chapter.scenes.find(s => s.id === sceneId);
+      if (scene) {
+        this.originalTitles.set(sceneId, scene.title || '');
+        break;
+      }
+    }
+    
+    this.isEditingTitle.add(sceneId);
+    
+    // Focus the input after Angular renders it
+    setTimeout(() => {
+      const inputs = document.querySelectorAll('.scene-title-input-edit');
+      inputs.forEach((input: any) => {
+        if (input && input.setFocus) {
+          input.setFocus();
+        }
+      });
+    }, 50);
+  }
+  
+  stopEditingTitle(chapterId: string, scene: Scene): void {
+    this.isEditingTitle.delete(scene.id);
+    this.originalTitles.delete(scene.id);
+    this.updateScene(chapterId, scene);
+  }
+  
+  cancelEditingTitle(scene: Scene): void {
+    // Restore original title
+    const originalTitle = this.originalTitles.get(scene.id);
+    if (originalTitle !== undefined) {
+      scene.title = originalTitle;
+    }
+    
+    this.isEditingTitle.delete(scene.id);
+    this.originalTitles.delete(scene.id);
   }
   
   private scrollToActiveScene(): void {
