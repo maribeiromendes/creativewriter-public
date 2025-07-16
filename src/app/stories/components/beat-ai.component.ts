@@ -119,7 +119,8 @@ import { SimpleCodexAwarenessDirective } from '../../shared/directives/simple-co
                            [searchable]="true"
                            placeholder="Modell auswählen..."
                            class="model-select"
-                           appendTo="body">
+                           appendTo="body"
+                           (change)="onModelChange()">
                   <ng-template ng-option-tmp let-item="item">
                     <div class="model-option-inline">
                       <ion-icon [name]="getProviderIcon(item.provider)" class="provider-icon-inline" [class.gemini]="item.provider === 'gemini'" [class.openrouter]="item.provider === 'openrouter'"></ion-icon>
@@ -1234,6 +1235,15 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
     this.beatAIService.stopGeneration(this.beatData.id);
     this.beatData.isGenerating = false;
     this.contentUpdate.emit(this.beatData);
+  }
+
+  onModelChange(): void {
+    // Save the selected model to the beat data
+    if (this.selectedModel) {
+      this.beatData.model = this.selectedModel;
+      this.beatData.updatedAt = new Date();
+      this.contentUpdate.emit(this.beatData);
+    }
   }
 
   getProviderIcon(provider: string): string {

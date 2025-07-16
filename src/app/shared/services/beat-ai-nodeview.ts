@@ -185,7 +185,8 @@ export class BeatAINodeView implements NodeView {
       createdAt: attrs['createdAt'] ? new Date(attrs['createdAt']) : new Date(),
       updatedAt: attrs['updatedAt'] ? new Date(attrs['updatedAt']) : new Date(),
       wordCount: attrs['wordCount'] || 400,
-      beatType: attrs['beatType'] || 'story'
+      beatType: attrs['beatType'] || 'story',
+      model: attrs['model'] || ''
     };
   }
 
@@ -202,7 +203,8 @@ export class BeatAINodeView implements NodeView {
       createdAt: beatData.createdAt.toISOString(),
       updatedAt: beatData.updatedAt.toISOString(),
       wordCount: beatData.wordCount || 400,
-      beatType: beatData.beatType || 'story'
+      beatType: beatData.beatType || 'story',
+      model: beatData.model || ''
     });
 
     this.view.dispatch(tr);
