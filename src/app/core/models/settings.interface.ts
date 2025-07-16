@@ -46,6 +46,7 @@ export interface SceneTitleGenerationSettings {
   customInstruction: string;
   customPrompt: string;
   useCustomPrompt: boolean;
+  selectedModel: string;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -84,7 +85,8 @@ export const DEFAULT_SETTINGS: Settings = {
     temperature: 0.3,
     customInstruction: '',
     customPrompt: 'Erstelle einen Titel für die folgende Szene. Der Titel soll bis zu {maxWords} Wörter lang sein und den Kern der Szene erfassen.\n\n{styleInstruction}\n{genreInstruction}\n{languageInstruction}{customInstruction}\n\nSzenencontent (nur diese eine Szene):\n{sceneContent}\n\nAntworte nur mit dem Titel, ohne weitere Erklärungen oder Anführungszeichen.',
-    useCustomPrompt: false
+    useCustomPrompt: false,
+    selectedModel: ''
   },
   selectedModel: '',
   updatedAt: new Date()

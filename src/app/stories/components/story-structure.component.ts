@@ -1392,13 +1392,16 @@ Die Zusammenfassung soll die wichtigsten Handlungspunkte und Charakterentwicklun
     const chapter = this.story.chapters.find(c => c.id === chapterId);
     const scene = chapter?.scenes.find(s => s.id === sceneId);
     
-    if (!scene || !scene.content.trim() || !this.selectedModel) {
-      return;
-    }
-    
     // Get scene title generation settings
     const settings = this.settingsService.getSettings();
     const titleSettings = settings.sceneTitleGeneration;
+    
+    // Use scene title specific model if set, otherwise fall back to global model
+    const modelToUse = titleSettings.selectedModel || this.selectedModel;
+    
+    if (!scene || !scene.content.trim() || !modelToUse) {
+      return;
+    }
     
     this.isGeneratingTitle.add(sceneId);
     this.cdr.detectChanges(); // Force change detection for mobile
@@ -1480,7 +1483,7 @@ Antworte nur mit dem Titel, ohne weitere Erklärungen oder Anführungszeichen.`;
     }
 
     this.openRouterApiService.generateText(prompt, {
-      model: this.selectedModel,
+      model: modelToUse,
       maxTokens: Math.max(50, titleSettings.maxWords * 6), // Allow more tokens for longer titles (up to 20 words)
       temperature: titleSettings.temperature
     }).subscribe({

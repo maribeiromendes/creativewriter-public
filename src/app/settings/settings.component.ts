@@ -473,6 +473,47 @@ import { NgSelectModule } from '@ng-select/ng-select';
                 <ion-label slot="end">1.0</ion-label>
               </ion-range>
             </ion-item>
+            
+            <ion-item>
+              <ion-label position="stacked">AI-Modell für Szenentitel</ion-label>
+              <div class="model-selection-container">
+                <ng-select [(ngModel)]="settings.sceneTitleGeneration.selectedModel"
+                           [items]="combinedModels"
+                           bindLabel="label"
+                           bindValue="id"
+                           [searchable]="true"
+                           [clearable]="true"
+                           [disabled]="(!settings.openRouter.enabled || !settings.openRouter.apiKey) && (!settings.googleGemini.enabled || !settings.googleGemini.apiKey)"
+                           placeholder="Modell auswählen (leer = globales Modell verwenden)"
+                           (ngModelChange)="onSceneTitleModelChange()"
+                           [loading]="loadingModels"
+                           [virtualScroll]="true"
+                           class="ng-select-custom"
+                           appendTo="body">
+                  <ng-template ng-option-tmp let-item="item">
+                    <div class="model-option">
+                      <div class="model-option-header">
+                        <ion-icon [name]="item.provider === 'gemini' ? 'logo-google' : 'globe-outline'" class="provider-icon" [class.gemini]="item.provider === 'gemini'" [class.openrouter]="item.provider === 'openrouter'"></ion-icon>
+                        <span class="model-label">{{ item.label }}</span>
+                      </div>
+                      <div class="model-option-details">
+                        <span class="model-cost">Input: {{ item.costInputEur }} | Output: {{ item.costOutputEur }}</span>
+                        <span class="model-context">Context: {{ formatContextLength(item.contextLength) }}</span>
+                      </div>
+                      <div class="model-description" *ngIf="item.description">{{ item.description }}</div>
+                    </div>
+                  </ng-template>
+                </ng-select>
+                <div class="model-info-small">
+                  <p *ngIf="!settings.sceneTitleGeneration.selectedModel" class="info-text">
+                    Kein Modell ausgewählt - das globale Modell wird verwendet
+                  </p>
+                  <p *ngIf="settings.sceneTitleGeneration.selectedModel" class="info-text">
+                    Spezifisches Modell für Szenentitel: {{ getModelDisplayName(settings.sceneTitleGeneration.selectedModel) }}
+                  </p>
+                </div>
+              </div>
+            </ion-item>
 
             <ion-item>
               <ion-label position="stacked">Zusätzliche Anweisungen (optional)</ion-label>
@@ -844,6 +885,17 @@ import { NgSelectModule } from '@ng-select/ng-select';
       font-style: italic;
     }
 
+    .model-info-small {
+      margin-top: 0.5rem;
+    }
+
+    .model-info-small .info-text {
+      margin: 0;
+      font-size: 0.8rem;
+      color: var(--ion-color-medium);
+      font-style: italic;
+    }
+
     /* Mobile responsive adjustments */
     @media (max-width: 768px) {
       .settings-content {
@@ -1145,5 +1197,29 @@ export class SettingsComponent implements OnInit, OnDestroy {
     const defaultPrompt = 'Erstelle einen Titel für die folgende Szene. Der Titel soll bis zu {maxWords} Wörter lang sein und den Kern der Szene erfassen.\n\n{styleInstruction}\n{genreInstruction}\n{languageInstruction}{customInstruction}\n\nSzenencontent (nur diese eine Szene):\n{sceneContent}\n\nAntworte nur mit dem Titel, ohne weitere Erklärungen oder Anführungszeichen.';
     this.settings.sceneTitleGeneration.customPrompt = defaultPrompt;
     this.onSettingsChange();
+  }
+
+  onSceneTitleModelChange(): void {
+    console.log('Scene title model changed to:', this.settings.sceneTitleGeneration.selectedModel);
+    this.onSettingsChange();
+  }
+
+  getModelDisplayName(modelId: string): string {
+    if (!modelId) return 'Globales Modell';
+    
+    // Find the model in available models to get its display name
+    const model = this.combinedModels.find(m => m.id === modelId);
+    if (model) {
+      return model.label;
+    }
+    
+    // If not found in available models, try to extract a readable name from the ID
+    if (modelId.includes(':')) {
+      const parts = modelId.split(':');
+      const modelName = parts[1] || modelId;
+      return modelName.split('/').pop() || modelName;
+    }
+    
+    return modelId;
   }
 }
