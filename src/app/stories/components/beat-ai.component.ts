@@ -998,6 +998,10 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
   startEditing(): void {
     this.beatData.isEditing = true;
     this.currentPrompt = this.beatData.prompt;
+    
+    // Restore all persisted settings when switching back to edit mode
+    this.restorePersistedSettings();
+    
     setTimeout(() => {
       this.focusPromptInput();
       this.resizeTextareaToContent();
@@ -1007,6 +1011,9 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
   cancelEditing(): void {
     this.beatData.isEditing = false;
     this.currentPrompt = this.beatData.prompt;
+    
+    // Restore all persisted settings when canceling
+    this.restorePersistedSettings();
   }
   
   generateContent(): void {
@@ -1194,6 +1201,34 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
     // Fallback: use first available model
     else if (this.availableModels.length > 0) {
       this.selectedModel = this.availableModels[0].id;
+    }
+  }
+
+  private restorePersistedSettings(): void {
+    // Restore the persisted model
+    this.setDefaultModel();
+    
+    // Restore the persisted word count
+    if (this.beatData.wordCount) {
+      // Check if it's a custom value
+      const isPresetValue = this.wordCountOptions.some(option => 
+        typeof option.value === 'number' && option.value === this.beatData.wordCount
+      );
+      
+      if (isPresetValue) {
+        this.selectedWordCount = this.beatData.wordCount;
+        this.showCustomWordCount = false;
+      } else {
+        // It's a custom value
+        this.selectedWordCount = 'custom';
+        this.customWordCount = this.beatData.wordCount;
+        this.showCustomWordCount = true;
+      }
+    }
+    
+    // Restore the persisted beat type
+    if (this.beatData.beatType) {
+      this.selectedBeatType = this.beatData.beatType;
     }
   }
 
