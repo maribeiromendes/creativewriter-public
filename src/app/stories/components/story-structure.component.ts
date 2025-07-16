@@ -1467,7 +1467,7 @@ Die Zusammenfassung soll die wichtigsten Handlungspunkte und Charakterentwicklun
         .replace('{sceneContent}', sceneContent);
     } else {
       // Use default prompt template
-      prompt = `Erstelle einen kurzen Titel für die folgende Szene. Der Titel soll maximal ${titleSettings.maxWords} Wörter lang sein und den Kern der Szene erfassen.
+      prompt = `Erstelle einen Titel für die folgende Szene. Der Titel soll bis zu ${titleSettings.maxWords} Wörter lang sein und den Kern der Szene erfassen.
 
 ${styleInstruction}
 ${genreInstruction}
@@ -1481,7 +1481,7 @@ Antworte nur mit dem Titel, ohne weitere Erklärungen oder Anführungszeichen.`;
 
     this.openRouterApiService.generateText(prompt, {
       model: this.selectedModel,
-      maxTokens: Math.max(20, titleSettings.maxWords * 4), // Allow more tokens for longer titles
+      maxTokens: Math.max(50, titleSettings.maxWords * 6), // Allow more tokens for longer titles (up to 20 words)
       temperature: titleSettings.temperature
     }).subscribe({
       next: async (response) => {
@@ -1490,12 +1490,6 @@ Antworte nur mit dem Titel, ohne weitere Erklärungen oder Anführungszeichen.`;
           
           // Remove quotes if present
           title = title.replace(/^["']|["']$/g, '');
-          
-          // Limit to configured max words
-          const words = title.split(/\s+/);
-          if (words.length > titleSettings.maxWords) {
-            title = words.slice(0, titleSettings.maxWords).join(' ');
-          }
           
           // Update scene title
           if (scene) {

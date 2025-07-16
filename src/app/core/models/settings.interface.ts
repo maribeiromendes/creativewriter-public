@@ -77,13 +77,13 @@ export const DEFAULT_SETTINGS: Settings = {
     }
   },
   sceneTitleGeneration: {
-    maxWords: 3,
+    maxWords: 5,
     style: 'concise',
     language: 'german',
     includeGenre: false,
     temperature: 0.3,
     customInstruction: '',
-    customPrompt: 'Erstelle einen kurzen Titel für die folgende Szene. Der Titel soll maximal {maxWords} Wörter lang sein und den Kern der Szene erfassen.\n\n{styleInstruction}\n{genreInstruction}\n{languageInstruction}{customInstruction}\n\nSzenencontent (nur diese eine Szene):\n{sceneContent}\n\nAntworte nur mit dem Titel, ohne weitere Erklärungen oder Anführungszeichen.',
+    customPrompt: 'Erstelle einen Titel für die folgende Szene. Der Titel soll bis zu {maxWords} Wörter lang sein und den Kern der Szene erfassen.\n\n{styleInstruction}\n{genreInstruction}\n{languageInstruction}{customInstruction}\n\nSzenencontent (nur diese eine Szene):\n{sceneContent}\n\nAntworte nur mit dem Titel, ohne weitere Erklärungen oder Anführungszeichen.',
     useCustomPrompt: false
   },
   selectedModel: '',

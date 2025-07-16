@@ -414,13 +414,13 @@ import { NgSelectModule } from '@ng-select/ng-select';
                 [(ngModel)]="settings.sceneTitleGeneration.maxWords"
                 (ngModelChange)="onSettingsChange()"
                 min="1"
-                max="8"
+                max="20"
                 step="1"
                 snaps="true"
                 ticks="true"
                 slot="end">
                 <ion-label slot="start">1</ion-label>
-                <ion-label slot="end">8</ion-label>
+                <ion-label slot="end">20</ion-label>
               </ion-range>
             </ion-item>
 
@@ -1142,7 +1142,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
   }
 
   resetToDefaultPrompt(): void {
-    const defaultPrompt = 'Erstelle einen kurzen Titel für die folgende Szene. Der Titel soll maximal {maxWords} Wörter lang sein und den Kern der Szene erfassen.\n\n{styleInstruction}\n{genreInstruction}\n{languageInstruction}{customInstruction}\n\nSzenencontent (nur diese eine Szene):\n{sceneContent}\n\nAntworte nur mit dem Titel, ohne weitere Erklärungen oder Anführungszeichen.';
+    const defaultPrompt = 'Erstelle einen Titel für die folgende Szene. Der Titel soll bis zu {maxWords} Wörter lang sein und den Kern der Szene erfassen.\n\n{styleInstruction}\n{genreInstruction}\n{languageInstruction}{customInstruction}\n\nSzenencontent (nur diese eine Szene):\n{sceneContent}\n\nAntworte nur mit dem Titel, ohne weitere Erklärungen oder Anführungszeichen.';
     this.settings.sceneTitleGeneration.customPrompt = defaultPrompt;
     this.onSettingsChange();
   }
