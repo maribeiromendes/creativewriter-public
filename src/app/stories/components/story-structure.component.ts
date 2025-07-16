@@ -1454,7 +1454,20 @@ Die Zusammenfassung soll die wichtigsten Handlungspunkte und Charakterentwicklun
       : '';
     
     // Build prompt with settings
-    const prompt = `Erstelle einen kurzen Titel für die folgende Szene. Der Titel soll maximal ${titleSettings.maxWords} Wörter lang sein und den Kern der Szene erfassen.
+    let prompt: string;
+    
+    if (titleSettings.useCustomPrompt && titleSettings.customPrompt) {
+      // Use custom prompt template with placeholder replacement
+      prompt = titleSettings.customPrompt
+        .replace('{maxWords}', titleSettings.maxWords.toString())
+        .replace('{styleInstruction}', styleInstruction)
+        .replace('{genreInstruction}', genreInstruction)
+        .replace('{languageInstruction}', languageInstruction)
+        .replace('{customInstruction}', customInstruction)
+        .replace('{sceneContent}', sceneContent);
+    } else {
+      // Use default prompt template
+      prompt = `Erstelle einen kurzen Titel für die folgende Szene. Der Titel soll maximal ${titleSettings.maxWords} Wörter lang sein und den Kern der Szene erfassen.
 
 ${styleInstruction}
 ${genreInstruction}
@@ -1464,6 +1477,7 @@ Szenencontent (nur diese eine Szene):
 ${sceneContent}
 
 Antworte nur mit dem Titel, ohne weitere Erklärungen oder Anführungszeichen.`;
+    }
 
     this.openRouterApiService.generateText(prompt, {
       model: this.selectedModel,

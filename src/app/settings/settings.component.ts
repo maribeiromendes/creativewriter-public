@@ -484,6 +484,37 @@ import { NgSelectModule } from '@ng-select/ng-select';
                 auto-grow="true">
               </ion-textarea>
             </ion-item>
+            
+            <ion-item>
+              <ion-label>Benutzerdefinierten Prompt verwenden</ion-label>
+              <ion-toggle
+                [(ngModel)]="settings.sceneTitleGeneration.useCustomPrompt"
+                (ngModelChange)="onSettingsChange()"
+                slot="end">
+              </ion-toggle>
+            </ion-item>
+            
+            <ion-item *ngIf="settings.sceneTitleGeneration.useCustomPrompt">
+              <ion-label position="stacked">
+                Benutzerdefinierter Prompt
+                <p class="prompt-help">
+                  Verfügbare Platzhalter: {{ '{' }}maxWords{{ '}' }}, {{ '{' }}styleInstruction{{ '}' }}, {{ '{' }}genreInstruction{{ '}' }}, {{ '{' }}languageInstruction{{ '}' }}, {{ '{' }}customInstruction{{ '}' }}, {{ '{' }}sceneContent{{ '}' }}
+                </p>
+              </ion-label>
+              <ion-textarea
+                [(ngModel)]="settings.sceneTitleGeneration.customPrompt"
+                (ngModelChange)="onSettingsChange()"
+                placeholder="Erstelle einen kurzen Titel für die folgende Szene..."
+                rows="8"
+                auto-grow="true">
+              </ion-textarea>
+            </ion-item>
+            
+            <ion-item *ngIf="settings.sceneTitleGeneration.useCustomPrompt">
+              <ion-button fill="outline" size="small" (click)="resetToDefaultPrompt()">
+                Standard-Prompt wiederherstellen
+              </ion-button>
+            </ion-item>
           </ion-card-content>
         </ion-card>
 
@@ -806,6 +837,13 @@ import { NgSelectModule } from '@ng-select/ng-select';
       color: white !important;
     }
 
+    .prompt-help {
+      margin-top: 0.5rem;
+      font-size: 0.8rem;
+      color: var(--ion-color-medium);
+      font-style: italic;
+    }
+
     /* Mobile responsive adjustments */
     @media (max-width: 768px) {
       .settings-content {
@@ -1100,6 +1138,12 @@ export class SettingsComponent implements OnInit, OnDestroy {
       }
     }
     
+    this.onSettingsChange();
+  }
+
+  resetToDefaultPrompt(): void {
+    const defaultPrompt = 'Erstelle einen kurzen Titel für die folgende Szene. Der Titel soll maximal {maxWords} Wörter lang sein und den Kern der Szene erfassen.\n\n{styleInstruction}\n{genreInstruction}\n{languageInstruction}{customInstruction}\n\nSzenencontent (nur diese eine Szene):\n{sceneContent}\n\nAntworte nur mit dem Titel, ohne weitere Erklärungen oder Anführungszeichen.';
+    this.settings.sceneTitleGeneration.customPrompt = defaultPrompt;
     this.onSettingsChange();
   }
 }
