@@ -248,8 +248,13 @@ export class ProseMirrorEditorService {
         // Convert plain text to HTML paragraphs
         const paragraphs = content
           .split(/\n\n+/) // Split on double newlines (or more)
-          .filter(para => para.trim()) // Remove empty paragraphs
-          .map(para => `<p>${para.replace(/\n/g, '<br>')}</p>`) // Convert single newlines to <br>
+          .map(para => {
+            // Don't filter out empty paragraphs - they represent intentional empty lines
+            if (para.trim() === '') {
+              return '<p></p>'; // Empty paragraph for empty lines
+            }
+            return `<p>${para.replace(/\n/g, '<br>')}</p>`; // Convert single newlines to <br>
+          })
           .join('');
         
         div.innerHTML = paragraphs || '<p></p>';
@@ -641,8 +646,8 @@ export class ProseMirrorEditorService {
     // Split content by double newlines to get paragraphs
     const paragraphTexts = content
       .split(/\n\n+/) // Split on double newlines (or more)
-      .map(para => para.trim()) // Remove leading/trailing whitespace
-      .filter(para => para.length > 0); // Remove empty paragraphs
+      .map(para => para.trim()); // Remove leading/trailing whitespace
+      // Don't filter out empty paragraphs - they represent intentional empty lines
     
     // If no paragraphs found (single line text), create one paragraph
     if (paragraphTexts.length === 0) {
@@ -652,6 +657,11 @@ export class ProseMirrorEditorService {
     
     // Create paragraph nodes for each text block
     const paragraphNodes = paragraphTexts.map(paragraphText => {
+      // Handle empty paragraphs (empty lines)
+      if (paragraphText.length === 0) {
+        return state.schema.nodes['paragraph'].create();
+      }
+      
       // Handle single newlines within a paragraph as line breaks
       const lines = paragraphText.split('\n');
       const textNodes: any[] = [];
