@@ -1038,7 +1038,7 @@ export class CodexComponent implements OnInit, OnDestroy {
     this.selectedEntry.set(entry);
     this.editingEntry = {
       ...entry,
-      tags: [...(entry.tags || [])],
+      tags: entry.tags ? [...entry.tags] : [],
       storyRole: entry.metadata?.['storyRole'] || null,
       customFields: entry.metadata?.['customFields'] ? [...entry.metadata['customFields']] : [],
       alwaysInclude: entry.alwaysInclude || false
@@ -1098,7 +1098,8 @@ export class CodexComponent implements OnInit, OnDestroy {
       // Create a new entry with default values
       const newEntry = {
         title: 'Neuer Eintrag',
-        content: ''
+        content: '',
+        tags: []
       };
       
       const createdEntry = await this.codexService.addEntry(storyId, categoryId, newEntry);
@@ -1155,13 +1156,22 @@ export class CodexComponent implements OnInit, OnDestroy {
 
   addTag() {
     const tag = this.tagInput.trim();
-    if (tag && !this.editingEntry.tags.includes(tag)) {
+    if (!tag) return;
+    
+    // Ensure tags array exists
+    if (!this.editingEntry.tags) {
+      this.editingEntry.tags = [];
+    }
+    
+    if (!this.editingEntry.tags.includes(tag)) {
       this.editingEntry.tags.push(tag);
       this.tagInput = '';
     }
   }
 
   removeTag(tag: string) {
+    if (!this.editingEntry.tags) return;
+    
     const index = this.editingEntry.tags.indexOf(tag);
     if (index > -1) {
       this.editingEntry.tags.splice(index, 1);
