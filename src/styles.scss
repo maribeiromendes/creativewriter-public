@@ -264,3 +264,47 @@ button:hover {
   background: #242424 !important;
   cursor: not-allowed !important;
 }
+
+/* Mobile keyboard handling */
+@media (max-width: 768px) {
+  /* Prevent zoom on input focus */
+  input[type="text"],
+  input[type="password"],
+  input[type="email"],
+  input[type="number"],
+  input[type="tel"],
+  input[type="url"],
+  input[type="search"],
+  textarea,
+  select {
+    font-size: 16px !important;
+    transform: scale(1) !important;
+  }
+  
+  /* Adjust body when keyboard is visible */
+  body.keyboard-visible {
+    height: calc(100vh - var(--keyboard-height, 0px));
+    overflow-y: auto;
+  }
+  
+  /* Prevent zoom on double tap */
+  body.keyboard-visible * {
+    touch-action: pan-x pan-y;
+  }
+  
+  /* Adjust Ionic content for keyboard */
+  body.keyboard-visible ion-content {
+    --height: calc(100vh - var(--keyboard-height, 0px));
+    --max-height: calc(100vh - var(--keyboard-height, 0px));
+  }
+  
+  /* Smooth transition for keyboard show/hide */
+  body {
+    transition: height 0.3s ease;
+  }
+  
+  /* Ensure proper scrolling behavior */
+  body.keyboard-visible {
+    scroll-behavior: smooth;
+  }
+}

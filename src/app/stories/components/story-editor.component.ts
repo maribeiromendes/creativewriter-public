@@ -722,6 +722,34 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
         left: 0;
       }
     }
+    
+    /* Mobile keyboard handling */
+    @media (max-width: 768px) {
+      /* When keyboard is visible, adjust viewport */
+      :host-context(.keyboard-visible) .ion-page {
+        height: calc(100vh - var(--keyboard-height, 0px));
+        max-height: calc(100vh - var(--keyboard-height, 0px));
+      }
+      
+      :host-context(.keyboard-visible) .editor-container {
+        min-height: calc(100vh - var(--keyboard-height, 0px));
+        max-height: calc(100vh - var(--keyboard-height, 0px));
+      }
+      
+      :host-context(.keyboard-visible) .content-editor {
+        max-height: calc(100vh - var(--keyboard-height, 0px) - 250px);
+      }
+      
+      /* Ensure content can scroll above keyboard */
+      :host-context(.keyboard-visible) .editor-inner {
+        padding-bottom: calc(var(--keyboard-height, 0px) + 2rem);
+      }
+      
+      /* Adjust ProseMirror editor for keyboard */
+      :host-context(.keyboard-visible) .content-editor :global(.prosemirror-editor) {
+        padding-bottom: calc(var(--keyboard-height, 0px) + 50px);
+      }
+    }
   `]
 })
 export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
@@ -763,6 +791,11 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
   private touchEndY = 0;
   private minSwipeDistance = 50;
   private maxVerticalDistance = 100;
+  
+  // Mobile keyboard handling
+  private keyboardHeight = 0;
+  private originalViewportHeight = 0;
+  private keyboardVisible = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -850,6 +883,9 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     
     // Add touch gesture listeners for mobile
     this.setupTouchGestures();
+    
+    // Setup mobile keyboard handling
+    this.setupMobileKeyboardHandling();
   }
 
   ngAfterViewInit(): void {
@@ -869,6 +905,9 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     
     // Remove touch gesture listeners
     this.removeTouchGestures();
+    
+    // Remove keyboard adjustments
+    this.removeKeyboardAdjustments();
   }
 
   async onSceneSelected(event: {chapterId: string, sceneId: string}): Promise<void> {
@@ -1163,6 +1202,159 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
       }
     }
   }
+  
+  private setupMobileKeyboardHandling(): void {
+    // Only setup keyboard handling on mobile devices
+    if (!this.isMobileDevice()) return;
+    
+    // Store original viewport height
+    this.originalViewportHeight = window.innerHeight;
+    
+    // Listen for viewport resize events (indicates keyboard show/hide)
+    window.addEventListener('resize', () => {
+      this.handleViewportResize();
+    });
+    
+    // iOS specific keyboard handling
+    if (this.isIOS()) {
+      window.addEventListener('focusin', () => {
+        this.handleKeyboardShow();
+      });
+      
+      window.addEventListener('focusout', () => {
+        this.handleKeyboardHide();
+      });
+    }
+    
+    // Modern browsers: Visual Viewport API
+    if ('visualViewport' in window) {
+      window.visualViewport?.addEventListener('resize', () => {
+        this.handleVisualViewportResize();
+      });
+    }
+  }
+  
+  private isMobileDevice(): boolean {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+           window.innerWidth <= 768;
+  }
+  
+  private isIOS(): boolean {
+    return /iPad|iPhone|iPod/.test(navigator.userAgent);
+  }
+  
+  private handleViewportResize(): void {
+    if (!this.isMobileDevice()) return;
+    
+    const currentHeight = window.innerHeight;
+    const heightDifference = this.originalViewportHeight - currentHeight;
+    
+    // Keyboard is likely visible if height decreased significantly
+    if (heightDifference > 150) {
+      this.keyboardHeight = heightDifference;
+      this.keyboardVisible = true;
+      this.adjustForKeyboard();
+    } else {
+      this.keyboardVisible = false;
+      this.keyboardHeight = 0;
+      this.removeKeyboardAdjustments();
+    }
+  }
+  
+  private handleVisualViewportResize(): void {
+    if (!this.isMobileDevice() || !window.visualViewport) return;
+    
+    const viewport = window.visualViewport;
+    const heightDifference = this.originalViewportHeight - viewport.height;
+    
+    if (heightDifference > 100) {
+      this.keyboardHeight = heightDifference;
+      this.keyboardVisible = true;
+      this.adjustForKeyboard();
+    } else {
+      this.keyboardVisible = false;
+      this.keyboardHeight = 0;
+      this.removeKeyboardAdjustments();
+    }
+  }
+  
+  private handleKeyboardShow(): void {
+    if (!this.isMobileDevice()) return;
+    
+    setTimeout(() => {
+      this.keyboardVisible = true;
+      this.adjustForKeyboard();
+      this.scrollToActiveFocus();
+    }, 300);
+  }
+  
+  private handleKeyboardHide(): void {
+    if (!this.isMobileDevice()) return;
+    
+    setTimeout(() => {
+      this.keyboardVisible = false;
+      this.removeKeyboardAdjustments();
+    }, 300);
+  }
+  
+  private adjustForKeyboard(): void {
+    if (!this.keyboardVisible) return;
+    
+    const editorElement = this.editorContainer?.nativeElement;
+    if (!editorElement) return;
+    
+    // Add keyboard-visible class to body for CSS adjustments
+    document.body.classList.add('keyboard-visible');
+    
+    // Set CSS custom property for keyboard height
+    document.documentElement.style.setProperty('--keyboard-height', `${this.keyboardHeight}px`);
+    
+    // Scroll to keep cursor visible
+    setTimeout(() => {
+      this.scrollToActiveFocus();
+    }, 100);
+  }
+  
+  private removeKeyboardAdjustments(): void {
+    document.body.classList.remove('keyboard-visible');
+    document.documentElement.style.removeProperty('--keyboard-height');
+  }
+  
+  private scrollToActiveFocus(): void {
+    if (!this.editorView || !this.keyboardVisible) return;
+    
+    try {
+      const { state } = this.editorView;
+      const { from } = state.selection;
+      
+      // Get cursor position
+      const coords = this.editorView.coordsAtPos(from);
+      
+      // Calculate available space above keyboard
+      const availableHeight = window.innerHeight - this.keyboardHeight;
+      const targetPosition = availableHeight * 0.4; // Position cursor at 40% of available space
+      
+      // Scroll to keep cursor visible
+      if (coords.top > targetPosition) {
+        const scrollAmount = coords.top - targetPosition;
+        window.scrollBy(0, scrollAmount);
+      }
+      
+      // Also scroll the editor container if needed
+      const editorElement = this.editorView.dom as HTMLElement;
+      if (editorElement) {
+        const contentEditor = editorElement.closest('.content-editor') as HTMLElement;
+        if (contentEditor) {
+          const rect = contentEditor.getBoundingClientRect();
+          if (rect.bottom > availableHeight) {
+            contentEditor.scrollTop += rect.bottom - availableHeight + 50;
+          }
+        }
+      }
+    } catch (error) {
+      console.warn('Failed to scroll to active focus:', error);
+    }
+  }
 
 
   private initializeProseMirrorEditor(): void {
@@ -1209,6 +1401,19 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
         setTimeout(() => this.hideSlashDropdown(), 100);
       }
     });
+    
+    // Add mobile keyboard handling to editor
+    if (this.isMobileDevice()) {
+      this.editorContainer.nativeElement.addEventListener('focus', () => {
+        setTimeout(() => this.scrollToActiveFocus(), 300);
+      }, true);
+      
+      this.editorContainer.nativeElement.addEventListener('input', () => {
+        if (this.keyboardVisible) {
+          setTimeout(() => this.scrollToActiveFocus(), 100);
+        }
+      });
+    }
   }
 
   private updateEditorContent(skipScroll: boolean = false): void {
