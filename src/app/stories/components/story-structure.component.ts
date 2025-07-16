@@ -15,6 +15,7 @@ import {
 import { Story, Chapter, Scene } from '../models/story.interface';
 import { StoryService } from '../services/story.service';
 import { OpenRouterApiService } from '../../core/services/openrouter-api.service';
+import { GoogleGeminiApiService } from '../../core/services/google-gemini-api.service';
 import { ModelService } from '../../core/services/model.service';
 import { SettingsService } from '../../core/services/settings.service';
 import { PromptManagerService } from '../../shared/services/prompt-manager.service';
@@ -1077,6 +1078,7 @@ export class StoryStructureComponent implements OnInit, OnChanges, AfterViewInit
   constructor(
     private storyService: StoryService,
     private openRouterApiService: OpenRouterApiService,
+    private googleGeminiApiService: GoogleGeminiApiService,
     private modelService: ModelService,
     private settingsService: SettingsService,
     private cdr: ChangeDetectorRef,
@@ -1403,6 +1405,25 @@ Die Zusammenfassung soll die wichtigsten Handlungspunkte und Charakterentwicklun
       return;
     }
     
+    // Extract provider and actual model ID from the combined format
+    let provider: string | null = null;
+    let actualModelId: string | null = null;
+    
+    if (modelToUse) {
+      const [modelProvider, ...modelIdParts] = modelToUse.split(':');
+      provider = modelProvider;
+      actualModelId = modelIdParts.join(':'); // Rejoin in case model ID contains colons
+    }
+    
+    // Check which API to use based on the model's provider
+    const useGoogleGemini = provider === 'gemini' && settings.googleGemini.enabled && settings.googleGemini.apiKey;
+    const useOpenRouter = provider === 'openrouter' && settings.openRouter.enabled && settings.openRouter.apiKey;
+    
+    if (!useGoogleGemini && !useOpenRouter) {
+      alert('Kein AI API konfiguriert. Bitte konfigurieren Sie OpenRouter oder Google Gemini in den Einstellungen.');
+      return;
+    }
+    
     this.isGeneratingTitle.add(sceneId);
     this.cdr.detectChanges(); // Force change detection for mobile
     
@@ -1482,28 +1503,76 @@ ${sceneContent}
 Antworte nur mit dem Titel, ohne weitere Erklärungen oder Anführungszeichen.`;
     }
 
-    this.openRouterApiService.generateText(prompt, {
-      model: modelToUse,
-      maxTokens: Math.max(50, titleSettings.maxWords * 6), // Allow more tokens for longer titles (up to 20 words)
-      temperature: titleSettings.temperature
-    }).subscribe({
-      next: async (response) => {
-        if (response.choices && response.choices.length > 0) {
-          let title = response.choices[0].message.content.trim();
+    // Choose API based on provider
+    if (useGoogleGemini) {
+      this.googleGeminiApiService.generateText(prompt, {
+        model: actualModelId!,
+        maxTokens: Math.max(50, titleSettings.maxWords * 6), // Allow more tokens for longer titles (up to 20 words)
+        temperature: titleSettings.temperature
+      }).subscribe({
+        next: async (response) => {
+          let title = '';
           
-          // Remove quotes if present
-          title = title.replace(/^["']|["']$/g, '');
-          
-          // Update scene title
-          if (scene) {
-            scene.title = title;
-            await this.updateScene(chapterId, scene);
+          // Google Gemini response format
+          if (response.candidates && response.candidates.length > 0) {
+            const candidate = response.candidates[0];
+            if (candidate.content && candidate.content.parts && candidate.content.parts.length > 0) {
+              title = candidate.content.parts[0].text.trim();
+            }
           }
+          
+          if (title) {
+            // Remove quotes if present
+            title = title.replace(/^["']|["']$/g, '');
+            
+            // Update scene title
+            if (scene) {
+              scene.title = title;
+              await this.updateScene(chapterId, scene);
+            }
+          }
+          clearTimeout(timeoutId); // Clear timeout on success
+          this.isGeneratingTitle.delete(sceneId);
+          this.cdr.detectChanges(); // Force change detection
+        },
+        error: (error) => {
+          console.error('Error generating scene title:', error);
+          clearTimeout(timeoutId); // Clear timeout on error
+          
+          let errorMessage = 'Fehler beim Generieren des Titels.';
+          alert(errorMessage);
+          this.isGeneratingTitle.delete(sceneId);
+          this.cdr.detectChanges(); // Force change detection
         }
-        clearTimeout(timeoutId); // Clear timeout on success
-        this.isGeneratingTitle.delete(sceneId);
-        this.cdr.detectChanges(); // Force change detection
-      },
+      });
+    } else {
+      this.openRouterApiService.generateText(prompt, {
+        model: actualModelId!,
+        maxTokens: Math.max(50, titleSettings.maxWords * 6), // Allow more tokens for longer titles (up to 20 words)
+        temperature: titleSettings.temperature
+      }).subscribe({
+        next: async (response) => {
+          let title = '';
+          
+          // OpenRouter response format
+          if (response.choices && response.choices.length > 0) {
+            title = response.choices[0].message.content.trim();
+          }
+          
+          if (title) {
+            // Remove quotes if present
+            title = title.replace(/^["']|["']$/g, '');
+            
+            // Update scene title
+            if (scene) {
+              scene.title = title;
+              await this.updateScene(chapterId, scene);
+            }
+          }
+          clearTimeout(timeoutId); // Clear timeout on success
+          this.isGeneratingTitle.delete(sceneId);
+          this.cdr.detectChanges(); // Force change detection
+        },
       error: (error) => {
         console.error('Error generating scene title:', error);
         clearTimeout(timeoutId); // Clear timeout on error
@@ -1528,8 +1597,9 @@ Antworte nur mit dem Titel, ohne weitere Erklärungen oder Anführungszeichen.`;
         alert(errorMessage);
         this.isGeneratingTitle.delete(sceneId);
         this.cdr.detectChanges(); // Force change detection
-      }
-    });
+        }
+      });
+    }
   }
   
   async updateSceneSummary(chapterId: string, sceneId: string, summary: string): Promise<void> {
