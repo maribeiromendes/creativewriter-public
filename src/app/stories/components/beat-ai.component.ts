@@ -309,6 +309,15 @@ import { EditorView } from 'prosemirror-view';
       width: 100%;
       box-sizing: border-box;
       cursor: text;
+      /* Prevent text selection on mobile */
+      -webkit-user-select: text;
+      -moz-user-select: text;
+      -ms-user-select: text;
+      user-select: text;
+      /* Prevent touch callout */
+      -webkit-touch-callout: none;
+      /* Prevent tap highlight */
+      -webkit-tap-highlight-color: transparent;
     }
     
     .prompt-input.prosemirror-container :global(.ProseMirror[data-placeholder]:empty::before) {
@@ -1051,10 +1060,17 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
       config
     );
 
-    // Set initial content if available
-    if (this.currentPrompt) {
-      this.proseMirrorService.setSimpleContent(this.currentPrompt);
-    }
+    // Don't set initial content - let user type it
+    // This prevents the select-all behavior that happens when content is set programmatically
+  }
+
+  private insertTextDirectly(text: string): void {
+    if (!this.editorView || !text) return;
+
+    // Insert text at position 1 (after the paragraph start)
+    const { state } = this.editorView;
+    const tr = state.tr.insertText(text, 1);
+    this.editorView.dispatch(tr);
   }
   
   startEditing(): void {

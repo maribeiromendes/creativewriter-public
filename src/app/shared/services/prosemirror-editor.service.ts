@@ -312,18 +312,6 @@ export class ProseMirrorEditorService {
         'contenteditable': 'true',
         'tabindex': '0'
       },
-      handleDOMEvents: {
-        focus: (view, event) => {
-          // Don't prevent default, just ensure cursor is at end of content
-          setTimeout(() => {
-            const { state } = view;
-            const endPos = state.doc.content.size;
-            const tr = state.tr.setSelection(TextSelection.create(state.doc, endPos));
-            view.dispatch(tr);
-          }, 0);
-          return false;
-        }
-      },
       dispatchTransaction: (transaction) => {
         const newState = this.editorView!.state.apply(transaction);
         this.editorView!.updateState(newState);
