@@ -1072,8 +1072,8 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
 
     // Set initial content if available
     if (this.currentPrompt) {
-      // Use insertTextDirectly to avoid select-all behavior
-      this.insertTextDirectly(this.currentPrompt);
+      // Use setSimpleContent to ensure codex highlighting is processed
+      this.proseMirrorService.setSimpleContent(this.currentPrompt);
     }
   }
 
