@@ -11,12 +11,13 @@ import { ModelOption } from '../../core/models/model.interface';
 import { ModelService } from '../../core/services/model.service';
 import { SettingsService } from '../../core/services/settings.service';
 import { BeatAIService } from '../../shared/services/beat-ai.service';
-import { SimpleCodexAwarenessDirective } from '../../shared/directives/simple-codex-awareness.directive';
+import { ProseMirrorEditorService, SimpleEditorConfig } from '../../shared/services/prosemirror-editor.service';
+import { EditorView } from 'prosemirror-view';
 
 @Component({
   selector: 'app-beat-ai',
   standalone: true,
-  imports: [CommonModule, FormsModule, NgSelectModule, IonIcon, SimpleCodexAwarenessDirective],
+  imports: [CommonModule, FormsModule, NgSelectModule, IonIcon],
   template: `
     <div class="beat-ai-container" [class.editing]="beatData.isEditing" [class.generating]="beatData.isGenerating">
       <!-- Prompt Input Section -->
@@ -50,21 +51,10 @@ import { SimpleCodexAwarenessDirective } from '../../shared/directives/simple-co
         </div>
         
         <div class="prompt-input-container" *ngIf="beatData.isEditing || !beatData.prompt">
-          <textarea
+          <div
             #promptInput
-            class="prompt-input"
-            [(ngModel)]="currentPrompt"
-            placeholder="Beschreibe den Beat, den die AI generieren soll..."
-            (input)="autoResizeTextarea($event)"
-            (ngModelChange)="onPromptChange()"
-            (keydown.enter)="onPromptKeydown($event)"
-            (click)="onTextareaClick($event)"
-            (focus)="onTextareaFocus($event)"
-            (mousedown)="onTextareaMousedown($event)"
-            appSimpleCodexAwareness
-            [storyId]="storyId"
-            [enableHighlighting]="true"
-          ></textarea>
+            class="prompt-input prosemirror-container"
+          ></div>
           
           <!-- Generation Options -->
           <div class="generation-options" *ngIf="beatData.isEditing || !beatData.prompt">
@@ -283,38 +273,74 @@ import { SimpleCodexAwarenessDirective } from '../../shared/directives/simple-co
       margin-top: 0.25rem;
     }
     
-    .prompt-input {
+    .prompt-input.prosemirror-container {
       width: 100%;
       background: #1a1a1a;
       border: 1px solid #404040;
       border-radius: 6px;
-      padding: 0.75rem;
+      padding: 0;
       color: #e0e0e0;
       font-family: inherit;
       font-size: 0.9rem;
       line-height: 1.4;
-      resize: none;
       min-height: 60px;
       max-height: 300px;
-      height: 60px;
       overflow-y: auto;
-      transition: height 0.15s ease;
+      transition: all 0.15s ease;
       box-sizing: border-box;
+      cursor: text;
     }
     
-    .prompt-input:focus {
+    .prompt-input.prosemirror-container:focus-within {
       outline: none;
       border-color: #0d6efd;
       box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.25);
     }
     
-    .prompt-input::placeholder {
-      color: #6c757d;
+    .prompt-input.prosemirror-container :global(.ProseMirror) {
+      outline: none;
+      padding: 0.75rem;
+      min-height: 60px;
+      background: transparent;
+      color: #e0e0e0 !important;
+      font-size: 0.9rem;
+      line-height: 1.4;
+      font-family: inherit;
+      width: 100%;
+      box-sizing: border-box;
+      cursor: text;
     }
     
-    .prompt-input.codex-matches-found {
-      border-left: 3px solid #4dabf7;
-      box-shadow: 0 0 0 1px rgba(77, 171, 247, 0.3);
+    .prompt-input.prosemirror-container :global(.ProseMirror[data-placeholder]:empty::before) {
+      content: attr(data-placeholder);
+      color: #6c757d;
+      pointer-events: none;
+      position: absolute;
+    }
+    
+    .prompt-input.prosemirror-container :global(.ProseMirror p) {
+      margin: 0;
+      color: #e0e0e0 !important;
+      font-size: 0.9rem;
+      line-height: 1.4;
+    }
+    
+    .prompt-input.prosemirror-container :global(.ProseMirror p:empty) {
+      min-height: 1.4em;
+    }
+    
+    .prompt-input.prosemirror-container :global(.codex-highlight) {
+      text-decoration: underline;
+      text-decoration-style: dotted;
+      cursor: help;
+    }
+    
+    .prompt-input.prosemirror-container :global(.codex-highlight-title) {
+      text-decoration-color: #4dabf7;
+    }
+    
+    .prompt-input.prosemirror-container :global(.codex-highlight-tag) {
+      text-decoration-color: #51cf66;
     }
     
     .generation-options {
@@ -775,9 +801,9 @@ import { SimpleCodexAwarenessDirective } from '../../shared/directives/simple-co
         font-size: 0.9rem;
       }
       
-      .prompt-input {
+      .prompt-input.prosemirror-container :global(.ProseMirror) {
         font-size: 0.9rem;
-        padding: 0.2rem;
+        padding: 0.5rem;
         min-height: 50px;
       }
       
@@ -889,7 +915,7 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
   @Output() delete = new EventEmitter<string>();
   @Output() focus = new EventEmitter<void>();
   
-  @ViewChild('promptInput') promptInput!: ElementRef<HTMLTextAreaElement>;
+  @ViewChild('promptInput') promptInput!: ElementRef<HTMLDivElement>;
   
   currentPrompt: string = '';
   selectedWordCount: number | string = 400;
@@ -923,11 +949,13 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
   showPreviewModal: boolean = false;
   previewContent: string = '';
   private subscription = new Subscription();
+  private editorView: EditorView | null = null;
   
   constructor(
     private modelService: ModelService,
     private settingsService: SettingsService,
-    private beatAIService: BeatAIService
+    private beatAIService: BeatAIService,
+    private proseMirrorService: ProseMirrorEditorService
   ) {
     // Register icons
     addIcons({ logoGoogle, globeOutline });
@@ -963,7 +991,12 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
     // Auto-focus prompt input if it's a new beat
     if (!this.beatData.prompt) {
       this.beatData.isEditing = true;
-      setTimeout(() => this.focusPromptInput(), 200);
+      // Wait for DOM to update with editing state, then initialize editor
+      setTimeout(() => {
+        if (this.promptInput && !this.editorView) {
+          this.initializeProseMirrorEditor();
+        }
+      }, 100);
     }
     
     // Subscribe to generation events for this beat
@@ -984,14 +1017,43 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
   
   ngOnDestroy(): void {
     this.subscription.unsubscribe();
+    if (this.editorView) {
+      this.editorView.destroy();
+      this.editorView = null;
+    }
   }
 
   ngAfterViewInit(): void {
-    // Auto-resize textarea on initial load if it has content
-    if (this.promptInput && this.currentPrompt) {
-      setTimeout(() => {
-        this.resizeTextareaToContent();
-      }, 100);
+    // Initialize ProseMirror editor if in editing mode
+    if (this.beatData.isEditing && this.promptInput && !this.editorView) {
+      this.initializeProseMirrorEditor();
+    }
+  }
+
+  private initializeProseMirrorEditor(): void {
+    if (!this.promptInput || this.editorView) return;
+
+    const config: SimpleEditorConfig = {
+      placeholder: 'Beschreibe den Beat, den die AI generieren soll...',
+      onUpdate: (content: string) => {
+        this.currentPrompt = content;
+        this.onPromptChange();
+      },
+      storyContext: {
+        storyId: this.storyId,
+        chapterId: this.chapterId,
+        sceneId: this.sceneId
+      }
+    };
+
+    this.editorView = this.proseMirrorService.createSimpleTextEditor(
+      this.promptInput.nativeElement,
+      config
+    );
+
+    // Set initial content if available
+    if (this.currentPrompt) {
+      this.proseMirrorService.setSimpleContent(this.currentPrompt);
     }
   }
   
@@ -1002,10 +1064,19 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
     // Restore all persisted settings when switching back to edit mode
     this.restorePersistedSettings();
     
+    // Initialize editor after DOM updates
     setTimeout(() => {
-      this.focusPromptInput();
-      this.resizeTextareaToContent();
-    }, 200);
+      if (!this.editorView && this.promptInput) {
+        this.initializeProseMirrorEditor();
+      }
+      
+      // Focus editor after initialization
+      setTimeout(() => {
+        if (this.editorView) {
+          this.editorView.focus();
+        }
+      }, 50);
+    }, 100);
   }
   
   cancelEditing(): void {
@@ -1014,6 +1085,12 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
     
     // Restore all persisted settings when canceling
     this.restorePersistedSettings();
+    
+    // Destroy editor when canceling
+    if (this.editorView) {
+      this.editorView.destroy();
+      this.editorView = null;
+    }
   }
   
   generateContent(): void {
@@ -1083,43 +1160,8 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
   
-  onTextareaClick(event: Event): void {
-    event.stopPropagation();
-  }
-
-  onTextareaFocus(event: Event): void {
-    event.stopPropagation();
-    this.focus.emit();
-  }
-
-  onTextareaMousedown(event: Event): void {
-    event.stopPropagation();
-  }
-
-  autoResizeTextarea(event: Event): void {
-    const target = event.target as HTMLTextAreaElement;
-    this.resizeTextareaToContent(target);
-  }
-
   onPromptChange(): void {
-    // Trigger resize when model changes
-    setTimeout(() => this.resizeTextareaToContent(), 0);
-  }
-
-  private resizeTextareaToContent(textarea?: HTMLTextAreaElement): void {
-    const target = textarea || this.promptInput?.nativeElement;
-    if (target) {
-      // Reset height to get accurate scrollHeight
-      target.style.height = '0';
-      // Calculate new height based on scrollHeight
-      const scrollHeight = target.scrollHeight;
-      const minHeight = 60; // matches CSS min-height
-      const maxHeight = 300; // matches CSS max-height
-      
-      // Set the new height within bounds
-      const newHeight = Math.min(Math.max(scrollHeight, minHeight), maxHeight);
-      target.style.height = newHeight + 'px';
-    }
+    // ProseMirror handles content changes automatically
   }
 
   onWordCountChange(): void {
@@ -1233,11 +1275,8 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private focusPromptInput(): void {
-    if (this.promptInput) {
-      this.promptInput.nativeElement.focus();
-      // Ensure cursor is positioned at the end
-      const textarea = this.promptInput.nativeElement;
-      textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+    if (this.editorView) {
+      this.editorView.focus();
     }
   }
 

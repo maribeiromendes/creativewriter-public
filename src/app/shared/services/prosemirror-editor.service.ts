@@ -32,6 +32,16 @@ export interface EditorConfig {
   };
 }
 
+export interface SimpleEditorConfig {
+  placeholder?: string;
+  onUpdate?: (content: string) => void;
+  storyContext?: {
+    storyId?: string;
+    chapterId?: string;
+    sceneId?: string;
+  };
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -235,6 +245,154 @@ export class ProseMirrorEditorService {
     }
 
     return this.editorView;
+  }
+
+  createSimpleTextEditor(element: HTMLElement, config: SimpleEditorConfig = {}): EditorView {
+    // Create a simple schema without beat nodes for basic text editing
+    const simpleSchema = new Schema({
+      nodes: {
+        doc: schema.spec.nodes.get('doc')!,
+        paragraph: schema.spec.nodes.get('paragraph')!,
+        text: schema.spec.nodes.get('text')!,
+        hard_break: schema.spec.nodes.get('hard_break')!
+      },
+      marks: schema.spec.marks
+    });
+
+    // Store initial story context for codex awareness
+    if (config.storyContext) {
+      this.currentStoryContext = config.storyContext;
+    }
+
+    // Create initial document with empty paragraph
+    const initialDoc = simpleSchema.nodes['doc'].create({}, [
+      simpleSchema.nodes['paragraph'].create({}, [])
+    ]);
+    
+    const state = EditorState.create({
+      doc: initialDoc,
+      schema: simpleSchema,
+      plugins: [
+        history(),
+        keymap({
+          'Mod-z': undo,
+          'Mod-y': redo,
+          'Mod-Shift-z': redo,
+          'Enter': () => {
+            // Simple line break handling
+            const { state, dispatch } = this.editorView!;
+            dispatch(state.tr.replaceSelectionWith(simpleSchema.nodes.hard_break.create()));
+            return true;
+          },
+          'Shift-Enter': () => {
+            // Create new paragraph
+            const { state, dispatch } = this.editorView!;
+            dispatch(state.tr.replaceSelectionWith(simpleSchema.nodes.paragraph.create()));
+            return true;
+          }
+        }),
+        keymap(baseKeymap),
+        new Plugin({
+          props: {
+            attributes: {
+              'data-placeholder': config.placeholder || 'Enter text...'
+            }
+          }
+        }),
+        // Add codex awareness plugin
+        this.createCodexHighlightingPluginForCurrentStory()
+      ]
+    });
+
+    // Create the editor view
+    this.editorView = new EditorView(element, {
+      state,
+      editable: () => true,
+      attributes: {
+        'contenteditable': 'true',
+        'tabindex': '0'
+      },
+      dispatchTransaction: (transaction) => {
+        const newState = this.editorView!.state.apply(transaction);
+        this.editorView!.updateState(newState);
+        
+        // Call update callback if provided
+        if (config.onUpdate) {
+          const content = this.getSimpleTextContent();
+          config.onUpdate(content);
+        }
+      }
+    });
+
+    return this.editorView;
+  }
+
+  private getSimpleTextContent(): string {
+    if (!this.editorView) return '';
+    
+    const doc = this.editorView.state.doc;
+    let text = '';
+    
+    doc.descendants((node) => {
+      if (node.isText) {
+        text += node.text;
+      } else if (node.type.name === 'hard_break') {
+        text += '\n';
+      } else if (node.type.name === 'paragraph' && text && !text.endsWith('\n')) {
+        text += '\n';
+      }
+    });
+    
+    return text.trim();
+  }
+
+  private createCodexHighlightingPluginForCurrentStory(): Plugin {
+    if (!this.currentStoryContext?.storyId) {
+      // Return empty plugin if no story context
+      return createCodexHighlightingPlugin({ codexEntries: [] });
+    }
+
+    // Get current codex for this story directly from service
+    const codex = this.codexService.getCodex(this.currentStoryContext.storyId);
+    
+    let allEntries: CodexEntry[] = [];
+    if (codex && codex.categories) {
+      for (const category of codex.categories) {
+        if (category.entries) {
+          allEntries.push(...category.entries);
+        }
+      }
+    }
+
+    return createCodexHighlightingPlugin({ 
+      codexEntries: allEntries,
+      storyId: this.currentStoryContext.storyId
+    });
+  }
+
+  setSimpleContent(content: string): void {
+    if (!this.editorView) {
+      console.warn('No editor view available for setSimpleContent');
+      return;
+    }
+    
+    try {
+      const schema = this.editorView.state.schema;
+      const paragraphContent = content ? [schema.text(content)] : [];
+      const doc = schema.nodes['doc'].create({}, [
+        schema.nodes['paragraph'].create({}, paragraphContent)
+      ]);
+      
+      const state = EditorState.create({
+        doc,
+        schema: schema,
+        plugins: this.editorView.state.plugins
+      });
+      
+      this.editorView.updateState(state);
+    } catch (error) {
+      console.warn('Failed to set simple content:', error);
+    }
   }
 
   setContent(content: string): void {
