@@ -1,5 +1,5 @@
 import { Injectable, Injector, ApplicationRef, EnvironmentInjector } from '@angular/core';
-import { EditorState, Transaction, Plugin, PluginKey } from 'prosemirror-state';
+import { EditorState, Transaction, Plugin, PluginKey, TextSelection } from 'prosemirror-state';
 import { EditorView, Decoration, DecorationSet } from 'prosemirror-view';
 import { Schema, DOMParser, DOMSerializer, Node as ProseMirrorNode, Fragment, Slice } from 'prosemirror-model';
 import { schema } from 'prosemirror-schema-basic';
@@ -311,6 +311,18 @@ export class ProseMirrorEditorService {
       attributes: {
         'contenteditable': 'true',
         'tabindex': '0'
+      },
+      handleDOMEvents: {
+        focus: (view, event) => {
+          // Don't prevent default, just ensure cursor is at end of content
+          setTimeout(() => {
+            const { state } = view;
+            const endPos = state.doc.content.size;
+            const tr = state.tr.setSelection(TextSelection.create(state.doc, endPos));
+            view.dispatch(tr);
+          }, 0);
+          return false;
+        }
       },
       dispatchTransaction: (transaction) => {
         const newState = this.editorView!.state.apply(transaction);
