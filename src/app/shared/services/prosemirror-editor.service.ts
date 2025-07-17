@@ -373,20 +373,23 @@ export class ProseMirrorEditorService {
       return createCodexHighlightingPlugin({ codexEntries: [] });
     }
 
-    // Get current codex for this story directly from service
-    const codex = this.codexService.getCodex(this.currentStoryContext.storyId);
+    // Get initial codex entries
+    let codexEntries: CodexEntry[] = [];
     
-    let allEntries: CodexEntry[] = [];
-    if (codex && codex.categories) {
-      for (const category of codex.categories) {
-        if (category.entries) {
-          allEntries.push(...category.entries);
+    // Subscribe to codex changes to update highlighting dynamically
+    this.codexService.codex$.subscribe(codexMap => {
+      const codex = codexMap.get(this.currentStoryContext.storyId!);
+      if (codex) {
+        codexEntries = this.extractAllCodexEntries(codex);
+        // Update the plugin when codex entries change (for simple text editor)
+        if (this.editorView) {
+          updateCodexHighlightingPlugin(this.editorView, codexEntries);
         }
       }
-    }
+    });
 
     return createCodexHighlightingPlugin({ 
-      codexEntries: allEntries,
+      codexEntries,
       storyId: this.currentStoryContext.storyId
     });
   }
