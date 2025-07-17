@@ -1067,8 +1067,12 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     const isMobile = window.innerWidth <= 768;
     const isTablet = window.innerWidth <= 1024 && window.innerWidth > 768;
     
-    // Only auto-show sidebar on desktop, never auto-hide on mobile
-    if (!isMobile && !this.showSidebar) {
+    // Hide sidebar by default on mobile devices
+    if (isMobile) {
+      this.showSidebar = false;
+    }
+    // Only auto-show sidebar on desktop
+    else if (!isMobile && !this.showSidebar) {
       this.showSidebar = true;
     }
     
