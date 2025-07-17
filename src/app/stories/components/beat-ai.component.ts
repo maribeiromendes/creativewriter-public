@@ -302,7 +302,7 @@ import { EditorView } from 'prosemirror-view';
     
     .prompt-input.prosemirror-container :global(.ProseMirror) {
       outline: none;
-      padding: 0.05rem;
+      padding: 0.4rem !important;
       min-height: auto;
       background: transparent;
       color: #e0e0e0 !important;
@@ -822,7 +822,7 @@ import { EditorView } from 'prosemirror-view';
       
       .prompt-input.prosemirror-container :global(.ProseMirror) {
         font-size: 0.9rem;
-        padding: 0.05rem;
+        padding: 0.3rem !important;
         min-height: auto;
       }
       
