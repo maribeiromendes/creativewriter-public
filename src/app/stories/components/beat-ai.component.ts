@@ -1074,6 +1074,8 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
     if (this.currentPrompt) {
       // Use setSimpleContent to ensure codex highlighting is processed
       this.proseMirrorService.setSimpleContent(this.currentPrompt);
+      // Ensure currentPrompt stays synchronized after setting content
+      // (setSimpleContent doesn't trigger the onUpdate callback)
     }
   }
 
