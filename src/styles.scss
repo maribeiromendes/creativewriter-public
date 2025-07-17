@@ -186,9 +186,8 @@ button:hover {
   box-shadow: none;
 }
 
-.ProseMirror {
-  padding: 1rem;
-}
+/* Global ProseMirror padding removed - now handled by individual components */
+/* Beat input uses minimal padding (0.05rem) for compact display */
 
 /* ng-select Global Dark Theme Override */
 .ng-dropdown-panel {
