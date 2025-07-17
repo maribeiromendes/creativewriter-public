@@ -373,17 +373,22 @@ export class ProseMirrorEditorService {
       return createCodexHighlightingPlugin({ codexEntries: [] });
     }
 
-    // Get initial codex entries
+    // Get initial codex entries synchronously
+    const codex = this.codexService.getCodex(this.currentStoryContext.storyId);
     let codexEntries: CodexEntry[] = [];
+    
+    if (codex) {
+      codexEntries = this.extractAllCodexEntries(codex);
+    }
     
     // Subscribe to codex changes to update highlighting dynamically
     this.codexService.codex$.subscribe(codexMap => {
-      const codex = codexMap.get(this.currentStoryContext.storyId!);
-      if (codex) {
-        codexEntries = this.extractAllCodexEntries(codex);
+      const updatedCodex = codexMap.get(this.currentStoryContext.storyId!);
+      if (updatedCodex) {
+        const updatedEntries = this.extractAllCodexEntries(updatedCodex);
         // Update the plugin when codex entries change (for simple text editor)
         if (this.editorView) {
-          updateCodexHighlightingPlugin(this.editorView, codexEntries);
+          updateCodexHighlightingPlugin(this.editorView, updatedEntries);
         }
       }
     });
