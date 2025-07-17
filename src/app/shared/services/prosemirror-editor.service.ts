@@ -304,7 +304,7 @@ export class ProseMirrorEditorService {
       ]
     });
 
-    // Create the editor view exactly like the main editor
+    // Create the editor view with proper event isolation
     this.editorView = new EditorView(element, {
       state,
       dispatchTransaction: (transaction) => {
@@ -318,8 +318,25 @@ export class ProseMirrorEditorService {
         }
       },
       attributes: {
-        class: 'prosemirror-editor',
+        class: 'prosemirror-editor simple-text-editor',
         spellcheck: 'false'
+      },
+      handleDOMEvents: {
+        mousedown: (view, event) => {
+          // Stop event propagation to prevent main editor from handling it
+          event.stopPropagation();
+          return false;
+        },
+        touchstart: (view, event) => {
+          // Stop event propagation to prevent main editor from handling it
+          event.stopPropagation();
+          return false;
+        },
+        focus: (view, event) => {
+          // Stop event propagation to prevent main editor from handling it
+          event.stopPropagation();
+          return false;
+        }
       }
     });
 

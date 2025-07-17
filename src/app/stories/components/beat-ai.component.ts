@@ -289,6 +289,9 @@ import { EditorView } from 'prosemirror-view';
       transition: all 0.15s ease;
       box-sizing: border-box;
       cursor: text;
+      /* Isolate from parent editor */
+      position: relative;
+      z-index: 10;
     }
     
     .prompt-input.prosemirror-container:focus-within {
@@ -350,6 +353,13 @@ import { EditorView } from 'prosemirror-view';
     
     .prompt-input.prosemirror-container :global(.codex-highlight-tag) {
       text-decoration-color: #51cf66;
+    }
+    
+    .prompt-input.prosemirror-container :global(.simple-text-editor) {
+      position: relative;
+      z-index: 1;
+      /* Ensure this editor is isolated from parent editor events */
+      pointer-events: auto;
     }
     
     .generation-options {
