@@ -270,7 +270,7 @@ import { EditorView } from 'prosemirror-view';
     }
     
     .prompt-input-container {
-      margin-top: 0.25rem;
+      margin-top: 0.1rem;
     }
     
     .prompt-input.prosemirror-container {
@@ -282,7 +282,7 @@ import { EditorView } from 'prosemirror-view';
       color: #e0e0e0;
       font-family: inherit;
       font-size: 0.9rem;
-      line-height: 1.4;
+      line-height: 1.2;
       min-height: auto;
       max-height: 300px;
       overflow-y: auto;
@@ -302,12 +302,12 @@ import { EditorView } from 'prosemirror-view';
     
     .prompt-input.prosemirror-container :global(.ProseMirror) {
       outline: none;
-      padding: 0.1rem;
+      padding: 0.05rem;
       min-height: auto;
       background: transparent;
       color: #e0e0e0 !important;
       font-size: 0.9rem;
-      line-height: 1.4;
+      line-height: 1.2;
       font-family: inherit;
       width: 100%;
       box-sizing: border-box;
@@ -334,11 +334,11 @@ import { EditorView } from 'prosemirror-view';
       margin: 0;
       color: #e0e0e0 !important;
       font-size: 0.9rem;
-      line-height: 1.4;
+      line-height: 1.2;
     }
     
     .prompt-input.prosemirror-container :global(.ProseMirror p:empty) {
-      min-height: 1.4em;
+      min-height: 1em;
     }
     
     .prompt-input.prosemirror-container :global(.codex-highlight) {
@@ -822,7 +822,7 @@ import { EditorView } from 'prosemirror-view';
       
       .prompt-input.prosemirror-container :global(.ProseMirror) {
         font-size: 0.9rem;
-        padding: 0.1rem;
+        padding: 0.05rem;
         min-height: auto;
       }
       
