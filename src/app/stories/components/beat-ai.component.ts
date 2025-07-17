@@ -1060,8 +1060,11 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
       config
     );
 
-    // Don't set initial content - let user type it
-    // This prevents the select-all behavior that happens when content is set programmatically
+    // Set initial content if available
+    if (this.currentPrompt) {
+      // Use insertTextDirectly to avoid select-all behavior
+      this.insertTextDirectly(this.currentPrompt);
+    }
   }
 
   private insertTextDirectly(text: string): void {

@@ -304,14 +304,9 @@ export class ProseMirrorEditorService {
       ]
     });
 
-    // Create the editor view
+    // Create the editor view exactly like the main editor
     this.editorView = new EditorView(element, {
       state,
-      editable: () => true,
-      attributes: {
-        'contenteditable': 'true',
-        'tabindex': '0'
-      },
       dispatchTransaction: (transaction) => {
         const newState = this.editorView!.state.apply(transaction);
         this.editorView!.updateState(newState);
@@ -321,8 +316,17 @@ export class ProseMirrorEditorService {
           const content = this.getSimpleTextContent();
           config.onUpdate(content);
         }
+      },
+      attributes: {
+        class: 'prosemirror-editor',
+        spellcheck: 'false'
       }
     });
+
+    // Set placeholder if provided
+    if (config.placeholder) {
+      this.setPlaceholder(config.placeholder);
+    }
 
     return this.editorView;
   }
