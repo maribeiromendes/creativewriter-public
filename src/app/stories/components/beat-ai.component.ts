@@ -283,7 +283,7 @@ import { EditorView } from 'prosemirror-view';
       font-family: inherit;
       font-size: 0.9rem;
       line-height: 1.4;
-      min-height: 60px;
+      min-height: auto;
       max-height: 300px;
       overflow-y: auto;
       transition: all 0.15s ease;
@@ -302,8 +302,8 @@ import { EditorView } from 'prosemirror-view';
     
     .prompt-input.prosemirror-container :global(.ProseMirror) {
       outline: none;
-      padding: 0.25rem;
-      min-height: 60px;
+      padding: 0.1rem;
+      min-height: auto;
       background: transparent;
       color: #e0e0e0 !important;
       font-size: 0.9rem;
@@ -822,8 +822,8 @@ import { EditorView } from 'prosemirror-view';
       
       .prompt-input.prosemirror-container :global(.ProseMirror) {
         font-size: 0.9rem;
-        padding: 0.2rem;
-        min-height: 50px;
+        padding: 0.1rem;
+        min-height: auto;
       }
       
       .generation-options {
