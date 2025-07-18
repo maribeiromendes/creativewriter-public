@@ -401,40 +401,14 @@ export class ProseMirrorEditorService {
   }
 
   setSimpleContent(content: string): void {
-    if (!this.simpleEditorView) {
-      console.warn('No simple editor view available for setSimpleContent');
-      return;
-    }
-    
-    try {
-      const schema = this.simpleEditorView.state.schema;
-      const paragraphContent = content ? [schema.text(content)] : [];
-      const doc = schema.nodes['doc'].create({}, [
-        schema.nodes['paragraph'].create({}, paragraphContent)
-      ]);
+    if (this.simpleEditorView) {
+      const tr = this.simpleEditorView.state.tr.replaceWith(
+        0,
+        this.simpleEditorView.state.doc.content.size,
+        this.simpleEditorView.state.schema.text(content)
+      );
       
-      const state = EditorState.create({
-        doc,
-        schema: schema,
-        plugins: this.simpleEditorView.state.plugins
-      });
-      
-      this.simpleEditorView.updateState(state);
-      
-      // Trigger the update callback manually since updateState doesn't call dispatchTransaction
-      // We need to manually call the update callback that was passed in the config
-      const view = this.simpleEditorView;
-      if (view && view.props && view.props.dispatchTransaction) {
-        // Get the updated content and trigger the callback
-        setTimeout(() => {
-          if (view.props.dispatchTransaction) {
-            const dummyTr = view.state.tr;
-            view.props.dispatchTransaction.call(view, dummyTr);
-          }
-        }, 0);
-      }
-    } catch (error) {
-      console.warn('Failed to set simple content:', error);
+      this.simpleEditorView.dispatch(tr);
     }
   }
 

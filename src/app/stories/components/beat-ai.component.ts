@@ -1099,11 +1099,6 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
     setTimeout(() => {
       if (!this.editorView && this.promptInput) {
         this.initializeProseMirrorEditor();
-        
-        // Make sure currentPrompt is properly set after initialization
-        if (this.beatData.prompt && this.currentPrompt !== this.beatData.prompt) {
-          this.currentPrompt = this.beatData.prompt;
-        }
       }
       
       // Focus editor after initialization
@@ -1130,15 +1125,9 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
   }
   
   generateContent(): void {
-    // Get the current content directly from the editor if it exists
-    let promptText = this.currentPrompt;
-    if (this.editorView) {
-      promptText = this.proseMirrorService.getSimpleTextContent() || this.currentPrompt;
-    }
+    if (!this.currentPrompt.trim() || !this.selectedModel) return;
     
-    if (!promptText.trim() || !this.selectedModel) return;
-    
-    this.beatData.prompt = promptText.trim();
+    this.beatData.prompt = this.currentPrompt.trim();
     this.beatData.isEditing = false;
     this.beatData.isGenerating = true;
     this.beatData.updatedAt = new Date();
