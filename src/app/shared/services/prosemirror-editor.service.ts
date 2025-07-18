@@ -186,8 +186,18 @@ export class ProseMirrorEditorService {
         }),
         keymap(baseKeymap),
         keymap({
+          'Enter': (state, dispatch) => {
+            // Create a new paragraph on Enter
+            const { $from, $to } = state.selection;
+            
+            if (dispatch) {
+              const tr = state.tr.split($from.pos);
+              dispatch(tr.scrollIntoView());
+            }
+            return true;
+          },
           'Mod-Enter': () => {
-            // Handle enter key for line breaks
+            // Cmd/Ctrl+Enter can be used for other functionality
             return false;
           }
         }),
@@ -620,7 +630,18 @@ export class ProseMirrorEditorService {
         }),
         keymap(baseKeymap),
         keymap({
+          'Enter': (state, dispatch) => {
+            // Create a new paragraph on Enter
+            const { $from, $to } = state.selection;
+            
+            if (dispatch) {
+              const tr = state.tr.split($from.pos);
+              dispatch(tr.scrollIntoView());
+            }
+            return true;
+          },
           'Mod-Enter': () => {
+            // Cmd/Ctrl+Enter can be used for other functionality
             return false;
           }
         }),
