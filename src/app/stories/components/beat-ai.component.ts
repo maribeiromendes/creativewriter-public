@@ -1055,6 +1055,7 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
     const config: SimpleEditorConfig = {
       placeholder: 'Beschreibe den Beat, den die AI generieren soll...',
       onUpdate: (content: string) => {
+        console.log('Beat input onUpdate called:', { content, oldPrompt: this.currentPrompt });
         this.currentPrompt = content;
         this.onPromptChange();
       },
@@ -1125,7 +1126,20 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
   }
   
   generateContent(): void {
-    if (!this.currentPrompt.trim() || !this.selectedModel) return;
+    console.log('generateContent called:', {
+      currentPrompt: this.currentPrompt,
+      selectedModel: this.selectedModel,
+      currentPromptTrimmed: this.currentPrompt?.trim(),
+      beatDataId: this.beatData.id
+    });
+    
+    if (!this.currentPrompt.trim() || !this.selectedModel) {
+      console.log('generateContent blocked:', {
+        noPrompt: !this.currentPrompt.trim(),
+        noModel: !this.selectedModel
+      });
+      return;
+    }
     
     this.beatData.prompt = this.currentPrompt.trim();
     this.beatData.isEditing = false;
@@ -1133,6 +1147,12 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
     this.beatData.updatedAt = new Date();
     this.beatData.wordCount = this.getActualWordCount();
     this.beatData.model = this.selectedModel;
+    
+    console.log('Emitting promptSubmit event:', {
+      beatId: this.beatData.id,
+      prompt: this.beatData.prompt,
+      action: this.beatData.generatedContent ? 'regenerate' : 'generate'
+    });
     
     this.promptSubmit.emit({
       beatId: this.beatData.id,

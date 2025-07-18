@@ -421,11 +421,16 @@ export class ProseMirrorEditorService {
       this.editorView.updateState(state);
       
       // Trigger the update callback manually since updateState doesn't call dispatchTransaction
+      // We need to manually call the update callback that was passed in the config
       const view = this.editorView;
-      if (view.props.dispatchTransaction) {
-        // Create a dummy transaction to trigger the update callback
-        const tr = state.tr;
-        view.props.dispatchTransaction.call(view, tr);
+      if (view && view.props && view.props.dispatchTransaction) {
+        // Get the updated content and trigger the callback
+        setTimeout(() => {
+          if (view.props.dispatchTransaction) {
+            const dummyTr = view.state.tr;
+            view.props.dispatchTransaction.call(view, dummyTr);
+          }
+        }, 0);
       }
     } catch (error) {
       console.warn('Failed to set simple content:', error);
