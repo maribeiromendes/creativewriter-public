@@ -47,6 +47,7 @@ export interface SimpleEditorConfig {
 })
 export class ProseMirrorEditorService {
   private editorView: EditorView | null = null;
+  private simpleEditorView: EditorView | null = null; // Separate view for beat input
   private editorSchema: Schema;
   private currentStoryContext: {
     storyId?: string;
@@ -305,11 +306,11 @@ export class ProseMirrorEditorService {
     });
 
     // Create the editor view with proper event isolation
-    this.editorView = new EditorView(element, {
+    this.simpleEditorView = new EditorView(element, {
       state,
       dispatchTransaction: (transaction) => {
-        const newState = this.editorView!.state.apply(transaction);
-        this.editorView!.updateState(newState);
+        const newState = this.simpleEditorView!.state.apply(transaction);
+        this.simpleEditorView!.updateState(newState);
         
         // Call update callback if provided
         if (config.onUpdate) {
@@ -345,13 +346,13 @@ export class ProseMirrorEditorService {
       this.setPlaceholder(config.placeholder);
     }
 
-    return this.editorView;
+    return this.simpleEditorView;
   }
 
   getSimpleTextContent(): string {
-    if (!this.editorView) return '';
+    if (!this.simpleEditorView) return '';
     
-    const doc = this.editorView.state.doc;
+    const doc = this.simpleEditorView.state.doc;
     let text = '';
     
     doc.descendants((node) => {
@@ -387,8 +388,8 @@ export class ProseMirrorEditorService {
       if (updatedCodex) {
         const updatedEntries = this.extractAllCodexEntries(updatedCodex);
         // Update the plugin when codex entries change (for simple text editor)
-        if (this.editorView) {
-          updateCodexHighlightingPlugin(this.editorView, updatedEntries);
+        if (this.simpleEditorView) {
+          updateCodexHighlightingPlugin(this.simpleEditorView, updatedEntries);
         }
       }
     });
@@ -400,13 +401,13 @@ export class ProseMirrorEditorService {
   }
 
   setSimpleContent(content: string): void {
-    if (!this.editorView) {
-      console.warn('No editor view available for setSimpleContent');
+    if (!this.simpleEditorView) {
+      console.warn('No simple editor view available for setSimpleContent');
       return;
     }
     
     try {
-      const schema = this.editorView.state.schema;
+      const schema = this.simpleEditorView.state.schema;
       const paragraphContent = content ? [schema.text(content)] : [];
       const doc = schema.nodes['doc'].create({}, [
         schema.nodes['paragraph'].create({}, paragraphContent)
@@ -415,14 +416,14 @@ export class ProseMirrorEditorService {
       const state = EditorState.create({
         doc,
         schema: schema,
-        plugins: this.editorView.state.plugins
+        plugins: this.simpleEditorView.state.plugins
       });
       
-      this.editorView.updateState(state);
+      this.simpleEditorView.updateState(state);
       
       // Trigger the update callback manually since updateState doesn't call dispatchTransaction
       // We need to manually call the update callback that was passed in the config
-      const view = this.editorView;
+      const view = this.simpleEditorView;
       if (view && view.props && view.props.dispatchTransaction) {
         // Get the updated content and trigger the callback
         setTimeout(() => {
