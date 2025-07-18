@@ -1055,7 +1055,6 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
     const config: SimpleEditorConfig = {
       placeholder: 'Beschreibe den Beat, den die AI generieren soll...',
       onUpdate: (content: string) => {
-        console.log('Beat input onUpdate called:', { content, oldPrompt: this.currentPrompt });
         this.currentPrompt = content;
         this.onPromptChange();
       },
@@ -1100,6 +1099,11 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
     setTimeout(() => {
       if (!this.editorView && this.promptInput) {
         this.initializeProseMirrorEditor();
+        
+        // Make sure currentPrompt is properly set after initialization
+        if (this.beatData.prompt && this.currentPrompt !== this.beatData.prompt) {
+          this.currentPrompt = this.beatData.prompt;
+        }
       }
       
       // Focus editor after initialization
@@ -1126,33 +1130,20 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
   }
   
   generateContent(): void {
-    console.log('generateContent called:', {
-      currentPrompt: this.currentPrompt,
-      selectedModel: this.selectedModel,
-      currentPromptTrimmed: this.currentPrompt?.trim(),
-      beatDataId: this.beatData.id
-    });
-    
-    if (!this.currentPrompt.trim() || !this.selectedModel) {
-      console.log('generateContent blocked:', {
-        noPrompt: !this.currentPrompt.trim(),
-        noModel: !this.selectedModel
-      });
-      return;
+    // Get the current content directly from the editor if it exists
+    let promptText = this.currentPrompt;
+    if (this.editorView) {
+      promptText = this.proseMirrorService.getSimpleTextContent() || this.currentPrompt;
     }
     
-    this.beatData.prompt = this.currentPrompt.trim();
+    if (!promptText.trim() || !this.selectedModel) return;
+    
+    this.beatData.prompt = promptText.trim();
     this.beatData.isEditing = false;
     this.beatData.isGenerating = true;
     this.beatData.updatedAt = new Date();
     this.beatData.wordCount = this.getActualWordCount();
     this.beatData.model = this.selectedModel;
-    
-    console.log('Emitting promptSubmit event:', {
-      beatId: this.beatData.id,
-      prompt: this.beatData.prompt,
-      action: this.beatData.generatedContent ? 'regenerate' : 'generate'
-    });
     
     this.promptSubmit.emit({
       beatId: this.beatData.id,

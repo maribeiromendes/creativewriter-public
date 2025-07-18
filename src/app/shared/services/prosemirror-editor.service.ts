@@ -348,7 +348,7 @@ export class ProseMirrorEditorService {
     return this.editorView;
   }
 
-  private getSimpleTextContent(): string {
+  getSimpleTextContent(): string {
     if (!this.editorView) return '';
     
     const doc = this.editorView.state.doc;
