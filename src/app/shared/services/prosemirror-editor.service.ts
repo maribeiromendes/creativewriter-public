@@ -289,16 +289,23 @@ export class ProseMirrorEditorService {
           'Mod-z': undo,
           'Mod-y': redo,
           'Mod-Shift-z': redo,
-          'Enter': () => {
-            // Simple line break handling
-            const { state, dispatch } = this.editorView!;
-            dispatch(state.tr.replaceSelectionWith(simpleSchema.nodes.hard_break.create()));
+          'Enter': (state, dispatch) => {
+            // Create new paragraph on Enter
+            const { $from } = state.selection;
+            
+            if (dispatch) {
+              const tr = state.tr.split($from.pos);
+              dispatch(tr.scrollIntoView());
+            }
             return true;
           },
-          'Shift-Enter': () => {
-            // Create new paragraph
-            const { state, dispatch } = this.editorView!;
-            dispatch(state.tr.replaceSelectionWith(simpleSchema.nodes.paragraph.create()));
+          'Shift-Enter': (state, dispatch) => {
+            // Create line break with Shift+Enter
+            if (dispatch) {
+              const hardBreak = simpleSchema.nodes['hard_break'].create();
+              const tr = state.tr.replaceSelectionWith(hardBreak);
+              dispatch(tr.scrollIntoView());
+            }
             return true;
           }
         }),
