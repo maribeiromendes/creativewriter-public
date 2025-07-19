@@ -1095,9 +1095,15 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
     // Restore all persisted settings when switching back to edit mode
     this.restorePersistedSettings();
     
+    // Destroy existing editor if it exists (DOM element will be recreated by *ngIf)
+    if (this.editorView) {
+      this.editorView.destroy();
+      this.editorView = null;
+    }
+    
     // Initialize editor after DOM updates
     setTimeout(() => {
-      if (!this.editorView && this.promptInput) {
+      if (this.promptInput) {
         this.initializeProseMirrorEditor();
       }
       
