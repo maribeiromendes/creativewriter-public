@@ -17,7 +17,7 @@ import { Story, Scene } from '../models/story.interface';
 import { StoryStructureComponent } from './story-structure.component';
 import { SlashCommandDropdownComponent } from './slash-command-dropdown.component';
 import { SlashCommandResult, SlashCommandAction } from '../models/slash-command.interface';
-import { Subscription, debounceTime, Subject } from 'rxjs';
+import { Subscription, debounceTime, Subject, throttleTime } from 'rxjs';
 import { ProseMirrorEditorService } from '../../shared/services/prosemirror-editor.service';
 import { EditorView } from 'prosemirror-view';
 import { Selection, TextSelection } from 'prosemirror-state';
@@ -781,6 +781,7 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
   
   hasUnsavedChanges = false;
   private saveSubject = new Subject<void>();
+  private contentChangeSubject = new Subject<string>();
   private subscription: Subscription = new Subscription();
   private isStreamingActive = false;
   
@@ -859,12 +860,25 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
       }
     }
 
-    // Auto-save mit Debounce
+    // Auto-save mit optimiertem Debounce
     this.subscription.add(
       this.saveSubject.pipe(
-        debounceTime(1000)
+        debounceTime(3000) // Erhöht auf 3 Sekunden für weniger häufiges Speichern
       ).subscribe(() => {
         this.saveStory();
+      })
+    );
+    
+    // Handle content changes with throttling to prevent excessive updates
+    this.subscription.add(
+      this.contentChangeSubject.pipe(
+        throttleTime(500, undefined, { leading: true, trailing: true }) // Throttle content updates to max once per 500ms
+      ).subscribe(content => {
+        if (this.activeScene) {
+          this.activeScene.content = content;
+          this.updateWordCount();
+          this.onContentChange();
+        }
       })
     );
     
@@ -946,8 +960,8 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
       this.hasUnsavedChanges = true;
       this.saveSubject.next();
       
-      // Refresh prompt manager when content changes
-      this.promptManager.refresh();
+      // Don't refresh prompt manager on every keystroke - it's too expensive
+      // It will be refreshed when actually needed (when opening Beat AI)
     } else if (this.isStreamingActive) {
       // During streaming, only mark as unsaved but don't trigger auto-save
       this.hasUnsavedChanges = true;
@@ -1369,11 +1383,8 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
       {
         placeholder: 'Hier beginnt deine Szene...',
         onUpdate: (content: string) => {
-          if (this.activeScene) {
-            this.activeScene.content = content;
-            this.updateWordCount();
-            this.onContentChange();
-          }
+          // Use throttled content updates to prevent excessive processing
+          this.contentChangeSubject.next(content);
         },
         onSlashCommand: (position: number) => {
           this.slashCursorPosition = position;
