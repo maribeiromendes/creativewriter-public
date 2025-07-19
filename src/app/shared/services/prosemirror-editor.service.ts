@@ -5,7 +5,7 @@ import { Schema, DOMParser, DOMSerializer, Node as ProseMirrorNode, Fragment, Sl
 import { schema } from 'prosemirror-schema-basic';
 import { addListNodes } from 'prosemirror-schema-list';
 import { keymap } from 'prosemirror-keymap';
-import { baseKeymap } from 'prosemirror-commands';
+import { baseKeymap, splitBlock, chainCommands, newlineInCode, createParagraphNear, liftEmptyBlock } from 'prosemirror-commands';
 import { history, undo, redo } from 'prosemirror-history';
 import { Subject } from 'rxjs';
 import { BeatAINodeView } from './beat-ai-nodeview';
@@ -182,7 +182,9 @@ export class ProseMirrorEditorService {
         keymap({
           'Mod-z': undo,
           'Mod-y': redo,
-          'Mod-Shift-z': redo
+          'Mod-Shift-z': redo,
+          // Explicitly use ProseMirror's native paragraph handling
+          'Enter': chainCommands(newlineInCode, createParagraphNear, liftEmptyBlock, splitBlock)
         }),
         keymap(baseKeymap),
         this.createBeatAIPlugin(config),
@@ -273,16 +275,7 @@ export class ProseMirrorEditorService {
           'Mod-z': undo,
           'Mod-y': redo,
           'Mod-Shift-z': redo,
-          'Enter': (state, dispatch) => {
-            // Create new paragraph on Enter
-            const { $from } = state.selection;
-            
-            if (dispatch) {
-              const tr = state.tr.split($from.pos);
-              dispatch(tr.scrollIntoView());
-            }
-            return true;
-          },
+          'Enter': splitBlock,
           'Shift-Enter': (state, dispatch) => {
             // Create line break with Shift+Enter
             if (dispatch) {
@@ -617,7 +610,9 @@ export class ProseMirrorEditorService {
         keymap({
           'Mod-z': undo,
           'Mod-y': redo,
-          'Mod-Shift-z': redo
+          'Mod-Shift-z': redo,
+          // Explicitly use ProseMirror's native paragraph handling
+          'Enter': chainCommands(newlineInCode, createParagraphNear, liftEmptyBlock, splitBlock)
         }),
         keymap(baseKeymap),
         this.createBeatAIPlugin({})
