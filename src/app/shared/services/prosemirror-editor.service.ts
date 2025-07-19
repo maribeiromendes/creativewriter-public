@@ -185,22 +185,6 @@ export class ProseMirrorEditorService {
           'Mod-Shift-z': redo
         }),
         keymap(baseKeymap),
-        keymap({
-          'Enter': (state, dispatch) => {
-            // Create a new paragraph on Enter
-            const { $from, $to } = state.selection;
-            
-            if (dispatch) {
-              const tr = state.tr.split($from.pos);
-              dispatch(tr.scrollIntoView());
-            }
-            return true;
-          },
-          'Mod-Enter': () => {
-            // Cmd/Ctrl+Enter can be used for other functionality
-            return false;
-          }
-        }),
         this.createBeatAIPlugin(config),
         this.createCodexHighlightingPlugin(config)
       ]
@@ -636,22 +620,6 @@ export class ProseMirrorEditorService {
           'Mod-Shift-z': redo
         }),
         keymap(baseKeymap),
-        keymap({
-          'Enter': (state, dispatch) => {
-            // Create a new paragraph on Enter
-            const { $from, $to } = state.selection;
-            
-            if (dispatch) {
-              const tr = state.tr.split($from.pos);
-              dispatch(tr.scrollIntoView());
-            }
-            return true;
-          },
-          'Mod-Enter': () => {
-            // Cmd/Ctrl+Enter can be used for other functionality
-            return false;
-          }
-        }),
         this.createBeatAIPlugin({})
       ]
     });

@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, ElementRef, ViewChild, OnInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter, ElementRef, ViewChild, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SlashCommand, SlashCommandAction, SlashCommandResult } from '../models/slash-command.interface';
 
@@ -118,7 +118,7 @@ import { SlashCommand, SlashCommandAction, SlashCommandResult } from '../models/
     }
   `]
 })
-export class SlashCommandDropdownComponent implements OnInit {
+export class SlashCommandDropdownComponent implements OnInit, OnDestroy {
   @Input() position: { top: number; left: number } = { top: 0, left: 0 };
   @Input() cursorPosition: number = 0;
   @Output() commandSelected = new EventEmitter<SlashCommandResult>();
@@ -127,6 +127,9 @@ export class SlashCommandDropdownComponent implements OnInit {
   @ViewChild('dropdown', { static: true }) dropdown!: ElementRef;
   
   selectedIndex = 0;
+  private keyDownHandler: ((event: KeyboardEvent) => void) | null = null;
+  private clickHandler: ((event: Event) => void) | null = null;
+  
   commands: SlashCommand[] = [
     {
       id: 'story-beat',
@@ -152,14 +155,23 @@ export class SlashCommandDropdownComponent implements OnInit {
   ];
 
   ngOnInit() {
+    // Create bound handlers so we can properly remove them later
+    this.keyDownHandler = this.handleKeyDown.bind(this);
+    this.clickHandler = this.handleClickOutside.bind(this);
+    
     // Listen for keyboard events
-    document.addEventListener('keydown', this.handleKeyDown.bind(this));
-    document.addEventListener('click', this.handleClickOutside.bind(this));
+    document.addEventListener('keydown', this.keyDownHandler);
+    document.addEventListener('click', this.clickHandler);
   }
 
   ngOnDestroy() {
-    document.removeEventListener('keydown', this.handleKeyDown.bind(this));
-    document.removeEventListener('click', this.handleClickOutside.bind(this));
+    // Remove event listeners using the same handler references
+    if (this.keyDownHandler) {
+      document.removeEventListener('keydown', this.keyDownHandler);
+    }
+    if (this.clickHandler) {
+      document.removeEventListener('click', this.clickHandler);
+    }
   }
 
   trackCommand(index: number, command: SlashCommand): string {
@@ -183,6 +195,9 @@ export class SlashCommandDropdownComponent implements OnInit {
   private handleKeyDown(event: KeyboardEvent): void {
     // Only handle keys when dropdown is actually visible and focused
     if (!this.dropdown?.nativeElement) return;
+    
+    // Check if the dropdown is actually in the DOM
+    if (!document.body.contains(this.dropdown.nativeElement)) return;
     
     switch (event.key) {
       case 'ArrowDown':
