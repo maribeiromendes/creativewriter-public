@@ -218,11 +218,10 @@ export class ProseMirrorEditorService {
         const newState = this.editorView!.state.apply(transaction);
         this.editorView!.updateState(newState);
         
-        // Emit content updates
+        // Emit content updates with lazy evaluation
         if (transaction.docChanged) {
-          const content = this.getHTMLContent();
-          this.contentUpdate$.next(content);
-          config.onUpdate?.(content);
+          // Don't serialize content here - let the consumer do it when needed
+          config.onUpdate?.('__content_changed__');
         }
         
         // Check for slash command

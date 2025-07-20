@@ -784,6 +784,8 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
   private contentChangeSubject = new Subject<string>();
   private subscription: Subscription = new Subscription();
   private isStreamingActive = false;
+  private isSaving = false;
+  private pendingSave = false;
   
   // Touch/swipe gesture properties
   private touchStartX = 0;
@@ -875,6 +877,11 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
         throttleTime(500, undefined, { leading: true, trailing: true }) // Throttle content updates to max once per 500ms
       ).subscribe(content => {
         if (this.activeScene) {
+          // Check content size to prevent memory issues
+          if (content.length > 5000000) { // 5MB limit
+            console.warn('Content too large, truncating...');
+            content = content.substring(0, 5000000);
+          }
           this.activeScene.content = content;
           this.updateWordCount();
           this.onContentChange();
@@ -969,41 +976,59 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private async saveStory(): Promise<void> {
-    // Only save story title and active scene content - don't overwrite entire story structure
-    this.story.updatedAt = new Date();
-    
-    // Save story title only
-    const currentStory = await this.storyService.getStory(this.story.id);
-    if (currentStory) {
-      await this.storyService.updateStory({
-        ...currentStory,
-        title: this.story.title,
-        updatedAt: new Date()
-      });
+    // Prevent concurrent saves
+    if (this.isSaving) {
+      this.pendingSave = true;
+      return;
     }
     
-    // Save active scene changes
-    if (this.activeScene && this.activeChapterId) {
-      await this.storyService.updateScene(
-        this.story.id, 
-        this.activeChapterId, 
-        this.activeScene.id, 
-        {
-          title: this.activeScene.title,
-          content: this.activeScene.content
+    this.isSaving = true;
+    
+    try {
+      // Only save if we have actual changes
+      if (!this.hasUnsavedChanges) {
+        this.isSaving = false;
+        return;
+      }
+      
+      // Save active scene changes only (not the entire story)
+      if (this.activeScene && this.activeChapterId) {
+        await this.storyService.updateScene(
+          this.story.id, 
+          this.activeChapterId, 
+          this.activeScene.id, 
+          {
+            title: this.activeScene.title,
+            content: this.activeScene.content
+          }
+        );
+      }
+      
+      // Save story title if changed
+      if (this.story.title !== undefined) {
+        const currentStory = await this.storyService.getStory(this.story.id);
+        if (currentStory && currentStory.title !== this.story.title) {
+          await this.storyService.updateStory({
+            ...currentStory,
+            title: this.story.title,
+            updatedAt: new Date()
+          });
         }
-      );
-    }
-    
-    this.hasUnsavedChanges = false;
-    
-    // Refresh story data to get latest structure
-    const updatedStory = await this.storyService.getStory(this.story.id);
-    if (updatedStory) {
-      this.story = updatedStory;
-      // Refresh active scene reference
-      if (this.activeChapterId && this.activeSceneId) {
-        this.activeScene = await this.storyService.getScene(this.story.id, this.activeChapterId, this.activeSceneId);
+      }
+      
+      this.hasUnsavedChanges = false;
+      
+    } catch (error) {
+      console.error('Error saving story:', error);
+      // Re-mark as unsaved so it can be retried
+      this.hasUnsavedChanges = true;
+    } finally {
+      this.isSaving = false;
+      
+      // If there was a pending save request during save, execute it
+      if (this.pendingSave) {
+        this.pendingSave = false;
+        setTimeout(() => this.saveStory(), 100);
       }
     }
   }
@@ -1382,9 +1407,12 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
       this.editorContainer.nativeElement,
       {
         placeholder: 'Hier beginnt deine Szene...',
-        onUpdate: (content: string) => {
-          // Use throttled content updates to prevent excessive processing
-          this.contentChangeSubject.next(content);
+        onUpdate: (signal: string) => {
+          // Content changed - get it only when needed
+          if (signal === '__content_changed__' && this.editorView) {
+            const content = this.proseMirrorService.getHTMLContent();
+            this.contentChangeSubject.next(content);
+          }
         },
         onSlashCommand: (position: number) => {
           this.slashCursorPosition = position;
@@ -1625,10 +1653,11 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
 
   private handleBeatContentUpdate(beatData: BeatAI): void {
     console.log('Beat content updated:', beatData);
-    // Trigger auto-save when beat content changes
+    // Mark as changed but don't trigger immediate save for beat updates
+    // These are already saved within the content
     this.hasUnsavedChanges = true;
     this.updateWordCount();
-    this.saveSubject.next();
+    // Don't trigger save subject - let the regular debounce handle it
   }
 
   hideImageDialog(): void {
