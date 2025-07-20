@@ -30,6 +30,7 @@ export interface EditorConfig {
     chapterId?: string;
     sceneId?: string;
   };
+  debugMode?: boolean;
 }
 
 export interface SimpleEditorConfig {
@@ -56,6 +57,7 @@ export class ProseMirrorEditorService {
   } = {};
   private beatNodeViews: Set<BeatAINodeView> = new Set();
   private beatStreamingPositions: Map<string, number> = new Map();
+  private debugMode = false;
   
   public contentUpdate$ = new Subject<string>();
   public slashCommand$ = new Subject<number>();
@@ -175,21 +177,29 @@ export class ProseMirrorEditorService {
       this.currentStoryContext = config.storyContext;
     }
 
+    this.debugMode = config.debugMode || false;
+
+    const plugins = [
+      history(),
+      keymap({
+        'Mod-z': undo,
+        'Mod-y': redo,
+        'Mod-Shift-z': redo,
+        // Explicitly use ProseMirror's native paragraph handling
+        'Enter': chainCommands(newlineInCode, createParagraphNear, liftEmptyBlock, splitBlock)
+      }),
+      keymap(baseKeymap),
+      this.createBeatAIPlugin(config),
+      this.createCodexHighlightingPlugin(config)
+    ];
+
+    if (this.debugMode) {
+      plugins.push(this.createDebugPlugin());
+    }
+
     const state = EditorState.create({
       schema: this.editorSchema,
-      plugins: [
-        history(),
-        keymap({
-          'Mod-z': undo,
-          'Mod-y': redo,
-          'Mod-Shift-z': redo,
-          // Explicitly use ProseMirror's native paragraph handling
-          'Enter': chainCommands(newlineInCode, createParagraphNear, liftEmptyBlock, splitBlock)
-        }),
-        keymap(baseKeymap),
-        this.createBeatAIPlugin(config),
-        this.createCodexHighlightingPlugin(config)
-      ]
+      plugins
     });
 
     this.editorView = new EditorView(element, {
@@ -1265,5 +1275,184 @@ export class ProseMirrorEditorService {
     }
     
     return entries;
+  }
+
+  private createDebugPlugin(): Plugin {
+    return new Plugin({
+      key: new PluginKey('debug'),
+      props: {
+        attributes: {
+          class: 'pm-debug-mode'
+        }
+      },
+      view(editorView) {
+        // Add CSS for showing tag structure
+        const style = document.createElement('style');
+        style.id = 'pm-debug-styles';
+        style.textContent = `
+          .pm-debug-mode .ProseMirror {
+            position: relative;
+          }
+          .pm-debug-mode .ProseMirror * {
+            position: relative;
+            border: 1px dashed rgba(255, 255, 255, 0.2);
+            padding: 2px;
+            margin: 1px;
+          }
+          .pm-debug-mode .ProseMirror *::before {
+            content: attr(data-pm-node-type) " ";
+            position: absolute;
+            top: -15px;
+            left: 0;
+            font-size: 10px;
+            color: #999;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 0 4px;
+            border: 1px solid #666;
+            border-radius: 2px;
+            z-index: 1000;
+            pointer-events: none;
+          }
+          .pm-debug-mode .ProseMirror p::before {
+            content: "paragraph";
+          }
+          .pm-debug-mode .ProseMirror h1::before,
+          .pm-debug-mode .ProseMirror h2::before,
+          .pm-debug-mode .ProseMirror h3::before,
+          .pm-debug-mode .ProseMirror h4::before,
+          .pm-debug-mode .ProseMirror h5::before,
+          .pm-debug-mode .ProseMirror h6::before {
+            content: "heading(" attr(data-pm-heading-level) ")";
+          }
+          .pm-debug-mode .ProseMirror ul::before {
+            content: "bullet_list";
+          }
+          .pm-debug-mode .ProseMirror ol::before {
+            content: "ordered_list";
+          }
+          .pm-debug-mode .ProseMirror li::before {
+            content: "list_item";
+          }
+          .pm-debug-mode .ProseMirror blockquote::before {
+            content: "blockquote";
+          }
+          .pm-debug-mode .ProseMirror pre::before {
+            content: "code_block";
+          }
+          .pm-debug-mode .ProseMirror em::before {
+            content: "em";
+          }
+          .pm-debug-mode .ProseMirror strong::before {
+            content: "strong";
+          }
+          .pm-debug-mode .ProseMirror code::before {
+            content: "code";
+          }
+          .pm-debug-mode .ProseMirror .beatAI::before,
+          .pm-debug-mode .ProseMirror .beat-ai-node::before {
+            content: "beatAI";
+          }
+          .pm-debug-mode .ProseMirror img::before {
+            content: "image";
+          }
+          .pm-debug-mode .ProseMirror .codex-highlight::before {
+            content: "codex: " attr(data-codex-entry);
+          }
+        `;
+        document.head.appendChild(style);
+
+        // Add node type attributes for debugging
+        function updateNodeAttributes(node: Node) {
+          if (node.nodeType === Node.ELEMENT_NODE) {
+            const el = node as HTMLElement;
+            try {
+              const pos = editorView.posAtDOM(el, 0);
+              if (pos >= 0) {
+                const pmNode = editorView.state.doc.resolve(pos).node();
+                if (pmNode) {
+                  el.setAttribute('data-pm-node-type', pmNode.type.name);
+                  if (pmNode.type.name === 'heading') {
+                    el.setAttribute('data-pm-heading-level', String(pmNode.attrs['level']));
+                  }
+                }
+              }
+            } catch (e) {
+              // Ignore errors for nodes that can't be resolved
+            }
+          }
+        }
+
+        // Initial update
+        editorView.dom.querySelectorAll('*').forEach(updateNodeAttributes);
+
+        // Observe changes
+        const observer = new MutationObserver((mutations) => {
+          mutations.forEach((mutation) => {
+            if (mutation.type === 'childList') {
+              mutation.addedNodes.forEach((node) => {
+                if (node.nodeType === Node.ELEMENT_NODE) {
+                  updateNodeAttributes(node);
+                  (node as HTMLElement).querySelectorAll('*').forEach(updateNodeAttributes);
+                }
+              });
+            }
+          });
+        });
+
+        observer.observe(editorView.dom, {
+          childList: true,
+          subtree: true
+        });
+
+        return {
+          update() {
+            editorView.dom.querySelectorAll('*').forEach(updateNodeAttributes);
+          },
+          destroy() {
+            const style = document.getElementById('pm-debug-styles');
+            if (style) {
+              style.remove();
+            }
+            observer.disconnect();
+          }
+        };
+      }
+    });
+  }
+
+  toggleDebugMode(enabled: boolean): void {
+    if (!this.editorView) return;
+    
+    this.debugMode = enabled;
+    
+    // Recreate plugins
+    const plugins = [
+      history(),
+      keymap({
+        'Mod-z': undo,
+        'Mod-y': redo,
+        'Mod-Shift-z': redo,
+        'Enter': chainCommands(newlineInCode, createParagraphNear, liftEmptyBlock, splitBlock)
+      }),
+      keymap(baseKeymap),
+      this.createBeatAIPlugin({ storyContext: this.currentStoryContext }),
+      this.createCodexHighlightingPlugin({ storyContext: this.currentStoryContext })
+    ];
+
+    if (enabled) {
+      plugins.push(this.createDebugPlugin());
+    }
+
+    const newState = this.editorView.state.reconfigure({ plugins });
+    this.editorView.updateState(newState);
+
+    // Apply dev tools if available
+    if (enabled && typeof window !== 'undefined' && (window as any).prosemirrorDevTools) {
+      try {
+        (window as any).prosemirrorDevTools.applyDevTools(this.editorView);
+      } catch (e) {
+        console.log('ProseMirror dev tools not available');
+      }
+    }
   }
 }

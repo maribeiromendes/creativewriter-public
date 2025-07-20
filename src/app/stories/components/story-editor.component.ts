@@ -10,7 +10,7 @@ import { addIcons } from 'ionicons';
 import { 
   arrowBack, bookOutline, book, settingsOutline, statsChartOutline,
   saveOutline, checkmarkCircleOutline, menuOutline, chevronBack, chevronForward,
-  chatbubblesOutline
+  chatbubblesOutline, bugOutline
 } from 'ionicons/icons';
 import { StoryService } from '../services/story.service';
 import { Story, Scene } from '../models/story.interface';
@@ -53,6 +53,9 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
           </ion-title>
           
           <ion-buttons slot="end">
+            <ion-button (click)="toggleDebugMode()" [color]="debugModeEnabled ? 'warning' : ''" title="Debug-Modus umschalten">
+              <ion-icon name="bug-outline" slot="icon-only"></ion-icon>
+            </ion-button>
             <ion-button (click)="goToCodex()">
               <ion-icon name="book-outline" slot="icon-only"></ion-icon>
             </ion-button>
@@ -780,6 +783,7 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
   imageCursorPosition = 0;
   
   hasUnsavedChanges = false;
+  debugModeEnabled = false;
   private saveSubject = new Subject<void>();
   private contentChangeSubject = new Subject<string>();
   private subscription: Subscription = new Subscription();
@@ -812,7 +816,7 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     addIcons({ 
       arrowBack, bookOutline, book, settingsOutline, statsChartOutline,
       saveOutline, checkmarkCircleOutline, menuOutline, chevronBack, chevronForward,
-      chatbubblesOutline
+      chatbubblesOutline, bugOutline
     });
   }
 
@@ -1431,7 +1435,8 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
           storyId: this.story.id,
           chapterId: this.activeChapterId || undefined,
           sceneId: this.activeSceneId || undefined
-        }
+        },
+        debugMode: this.debugModeEnabled
       }
     );
     
@@ -1783,4 +1788,15 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     // Force change detection
     this.cdr.detectChanges();
   }
+
+  toggleDebugMode(): void {
+    this.debugModeEnabled = !this.debugModeEnabled;
+    
+    if (this.editorView) {
+      this.proseMirrorService.toggleDebugMode(this.debugModeEnabled);
+    }
+    
+    console.log('Debug mode:', this.debugModeEnabled ? 'enabled' : 'disabled');
+  }
+
 }
