@@ -825,8 +825,9 @@ export class ProseMirrorEditorService {
       .split(/\n+/) // Split on one or more newlines
       .map(para => para.trim()) // Remove leading/trailing whitespace
       .filter((para, index, array) => {
-        // Keep non-empty paragraphs and empty paragraphs that are between content
-        return para.length > 0 || (index > 0 && index < array.length - 1);
+        // Keep non-empty paragraphs and all empty paragraphs (they represent line breaks)
+        // Only filter out empty paragraphs at the very beginning
+        return para.length > 0 || index > 0;
       });
     
     // Create paragraph nodes for each text block
