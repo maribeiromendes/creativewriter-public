@@ -427,13 +427,13 @@ export class ProseMirrorEditorService {
       if (content && !content.includes('<') && !content.includes('>')) {
         // Convert plain text to HTML paragraphs
         const paragraphs = content
-          .split(/\n\n+/) // Split on double newlines (or more)
+          .split(/\n+/) // Split on any newline (single or multiple)
           .map(para => {
             // Don't filter out empty paragraphs - they represent intentional empty lines
             if (para.trim() === '') {
               return '<p></p>'; // Empty paragraph for empty lines
             }
-            return `<p>${para.replace(/\n/g, '<br>')}</p>`; // Convert single newlines to <br>
+            return `<p>${para}</p>`; // Each line becomes a separate paragraph
           })
           .join('');
         
