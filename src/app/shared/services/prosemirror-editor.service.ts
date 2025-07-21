@@ -1286,8 +1286,11 @@ export class ProseMirrorEditorService {
     this.debugMode = enabled;
     
     if (enabled) {
-      // Simple approach: just add/remove CSS class
-      this.editorView.dom.classList.add('pm-debug-mode');
+      // Add debug class to the parent element that contains .ProseMirror
+      const editorContainer = this.editorView.dom.parentElement;
+      if (editorContainer) {
+        editorContainer.classList.add('pm-debug-mode');
+      }
       
       // Add styles if not already present
       if (!document.getElementById('pm-debug-styles')) {
@@ -1296,6 +1299,7 @@ export class ProseMirrorEditorService {
         style.textContent = `
           .pm-debug-mode .ProseMirror {
             position: relative;
+            background: rgba(255, 255, 255, 0.02);
           }
           .pm-debug-mode .ProseMirror > * {
             position: relative;
@@ -1305,12 +1309,12 @@ export class ProseMirrorEditorService {
           .pm-debug-mode .ProseMirror > p::before {
             content: "paragraph";
             position: absolute;
-            top: -15px;
+            top: -18px;
             left: 0;
-            font-size: 9px;
-            color: #999;
-            background: rgba(0, 0, 0, 0.8);
-            padding: 1px 3px;
+            font-size: 10px;
+            color: #ffa500;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 2px 4px;
             border-radius: 2px;
             z-index: 1000;
             pointer-events: none;
@@ -1323,48 +1327,90 @@ export class ProseMirrorEditorService {
           .pm-debug-mode .ProseMirror > h6::before {
             content: "heading";
             position: absolute;
-            top: -15px;
+            top: -18px;
             left: 0;
-            font-size: 9px;
-            color: #999;
-            background: rgba(0, 0, 0, 0.8);
-            padding: 1px 3px;
+            font-size: 10px;
+            color: #ffa500;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 2px 4px;
             border-radius: 2px;
             z-index: 1000;
             pointer-events: none;
           }
-          .pm-debug-mode .ProseMirror > .beat-ai-node::before {
+          .pm-debug-mode .ProseMirror > div.beat-ai-node::before {
             content: "beatAI";
             position: absolute;
-            top: -15px;
+            top: -18px;
             left: 0;
-            font-size: 9px;
-            color: #999;
-            background: rgba(0, 0, 0, 0.8);
-            padding: 1px 3px;
+            font-size: 10px;
+            color: #ffa500;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 2px 4px;
             border-radius: 2px;
             z-index: 1000;
             pointer-events: none;
           }
-          .pm-debug-mode .ProseMirror > ul::before {
+          .pm-debug-mode .ProseMirror > ul::before,
+          .pm-debug-mode .ProseMirror > ol::before {
             content: "list";
             position: absolute;
-            top: -15px;
+            top: -18px;
             left: 0;
-            font-size: 9px;
-            color: #999;
-            background: rgba(0, 0, 0, 0.8);
-            padding: 1px 3px;
+            font-size: 10px;
+            color: #ffa500;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 2px 4px;
             border-radius: 2px;
             z-index: 1000;
             pointer-events: none;
+          }
+          .pm-debug-mode .ProseMirror > blockquote::before {
+            content: "blockquote";
+            position: absolute;
+            top: -18px;
+            left: 0;
+            font-size: 10px;
+            color: #ffa500;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 2px 4px;
+            border-radius: 2px;
+            z-index: 1000;
+            pointer-events: none;
+          }
+          .pm-debug-mode .ProseMirror > img::before {
+            content: "image";
+            position: absolute;
+            top: -18px;
+            left: 0;
+            font-size: 10px;
+            color: #ffa500;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 2px 4px;
+            border-radius: 2px;
+            z-index: 1000;
+            pointer-events: none;
+          }
+          /* Inline elements */
+          .pm-debug-mode .ProseMirror strong {
+            border: 1px dotted rgba(255, 165, 0, 0.5) !important;
+            padding: 0 2px;
+          }
+          .pm-debug-mode .ProseMirror em {
+            border: 1px dotted rgba(255, 165, 0, 0.5) !important;
+            padding: 0 2px;
+          }
+          .pm-debug-mode .ProseMirror code {
+            border: 1px dotted rgba(255, 165, 0, 0.5) !important;
           }
         `;
         document.head.appendChild(style);
       }
     } else {
       // Remove debug mode
-      this.editorView.dom.classList.remove('pm-debug-mode');
+      const editorContainer = this.editorView.dom.parentElement;
+      if (editorContainer) {
+        editorContainer.classList.remove('pm-debug-mode');
+      }
     }
   }
 }
