@@ -820,40 +820,21 @@ export class ProseMirrorEditorService {
       return [state.schema.nodes['paragraph'].create()];
     }
     
-    // Split content by double newlines to get paragraphs
+    // Split content by single newlines to get paragraphs
     const paragraphTexts = content
-      .split(/\n\n+/) // Split on double newlines (or more)
+      .split(/\n/) // Split on single newlines
       .map(para => para.trim()); // Remove leading/trailing whitespace
-      // Don't filter out empty paragraphs - they represent intentional empty lines
     
-    // If no paragraphs found (single line text), create one paragraph
-    if (paragraphTexts.length === 0) {
-      const textNodes = [state.schema.text(content.trim())];
-      return [state.schema.nodes['paragraph'].create(null, textNodes)];
-    }
-    
-    // Create paragraph nodes for each text block
+    // Create paragraph nodes for each line
     const paragraphNodes = paragraphTexts.map(paragraphText => {
-      // Handle empty paragraphs (empty lines)
+      // Handle empty lines as empty paragraphs
       if (paragraphText.length === 0) {
         return state.schema.nodes['paragraph'].create();
       }
       
-      // Handle single newlines within a paragraph as line breaks
-      const lines = paragraphText.split('\n');
-      const textNodes: any[] = [];
-      
-      lines.forEach((line, index) => {
-        if (line.trim()) {
-          textNodes.push(state.schema.text(line));
-        }
-        // Add line break between lines (but not after the last line)
-        if (index < lines.length - 1) {
-          textNodes.push(state.schema.nodes['hard_break']?.create() || state.schema.text('\n'));
-        }
-      });
-      
-      return state.schema.nodes['paragraph'].create(null, textNodes);
+      // Create paragraph with text content
+      const textNode = state.schema.text(paragraphText);
+      return state.schema.nodes['paragraph'].create(null, [textNode]);
     });
     
     return paragraphNodes;
