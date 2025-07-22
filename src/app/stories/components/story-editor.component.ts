@@ -474,7 +474,7 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
     }
     
     .editor-content {
-      padding: 2rem 1rem;
+      padding: 0.5rem 0.75rem;
       width: 100%;
       box-sizing: border-box;
       flex: 1;
@@ -488,7 +488,7 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
       max-width: 800px;
       margin: 0 auto;
       width: 100%;
-      padding-bottom: 4rem; /* Extra space at bottom for better scrolling */
+      padding-bottom: 2rem; /* Reduced extra space at bottom */
       flex: 1;
       display: flex;
       flex-direction: column;
@@ -511,14 +511,15 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
       --background: #2d2d2d;
       --color: #f8f9fa;
       --placeholder-color: #6c757d;
-      --padding-start: 8px;
-      --padding-end: 8px;
-      --padding-top: 4px;
-      --padding-bottom: 4px;
-      --min-height: 20px;
-      font-size: 0.9rem;
+      --padding-start: 6px;
+      --padding-end: 6px;
+      --padding-top: 2px;
+      --padding-bottom: 2px;
+      --min-height: 18px;
+      height: 26px;
+      font-size: 0.85rem;
       font-weight: 600;
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.25rem;
       line-height: 1.2;
     }
     
@@ -808,12 +809,12 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
       }
       
       .editor-content {
-        padding: 1rem 0.75rem;
+        padding: 0.5rem 0.5rem;
       }
 
       .editor-inner {
         max-width: 100%;
-        padding-bottom: 6rem; /* More space on mobile */
+        padding-bottom: 3rem; /* Reduced space on mobile */
       }
 
       .title-input {
@@ -860,7 +861,7 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
       }
       
       .editor-content {
-        padding: 0.75rem 0.5rem;
+        padding: 0.25rem 0.25rem;
       }
 
       .title-input {
