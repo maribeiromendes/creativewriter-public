@@ -532,38 +532,44 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
     .scene-title-editor-container {
       display: flex;
       align-items: center;
-      gap: 8px;
-      margin-bottom: 0.25rem;
+      gap: 6px;
+      margin-bottom: 0.125rem;
+      height: 28px;
     }
 
     .scene-id-badge {
       background: var(--ion-color-secondary);
       color: var(--ion-color-secondary-contrast);
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-size: 11px;
+      padding: 1px 4px;
+      border-radius: 3px;
+      font-size: 10px;
       font-weight: 600;
-      min-width: 40px;
+      min-width: 35px;
+      height: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       text-align: center;
       white-space: nowrap;
       flex-shrink: 0;
-      line-height: 1.2;
+      line-height: 1;
     }
 
     .scene-title-input {
       --background: #2d2d2d;
       --color: #e0e0e0;
       --placeholder-color: #6c757d;
-      --padding-start: 8px;
-      --padding-end: 8px;
-      --padding-top: 4px;
-      --padding-bottom: 4px;
-      --min-height: 20px;
-      font-size: 0.9rem;
+      --padding-start: 6px;
+      --padding-end: 6px;
+      --padding-top: 2px;
+      --padding-bottom: 2px;
+      --min-height: 16px;
+      height: 24px;
+      font-size: 0.8rem;
       font-weight: 500;
+      line-height: 1.2;
       flex: 1;
       margin: 0;
-      margin-bottom: 0;
     }
     
     /* Scene Navigation Styles */
