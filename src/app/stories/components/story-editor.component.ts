@@ -517,6 +517,7 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
       width: 100%;
       outline: none;
       box-sizing: border-box;
+      text-align: center;
     }
     
     .title-input-native::placeholder {
