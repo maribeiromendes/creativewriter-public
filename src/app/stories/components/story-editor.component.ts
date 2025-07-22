@@ -571,9 +571,10 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
       display: grid;
       grid-template-columns: 1fr auto 1fr;
       align-items: center;
-      gap: 0.5rem;
-      padding: 0.25rem 0;
+      gap: 0.25rem;
+      padding: 0;
       margin: 0;
+      min-height: auto;
     }
     
     .scene-navigation.bottom {
@@ -584,9 +585,12 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
     .scene-navigation .nav-button {
       --color: #e0e0e0;
       --color-hover: #f8f9fa;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       font-weight: 500;
-      min-width: 140px;
+      min-width: 120px;
+      --padding-top: 4px;
+      --padding-bottom: 4px;
+      height: auto;
       transition: all 0.2s ease;
     }
     
@@ -617,8 +621,9 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
     
     .scene-counter {
       color: #adb5bd;
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       font-weight: 500;
+      line-height: 1.2;
     }
     
     .no-scene {
