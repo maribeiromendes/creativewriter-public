@@ -533,20 +533,20 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
     .scene-title-editor-container {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 4px;
       margin-bottom: 0.125rem;
-      height: 28px;
+      height: 22px;
     }
 
     .scene-id-badge {
       background: var(--ion-color-secondary);
       color: var(--ion-color-secondary-contrast);
-      padding: 1px 4px;
-      border-radius: 3px;
-      font-size: 10px;
+      padding: 0px 3px;
+      border-radius: 2px;
+      font-size: 9px;
       font-weight: 600;
-      min-width: 35px;
-      height: 18px;
+      min-width: 30px;
+      height: 16px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -560,17 +560,35 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
       --background: #2d2d2d;
       --color: #e0e0e0;
       --placeholder-color: #6c757d;
-      --padding-start: 6px;
-      --padding-end: 6px;
-      --padding-top: 2px;
-      --padding-bottom: 2px;
-      --min-height: 16px;
-      height: 24px;
-      font-size: 0.8rem;
+      --padding-start: 4px;
+      --padding-end: 4px;
+      --padding-top: 0px;
+      --padding-bottom: 0px;
+      --min-height: 18px;
+      height: 20px;
+      font-size: 0.75rem;
       font-weight: 500;
-      line-height: 1.2;
+      line-height: 1.1;
       flex: 1;
       margin: 0;
+    }
+    
+    .scene-title-input .input-wrapper {
+      min-height: 18px !important;
+      height: 18px !important;
+    }
+    
+    .scene-title-input .native-wrapper {
+      min-height: 18px !important;
+      height: 18px !important;
+    }
+    
+    .scene-title-input .native-input {
+      min-height: 18px !important;
+      height: 18px !important;
+      padding: 0 4px !important;
+      font-size: 0.75rem !important;
+      line-height: 1.1 !important;
     }
     
     /* Scene Navigation Styles */
