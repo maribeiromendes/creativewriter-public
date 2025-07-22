@@ -535,7 +535,8 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
       align-items: center;
       gap: 4px;
       margin-bottom: 0.125rem;
-      height: 22px;
+      height: 18px;
+      max-height: 18px;
     }
 
     .scene-id-badge {
@@ -565,7 +566,9 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
       --padding-top: 0px;
       --padding-bottom: 0px;
       --min-height: 18px;
-      height: 20px;
+      height: 18px !important;
+      min-height: 18px !important;
+      max-height: 18px !important;
       font-size: 0.75rem;
       font-weight: 500;
       line-height: 1.1;
@@ -573,22 +576,35 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
       margin: 0;
     }
     
-    .scene-title-input .input-wrapper {
-      min-height: 18px !important;
+    .scene-title-input::part(native) {
       height: 18px !important;
-    }
-    
-    .scene-title-input .native-wrapper {
       min-height: 18px !important;
-      height: 18px !important;
-    }
-    
-    .scene-title-input .native-input {
-      min-height: 18px !important;
-      height: 18px !important;
-      padding: 0 4px !important;
+      max-height: 18px !important;
+      padding: 1px 4px !important;
       font-size: 0.75rem !important;
       line-height: 1.1 !important;
+    }
+    
+    .scene-title-input :global(.input-wrapper) {
+      height: 18px !important;
+      min-height: 18px !important;
+      max-height: 18px !important;
+    }
+    
+    .scene-title-input :global(.native-wrapper) {
+      height: 18px !important;
+      min-height: 18px !important;
+      max-height: 18px !important;
+    }
+    
+    .scene-title-input :global(.native-input) {
+      height: 16px !important;
+      min-height: 16px !important;
+      max-height: 16px !important;
+      padding: 1px 4px !important;
+      font-size: 0.75rem !important;
+      line-height: 1.1 !important;
+      box-sizing: border-box !important;
     }
     
     /* Scene Navigation Styles */
