@@ -155,9 +155,6 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
                       Vorherige Szene
                     </ion-button>
                     
-                    <div class="scene-info">
-                      <span class="scene-counter">Szene {{ getCurrentSceneIndex() }} von {{ getTotalScenes() }}</span>
-                    </div>
                     
                     <ion-button 
                       fill="clear" 
@@ -592,8 +589,8 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
     
     /* Scene Navigation Styles */
     .scene-navigation {
-      display: grid;
-      grid-template-columns: 1fr auto 1fr;
+      display: flex;
+      justify-content: space-between;
       align-items: center;
       gap: 0.25rem;
       padding: 0;
@@ -628,26 +625,13 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
     }
     
     .scene-navigation .prev-button {
-      justify-self: start;
       justify-content: flex-start;
     }
     
     .scene-navigation .next-button {
-      justify-self: end;
       justify-content: flex-end;
     }
     
-    .scene-info {
-      text-align: center;
-      justify-self: center;
-    }
-    
-    .scene-counter {
-      color: #adb5bd;
-      font-size: 0.8rem;
-      font-weight: 500;
-      line-height: 1.2;
-    }
     
     .no-scene {
       flex: 1;
@@ -851,9 +835,6 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
         font-size: 0.85rem;
       }
       
-      .scene-counter {
-        font-size: 0.8rem;
-      }
     }
 
     @media (max-width: 480px) {
@@ -876,10 +857,10 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
       }
 
       
-      /* Small mobile navigation - keep horizontal layout */
+      /* Small mobile navigation - simple flex layout */
       .scene-navigation {
-        grid-template-columns: 1fr auto 1fr;
-        grid-template-rows: auto auto;
+        display: flex;
+        justify-content: space-between;
         gap: 0.1rem;
         padding: 0.1rem 0;
       }
@@ -888,40 +869,6 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
         min-width: 80px;
         font-size: 0.7rem;
         padding: 0.2rem 0.4rem;
-      }
-      
-      .scene-info {
-        grid-column: 1 / -1;
-        grid-row: 1;
-        order: 1;
-        margin-bottom: 0.1rem;
-      }
-      
-      .scene-navigation .prev-button {
-        grid-column: 1;
-        grid-row: 2;
-        justify-self: start;
-      }
-      
-      .scene-navigation .next-button {
-        grid-column: 3;
-        grid-row: 2;
-        justify-self: end;
-      }
-      
-      .scene-navigation.bottom .scene-info {
-        grid-row: 2;
-        order: 2;
-        margin-bottom: 0;
-        margin-top: 0.1rem;
-      }
-      
-      .scene-navigation.bottom .prev-button {
-        grid-row: 1;
-      }
-      
-      .scene-navigation.bottom .next-button {
-        grid-row: 1;
       }
     }
 
