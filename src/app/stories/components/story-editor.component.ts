@@ -573,7 +573,7 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
       align-items: center;
       gap: 0.5rem;
       padding: 0.25rem 0;
-      margin-bottom: 0.5rem;
+      margin: 0;
     }
     
     .scene-navigation.bottom {
