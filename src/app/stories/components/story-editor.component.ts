@@ -504,7 +504,7 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
     }
     
     .title-input-native {
-      background: #2d2d2d;
+      background: transparent;
       color: #f8f9fa;
       border: 1px solid rgba(255, 255, 255, 0.2);
       border-radius: 4px;
@@ -564,7 +564,7 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
     }
 
     .scene-title-input-native {
-      background: #2d2d2d;
+      background: transparent;
       color: #e0e0e0;
       border: 1px solid rgba(255, 255, 255, 0.2);
       border-radius: 4px;
