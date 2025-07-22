@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { 
   IonHeader, IonToolbar, IonButtons, IonButton, IonIcon, IonTitle, 
-  IonContent, IonInput, IonChip, IonLabel
+  IonContent, IonChip, IonLabel
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { 
@@ -32,7 +32,7 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
   imports: [
     CommonModule, FormsModule, 
     IonHeader, IonToolbar, IonButtons, IonButton, IonIcon, IonTitle,
-    IonContent, IonInput, IonChip, IonLabel,
+    IonContent, IonChip, IonLabel,
     StoryStructureComponent, SlashCommandDropdownComponent, ImageUploadDialogComponent
   ],
   template: `
@@ -133,15 +133,13 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
           <div class="editor-main">
             <div class="editor-content">
               <div class="editor-inner">
-                <ion-input 
+                <input 
                   type="text" 
-                  class="title-input" 
+                  class="title-input-native" 
                   placeholder="Titel deiner Geschichte..." 
                   [(ngModel)]="story.title"
                   (ngModelChange)="onStoryTitleChange()"
-                  fill="outline"
-                  color="light"
-                ></ion-input>
+                />
                 
                 <div class="scene-editor" *ngIf="activeScene">
                   <!-- Scene Navigation - Top -->
@@ -505,20 +503,30 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
       }
     }
     
-    .title-input {
-      --background: #2d2d2d;
-      --color: #f8f9fa;
-      --placeholder-color: #6c757d;
-      --padding-start: 6px;
-      --padding-end: 6px;
-      --padding-top: 2px;
-      --padding-bottom: 2px;
-      --min-height: 18px;
-      height: 26px;
+    .title-input-native {
+      background: #2d2d2d;
+      color: #f8f9fa;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+      padding: 3px 8px;
+      height: 24px;
       font-size: 0.85rem;
       font-weight: 600;
       margin-bottom: 0.25rem;
       line-height: 1.2;
+      width: 100%;
+      outline: none;
+      box-sizing: border-box;
+    }
+    
+    .title-input-native::placeholder {
+      color: #6c757d;
+      opacity: 1;
+    }
+    
+    .title-input-native:focus {
+      border-color: var(--ion-color-light, rgba(255, 255, 255, 0.4));
+      box-shadow: 0 0 0 1px var(--ion-color-light, rgba(255, 255, 255, 0.1));
     }
     
     .scene-editor {
@@ -825,23 +833,12 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
         padding-bottom: 3rem; /* Reduced space on mobile */
       }
 
-      .title-input {
-        font-size: 0.85rem;
-        --padding-top: 3px;
-        --padding-bottom: 3px;
-        --padding-start: 6px;
-        --padding-end: 6px;
-        --min-height: 20px;
+      .title-input-native {
+        font-size: 0.8rem;
+        height: 22px;
+        padding: 2px 6px;
       }
 
-      .scene-title-input {
-        font-size: 0.85rem;
-        --padding-top: 3px;
-        --padding-bottom: 3px;
-        --padding-start: 6px;
-        --padding-end: 6px;
-        --min-height: 20px;
-      }
       
       /* Mobile navigation adjustments */
       .scene-navigation {
@@ -872,23 +869,12 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
         padding: 0.25rem 0.25rem;
       }
 
-      .title-input {
-        font-size: 0.8rem;
-        --padding-top: 3px;
-        --padding-bottom: 3px;
-        --padding-start: 6px;
-        --padding-end: 6px;
-        --min-height: 20px;
+      .title-input-native {
+        font-size: 0.75rem;
+        height: 20px;
+        padding: 2px 6px;
       }
 
-      .scene-title-input {
-        font-size: 0.8rem;
-        --padding-top: 3px;
-        --padding-bottom: 3px;
-        --padding-start: 6px;
-        --padding-end: 6px;
-        --min-height: 20px;
-      }
       
       /* Small mobile navigation */
       .scene-navigation {
