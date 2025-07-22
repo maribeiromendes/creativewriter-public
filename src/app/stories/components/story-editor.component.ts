@@ -875,41 +875,44 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
       }
 
       
-      /* Small mobile navigation */
+      /* Small mobile navigation - keep horizontal layout */
       .scene-navigation {
-        grid-template-columns: 1fr;
-        grid-template-rows: auto auto auto;
-        gap: 0.25rem;
-        padding: 0.25rem 0;
+        grid-template-columns: 1fr auto 1fr;
+        grid-template-rows: auto auto;
+        gap: 0.1rem;
+        padding: 0.1rem 0;
       }
       
       .scene-navigation .nav-button {
-        min-width: 100px;
-        font-size: 0.8rem;
-        width: 100%;
-        max-width: 200px;
-        justify-self: center;
+        min-width: 80px;
+        font-size: 0.7rem;
+        padding: 0.2rem 0.4rem;
       }
       
       .scene-info {
+        grid-column: 1 / -1;
         grid-row: 1;
-        margin-bottom: 0.25rem;
+        order: 1;
+        margin-bottom: 0.1rem;
       }
       
       .scene-navigation .prev-button {
+        grid-column: 1;
         grid-row: 2;
-        justify-self: center;
+        justify-self: start;
       }
       
       .scene-navigation .next-button {
-        grid-row: 3;
-        justify-self: center;
+        grid-column: 3;
+        grid-row: 2;
+        justify-self: end;
       }
       
       .scene-navigation.bottom .scene-info {
-        grid-row: 3;
+        grid-row: 2;
+        order: 2;
         margin-bottom: 0;
-        margin-top: 0.25rem;
+        margin-top: 0.1rem;
       }
       
       .scene-navigation.bottom .prev-button {
@@ -917,7 +920,7 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
       }
       
       .scene-navigation.bottom .next-button {
-        grid-row: 2;
+        grid-row: 1;
       }
     }
 
