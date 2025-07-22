@@ -601,8 +601,7 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
     }
     
     .scene-navigation.bottom {
-      margin-bottom: 0;
-      margin-top: 1rem;
+      margin: 0;
     }
     
     .scene-navigation .nav-button {
