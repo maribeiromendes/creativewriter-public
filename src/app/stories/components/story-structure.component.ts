@@ -10,7 +10,8 @@ import {
 import { addIcons } from 'ionicons';
 import { 
   chevronForward, chevronDown, add, trash, createOutline,
-  flashOutline, documentTextOutline, timeOutline, sparklesOutline, close
+  flashOutline, documentTextOutline, timeOutline, sparklesOutline, close,
+  chatbubbleOutline
 } from 'ionicons/icons';
 import { Story, Chapter, Scene } from '../models/story.interface';
 import { StoryService } from '../services/story.service';
@@ -311,9 +312,9 @@ import { Subscription } from 'rxjs';
       display: flex;
       flex-direction: column;
       position: fixed;
-      top: 128px; /* Below the header */
+      top: 0;
       left: 0;
-      height: calc(100vh - 128px);
+      height: 100vh;
       z-index: 100;
       overflow: hidden; /* Prevent container overflow */
     }
@@ -329,9 +330,9 @@ import { Subscription } from 'rxjs';
     @media (max-width: 768px) {
       .story-structure {
         position: fixed;
-        top: 112px; /* Below the global header (56px + 56px for two toolbars) */
+        top: 0;
         left: 0;
-        height: calc(100vh - 112px);
+        height: 100vh;
         width: 100vw;
         z-index: 1000;
       }
@@ -659,7 +660,7 @@ import { Subscription } from 'rxjs';
       
       .structure-content {
         overflow-y: auto;
-        height: calc(100vh - 168px); /* Subtract both global header (112px) and sidebar header (56px) */
+        height: calc(100vh - 56px); /* Only subtract sidebar header (56px) */
         -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
       }
       
@@ -1087,7 +1088,8 @@ export class StoryStructureComponent implements OnInit, OnChanges, AfterViewInit
   ) {
     addIcons({ 
       chevronForward, chevronDown, add, trash, createOutline,
-      flashOutline, documentTextOutline, timeOutline, sparklesOutline, close
+      flashOutline, documentTextOutline, timeOutline, sparklesOutline, close,
+      chatbubbleOutline
     });
   }
 
