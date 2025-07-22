@@ -10,7 +10,7 @@ import { addIcons } from 'ionicons';
 import { 
   arrowBack, bookOutline, book, settingsOutline, statsChartOutline,
   saveOutline, checkmarkCircleOutline, menuOutline, chevronBack, chevronForward,
-  chatbubblesOutline, bugOutline
+  chatbubblesOutline, bugOutline, menu, close
 } from 'ionicons/icons';
 import { StoryService } from '../services/story.service';
 import { Story, Scene } from '../models/story.interface';
@@ -53,34 +53,70 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
           </ion-title>
           
           <ion-buttons slot="end">
-            <ion-button (click)="toggleDebugMode()" [color]="debugModeEnabled ? 'warning' : ''" title="Debug-Modus umschalten">
-              <ion-icon name="bug-outline" slot="icon-only"></ion-icon>
-            </ion-button>
-            <ion-button (click)="goToCodex()">
-              <ion-icon name="book-outline" slot="icon-only"></ion-icon>
-            </ion-button>
-            <ion-button (click)="goToSettings()">
-              <ion-icon name="settings-outline" slot="icon-only"></ion-icon>
-            </ion-button>
-            <ion-button (click)="goToAILogs()">
-              <ion-icon name="stats-chart-outline" slot="icon-only"></ion-icon>
-            </ion-button>
-            <ion-button (click)="goToSceneChat()">
-              <ion-icon name="chatbubbles-outline" slot="icon-only"></ion-icon>
+            <div class="editor-status-info">
+              <ion-chip [color]="hasUnsavedChanges ? 'warning' : 'success'" class="compact-status">
+                <ion-icon [name]="hasUnsavedChanges ? 'save-outline' : 'checkmark-circle-outline'"></ion-icon>
+              </ion-chip>
+              <ion-chip color="medium" class="compact-wordcount">
+                <ion-label>{{ wordCount }}w</ion-label>
+              </ion-chip>
+            </div>
+            <ion-button (click)="toggleBurgerMenu()">
+              <ion-icon [name]="burgerMenuOpen ? 'close' : 'menu'" slot="icon-only"></ion-icon>
             </ion-button>
           </ion-buttons>
         </ion-toolbar>
-        
-        <ion-toolbar class="status-toolbar">
-          <ion-chip slot="start" [color]="hasUnsavedChanges ? 'warning' : 'success'">
-            <ion-icon [name]="hasUnsavedChanges ? 'save-outline' : 'checkmark-circle-outline'"></ion-icon>
-            <ion-label>{{ hasUnsavedChanges ? 'Nicht gespeichert' : 'Gespeichert' }}</ion-label>
-          </ion-chip>
-          <ion-chip slot="end" color="medium">
-            <ion-label>{{ wordCount }} Wörter</ion-label>
-          </ion-chip>
-        </ion-toolbar>
       </ion-header>
+      
+      <!-- Burger Menu Overlay -->
+      <div class="burger-menu-overlay" *ngIf="burgerMenuOpen" (click)="closeBurgerMenu()"></div>
+      
+      <!-- Burger Menu -->
+      <div class="burger-menu" [class.open]="burgerMenuOpen">
+        <div class="burger-menu-content">
+          <div class="burger-menu-header">
+            <h3>Navigation</h3>
+            <ion-button fill="clear" color="medium" (click)="toggleBurgerMenu()">
+              <ion-icon name="close" slot="icon-only"></ion-icon>
+            </ion-button>
+          </div>
+          
+          <div class="burger-menu-items">
+            <ion-button fill="clear" expand="block" (click)="toggleDebugMode(); closeBurgerMenu()" [color]="debugModeEnabled ? 'warning' : 'medium'">
+              <ion-icon name="bug-outline" slot="start"></ion-icon>
+              Debug Modus
+            </ion-button>
+            <ion-button fill="clear" expand="block" (click)="goToCodex(); closeBurgerMenu()">
+              <ion-icon name="book-outline" slot="start"></ion-icon>
+              Codex
+            </ion-button>
+            <ion-button fill="clear" expand="block" (click)="goToSettings(); closeBurgerMenu()">
+              <ion-icon name="settings-outline" slot="start"></ion-icon>
+              Einstellungen
+            </ion-button>
+            <ion-button fill="clear" expand="block" (click)="goToAILogs(); closeBurgerMenu()">
+              <ion-icon name="stats-chart-outline" slot="start"></ion-icon>
+              AI Logs
+            </ion-button>
+            <ion-button fill="clear" expand="block" (click)="goToSceneChat(); closeBurgerMenu()">
+              <ion-icon name="chatbubbles-outline" slot="start"></ion-icon>
+              Szenen Chat
+            </ion-button>
+          </div>
+          
+          <div class="burger-menu-status">
+            <div class="status-detail">
+              <ion-chip [color]="hasUnsavedChanges ? 'warning' : 'success'" class="full-status">
+                <ion-icon [name]="hasUnsavedChanges ? 'save-outline' : 'checkmark-circle-outline'"></ion-icon>
+                <ion-label>{{ hasUnsavedChanges ? 'Nicht gespeichert' : 'Gespeichert' }}</ion-label>
+              </ion-chip>
+              <ion-chip color="medium" class="full-wordcount">
+                <ion-label>{{ wordCount }} Wörter</ion-label>
+              </ion-chip>
+            </div>
+          </div>
+        </div>
+      </div>
       
       <ion-content>
         <div class="editor-container" [class.sidebar-visible]="showSidebar">
@@ -222,16 +258,185 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
       --ion-toolbar-color: #f8f9fa;
     }
     
-    .status-toolbar {
-      --min-height: 48px;
-      --padding-top: 8px;
-      --padding-bottom: 8px;
+    ion-title {
+      font-size: 0.95rem;
+      font-weight: 500;
+      line-height: 1.2;
+      padding: 0;
+      margin: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
     }
     
-    .status-toolbar ion-chip {
+    
+    /* Desktop optimizations for compact header */
+    @media (min-width: 768px) {
+      ion-header {
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      
+      ion-toolbar {
+        --min-height: 44px;
+        --padding-top: 4px;
+        --padding-bottom: 4px;
+      }
+      
+      ion-title {
+        font-size: 0.85rem;
+        line-height: 1.1;
+      }
+    }
+    
+    /* Editor Status Info Styles */
+    .editor-status-info {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      margin-right: 0.5rem;
+    }
+    
+    .compact-status, .compact-wordcount {
+      height: 24px;
+      font-size: 0.75rem;
+      --border-radius: 12px;
+    }
+    
+    .compact-status ion-icon {
+      font-size: 12px;
+      margin-right: 0;
+    }
+    
+    .compact-wordcount ion-label {
+      font-size: 0.7rem;
+      margin: 0 4px;
+    }
+    
+    @media (max-width: 767px) {
+      .editor-status-info {
+        display: none;
+      }
+      
+      ion-title {
+        font-size: 0.9rem;
+        line-height: 1.15;
+      }
+      
+      ion-toolbar {
+        --min-height: 48px;
+      }
+    }
+    
+    /* Burger Menu Styles */
+    .burger-menu-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 9998;
+      backdrop-filter: blur(2px);
+    }
+    
+    .burger-menu {
+      position: fixed;
+      top: 0;
+      right: -300px;
+      width: 300px;
+      height: 100%;
+      background: #2d2d2d;
+      border-left: 1px solid rgba(255, 255, 255, 0.1);
+      z-index: 9999;
+      transition: right 0.3s ease-in-out;
+      box-shadow: -4px 0 8px rgba(0, 0, 0, 0.3);
+    }
+    
+    .burger-menu.open {
+      right: 0;
+    }
+    
+    .burger-menu-content {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      padding: 0;
+    }
+    
+    .burger-menu-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      background: #343434;
+    }
+    
+    .burger-menu-header h3 {
+      margin: 0;
+      color: #f8f9fa;
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+    
+    .burger-menu-items {
+      flex: 1;
+      padding: 1rem 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    
+    .burger-menu-items ion-button {
+      --color: #f8f9fa;
       --background: transparent;
+      --background-hover: rgba(255, 255, 255, 0.1);
+      --background-focused: rgba(255, 255, 255, 0.1);
+      --ripple-color: rgba(255, 255, 255, 0.2);
+      margin: 0 1rem;
+      height: 48px;
+      font-size: 1rem;
+      justify-content: flex-start;
+      text-align: left;
+    }
+    
+    .burger-menu-items ion-button:hover {
+      --background: rgba(255, 255, 255, 0.1);
+    }
+    
+    .burger-menu-items ion-button ion-icon {
+      margin-right: 12px;
+      font-size: 1.2rem;
+    }
+    
+    .burger-menu-status {
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 1rem;
+      margin-top: auto;
+    }
+    
+    .status-detail {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    
+    .full-status, .full-wordcount {
+      width: 100%;
+      height: 36px;
+      justify-content: center;
+    }
+    
+    .full-status ion-icon {
+      font-size: 16px;
+      margin-right: 8px;
+    }
+    
+    .full-status ion-label, .full-wordcount ion-label {
       font-size: 0.9rem;
     }
+    
     
     ion-content {
       --background: #1a1a1a;
@@ -306,13 +511,15 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
       --background: #2d2d2d;
       --color: #f8f9fa;
       --placeholder-color: #6c757d;
-      --padding-start: 16px;
-      --padding-end: 16px;
-      --padding-top: 16px;
-      --padding-bottom: 16px;
-      font-size: 1.8rem;
-      font-weight: bold;
-      margin-bottom: 1rem;
+      --padding-start: 8px;
+      --padding-end: 8px;
+      --padding-top: 4px;
+      --padding-bottom: 4px;
+      --min-height: 20px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      line-height: 1.2;
     }
     
     .scene-editor {
@@ -325,49 +532,53 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
     .scene-title-editor-container {
       display: flex;
       align-items: center;
-      gap: 12px;
-      margin-bottom: 1rem;
+      gap: 8px;
+      margin-bottom: 0.25rem;
     }
 
     .scene-id-badge {
       background: var(--ion-color-secondary);
       color: var(--ion-color-secondary-contrast);
-      padding: 6px 12px;
-      border-radius: 6px;
-      font-size: 13px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 11px;
       font-weight: 600;
-      min-width: 50px;
+      min-width: 40px;
       text-align: center;
       white-space: nowrap;
       flex-shrink: 0;
+      line-height: 1.2;
     }
 
     .scene-title-input {
       --background: #2d2d2d;
       --color: #e0e0e0;
       --placeholder-color: #6c757d;
-      --padding-start: 16px;
-      --padding-end: 16px;
-      --padding-top: 12px;
-      --padding-bottom: 12px;
-      font-size: 1.3rem;
+      --padding-start: 8px;
+      --padding-end: 8px;
+      --padding-top: 4px;
+      --padding-bottom: 4px;
+      --min-height: 20px;
+      font-size: 0.9rem;
       font-weight: 500;
       flex: 1;
+      margin: 0;
       margin-bottom: 0;
     }
     
     /* Scene Navigation Styles */
     .scene-navigation {
-      display: flex;
-      justify-content: space-between;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
       align-items: center;
-      padding: 1rem 0;
-      margin-bottom: 1rem;
+      gap: 0.5rem;
+      padding: 0.25rem 0;
+      margin-bottom: 0.5rem;
     }
     
     .scene-navigation.bottom {
       margin-bottom: 0;
-      margin-top: 2rem;
+      margin-top: 1rem;
     }
     
     .scene-navigation .nav-button {
@@ -390,16 +601,18 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
     }
     
     .scene-navigation .prev-button {
+      justify-self: start;
       justify-content: flex-start;
     }
     
     .scene-navigation .next-button {
+      justify-self: end;
       justify-content: flex-end;
     }
     
     .scene-info {
       text-align: center;
-      flex: 1;
+      justify-self: center;
     }
     
     .scene-counter {
@@ -593,16 +806,27 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
       }
 
       .title-input {
-        font-size: 1.5rem;
+        font-size: 0.85rem;
+        --padding-top: 3px;
+        --padding-bottom: 3px;
+        --padding-start: 6px;
+        --padding-end: 6px;
+        --min-height: 20px;
       }
 
       .scene-title-input {
-        font-size: 1.1rem;
+        font-size: 0.85rem;
+        --padding-top: 3px;
+        --padding-bottom: 3px;
+        --padding-start: 6px;
+        --padding-end: 6px;
+        --min-height: 20px;
       }
       
       /* Mobile navigation adjustments */
       .scene-navigation {
-        padding: 0.75rem 0;
+        padding: 0.1rem 0;
+        gap: 0.25rem;
       }
       
       .scene-navigation .nav-button {
@@ -629,18 +853,29 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
       }
 
       .title-input {
-        font-size: 1.3rem;
+        font-size: 0.8rem;
+        --padding-top: 3px;
+        --padding-bottom: 3px;
+        --padding-start: 6px;
+        --padding-end: 6px;
+        --min-height: 20px;
       }
 
       .scene-title-input {
-        font-size: 1rem;
+        font-size: 0.8rem;
+        --padding-top: 3px;
+        --padding-bottom: 3px;
+        --padding-start: 6px;
+        --padding-end: 6px;
+        --min-height: 20px;
       }
       
       /* Small mobile navigation */
       .scene-navigation {
-        flex-direction: column;
-        gap: 0.5rem;
-        padding: 0.5rem 0;
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto auto;
+        gap: 0.25rem;
+        padding: 0.25rem 0;
       }
       
       .scene-navigation .nav-button {
@@ -648,17 +883,36 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
         font-size: 0.8rem;
         width: 100%;
         max-width: 200px;
+        justify-self: center;
       }
       
       .scene-info {
-        order: -1;
-        margin-bottom: 0.5rem;
+        grid-row: 1;
+        margin-bottom: 0.25rem;
+      }
+      
+      .scene-navigation .prev-button {
+        grid-row: 2;
+        justify-self: center;
+      }
+      
+      .scene-navigation .next-button {
+        grid-row: 3;
+        justify-self: center;
       }
       
       .scene-navigation.bottom .scene-info {
-        order: 1;
+        grid-row: 3;
         margin-bottom: 0;
-        margin-top: 0.5rem;
+        margin-top: 0.25rem;
+      }
+      
+      .scene-navigation.bottom .prev-button {
+        grid-row: 1;
+      }
+      
+      .scene-navigation.bottom .next-button {
+        grid-row: 2;
       }
     }
 
@@ -772,6 +1026,7 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
   activeSceneId: string | null = null;
   activeScene: Scene | null = null;
   showSidebar: boolean = true;
+  burgerMenuOpen = false;
   
   // Slash command functionality
   showSlashDropdown = false;
@@ -816,7 +1071,7 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     addIcons({ 
       arrowBack, bookOutline, book, settingsOutline, statsChartOutline,
       saveOutline, checkmarkCircleOutline, menuOutline, chevronBack, chevronForward,
-      chatbubblesOutline, bugOutline
+      chatbubblesOutline, bugOutline, menu, close
     });
   }
 
@@ -1063,6 +1318,14 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
       await this.saveStory();
     }
     this.router.navigate(['/ai-logs']);
+  }
+
+  toggleBurgerMenu(): void {
+    this.burgerMenuOpen = !this.burgerMenuOpen;
+  }
+
+  closeBurgerMenu(): void {
+    this.burgerMenuOpen = false;
   }
 
   async goToSceneChat(): Promise<void> {
