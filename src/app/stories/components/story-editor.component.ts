@@ -184,7 +184,7 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
                   <div class="editor-wrapper">
                     <div 
                       #editorContainer
-                      class="content-editor ion-padding"
+                      class="content-editor"
                     ></div>
                   </div>
                   
@@ -481,7 +481,6 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
       max-width: 800px;
       margin: 0 auto;
       width: 100%;
-      padding-bottom: 2rem; /* Reduced extra space at bottom */
       flex: 1;
       display: flex;
       flex-direction: column;
@@ -646,7 +645,7 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
       background: var(--ion-color-step-50, rgba(255, 255, 255, 0.05));
       border-radius: var(--ion-border-radius, 8px);
       border: 1px solid var(--ion-color-step-150, rgba(255, 255, 255, 0.1));
-      margin: var(--ion-padding, 16px) 0;
+      margin: 0.25rem 0;
       box-shadow: var(--ion-box-shadow, 0 2px 8px rgba(0, 0, 0, 0.1));
       transition: all 0.2s ease;
       flex: 1;
@@ -668,10 +667,12 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
       font-family: var(--ion-font-family, Georgia, serif);
       background: transparent;
       color: var(--ion-text-color, var(--ion-color-step-850, #e0e0e0));
-      min-height: 300px;
-      max-height: calc(100vh - 300px); /* Account for headers and navigation */
+      flex: 1;
+      display: flex;
+      flex-direction: column;
       overflow-y: auto;
       overflow-x: hidden;
+      padding: 0.75rem 0.75rem 0 0.75rem;
     }
     
     .content-editor :global(.prosemirror-editor) {
@@ -682,12 +683,13 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
       font-size: 1rem;
       line-height: 1.8;
       font-family: var(--ion-font-family, Georgia, serif);
-      min-height: 200px;
+      flex: 1;
       white-space: pre-wrap;
       word-wrap: break-word;
       -webkit-font-variant-ligatures: none;
       font-variant-ligatures: none;
-      padding-bottom: 50vh;
+      padding-bottom: 0;
+      min-height: 0;
     }
     
     .content-editor :global(.prosemirror-editor p) {
@@ -960,7 +962,7 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
       
       /* Adjust ProseMirror editor for keyboard */
       :host-context(.keyboard-visible) .content-editor :global(.prosemirror-editor) {
-        padding-bottom: calc(var(--keyboard-height, 0px) + 50px);
+        padding-bottom: var(--keyboard-height, 0px);
       }
     }
   `]
