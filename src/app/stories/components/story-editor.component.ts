@@ -177,15 +177,13 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
                     <div class="scene-id-badge" *ngIf="activeScene && activeChapterId">
                       {{ getSceneIdDisplay() }}
                     </div>
-                    <ion-input 
+                    <input 
                       type="text" 
-                      class="scene-title-input" 
+                      class="scene-title-input-native" 
                       placeholder="Szenen-Titel..." 
                       [(ngModel)]="activeScene.title"
                       (ngModelChange)="onSceneTitleChange()"
-                      fill="outline"
-                      color="medium"
-                    ></ion-input>
+                    />
                   </div>
                   
                   <div class="editor-wrapper">
@@ -557,54 +555,30 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
       line-height: 1;
     }
 
-    .scene-title-input {
-      --background: #2d2d2d;
-      --color: #e0e0e0;
-      --placeholder-color: #6c757d;
-      --padding-start: 4px;
-      --padding-end: 4px;
-      --padding-top: 0px;
-      --padding-bottom: 0px;
-      --min-height: 18px;
-      height: 18px !important;
-      min-height: 18px !important;
-      max-height: 18px !important;
+    .scene-title-input-native {
+      background: #2d2d2d;
+      color: #e0e0e0;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+      padding: 2px 6px;
+      height: 18px;
       font-size: 0.75rem;
       font-weight: 500;
       line-height: 1.1;
       flex: 1;
       margin: 0;
+      outline: none;
+      box-sizing: border-box;
     }
     
-    .scene-title-input::part(native) {
-      height: 18px !important;
-      min-height: 18px !important;
-      max-height: 18px !important;
-      padding: 1px 4px !important;
-      font-size: 0.75rem !important;
-      line-height: 1.1 !important;
+    .scene-title-input-native::placeholder {
+      color: #6c757d;
+      opacity: 1;
     }
     
-    .scene-title-input :global(.input-wrapper) {
-      height: 18px !important;
-      min-height: 18px !important;
-      max-height: 18px !important;
-    }
-    
-    .scene-title-input :global(.native-wrapper) {
-      height: 18px !important;
-      min-height: 18px !important;
-      max-height: 18px !important;
-    }
-    
-    .scene-title-input :global(.native-input) {
-      height: 16px !important;
-      min-height: 16px !important;
-      max-height: 16px !important;
-      padding: 1px 4px !important;
-      font-size: 0.75rem !important;
-      line-height: 1.1 !important;
-      box-sizing: border-box !important;
+    .scene-title-input-native:focus {
+      border-color: var(--ion-color-medium, rgba(255, 255, 255, 0.4));
+      box-shadow: 0 0 0 1px var(--ion-color-medium, rgba(255, 255, 255, 0.1));
     }
     
     /* Scene Navigation Styles */
