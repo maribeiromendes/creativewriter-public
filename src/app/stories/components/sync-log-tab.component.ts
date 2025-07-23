@@ -108,9 +108,21 @@ import { Subscription } from 'rxjs';
     }
 
     ion-card {
-      --background: var(--ion-color-step-100);
-      border: 1px solid var(--ion-color-step-200);
+      background: linear-gradient(135deg, rgba(20, 20, 20, 0.3) 0%, rgba(15, 15, 15, 0.3) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      backdrop-filter: blur(8px) saturate(120%);
+      -webkit-backdrop-filter: blur(8px) saturate(120%);
       margin-bottom: 1rem;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+      transition: all 0.3s ease;
+    }
+    
+    ion-card:hover {
+      background: linear-gradient(135deg, rgba(25, 25, 25, 0.4) 0%, rgba(20, 20, 20, 0.4) 100%);
+      border-color: rgba(71, 118, 230, 0.3);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+      transform: translateY(-2px);
     }
 
     ion-card.success-card {

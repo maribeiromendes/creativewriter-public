@@ -195,33 +195,109 @@ import { Story, StorySettings, DEFAULT_STORY_SETTINGS } from '../models/story.in
     </div>
   `,
   styles: [`
+    :host {
+      display: block;
+      width: 100%;
+      height: 100%;
+      position: relative;
+      min-height: 100vh;
+      
+      background: 
+        /* Dark overlay for text readability */
+        linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
+        /* Main anime image */
+        url('/assets/cyberpunk-anime-girl.png'),
+        /* Fallback dark background */
+        #1a1a1a;
+      
+      background-size: cover, cover, auto;
+      background-position: center, center, center;
+      background-repeat: no-repeat, no-repeat, repeat;
+      background-attachment: fixed, fixed, scroll;
+    }
+    
     .ion-page {
       display: flex;
       flex-direction: column;
       height: 100vh;
-      background-color: #1a1a1a;
+      background: transparent;
+    }
+    
+    ion-header {
+      backdrop-filter: blur(15px);
+      background: rgba(45, 45, 45, 0.85);
+      box-shadow: 0 2px 20px rgba(0, 0, 0, 0.4);
+      position: relative;
+      z-index: 100;
+    }
+    
+    ion-toolbar {
+      --background: transparent;
+      --color: #f8f9fa;
+    }
+    
+    ion-title {
+      background: linear-gradient(135deg, #f8f9fa 0%, #8bb4f8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 700;
+      letter-spacing: 0.5px;
     }
 
     ion-content {
-      --background: #1a1a1a;
+      --background: transparent !important;
+      background: transparent !important;
       --padding-start: 16px;
       --padding-end: 16px;
       --padding-top: 16px;
       --padding-bottom: 16px;
       flex: 1;
     }
+    
+    ion-content::part(background) {
+      background: transparent !important;
+    }
 
     .story-info-card {
-      --background: #2d2d2d;
+      background: linear-gradient(135deg, rgba(20, 20, 20, 0.3) 0%, rgba(15, 15, 15, 0.3) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      backdrop-filter: blur(8px) saturate(120%);
+      -webkit-backdrop-filter: blur(8px) saturate(120%);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+      transition: all 0.3s ease;
       margin-bottom: 1rem;
+      --color: #f8f9fa;
+    }
+    
+    .story-info-card:hover {
+      background: linear-gradient(135deg, rgba(25, 25, 25, 0.4) 0%, rgba(20, 20, 20, 0.4) 100%);
+      border-color: rgba(71, 118, 230, 0.3);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+      transform: translateY(-2px);
     }
 
     .settings-section {
-      --background: #2d2d2d;
+      background: linear-gradient(135deg, rgba(20, 20, 20, 0.3) 0%, rgba(15, 15, 15, 0.3) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      backdrop-filter: blur(8px) saturate(120%);
+      -webkit-backdrop-filter: blur(8px) saturate(120%);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+      transition: all 0.3s ease;
       margin-bottom: 1rem;
       max-width: 800px;
       margin-left: auto;
       margin-right: auto;
+      --color: #f8f9fa;
+    }
+    
+    .settings-section:hover {
+      background: linear-gradient(135deg, rgba(25, 25, 25, 0.4) 0%, rgba(20, 20, 20, 0.4) 100%);
+      border-color: rgba(71, 118, 230, 0.3);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+      transform: translateY(-2px);
     }
 
     .setting-item {

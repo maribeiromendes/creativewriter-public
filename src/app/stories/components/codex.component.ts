@@ -543,6 +543,47 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
       top: 0;
       height: fit-content;
     }
+    
+    /* Apply cyberpunk styling to all ion-cards */
+    ion-card {
+      background: linear-gradient(135deg, rgba(20, 20, 20, 0.3) 0%, rgba(15, 15, 15, 0.3) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      backdrop-filter: blur(8px) saturate(120%);
+      -webkit-backdrop-filter: blur(8px) saturate(120%);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+      transition: all 0.3s ease;
+      --color: #f8f9fa;
+    }
+    
+    ion-card:hover {
+      background: linear-gradient(135deg, rgba(25, 25, 25, 0.4) 0%, rgba(20, 20, 20, 0.4) 100%);
+      border-color: rgba(71, 118, 230, 0.3);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+      transform: translateY(-2px);
+    }
+    
+    ion-header {
+      backdrop-filter: blur(15px);
+      background: rgba(45, 45, 45, 0.85);
+      box-shadow: 0 2px 20px rgba(0, 0, 0, 0.4);
+      position: relative;
+      z-index: 100;
+    }
+    
+    ion-toolbar {
+      --background: transparent;
+      --color: #f8f9fa;
+    }
+    
+    ion-title {
+      background: linear-gradient(135deg, #f8f9fa 0%, #8bb4f8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
 
     .active-category {
       --background: var(--ion-color-primary);
@@ -553,10 +594,11 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
       position: absolute;
       right: 1rem;
       top: 100%;
-      background: var(--ion-background-color);
-      border: 1px solid var(--ion-border-color);
-      border-radius: var(--ion-border-radius);
-      box-shadow: var(--ion-box-shadow);
+      background: linear-gradient(135deg, rgba(20, 20, 20, 0.95) 0%, rgba(15, 15, 15, 0.95) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
       z-index: 100;
       min-width: 150px;
     }
@@ -566,13 +608,21 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
     }
 
     .entry-card {
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      background: linear-gradient(135deg, rgba(20, 20, 20, 0.3) 0%, rgba(15, 15, 15, 0.3) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      backdrop-filter: blur(8px) saturate(120%);
+      -webkit-backdrop-filter: blur(8px) saturate(120%);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+      transition: all 0.3s ease;
       margin-bottom: 1rem;
     }
 
     .entry-card:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--ion-box-shadow-hover);
+      background: linear-gradient(135deg, rgba(25, 25, 25, 0.4) 0%, rgba(20, 20, 20, 0.4) 100%);
+      border-color: rgba(71, 118, 230, 0.3);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+      transform: translateY(-4px);
     }
 
     .entry-meta {
