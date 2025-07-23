@@ -591,6 +591,35 @@ import { NgSelectModule } from '@ng-select/ng-select';
       background-attachment: fixed, fixed, scroll;
     }
     
+    .ion-page {
+      background: transparent;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    ion-header {
+      backdrop-filter: blur(15px);
+      background: rgba(45, 45, 45, 0.85);
+      box-shadow: 0 2px 20px rgba(0, 0, 0, 0.4);
+      position: relative;
+      z-index: 100;
+    }
+    
+    ion-toolbar {
+      --background: transparent;
+      --color: #f8f9fa;
+    }
+    
+    ion-title {
+      background: linear-gradient(135deg, #f8f9fa 0%, #8bb4f8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+    
     ion-content {
       --background: transparent;
       --color: #e0e0e0;

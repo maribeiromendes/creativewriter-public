@@ -294,6 +294,35 @@ interface PresetPrompt {
       background-attachment: fixed, fixed, scroll;
     }
     
+    .ion-page {
+      background: transparent;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    ion-header {
+      backdrop-filter: blur(15px);
+      background: rgba(45, 45, 45, 0.85);
+      box-shadow: 0 2px 20px rgba(0, 0, 0, 0.4);
+      position: relative;
+      z-index: 100;
+    }
+    
+    ion-toolbar {
+      --background: transparent;
+      --color: #f8f9fa;
+    }
+    
+    ion-title {
+      background: linear-gradient(135deg, #f8f9fa 0%, #8bb4f8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+    
     .chat-content {
       --background: transparent;
     }
@@ -303,8 +332,9 @@ interface PresetPrompt {
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
-      background: var(--ion-toolbar-background);
-      border-bottom: 1px solid var(--ion-border-color);
+      background: rgba(45, 45, 45, 0.85);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(8px);
     }
 
     .context-chips ion-chip {
@@ -349,14 +379,18 @@ interface PresetPrompt {
     }
 
     .message-content {
-      background: var(--ion-color-light);
-      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(42, 42, 42, 0.4) 0%, rgba(31, 31, 31, 0.4) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
       padding: 12px 16px;
       max-width: 100%;
+      backdrop-filter: blur(8px);
+      color: #f8f9fa;
     }
 
     .user-message .message-content {
-      background: var(--ion-color-primary);
+      background: linear-gradient(135deg, rgba(71, 118, 230, 0.6) 0%, rgba(143, 84, 233, 0.6) 100%);
+      border-color: rgba(71, 118, 230, 0.3);
       color: white;
     }
 
