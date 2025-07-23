@@ -565,8 +565,8 @@ import { AuthService, User } from '../../core/services/auth.service';
       overflow: hidden;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
       border: 1px solid rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(20px) saturate(180%);
-      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      backdrop-filter: blur(2px) saturate(120%);
+      -webkit-backdrop-filter: blur(2px) saturate(120%);
     }
     
     .story-card:hover {
@@ -592,7 +592,7 @@ import { AuthService, User } from '../../core/services/auth.service';
       color: #f8f9fa;
       line-height: 1.3;
       transition: all 0.3s ease;
-      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8), 0 1px 2px rgba(0, 0, 0, 0.6);
     }
     
     .story-card:hover .card-header-content ion-card-title {
@@ -601,7 +601,7 @@ import { AuthService, User } from '../../core/services/auth.service';
     }
     
     .story-preview {
-      color: #adb5bd;
+      color: #e0e0e0;
       line-height: 1.6;
       margin: 0 0 20px 0;
       overflow: hidden;
@@ -609,13 +609,14 @@ import { AuthService, User } from '../../core/services/auth.service';
       -webkit-line-clamp: 3;
       -webkit-box-orient: vertical;
       font-size: 0.95rem;
-      opacity: 0.9;
+      opacity: 0.95;
       transition: all 0.3s ease;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
     }
     
     .story-card:hover .story-preview {
       opacity: 1;
-      color: #ced4da;
+      color: #f0f0f0;
       transform: translateY(-2px);
     }
     
