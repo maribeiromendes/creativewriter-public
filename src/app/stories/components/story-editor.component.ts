@@ -522,7 +522,8 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
     }
     
     .title-input-native {
-      background: transparent;
+      background: rgba(30, 30, 30, 0.4);
+      backdrop-filter: blur(5px);
       color: #f8f9fa;
       border: 1px dotted rgba(255, 255, 255, 0.3);
       border-radius: 4px;
@@ -583,7 +584,8 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
     }
 
     .scene-title-input-native {
-      background: transparent;
+      background: rgba(30, 30, 30, 0.4);
+      backdrop-filter: blur(5px);
       color: #e0e0e0;
       border: 1px dotted rgba(255, 255, 255, 0.3);
       border-radius: 4px;
@@ -664,11 +666,12 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
     }
     
     .editor-wrapper {
-      background: var(--ion-color-step-50, rgba(255, 255, 255, 0.05));
+      background: rgba(42, 42, 42, 0.4);
+      backdrop-filter: blur(8px);
       border-radius: var(--ion-border-radius, 8px);
-      border: 1px solid var(--ion-color-step-150, rgba(255, 255, 255, 0.1));
+      border: 1px solid rgba(255, 255, 255, 0.15);
       margin: 0;
-      box-shadow: var(--ion-box-shadow, 0 2px 8px rgba(0, 0, 0, 0.1));
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
       transition: all 0.2s ease;
       flex: 1;
       display: flex;
@@ -677,8 +680,9 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
     }
     
     .editor-wrapper:hover {
-      border-color: var(--ion-color-step-200, rgba(255, 255, 255, 0.15));
-      box-shadow: var(--ion-box-shadow-hover, 0 4px 12px rgba(0, 0, 0, 0.15));
+      border-color: rgba(255, 255, 255, 0.2);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+      background: rgba(42, 42, 42, 0.5);
     }
     
     .content-editor {
@@ -700,7 +704,8 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
     .content-editor :global(.prosemirror-editor) {
       outline: none !important;
       border: none !important;
-      background: transparent;
+      background: rgba(30, 30, 30, 0.3);
+      backdrop-filter: blur(5px);
       color: var(--ion-text-color, var(--ion-color-step-850, #e0e0e0));
       font-size: 1rem;
       line-height: 1.8;
@@ -710,8 +715,9 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
       word-wrap: break-word;
       -webkit-font-variant-ligatures: none;
       font-variant-ligatures: none;
-      padding: 0.4rem;
+      padding: 0.8rem;
       min-height: 0;
+      border-radius: 4px;
     }
     
     .content-editor :global(.prosemirror-editor p) {
