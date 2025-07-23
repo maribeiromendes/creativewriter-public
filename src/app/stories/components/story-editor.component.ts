@@ -248,10 +248,12 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
         /* Fallback dark background */
         #1a1a1a;
       
-      background-size: cover, cover, auto;
-      background-position: center, center, center;
+      background-size: 100% 100%, cover, auto;
+      background-position: center center, center center, center;
       background-repeat: no-repeat, no-repeat, repeat;
-      background-attachment: fixed, fixed, scroll;
+      background-attachment: scroll, scroll, scroll;
+      min-height: 100vh;
+      display: block;
     }
     
     .ion-page {
@@ -262,8 +264,9 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
     }
     
     ion-header {
-      --ion-toolbar-background: #2d2d2d;
+      --ion-toolbar-background: rgba(45, 45, 45, 0.85);
       --ion-toolbar-color: #f8f9fa;
+      backdrop-filter: blur(10px);
     }
     
     ion-title {
@@ -447,7 +450,7 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
     
     
     ion-content {
-      --background: #1a1a1a;
+      --background: transparent;
       --overflow: auto;
     }
     
@@ -460,6 +463,7 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
       display: flex;
       position: relative;
       min-height: 100vh;
+      background: transparent;
     }
     
     .editor-main {
@@ -467,6 +471,7 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
       display: flex;
       flex-direction: column;
       margin-left: 280px; /* Make space for fixed sidebar */
+      background: transparent;
     }
     
     /* Hide sidebar space when sidebar is hidden */
@@ -489,6 +494,7 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
       display: flex;
       flex-direction: column;
       min-height: 0; /* Important for flexbox */
+      background: transparent;
     }
 
     /* Optimal reading width container */
@@ -499,6 +505,7 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
       flex: 1;
       display: flex;
       flex-direction: column;
+      background: transparent;
     }
 
     /* Different max-widths for different screens */
