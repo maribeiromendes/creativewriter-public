@@ -311,16 +311,64 @@ import { Subscription } from 'rxjs';
     </div>
   `,
   styles: [`
+    :host {
+      display: block;
+      width: 100%;
+      height: 100%;
+      position: relative;
+      min-height: 100vh;
+      
+      background: 
+        /* Dark overlay for text readability */
+        linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
+        /* Main anime image */
+        url('/assets/cyberpunk-anime-girl.png'),
+        /* Fallback dark background */
+        #1a1a1a;
+      
+      background-size: cover, cover, auto;
+      background-position: center, center, center;
+      background-repeat: no-repeat, no-repeat, repeat;
+      background-attachment: fixed, fixed, scroll;
+    }
+    
     .ion-page {
       display: flex;
       flex-direction: column;
       height: 100vh;
-      background: var(--ion-background-color);
+      background: transparent;
     }
-
+    
+    ion-header {
+      backdrop-filter: blur(15px);
+      background: rgba(45, 45, 45, 0.85);
+      box-shadow: 0 2px 20px rgba(0, 0, 0, 0.4);
+      position: relative;
+      z-index: 100;
+    }
+    
+    ion-toolbar {
+      --background: transparent;
+      --color: #f8f9fa;
+    }
+    
+    ion-title {
+      background: linear-gradient(135deg, #f8f9fa 0%, #8bb4f8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+    
     ion-content {
-      --background: var(--ion-background-color);
+      --background: transparent !important;
+      background: transparent !important;
       flex: 1;
+    }
+    
+    ion-content::part(background) {
+      background: transparent !important;
     }
 
     .logs-list {
@@ -331,9 +379,21 @@ import { Subscription } from 'rxjs';
     }
 
     ion-card {
-      --background: var(--ion-color-step-100);
-      border: 1px solid var(--ion-color-step-200);
+      background: linear-gradient(135deg, rgba(20, 20, 20, 0.3) 0%, rgba(15, 15, 15, 0.3) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      backdrop-filter: blur(8px) saturate(120%);
+      -webkit-backdrop-filter: blur(8px) saturate(120%);
       margin-bottom: 1rem;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+      transition: all 0.3s ease;
+    }
+    
+    ion-card:hover {
+      background: linear-gradient(135deg, rgba(25, 25, 25, 0.4) 0%, rgba(20, 20, 20, 0.4) 100%);
+      border-color: rgba(71, 118, 230, 0.3);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+      transform: translateY(-2px);
     }
 
     ion-card.success-card {
@@ -354,8 +414,8 @@ import { Subscription } from 'rxjs';
 
     .log-header {
       --background: transparent;
-      --background-hover: var(--ion-color-step-150);
-      --color: var(--ion-text-color);
+      --background-hover: rgba(255, 255, 255, 0.1);
+      --color: #f8f9fa;
       --padding-start: 16px;
       --padding-end: 16px;
       --inner-padding-end: 0;
@@ -386,10 +446,12 @@ import { Subscription } from 'rxjs';
 
     .meta-chip {
       margin-right: 0.5rem;
-      --background: var(--ion-color-step-50);
-      --color: var(--ion-text-color);
+      --background: rgba(71, 118, 230, 0.15);
+      --color: #8bb4f8;
+      border: 1px solid rgba(71, 118, 230, 0.3);
       font-size: 0.8rem;
       height: 24px;
+      border-radius: 12px;
     }
 
     .meta-chip ion-icon {
@@ -428,9 +490,9 @@ import { Subscription } from 'rxjs';
     }
 
     .content-pre {
-      background: var(--ion-background-color);
-      border: 1px solid var(--ion-color-step-200);
-      border-radius: 6px;
+      background: rgba(30, 30, 30, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
       padding: 1rem;
       font-family: 'Courier New', monospace;
       font-size: 0.85rem;
@@ -440,7 +502,8 @@ import { Subscription } from 'rxjs';
       margin: 0;
       max-height: 400px;
       overflow-y: auto;
-      color: var(--ion-text-color);
+      color: #e0e0e0;
+      backdrop-filter: blur(4px);
     }
 
     .error-content {
@@ -534,14 +597,15 @@ import { Subscription } from 'rxjs';
       justify-content: space-between;
       align-items: center;
       padding: 0.75rem;
-      background: var(--ion-color-step-50);
+      background: rgba(42, 42, 42, 0.3);
+      backdrop-filter: blur(4px);
       border-radius: 8px;
-      border: 1px solid var(--ion-color-step-150);
+      border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     .config-item ion-label {
       font-weight: 500;
-      color: var(--ion-text-color);
+      color: #f8f9fa;
     }
 
     .debug-info {

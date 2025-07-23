@@ -194,8 +194,20 @@ import { NovelCrafterImportService, NovelCrafterImportResult } from '../../share
       left: 0;
       right: 0;
       bottom: 0;
-      background: #1a1a1a;
       overflow-y: auto;
+      
+      background: 
+        /* Dark overlay for text readability */
+        linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
+        /* Main anime image */
+        url('/assets/cyberpunk-anime-girl.png'),
+        /* Fallback dark background */
+        #1a1a1a;
+      
+      background-size: cover, cover, auto;
+      background-position: center, center, center;
+      background-repeat: no-repeat, no-repeat, repeat;
+      background-attachment: fixed, fixed, scroll;
     }
 
     .import-container {
@@ -203,9 +215,13 @@ import { NovelCrafterImportService, NovelCrafterImportResult } from '../../share
       margin: 2rem auto;
       padding: 2rem;
       padding-bottom: 4rem;
-      background: #1a1a1a;
-      color: #e0e0e0;
-      border-radius: 8px;
+      background: linear-gradient(135deg, rgba(20, 20, 20, 0.3) 0%, rgba(15, 15, 15, 0.3) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      backdrop-filter: blur(10px) saturate(120%);
+      -webkit-backdrop-filter: blur(10px) saturate(120%);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      color: #f8f9fa;
     }
 
     .import-header {
@@ -214,7 +230,12 @@ import { NovelCrafterImportService, NovelCrafterImportResult } from '../../share
     }
 
     .import-header h2 {
-      color: #007acc;
+      background: linear-gradient(135deg, #f8f9fa 0%, #8bb4f8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 700;
+      letter-spacing: 0.5px;
       margin-bottom: 0.5rem;
     }
 
@@ -270,23 +291,25 @@ import { NovelCrafterImportService, NovelCrafterImportResult } from '../../share
     }
 
     .zip-option {
-      border-color: #6f42c1;
+      border-color: rgba(143, 84, 233, 0.5);
     }
 
     .zip-option:hover,
     .zip-option.drag-over {
-      border-color: #8a63d2;
-      background: #3a2a4a;
+      border-color: rgba(143, 84, 233, 0.8);
+      background: linear-gradient(135deg, rgba(143, 84, 233, 0.2) 0%, rgba(113, 66, 193, 0.2) 100%);
+      transform: translateY(-2px);
     }
 
     .folder-option {
-      border-color: #007acc;
+      border-color: rgba(71, 118, 230, 0.5);
     }
 
     .folder-option:hover,
     .folder-option.drag-over {
-      border-color: #1a8cff;
-      background: #2a3a4a;
+      border-color: rgba(71, 118, 230, 0.8);
+      background: linear-gradient(135deg, rgba(71, 118, 230, 0.2) 0%, rgba(26, 140, 255, 0.2) 100%);
+      transform: translateY(-2px);
     }
 
     .drop-zone-content {
@@ -303,12 +326,16 @@ import { NovelCrafterImportService, NovelCrafterImportResult } from '../../share
 
     .drop-zone h3 {
       margin: 0;
-      color: #007acc;
+      background: linear-gradient(135deg, #8bb4f8 0%, #4776E6 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 600;
     }
 
     .drop-zone p {
       margin: 0;
-      color: #ccc;
+      color: #e0e0e0;
     }
 
     .file-hint {
