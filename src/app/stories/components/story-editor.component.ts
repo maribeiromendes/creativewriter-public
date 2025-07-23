@@ -645,7 +645,7 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
       background: var(--ion-color-step-50, rgba(255, 255, 255, 0.05));
       border-radius: var(--ion-border-radius, 8px);
       border: 1px solid var(--ion-color-step-150, rgba(255, 255, 255, 0.1));
-      margin: 0.25rem 0;
+      margin: 0;
       box-shadow: var(--ion-box-shadow, 0 2px 8px rgba(0, 0, 0, 0.1));
       transition: all 0.2s ease;
       flex: 1;
@@ -672,7 +672,7 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
       flex-direction: column;
       overflow-y: auto;
       overflow-x: hidden;
-      padding: 0.75rem 0.75rem 0 0.75rem;
+      padding: 0;
     }
     
     .content-editor :global(.prosemirror-editor) {
@@ -688,7 +688,7 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
       word-wrap: break-word;
       -webkit-font-variant-ligatures: none;
       font-variant-ligatures: none;
-      padding-bottom: 0;
+      padding: 0.4rem;
       min-height: 0;
     }
     
