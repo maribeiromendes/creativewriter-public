@@ -196,9 +196,10 @@ import { EditorView } from 'prosemirror-view';
   `,
   styles: [`
     .beat-ai-container {
-      border: 2px solid #404040;
+      border: 2px solid rgba(255, 255, 255, 0.15);
       border-radius: 8px;
-      background: #2d2d2d;
+      background: rgba(42, 42, 42, 0.4);
+      backdrop-filter: blur(8px);
       margin: 1rem 0;
       overflow: hidden;
       transition: all 0.3s ease;
@@ -275,8 +276,9 @@ import { EditorView } from 'prosemirror-view';
     
     .prompt-input.prosemirror-container {
       width: 100%;
-      background: #1a1a1a;
-      border: 1px solid #404040;
+      background: rgba(30, 30, 30, 0.3);
+      backdrop-filter: blur(5px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
       border-radius: 6px;
       padding: 0;
       color: #e0e0e0;
@@ -302,15 +304,17 @@ import { EditorView } from 'prosemirror-view';
     
     .prompt-input.prosemirror-container :global(.ProseMirror) {
       outline: none;
-      padding: 0.4rem !important;
+      padding: 0.6rem !important;
       min-height: auto;
-      background: transparent;
+      background: rgba(20, 20, 20, 0.2);
+      backdrop-filter: blur(3px);
       color: #e0e0e0 !important;
       font-size: 0.9rem;
       line-height: 1.2;
       font-family: inherit;
       width: 100%;
       box-sizing: border-box;
+      border-radius: 4px;
       cursor: text;
       /* Prevent text selection on mobile */
       -webkit-user-select: text;
@@ -546,6 +550,10 @@ import { EditorView } from 'prosemirror-view';
     
     .prompt-display {
       margin-top: 0.25rem;
+      background: rgba(20, 20, 20, 0.2);
+      backdrop-filter: blur(3px);
+      padding: 0.5rem;
+      border-radius: 4px;
     }
     
     .prompt-text {
@@ -557,8 +565,9 @@ import { EditorView } from 'prosemirror-view';
     
     .generation-status {
       padding: 0.5rem 1rem;
-      background: #242424;
-      border-top: 1px solid #404040;
+      background: rgba(36, 36, 36, 0.4);
+      backdrop-filter: blur(5px);
+      border-top: 1px solid rgba(255, 255, 255, 0.15);
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -698,7 +707,8 @@ import { EditorView } from 'prosemirror-view';
     }
 
     .preview-content {
-      background: #2d2d2d;
+      background: rgba(45, 45, 45, 0.85);
+      backdrop-filter: blur(10px);
       border-radius: 8px;
       width: 90%;
       max-width: 800px;
