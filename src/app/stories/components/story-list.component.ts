@@ -560,18 +560,19 @@ import { AuthService, User } from '../../core/services/auth.service';
     .story-card {
       margin: 0;
       transition: all 0.3s ease;
-      background: linear-gradient(135deg, rgba(42, 42, 42, 0.9) 0%, rgba(31, 31, 31, 0.9) 100%);
+      background: linear-gradient(135deg, rgba(42, 42, 42, 0.3) 0%, rgba(31, 31, 31, 0.3) 100%);
       border-radius: 16px;
       overflow: hidden;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
-      border: 1px solid rgba(255, 255, 255, 0.05);
-      backdrop-filter: blur(10px);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(12px);
     }
     
     .story-card:hover {
       transform: translateY(-4px);
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-      border-color: rgba(71, 118, 230, 0.3);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+      border-color: rgba(71, 118, 230, 0.4);
+      background: linear-gradient(135deg, rgba(42, 42, 42, 0.4) 0%, rgba(31, 31, 31, 0.4) 100%);
     }
     
     
