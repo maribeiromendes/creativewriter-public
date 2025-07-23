@@ -305,9 +305,24 @@ import { Subscription } from 'rxjs';
     </div>
   `,
   styles: [`
+    :host {
+      background: 
+        /* Dark overlay for text readability */
+        linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)),
+        /* Main anime image */
+        url('/assets/cyberpunk-anime-girl.png'),
+        /* Fallback dark background */
+        #1a1a1a;
+      
+      background-size: cover, cover, auto;
+      background-position: center, center, center;
+      background-repeat: no-repeat, no-repeat, repeat;
+      background-attachment: fixed, fixed, scroll;
+    }
+    
     .story-structure {
       width: 280px;
-      background: var(--ion-background-color);
+      background: transparent;
       border-right: 1px solid var(--ion-color-step-200);
       display: flex;
       flex-direction: column;

@@ -25,7 +25,9 @@ import { AuthService, User } from '../../core/services/auth.service';
   template: `
     <ion-header>
       <ion-toolbar>
-        <ion-title>Meine Geschichten</ion-title>
+        <ion-title>
+          <span class="title-gradient">Meine Geschichten</span>
+        </ion-title>
         <ion-buttons slot="end">
           <div class="header-info" *ngIf="currentUser">
             <span class="user-greeting">👋 {{ currentUser.displayName || currentUser.username }}</span>
@@ -81,6 +83,15 @@ import { AuthService, User } from '../../core/services/auth.service';
 
     <ion-content>
       <div class="story-list-container">
+      
+      <!-- App Branding Header -->
+      <div class="app-branding">
+        <h1 class="app-title">
+          <span class="app-name">Creative Writer</span>
+          <span class="app-tagline">Deine Geschichten, deine Welt</span>
+        </h1>
+        <div class="brand-decoration"></div>
+      </div>
       
       <div class="action-buttons">
         <ion-button expand="block" size="large" color="primary" (click)="createNewStory()">
@@ -159,18 +170,319 @@ import { AuthService, User } from '../../core/services/auth.service';
       display: block;
       width: 100%;
       height: 100%;
-      background-color: #1a1a1a;
+      position: relative;
+      min-height: 100vh;
+    }
+    
+    /* Clean overlay - no disturbing effects */
+    :host::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: transparent;
+      pointer-events: none;
+      z-index: 1;
+    }
+    
+    /* Clean after element */
+    :host::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;  
+      bottom: 0;
+      background: transparent;
+      pointer-events: none;
+      z-index: 0;
+    }
+    
+    @keyframes cyberpunkFloat {
+      0%, 100% {
+        transform: translateY(0px) translateX(0px);
+        opacity: 0.9;
+      }
+      25% {
+        transform: translateY(-2px) translateX(1px);
+        opacity: 1;
+      }
+      50% {
+        transform: translateY(-1px) translateX(-1px);
+        opacity: 0.8;
+      }
+      75% {
+        transform: translateY(1px) translateX(2px);
+        opacity: 1;
+      }
+    }
+    
+    @keyframes subtleMovement {
+      0%, 100% {
+        transform: translateX(0) translateY(0);
+      }
+      25% {
+        transform: translateX(-2px) translateY(-1px);
+      }
+      50% {
+        transform: translateX(1px) translateY(-2px);
+      }
+      75% {
+        transform: translateX(-1px) translateY(1px);
+      }
+    }
+    
+    /* Cyberpunk city atmosphere overlay */
+    :host::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image:
+        /* Neon city buildings */
+        linear-gradient(0deg, transparent 70%, rgba(0, 255, 255, 0.05) 75%, transparent 85%),
+        linear-gradient(0deg, transparent 65%, rgba(255, 0, 128, 0.04) 70%, transparent 80%),
+        linear-gradient(0deg, transparent 60%, rgba(0, 255, 128, 0.03) 65%, transparent 75%),
+        
+        /* Window lights pattern */
+        repeating-linear-gradient(
+          45deg,
+          transparent,
+          transparent 15px,
+          rgba(0, 255, 255, 0.02) 16px,
+          rgba(0, 255, 255, 0.02) 17px
+        ),
+        
+        /* Holographic interface elements */
+        radial-gradient(ellipse 200px 100px at 90% 20%, rgba(255, 0, 128, 0.08) 0%, transparent 40%),
+        radial-gradient(ellipse 150px 80px at 10% 80%, rgba(0, 255, 128, 0.06) 0%, transparent 35%),
+        
+        /* Ambient cyberpunk lighting */
+        radial-gradient(ellipse 800px 400px at 50% 0%, rgba(0, 255, 255, 0.03) 0%, transparent 70%),
+        radial-gradient(ellipse 600px 300px at 50% 100%, rgba(255, 0, 128, 0.04) 0%, transparent 60%);
+        
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.7;
+      animation: cyberpunkShimmer 10s ease-in-out infinite;
+    }
+    
+    @keyframes cyberpunkShimmer {
+      0%, 100% {
+        opacity: 0.7;
+        filter: hue-rotate(0deg);
+      }
+      33% {
+        opacity: 0.8;
+        filter: hue-rotate(5deg);
+      }
+      66% {
+        opacity: 0.6;
+        filter: hue-rotate(-5deg);
+      }
+    }
+    
+    @keyframes fadeInOut {
+      0%, 100% {
+        opacity: 0.7;
+      }
+      50% {
+        opacity: 0.4;
+      }
     }
     
     ion-content {
-      --background: #1a1a1a;
+      --background: transparent !important;
+      background: transparent !important;
+    }
+    
+    /* Make sure ion-content doesn't override our background */
+    ion-content::part(background) {
+      background: transparent !important;
+    }
+    
+    /* Simple background with anime image */
+    :host {
+      background: 
+        /* Dark overlay for text readability */
+        linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
+        /* Main anime image */
+        url('/assets/cyberpunk-anime-girl.png'),
+        /* Fallback dark background */
+        #1a1a1a;
+      
+      background-size: cover, cover, auto;
+      background-position: center, center, center;
+      background-repeat: no-repeat, no-repeat, repeat;
+      background-attachment: fixed, fixed, scroll;
     }
     
     .story-list-container {
       max-width: 1200px;
       margin: 0 auto;
       padding: 2rem;
-      background-color: #1a1a1a;
+      background-color: transparent;
+      position: relative;
+      z-index: 1;
+      animation: fadeInUp 0.6s ease-out;
+    }
+    
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .title-gradient {
+      background: linear-gradient(135deg, #f8f9fa 0%, #8bb4f8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+    
+    ion-header {
+      backdrop-filter: blur(15px);
+      background: rgba(45, 45, 45, 0.85);
+      box-shadow: 0 2px 20px rgba(0, 0, 0, 0.4);
+      position: relative;
+      z-index: 100;
+    }
+    
+    ion-toolbar {
+      --background: transparent;
+      --color: #f8f9fa;
+    }
+    
+    /* App Branding Styles */
+    .app-branding {
+      text-align: center;
+      margin: 2rem 0 4rem 0;
+      position: relative;
+      animation: fadeInDown 0.8s ease-out;
+    }
+    
+    @keyframes fadeInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .app-title {
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .app-name {
+      font-size: 3.5rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #4776E6 0%, #8E54E9 50%, #FF6B6B 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -2px;
+      line-height: 1;
+      text-shadow: 0 4px 20px rgba(71, 118, 230, 0.3);
+      position: relative;
+      animation: glow 3s ease-in-out infinite alternate;
+    }
+    
+    @keyframes glow {
+      from {
+        filter: brightness(1) drop-shadow(0 0 5px rgba(71, 118, 230, 0.3));
+      }
+      to {
+        filter: brightness(1.1) drop-shadow(0 0 20px rgba(71, 118, 230, 0.5));
+      }
+    }
+    
+    .app-tagline {
+      font-size: 1.1rem;
+      font-weight: 300;
+      color: #adb5bd;
+      font-style: italic;
+      letter-spacing: 1px;
+      opacity: 0.8;
+      text-transform: lowercase;
+    }
+    
+    .brand-decoration {
+      width: 120px;
+      height: 4px;
+      background: linear-gradient(90deg, transparent 0%, #4776E6 20%, #8E54E9 50%, #FF6B6B 80%, transparent 100%);
+      margin: 1.5rem auto 0;
+      border-radius: 2px;
+      animation: shimmer 2s ease-in-out infinite;
+    }
+    
+    @keyframes shimmer {
+      0%, 100% {
+        opacity: 0.5;
+        transform: scaleX(1);
+      }
+      50% {
+        opacity: 1;
+        transform: scaleX(1.1);
+      }
+    }
+    
+    /* Responsive App Branding */
+    @media (max-width: 768px) {
+      .app-branding {
+        margin: 1.5rem 0 3rem 0;
+      }
+      
+      .app-name {
+        font-size: 2.5rem;
+        letter-spacing: -1px;
+      }
+      
+      .app-tagline {
+        font-size: 1rem;
+      }
+      
+      .brand-decoration {
+        width: 80px;
+        height: 3px;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .app-branding {
+        margin: 1rem 0 2rem 0;
+      }
+      
+      .app-name {
+        font-size: 2rem;
+        letter-spacing: -0.5px;
+      }
+      
+      .app-tagline {
+        font-size: 0.9rem;
+      }
+      
+      .brand-decoration {
+        width: 60px;
+        height: 2px;
+      }
     }
     
     
@@ -323,7 +635,7 @@ import { AuthService, User } from '../../core/services/auth.service';
     .action-buttons {
       display: flex;
       gap: 1rem;
-      margin: 0 auto 2rem;
+      margin: 0 auto 3rem;
       max-width: 600px;
       flex-wrap: wrap;
     }
@@ -331,6 +643,54 @@ import { AuthService, User } from '../../core/services/auth.service';
     .action-buttons ion-button {
       flex: 1;
       min-width: 200px;
+      --background: linear-gradient(135deg, #4776E6 0%, #8E54E9 100%);
+      --background-hover: linear-gradient(135deg, #5886F6 0%, #9E64F9 100%);
+      --border-radius: 16px;
+      --box-shadow: 0 6px 20px rgba(71, 118, 230, 0.3);
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      font-weight: 600;
+      text-transform: none;
+      letter-spacing: 0.5px;
+      position: relative;
+      overflow: hidden;
+      --padding-start: 24px;
+      --padding-end: 24px;
+      height: 52px;
+    }
+    
+    .action-buttons ion-button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s ease;
+    }
+    
+    .action-buttons ion-button:hover {
+      transform: translateY(-3px) scale(1.02);
+      --box-shadow: 0 10px 30px rgba(71, 118, 230, 0.4);
+    }
+    
+    .action-buttons ion-button:hover::before {
+      left: 100%;
+    }
+    
+    .action-buttons ion-button[fill="outline"] {
+      --background: transparent;
+      --border-color: rgba(71, 118, 230, 0.6);
+      --color: #8bb4f8;
+      border: 2px solid rgba(71, 118, 230, 0.6);
+      --box-shadow: 0 4px 15px rgba(71, 118, 230, 0.2);
+    }
+    
+    .action-buttons ion-button[fill="outline"]:hover {
+      --background: rgba(71, 118, 230, 0.1);
+      --border-color: rgba(71, 118, 230, 0.8);
+      --color: #a8c5f9;
+      --box-shadow: 0 8px 25px rgba(71, 118, 230, 0.3);
     }
     
     /* Custom Mobile FAB */
@@ -429,18 +789,63 @@ import { AuthService, User } from '../../core/services/auth.service';
     
     .stories-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 1rem;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1.5rem;
       padding: 0 8px;
     }
     
     .story-card {
       margin: 0;
-      transition: transform 0.2s ease;
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      background: linear-gradient(135deg, rgba(42, 42, 42, 0.9) 0%, rgba(31, 31, 31, 0.9) 100%);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      position: relative;
+      backdrop-filter: blur(10px);
+      animation: fadeInScale 0.5s ease-out backwards;
     }
     
     .story-card:hover {
-      transform: translateY(-4px);
+      transform: translateY(-8px) scale(1.03);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+      border-color: rgba(71, 118, 230, 0.4);
+      background: linear-gradient(135deg, rgba(42, 42, 42, 1) 0%, rgba(31, 31, 31, 1) 100%);
+    }
+    
+    .story-card:nth-child(1) { animation-delay: 0.1s; }
+    .story-card:nth-child(2) { animation-delay: 0.2s; }
+    .story-card:nth-child(3) { animation-delay: 0.3s; }
+    .story-card:nth-child(4) { animation-delay: 0.4s; }
+    .story-card:nth-child(5) { animation-delay: 0.5s; }
+    .story-card:nth-child(6) { animation-delay: 0.6s; }
+    
+    @keyframes fadeInScale {
+      from {
+        opacity: 0;
+        transform: scale(0.8) translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+    }
+    
+    .story-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #4776E6 0%, #8E54E9 100%);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    
+    .story-card:hover::before {
+      opacity: 1;
     }
     
     .card-header-content {
@@ -453,39 +858,126 @@ import { AuthService, User } from '../../core/services/auth.service';
     .card-header-content ion-card-title {
       flex: 1;
       margin-right: 8px;
-      font-size: 1.1rem;
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #f8f9fa;
+      line-height: 1.3;
+      transition: all 0.3s ease;
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .story-card:hover .card-header-content ion-card-title {
+      background: linear-gradient(135deg, #8bb4f8 0%, #a8c5f9 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
     
     .story-preview {
-      color: var(--ion-color-medium);
-      line-height: 1.4;
-      margin: 0 0 12px 0;
+      color: #adb5bd;
+      line-height: 1.6;
+      margin: 0 0 20px 0;
       overflow: hidden;
       display: -webkit-box;
       -webkit-line-clamp: 3;
       -webkit-box-orient: vertical;
-      font-size: 0.9rem;
+      font-size: 0.95rem;
+      opacity: 0.9;
+      transition: all 0.3s ease;
+    }
+    
+    .story-card:hover .story-preview {
+      opacity: 1;
+      color: #ced4da;
+      transform: translateY(-2px);
     }
     
     .story-chips {
       display: flex;
-      gap: 8px;
+      gap: 10px;
       flex-wrap: wrap;
     }
     
     .story-chips ion-chip {
       font-size: 0.75rem;
+      --background: rgba(71, 118, 230, 0.15);
+      --color: #8bb4f8;
+      border: 1px solid rgba(71, 118, 230, 0.3);
+      transition: all 0.3s ease;
+      height: 28px;
+      padding: 0 14px;
+      border-radius: 14px;
+      font-weight: 500;
+    }
+    
+    .story-chips ion-chip:hover {
+      --background: rgba(71, 118, 230, 0.25);
+      border-color: rgba(71, 118, 230, 0.5);
+      transform: scale(1.05);
+      --color: #a8c5f9;
+    }
+    
+    ion-card {
+      --background: transparent;
+      --color: #f8f9fa;
+      box-shadow: none;
+      cursor: pointer;
+      margin: 0;
+    }
+    
+    ion-card-header {
+      --background: transparent;
+      padding: 24px 24px 16px 24px;
+      position: relative;
+    }
+    
+    ion-card-content {
+      padding: 0 24px 24px 24px;
     }
     
     .no-stories {
       text-align: center;
-      padding: 3rem;
+      padding: 4rem 2rem;
       color: #adb5bd;
+      animation: fadeIn 0.6s ease-out;
+      background: linear-gradient(135deg, rgba(42, 42, 42, 0.3) 0%, rgba(31, 31, 31, 0.3) 100%);
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      margin: 2rem 0;
     }
     
     .no-stories p {
-      margin-bottom: 1rem;
-      font-size: 1.1rem;
+      margin-bottom: 2rem;
+      font-size: 1.2rem;
+      line-height: 1.6;
+      opacity: 0.8;
+    }
+    
+    .no-stories ion-button {
+      --background: linear-gradient(135deg, #4776E6 0%, #8E54E9 100%);
+      --background-hover: linear-gradient(135deg, #5886F6 0%, #9E64F9 100%);
+      --border-radius: 16px;
+      --box-shadow: 0 6px 20px rgba(71, 118, 230, 0.3);
+      transition: all 0.3s ease;
+      font-weight: 600;
+      text-transform: none;
+      letter-spacing: 0.5px;
+      padding: 0 2rem;
+      height: 48px;
+    }
+    
+    .no-stories ion-button:hover {
+      transform: translateY(-2px);
+      --box-shadow: 0 8px 25px rgba(71, 118, 230, 0.4);
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
   `]
 })

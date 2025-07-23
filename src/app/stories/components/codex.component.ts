@@ -511,11 +511,26 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
     </div>
   `,
   styles: [`
+    :host {
+      background: 
+        /* Dark overlay for text readability */
+        linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
+        /* Main anime image */
+        url('/assets/cyberpunk-anime-girl.png'),
+        /* Fallback dark background */
+        #1a1a1a;
+      
+      background-size: cover, cover, auto;
+      background-position: center, center, center;
+      background-repeat: no-repeat, no-repeat, repeat;
+      background-attachment: fixed, fixed, scroll;
+    }
+    
     .ion-page {
       height: 100vh;
       display: flex;
       flex-direction: column;
-      background: var(--ion-background-color);
+      background: transparent;
     }
 
     .codex-grid {
