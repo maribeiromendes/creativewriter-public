@@ -6,7 +6,7 @@ import {
   IonHeader, IonToolbar, IonTitle, IonButtons, IonContent
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { add, download, settings, analytics, trash, create, image } from 'ionicons/icons';
+import { add, download, settings, analytics, trash, create, image, menu, close } from 'ionicons/icons';
 import { StoryService } from '../services/story.service';
 import { Story } from '../models/story.interface';
 import { SyncStatusComponent } from '../../shared/components/sync-status.component';
@@ -26,34 +26,58 @@ import { AuthService, User } from '../../core/services/auth.service';
     <ion-header>
       <ion-toolbar>
         <ion-title>Meine Geschichten</ion-title>
-        <ion-buttons slot="end" class="header-buttons">
-          <ion-button fill="clear" color="medium" (click)="goToAILogger()" class="desktop-only">
-            <ion-icon name="analytics" slot="start"></ion-icon>
-            AI Logs
-          </ion-button>
-          <ion-button fill="clear" color="medium" (click)="goToSettings()" class="desktop-only">
-            <ion-icon name="settings" slot="start"></ion-icon>
-            Einstellungen
-          </ion-button>
-          <ion-button fill="clear" color="medium" (click)="goToAILogger()" class="mobile-only">
-            <ion-icon name="analytics" slot="icon-only"></ion-icon>
-          </ion-button>
-          <ion-button fill="clear" color="medium" (click)="goToSettings()" class="mobile-only">
-            <ion-icon name="settings" slot="icon-only"></ion-icon>
+        <ion-buttons slot="end">
+          <div class="header-info" *ngIf="currentUser">
+            <span class="user-greeting">👋 {{ currentUser.displayName || currentUser.username }}</span>
+            <app-sync-status [showActions]="false" class="compact-sync-status"></app-sync-status>
+          </div>
+          <ion-button fill="clear" color="medium" (click)="toggleBurgerMenu()">
+            <ion-icon [name]="burgerMenuOpen ? 'close' : 'menu'" slot="icon-only"></ion-icon>
           </ion-button>
         </ion-buttons>
       </ion-toolbar>
-      
-      <ion-toolbar *ngIf="currentUser" class="user-toolbar">
-        <div class="user-info">
-          <span class="user-greeting">👋 {{ currentUser.displayName || currentUser.username }}</span>
-          <ion-button size="small" fill="clear" color="danger" (click)="logout()">
+    </ion-header>
+    
+    <!-- Burger Menu Overlay -->
+    <div class="burger-menu-overlay" *ngIf="burgerMenuOpen" (click)="closeBurgerMenu()"></div>
+    
+    <!-- Burger Menu -->
+    <div class="burger-menu" [class.open]="burgerMenuOpen">
+      <div class="burger-menu-content">
+        <div class="burger-menu-header">
+          <h3>Navigation</h3>
+          <ion-button fill="clear" color="medium" (click)="toggleBurgerMenu()">
+            <ion-icon name="close" slot="icon-only"></ion-icon>
+          </ion-button>
+        </div>
+        
+        <div class="burger-menu-items">
+          <ion-button fill="clear" expand="block" (click)="goToAILogger(); closeBurgerMenu()">
+            <ion-icon name="analytics" slot="start"></ion-icon>
+            AI Logs
+          </ion-button>
+          <ion-button fill="clear" expand="block" (click)="goToSettings(); closeBurgerMenu()">
+            <ion-icon name="settings" slot="start"></ion-icon>
+            Einstellungen
+          </ion-button>
+          <ion-button fill="clear" expand="block" (click)="goToImageGeneration(); closeBurgerMenu()">
+            <ion-icon name="image" slot="start"></ion-icon>
+            Bildgenerierung
+          </ion-button>
+          <ion-button fill="clear" expand="block" (click)="importNovelCrafter(); closeBurgerMenu()">
+            <ion-icon name="download" slot="start"></ion-icon>
+            NovelCrafter Import
+          </ion-button>
+        </div>
+        
+        <div class="burger-menu-footer" *ngIf="currentUser">
+          <app-sync-status [showActions]="true" class="full-sync-status"></app-sync-status>
+          <ion-button fill="clear" color="danger" (click)="logout(); closeBurgerMenu()">
             Abmelden
           </ion-button>
         </div>
-        <app-sync-status [showActions]="true" slot="end"></app-sync-status>
-      </ion-toolbar>
-    </ion-header>
+      </div>
+    </div>
 
     <ion-content>
       <div class="story-list-container">
@@ -149,36 +173,152 @@ import { AuthService, User } from '../../core/services/auth.service';
       background-color: #1a1a1a;
     }
     
-    .user-toolbar {
-      --min-height: 48px;
-      --padding-top: 8px;
-      --padding-bottom: 8px;
+    
+    /* Desktop optimizations for compact header */
+    @media (min-width: 768px) {
+      ion-header {
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      
+      ion-toolbar {
+        --min-height: 44px;
+        --padding-top: 4px;
+        --padding-bottom: 4px;
+      }
+      
     }
     
-    .user-info {
+    /* Header Info Styles */
+    .header-info {
       display: flex;
       align-items: center;
       gap: 0.5rem;
-      padding: 0.5rem 1rem;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 20px;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      margin-left: 16px;
+      margin-right: 0.5rem;
     }
     
     .user-greeting {
       color: #f8f9fa;
-      font-size: 0.9rem;
+      font-size: 0.8rem;
       font-weight: 500;
+      white-space: nowrap;
     }
     
-    .desktop-only {
-      display: inline-flex;
+    .compact-sync-status {
+      opacity: 0.8;
     }
     
-    .mobile-only {
-      display: none;
+    @media (max-width: 767px) {
+      .header-info {
+        display: none;
+      }
     }
+    
+    /* Burger Menu Styles */
+    .burger-menu-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 9998;
+      backdrop-filter: blur(2px);
+    }
+    
+    .burger-menu {
+      position: fixed;
+      top: 0;
+      right: -300px;
+      width: 300px;
+      height: 100%;
+      background: #2d2d2d;
+      border-left: 1px solid rgba(255, 255, 255, 0.1);
+      z-index: 9999;
+      transition: right 0.3s ease-in-out;
+      box-shadow: -4px 0 8px rgba(0, 0, 0, 0.3);
+    }
+    
+    .burger-menu.open {
+      right: 0;
+    }
+    
+    .burger-menu-content {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      padding: 0;
+    }
+    
+    .burger-menu-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      background: #343434;
+    }
+    
+    .burger-menu-header h3 {
+      margin: 0;
+      color: #f8f9fa;
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+    
+    .burger-menu-items {
+      flex: 1;
+      padding: 1rem 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    
+    .burger-menu-items ion-button {
+      --color: #f8f9fa;
+      --background: transparent;
+      --background-hover: rgba(255, 255, 255, 0.1);
+      --background-focused: rgba(255, 255, 255, 0.1);
+      --ripple-color: rgba(255, 255, 255, 0.2);
+      margin: 0 1rem;
+      height: 48px;
+      font-size: 1rem;
+      justify-content: flex-start;
+      text-align: left;
+    }
+    
+    .burger-menu-items ion-button:hover {
+      --background: rgba(255, 255, 255, 0.1);
+    }
+    
+    .burger-menu-items ion-button ion-icon {
+      margin-right: 12px;
+      font-size: 1.2rem;
+    }
+    
+    .burger-menu-footer {
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 1rem;
+      margin-top: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    
+    .burger-menu-footer ion-button {
+      --color: #ff6b6b;
+      --background: transparent;
+      --background-hover: rgba(255, 107, 107, 0.1);
+      --background-focused: rgba(255, 107, 107, 0.1);
+      --ripple-color: rgba(255, 107, 107, 0.2);
+      height: 40px;
+      font-size: 0.9rem;
+    }
+    
+    .full-sync-status {
+      align-self: stretch;
+    }
+    
+    
     
     .action-buttons {
       display: flex;
@@ -272,28 +412,6 @@ import { AuthService, User } from '../../core/services/auth.service';
       }
       
       
-      .desktop-only {
-        display: none;
-      }
-      
-      .mobile-only {
-        display: inline-flex;
-      }
-      
-      .user-info {
-        width: 90%;
-        justify-content: center;
-        margin: 0 auto;
-      }
-      
-      .user-greeting {
-        font-size: 0.8rem;
-      }
-      
-      .user-toolbar {
-        --padding-start: 8px;
-        --padding-end: 8px;
-      }
     }
     
     @media (max-width: 480px) {
@@ -301,14 +419,6 @@ import { AuthService, User } from '../../core/services/auth.service';
         padding: 1rem 0.5rem 10rem;
       }
       
-      .user-info {
-        width: 95%;
-        padding: 0.4rem 0.8rem;
-      }
-      
-      .user-greeting {
-        font-size: 0.75rem;
-      }
       
       .stories-grid {
         grid-template-columns: 1fr;
@@ -383,6 +493,7 @@ export class StoryListComponent implements OnInit {
   stories: Story[] = [];
   currentUser: User | null = null;
   fabMenuOpen = false;
+  burgerMenuOpen = false;
 
   constructor(
     private storyService: StoryService,
@@ -390,7 +501,7 @@ export class StoryListComponent implements OnInit {
     private authService: AuthService
   ) {
     // Register Ionic icons
-    addIcons({ add, download, settings, analytics, trash, create, image });
+    addIcons({ add, download, settings, analytics, trash, create, image, menu, close });
   }
 
   ngOnInit(): void {
@@ -416,6 +527,14 @@ export class StoryListComponent implements OnInit {
 
   toggleFabMenu(): void {
     this.fabMenuOpen = !this.fabMenuOpen;
+  }
+
+  toggleBurgerMenu(): void {
+    this.burgerMenuOpen = !this.burgerMenuOpen;
+  }
+
+  closeBurgerMenu(): void {
+    this.burgerMenuOpen = false;
   }
 
   async createNewStory(): Promise<void> {
