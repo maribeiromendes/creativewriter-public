@@ -560,19 +560,20 @@ import { AuthService, User } from '../../core/services/auth.service';
     .story-card {
       margin: 0;
       transition: all 0.3s ease;
-      background: linear-gradient(135deg, rgba(42, 42, 42, 0.3) 0%, rgba(31, 31, 31, 0.3) 100%);
+      background: linear-gradient(135deg, rgba(20, 20, 20, 0.1) 0%, rgba(15, 15, 15, 0.1) 100%);
       border-radius: 16px;
       overflow: hidden;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      backdrop-filter: blur(12px);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
     }
     
     .story-card:hover {
       transform: translateY(-4px);
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-      border-color: rgba(71, 118, 230, 0.4);
-      background: linear-gradient(135deg, rgba(42, 42, 42, 0.4) 0%, rgba(31, 31, 31, 0.4) 100%);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+      border-color: rgba(71, 118, 230, 0.3);
+      background: linear-gradient(135deg, rgba(25, 25, 25, 0.15) 0%, rgba(20, 20, 20, 0.15) 100%);
     }
     
     
@@ -591,17 +592,12 @@ import { AuthService, User } from '../../core/services/auth.service';
       color: #f8f9fa;
       line-height: 1.3;
       transition: all 0.3s ease;
-      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
     }
     
     .story-card:hover .card-header-content ion-card-title {
-      background: linear-gradient(135deg, #8bb4f8 0%, #a8c5f9 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+      color: #a8c5f9;
+      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
     }
     
     .story-preview {
@@ -650,6 +646,18 @@ import { AuthService, User } from '../../core/services/auth.service';
       --background: transparent;
       padding: 24px 24px 16px 24px;
       position: relative;
+    }
+    
+    ion-card-header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.2);
+      z-index: -1;
+      border-radius: 16px 16px 0 0;
     }
     
     ion-card-content {
