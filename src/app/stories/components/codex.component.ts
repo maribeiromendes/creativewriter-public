@@ -571,6 +571,21 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
       --color: #f8f9fa;
     }
     
+    ion-card-header {
+      background: transparent !important;
+      --background: transparent !important;
+    }
+    
+    ion-card-title {
+      color: #f8f9fa !important;
+      --color: #f8f9fa !important;
+    }
+    
+    ion-card-content {
+      background: transparent !important;
+      --background: transparent !important;
+    }
+    
     ion-card:hover {
       background: linear-gradient(135deg, rgba(25, 25, 25, 0.4) 0%, rgba(20, 20, 20, 0.4) 100%);
       border-color: rgba(71, 118, 230, 0.3);
@@ -631,6 +646,15 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
       box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
       transition: all 0.3s ease;
       margin-bottom: 1rem;
+    }
+    
+    .entry-card ion-card-header,
+    .entry-card ion-card-content {
+      background: transparent !important;
+    }
+    
+    .entry-card ion-card-title {
+      color: #f8f9fa !important;
     }
 
     .entry-card:hover {
