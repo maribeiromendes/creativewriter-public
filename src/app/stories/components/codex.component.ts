@@ -615,9 +615,38 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
       letter-spacing: 0.5px;
     }
 
+    /* Make ion-list and ion-items transparent */
+    ion-list {
+      background: transparent !important;
+      --background: transparent !important;
+    }
+    
+    ion-item {
+      --background: transparent !important;
+      --background-hover: rgba(255, 255, 255, 0.1) !important;
+      --background-focused: rgba(255, 255, 255, 0.1) !important;
+      --color: #f8f9fa !important;
+      --border-color: rgba(255, 255, 255, 0.1) !important;
+    }
+    
+    ion-item::part(native) {
+      background: transparent !important;
+    }
+    
     .active-category {
-      --background: var(--ion-color-primary);
-      --color: var(--ion-color-primary-contrast);
+      --background: linear-gradient(135deg, rgba(71, 118, 230, 0.3) 0%, rgba(143, 84, 233, 0.3) 100%) !important;
+      --color: #f8f9fa !important;
+      backdrop-filter: blur(5px);
+    }
+    
+    .active-category::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: linear-gradient(135deg, #4776E6 0%, #8E54E9 100%);
     }
 
     .category-menu {
@@ -631,6 +660,14 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
       z-index: 100;
       min-width: 150px;
+    }
+    
+    .category-menu ion-item {
+      --background: transparent !important;
+    }
+    
+    .category-menu ion-list {
+      background: transparent !important;
     }
 
     .entries-main {
