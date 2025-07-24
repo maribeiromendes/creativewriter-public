@@ -364,10 +364,18 @@ import { Subscription } from 'rxjs';
     ion-content {
       --background: transparent !important;
       background: transparent !important;
+      --padding-start: 0;
+      --padding-end: 0;
+      --padding-top: 0;
+      --padding-bottom: 0;
       flex: 1;
     }
     
     ion-content::part(background) {
+      background: transparent !important;
+    }
+    
+    ion-content::part(scroll) {
       background: transparent !important;
     }
 
