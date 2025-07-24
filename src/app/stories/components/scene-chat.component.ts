@@ -323,6 +323,19 @@ interface PresetPrompt {
       letter-spacing: 0.5px;
     }
     
+    ion-content {
+      --background: transparent !important;
+      background: transparent !important;
+    }
+    
+    ion-content::part(background) {
+      background: transparent !important;
+    }
+    
+    ion-content::part(scroll) {
+      background: transparent !important;
+    }
+    
     .chat-content {
       --background: transparent;
     }
@@ -466,7 +479,10 @@ interface PresetPrompt {
     }
 
     .chat-footer {
-      background: var(--ion-toolbar-background);
+      background: rgba(45, 45, 45, 0.85);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
       padding: 8px 16px;
       padding-bottom: max(env(safe-area-inset-bottom, 20px), 40px);
       position: sticky;
@@ -481,15 +497,21 @@ interface PresetPrompt {
       display: flex;
       align-items: flex-end;
       gap: 8px;
-      background: var(--ion-color-light);
+      background: linear-gradient(135deg, rgba(20, 20, 20, 0.4) 0%, rgba(15, 15, 15, 0.4) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.2);
       border-radius: 24px;
       padding: 4px 4px 4px 16px;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
     }
 
     .message-input {
       flex: 1;
       --padding-top: 8px;
       --padding-bottom: 8px;
+      --background: transparent;
+      --color: #f8f9fa;
+      --placeholder-color: #adb5bd;
       min-height: 40px;
       max-height: 120px;
     }
@@ -501,21 +523,94 @@ interface PresetPrompt {
     }
 
     ion-searchbar {
-      --background: var(--ion-color-light);
+      --background: rgba(20, 20, 20, 0.4);
+      --color: #f8f9fa;
+      --placeholder-color: #adb5bd;
+      --icon-color: #8bb4f8;
+      --clear-button-color: #8bb4f8;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
     }
 
     ion-item-divider {
       font-weight: 600;
     }
     
+    ion-modal {
+      --backdrop-opacity: 0.6;
+    }
+    
+    ion-modal ion-content {
+      --background: 
+        linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)),
+        url('/assets/cyberpunk-anime-girl.png'),
+        #1a1a1a;
+      background-size: cover, cover, auto;
+      background-position: center, center, center;
+      background-repeat: no-repeat, no-repeat, repeat;
+    }
+    
+    ion-modal ion-header {
+      backdrop-filter: blur(15px);
+      background: rgba(45, 45, 45, 0.85);
+      box-shadow: 0 2px 20px rgba(0, 0, 0, 0.4);
+    }
+    
+    ion-modal ion-toolbar {
+      --background: transparent;
+      --color: #f8f9fa;
+    }
+    
+    ion-modal ion-title {
+      background: linear-gradient(135deg, #f8f9fa 0%, #8bb4f8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+    
     ion-modal ion-list {
+      background: transparent;
       padding-bottom: 200px; /* Much more padding at bottom of modal list */
+    }
+    
+    ion-modal ion-item {
+      --background: linear-gradient(135deg, rgba(20, 20, 20, 0.3) 0%, rgba(15, 15, 15, 0.3) 100%);
+      --color: #f8f9fa;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      margin: 8px 16px;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+    
+    ion-modal ion-item:hover {
+      --background: linear-gradient(135deg, rgba(71, 118, 230, 0.3) 0%, rgba(139, 180, 248, 0.3) 100%);
+      border-color: rgba(71, 118, 230, 0.5);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(71, 118, 230, 0.3);
+    }
+    
+    ion-modal ion-item-divider {
+      --background: rgba(45, 45, 45, 0.8);
+      --color: #8bb4f8;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      font-weight: 600;
+      margin: 8px 16px;
+      border-radius: 8px;
     }
 
     .model-toolbar {
-      --background: var(--ion-background-color);
+      --background: transparent;
       --border-width: 0 0 1px 0;
-      --border-color: var(--ion-border-color);
+      --border-color: rgba(255, 255, 255, 0.1);
+      background: rgba(45, 45, 45, 0.85);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
       padding: 8px 16px;
     }
 
@@ -526,15 +621,16 @@ interface PresetPrompt {
     .model-select {
       --ng-select-height: 38px;
       --ng-select-value-font-size: 14px;
-      --ng-select-bg: var(--ion-color-light);
-      --ng-select-border-color: var(--ion-border-color);
+      --ng-select-bg: rgba(20, 20, 20, 0.4);
+      --ng-select-border-color: rgba(255, 255, 255, 0.2);
       --ng-select-border-radius: 8px;
-      --ng-select-highlight: var(--ion-color-primary);
-      --ng-select-dropdown-bg: var(--ion-background-color);
-      --ng-select-dropdown-border-color: var(--ion-border-color);
-      --ng-select-option-bg: var(--ion-background-color);
-      --ng-select-option-hover-bg: var(--ion-color-light);
-      --ng-select-option-selected-bg: var(--ion-color-light-tint);
+      --ng-select-highlight: #8bb4f8;
+      --ng-select-dropdown-bg: rgba(45, 45, 45, 0.95);
+      --ng-select-dropdown-border-color: rgba(255, 255, 255, 0.2);
+      --ng-select-option-bg: transparent;
+      --ng-select-option-hover-bg: rgba(71, 118, 230, 0.3);
+      --ng-select-option-selected-bg: rgba(71, 118, 230, 0.4);
+      --ng-select-color: #f8f9fa;
     }
 
     :host-context(.dark) .model-select {
