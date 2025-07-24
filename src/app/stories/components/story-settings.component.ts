@@ -393,18 +393,22 @@ import { Story, StorySettings, DEFAULT_STORY_SETTINGS } from '../models/story.in
     }
 
     .settings-textarea {
-      --background: #1a1a1a;
-      --color: #e0e0e0;
-      --placeholder-color: #6c757d;
+      --background: rgba(30, 30, 30, 0.3) !important;
+      --color: #f8f9fa !important;
+      --placeholder-color: #adb5bd !important;
+      --placeholder-opacity: 0.8 !important;
       --padding-start: 16px;
       --padding-end: 16px;
       --padding-top: 16px;
       --padding-bottom: 16px;
-      border: 1px solid #404040;
+      backdrop-filter: blur(5px) !important;
+      -webkit-backdrop-filter: blur(5px) !important;
+      border: 1px solid rgba(255, 255, 255, 0.2) !important;
       border-radius: 8px;
       font-family: 'Courier New', monospace;
       font-size: 0.95rem;
       margin-top: 1rem;
+      background: rgba(30, 30, 30, 0.3) !important;
     }
 
     .settings-textarea.large {
@@ -454,9 +458,10 @@ import { Story, StorySettings, DEFAULT_STORY_SETTINGS } from '../models/story.in
     .template-placeholders {
       margin: 1rem 0;
       padding: 1rem;
-      background: #1a1a1a;
+      background: rgba(30, 30, 30, 0.3);
+      backdrop-filter: blur(5px);
       border-radius: 8px;
-      border: 1px solid #404040;
+      border: 1px solid rgba(255, 255, 255, 0.2);
     }
 
     .placeholder-chip {
