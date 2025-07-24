@@ -309,7 +309,7 @@ interface PresetPrompt {
     
     ion-header {
       backdrop-filter: blur(15px);
-      background: rgba(45, 45, 45, 0.85);
+      background: rgba(45, 45, 45, 0.3);
       box-shadow: 0 2px 20px rgba(0, 0, 0, 0.4);
       position: relative;
       z-index: 100;
@@ -357,7 +357,7 @@ interface PresetPrompt {
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
-      background: rgba(45, 45, 45, 0.85);
+      background: rgba(45, 45, 45, 0.3);
       border-bottom: 1px solid rgba(255, 255, 255, 0.1);
       backdrop-filter: blur(8px);
     }
@@ -491,7 +491,7 @@ interface PresetPrompt {
     }
 
     .chat-footer {
-      background: rgba(45, 45, 45, 0.85);
+      background: rgba(45, 45, 45, 0.3);
       backdrop-filter: blur(15px);
       -webkit-backdrop-filter: blur(15px);
       border-top: 1px solid rgba(255, 255, 255, 0.1);
@@ -509,8 +509,8 @@ interface PresetPrompt {
       display: flex;
       align-items: flex-end;
       gap: 8px;
-      background: linear-gradient(135deg, rgba(20, 20, 20, 0.4) 0%, rgba(15, 15, 15, 0.4) 100%);
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: linear-gradient(135deg, rgba(20, 20, 20, 0.2) 0%, rgba(15, 15, 15, 0.2) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.15);
       border-radius: 24px;
       padding: 4px 4px 4px 16px;
       backdrop-filter: blur(8px);
@@ -620,7 +620,7 @@ interface PresetPrompt {
       --background: transparent;
       --border-width: 0 0 1px 0;
       --border-color: rgba(255, 255, 255, 0.1);
-      background: rgba(45, 45, 45, 0.85);
+      background: rgba(45, 45, 45, 0.3);
       backdrop-filter: blur(15px);
       -webkit-backdrop-filter: blur(15px);
       padding: 8px 16px;
@@ -633,12 +633,12 @@ interface PresetPrompt {
     .model-select {
       --ng-select-height: 38px;
       --ng-select-value-font-size: 14px;
-      --ng-select-bg: rgba(20, 20, 20, 0.4);
-      --ng-select-border-color: rgba(255, 255, 255, 0.2);
+      --ng-select-bg: rgba(20, 20, 20, 0.2);
+      --ng-select-border-color: rgba(255, 255, 255, 0.15);
       --ng-select-border-radius: 8px;
       --ng-select-highlight: #8bb4f8;
-      --ng-select-dropdown-bg: rgba(45, 45, 45, 0.95);
-      --ng-select-dropdown-border-color: rgba(255, 255, 255, 0.2);
+      --ng-select-dropdown-bg: rgba(45, 45, 45, 0.4);
+      --ng-select-dropdown-border-color: rgba(255, 255, 255, 0.15);
       --ng-select-option-bg: transparent;
       --ng-select-option-hover-bg: rgba(71, 118, 230, 0.3);
       --ng-select-option-selected-bg: rgba(71, 118, 230, 0.4);
