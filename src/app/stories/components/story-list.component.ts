@@ -139,7 +139,7 @@ import { HeaderNavigationService } from '../../shared/services/header-navigation
     :host {
       display: block;
       width: 100%;
-      min-height: 100vh;
+      height: 100%;
       position: relative;
     }
     
@@ -147,8 +147,7 @@ import { HeaderNavigationService } from '../../shared/services/header-navigation
     ion-content {
       --background: transparent !important;
       background: transparent !important;
-      position: relative;
-      /* Allow Ionic to handle natural scrolling behavior */
+      height: 100%;
     }
     
     /* Make sure ion-content doesn't override our background */
