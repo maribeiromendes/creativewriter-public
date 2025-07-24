@@ -512,6 +512,12 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
   `,
   styles: [`
     :host {
+      display: block;
+      width: 100%;
+      height: 100%;
+      position: relative;
+      min-height: 100vh;
+      
       background: 
         /* Dark overlay for text readability */
         linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
@@ -531,6 +537,15 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
       display: flex;
       flex-direction: column;
       background: transparent;
+    }
+    
+    ion-content {
+      --background: transparent !important;
+      background: transparent !important;
+    }
+    
+    ion-content::part(background) {
+      background: transparent !important;
     }
 
     .codex-grid {
@@ -655,7 +670,13 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
       --width: 90vw;
       --max-width: 800px;
       --height: 90vh;
-      --border-radius: 12px;
+      --border-radius: 16px;
+      --background: linear-gradient(135deg, rgba(20, 20, 20, 0.95) 0%, rgba(15, 15, 15, 0.95) 100%);
+      backdrop-filter: blur(20px);
+    }
+    
+    .entry-modal ion-content {
+      --background: transparent;
     }
 
     @media (max-width: 768px) {
