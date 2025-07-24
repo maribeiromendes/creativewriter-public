@@ -645,22 +645,48 @@ interface PresetPrompt {
       --ng-select-color: #f8f9fa;
     }
     
-    /* Direct ng-select styling overrides */
-    ::ng-deep .model-select .ng-select-container {
+    /* Aggressive ng-select styling overrides */
+    ::ng-deep ng-select.model-select {
+      background: rgba(45, 45, 45, 0.3) !important;
+    }
+    
+    ::ng-deep ng-select.model-select .ng-select-container {
+      background-color: rgba(45, 45, 45, 0.3) !important;
       background: rgba(45, 45, 45, 0.3) !important;
       backdrop-filter: blur(15px) !important;
       -webkit-backdrop-filter: blur(15px) !important;
     }
     
-    ::ng-deep .model-select .ng-select.ng-select-single .ng-select-container {
-      background: rgba(45, 45, 45, 0.3) !important;
+    ::ng-deep ng-select.model-select .ng-select-container .ng-value-container {
+      background: transparent !important;
+    }
+    
+    ::ng-deep ng-select.model-select .ng-select-container .ng-value-container .ng-input {
+      background: transparent !important;
+    }
+    
+    ::ng-deep ng-select.model-select .ng-select-container .ng-arrow-wrapper {
+      background: transparent !important;
     }
     
     ::ng-deep .ng-dropdown-panel {
+      background-color: rgba(45, 45, 45, 0.3) !important;
       background: rgba(45, 45, 45, 0.3) !important;
       backdrop-filter: blur(15px) !important;
       -webkit-backdrop-filter: blur(15px) !important;
       border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    }
+    
+    ::ng-deep .ng-dropdown-panel .ng-dropdown-panel-items {
+      background: transparent !important;
+    }
+    
+    ::ng-deep .ng-dropdown-panel .ng-dropdown-panel-items .ng-option {
+      background: transparent !important;
+    }
+    
+    ::ng-deep .ng-dropdown-panel .ng-dropdown-panel-items .ng-option.ng-option-highlighted {
+      background: rgba(71, 118, 230, 0.3) !important;
     }
 
     :host-context(.dark) .model-select {
