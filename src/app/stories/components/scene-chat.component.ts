@@ -633,16 +633,34 @@ interface PresetPrompt {
     .model-select {
       --ng-select-height: 38px;
       --ng-select-value-font-size: 14px;
-      --ng-select-bg: rgba(45, 45, 45, 0.3);
+      --ng-select-bg: rgba(45, 45, 45, 0.3) !important;
       --ng-select-border-color: rgba(255, 255, 255, 0.15);
       --ng-select-border-radius: 8px;
       --ng-select-highlight: #8bb4f8;
-      --ng-select-dropdown-bg: rgba(45, 45, 45, 0.3);
+      --ng-select-dropdown-bg: rgba(45, 45, 45, 0.3) !important;
       --ng-select-dropdown-border-color: rgba(255, 255, 255, 0.15);
       --ng-select-option-bg: transparent;
       --ng-select-option-hover-bg: rgba(71, 118, 230, 0.3);
       --ng-select-option-selected-bg: rgba(71, 118, 230, 0.4);
       --ng-select-color: #f8f9fa;
+    }
+    
+    /* Direct ng-select styling overrides */
+    ::ng-deep .model-select .ng-select-container {
+      background: rgba(45, 45, 45, 0.3) !important;
+      backdrop-filter: blur(15px) !important;
+      -webkit-backdrop-filter: blur(15px) !important;
+    }
+    
+    ::ng-deep .model-select .ng-select.ng-select-single .ng-select-container {
+      background: rgba(45, 45, 45, 0.3) !important;
+    }
+    
+    ::ng-deep .ng-dropdown-panel {
+      background: rgba(45, 45, 45, 0.3) !important;
+      backdrop-filter: blur(15px) !important;
+      -webkit-backdrop-filter: blur(15px) !important;
+      border: 1px solid rgba(255, 255, 255, 0.15) !important;
     }
 
     :host-context(.dark) .model-select {
