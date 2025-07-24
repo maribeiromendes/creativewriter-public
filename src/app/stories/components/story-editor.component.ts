@@ -1938,7 +1938,10 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
       this.editorView.dispatch(tr);
       
       // Scroll the editor view to show the cursor
-      this.editorView.focus();
+      // Only focus on desktop to prevent mobile keyboard from opening
+      if (!this.isMobileDevice()) {
+        this.editorView.focus();
+      }
       
       // Scroll the DOM element to the bottom
       setTimeout(() => {
@@ -2064,7 +2067,8 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     }
     
     // Focus the editor after a brief delay to ensure the component is ready (except for image dialog)
-    if (result.action !== SlashCommandAction.INSERT_IMAGE) {
+    // Only focus on desktop to prevent mobile keyboard from opening
+    if (result.action !== SlashCommandAction.INSERT_IMAGE && !this.isMobileDevice()) {
       setTimeout(() => {
         this.proseMirrorService.focus();
       }, 100);
@@ -2102,9 +2106,12 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
   hideImageDialog(): void {
     this.showImageDialog = false;
     // Focus the editor after hiding dialog
-    setTimeout(() => {
-      this.proseMirrorService.focus();
-    }, 100);
+    // Only focus on desktop to prevent mobile keyboard from opening
+    if (!this.isMobileDevice()) {
+      setTimeout(() => {
+        this.proseMirrorService.focus();
+      }, 100);
+    }
   }
 
   onImageInserted(imageData: ImageInsertResult): void {
@@ -2117,9 +2124,12 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     this.proseMirrorService.insertImage(imageData, this.imageCursorPosition, true);
     
     // Focus the editor
-    setTimeout(() => {
-      this.proseMirrorService.focus();
-    }, 100);
+    // Only focus on desktop to prevent mobile keyboard from opening
+    if (!this.isMobileDevice()) {
+      setTimeout(() => {
+        this.proseMirrorService.focus();
+      }, 100);
+    }
   }
   
   // Scene Navigation Methods
