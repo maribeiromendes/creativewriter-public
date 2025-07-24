@@ -323,7 +323,7 @@ import { Subscription } from 'rxjs';
     .story-structure {
       width: 280px;
       background: transparent;
-      border-right: 1px solid var(--ion-color-step-200);
+      border-right: 1px solid rgba(255, 255, 255, 0.2);
       display: flex;
       flex-direction: column;
       position: fixed;
@@ -370,26 +370,46 @@ import { Subscription } from 'rxjs';
     }
     
     .structure-header {
-      --background: var(--ion-color-step-100);
+      backdrop-filter: blur(15px);
+      background: rgba(45, 45, 45, 0.3);
+      box-shadow: 0 2px 20px rgba(0, 0, 0, 0.4);
+      --background: transparent;
       --border-width: 0 0 1px 0;
-      --border-color: var(--ion-color-step-200);
+      --border-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .structure-header ion-toolbar {
+      --background: transparent;
+      --color: #f8f9fa;
     }
     
     .structure-header ion-title {
+      background: linear-gradient(135deg, #f8f9fa 0%, #8bb4f8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 700;
+      letter-spacing: 0.5px;
       font-size: 1.1rem;
     }
     
     .structure-content {
-      --background: var(--ion-background-color);
+      --background: transparent !important;
+      background: transparent !important;
       flex: 1;
       overflow-y: auto;
       height: 100%;
     }
     
-    /* Fix for IonContent scrolling */
+    .structure-content::part(background) {
+      background: transparent !important;
+    }
+    
     .structure-content::part(scroll) {
+      background: transparent !important;
       padding-bottom: 10rem;
     }
+    
     
     .chapters-list {
       background: transparent;
@@ -399,19 +419,31 @@ import { Subscription } from 'rxjs';
     
     .chapter-item {
       margin-bottom: 0.5rem;
-      border: 1px solid var(--ion-color-step-100);
-      border-radius: 8px;
+      background: linear-gradient(135deg, rgba(20, 20, 20, 0.3) 0%, rgba(15, 15, 15, 0.3) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      backdrop-filter: blur(8px) saturate(120%);
+      -webkit-backdrop-filter: blur(8px) saturate(120%);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+      transition: all 0.3s ease;
       overflow: hidden;
     }
     
+    .chapter-item:hover {
+      background: linear-gradient(135deg, rgba(25, 25, 25, 0.4) 0%, rgba(20, 20, 20, 0.4) 100%);
+      border-color: rgba(71, 118, 230, 0.3);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+      transform: translateY(-2px);
+    }
+    
     .chapter-header {
-      --background: var(--ion-color-step-100);
-      --background-hover: var(--ion-color-step-150);
-      --color: var(--ion-text-color);
+      --background: transparent;
+      --background-hover: rgba(255, 255, 255, 0.1);
+      --color: #f8f9fa;
     }
     
     .expand-icon {
-      color: var(--ion-color-medium);
+      color: #8bb4f8;
       font-size: 1rem;
       padding: 0.5rem;
       margin: -0.5rem;
@@ -419,14 +451,15 @@ import { Subscription } from 'rxjs';
     }
     
     .chapter-title-input {
-      --color: var(--ion-text-color);
-      --placeholder-color: var(--ion-color-medium);
+      --background: transparent;
+      --color: #f8f9fa;
+      --placeholder-color: #adb5bd;
       font-weight: 500;
       font-size: 0.9rem;
     }
     
     .scenes-list {
-      background: var(--ion-background-color);
+      background: transparent;
       padding: 0.5rem;
     }
     
@@ -435,12 +468,16 @@ import { Subscription } from 'rxjs';
     }
     
     .scene-item {
-      --background: var(--ion-color-step-150);
-      --background-hover: var(--ion-color-medium-tint);
-      --border-radius: 4px;
+      --background: rgba(30, 30, 30, 0.4);
+      --background-hover: rgba(71, 118, 230, 0.3);
+      --color: #f8f9fa;
+      --border-radius: 8px;
       margin-bottom: 0.25rem;
       --padding-start: 8px;
       --padding-end: 8px;
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: all 0.3s ease;
     }
     
     .scene-item.multi-line {
@@ -584,13 +621,18 @@ import { Subscription } from 'rxjs';
     .model-select {
       width: 100%;
       margin-bottom: 0.5rem;
-      --placeholder-color: var(--ion-color-medium);
+      --background: rgba(30, 30, 30, 0.4);
+      --color: #f8f9fa;
+      --placeholder-color: #adb5bd;
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
     }
     
     .summary-textarea {
-      --background: var(--ion-background-color);
-      --color: var(--ion-text-color);
-      --placeholder-color: var(--ion-color-medium);
+      --background: rgba(30, 30, 30, 0.4);
+      --color: #f8f9fa;
+      --placeholder-color: #adb5bd;
       --padding-start: 12px;
       --padding-end: 12px;
       --padding-top: 12px;
@@ -598,8 +640,10 @@ import { Subscription } from 'rxjs';
       font-size: 0.9rem;
       margin-top: 0.5rem;
       width: 100%;
-      border: 1px solid var(--ion-color-step-200);
-      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
       min-height: 60px;
     }
     
@@ -610,8 +654,20 @@ import { Subscription } from 'rxjs';
     
     .add-scene-btn {
       margin: 0.5rem;
+      --background: linear-gradient(135deg, rgba(71, 118, 230, 0.2) 0%, rgba(139, 180, 248, 0.2) 100%);
+      --background-hover: linear-gradient(135deg, rgba(71, 118, 230, 0.3) 0%, rgba(139, 180, 248, 0.3) 100%);
+      --color: #8bb4f8;
+      --border-color: rgba(71, 118, 230, 0.5);
       --border-style: dashed;
-      --border-width: 1px;
+      --border-width: 2px;
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      transition: all 0.3s ease;
+    }
+    
+    .add-scene-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(71, 118, 230, 0.3);
     }
     
     /* Screen reader only content */
