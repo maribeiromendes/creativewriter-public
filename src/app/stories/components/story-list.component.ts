@@ -538,7 +538,7 @@ import { HeaderNavigationService } from '../../shared/services/header-navigation
       border-radius: 8px;
       transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
       position: relative;
-      overflow: visible;
+      overflow: hidden;
       --padding-top: 8px;
       --padding-bottom: 8px;
       --padding-start: 1rem;
