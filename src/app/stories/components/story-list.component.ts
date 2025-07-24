@@ -348,11 +348,22 @@ import { AuthService, User } from '../../core/services/auth.service';
       right: -300px;
       width: 300px;
       height: 100%;
-      background: #2d2d2d;
-      border-left: 1px solid rgba(255, 255, 255, 0.1);
+      background: 
+        /* Dark overlay for text readability */
+        linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)),
+        /* Main anime image */
+        url('/assets/cyberpunk-anime-girl.png'),
+        /* Fallback dark background */
+        #2d2d2d;
+      background-size: cover, cover, auto;
+      background-position: center, center, center;
+      background-repeat: no-repeat, no-repeat, repeat;
+      border-left: 1px solid rgba(255, 255, 255, 0.2);
       z-index: 9999;
       transition: right 0.3s ease-in-out;
-      box-shadow: -4px 0 8px rgba(0, 0, 0, 0.3);
+      box-shadow: -4px 0 20px rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
     }
     
     .burger-menu.open {
@@ -371,15 +382,21 @@ import { AuthService, User } from '../../core/services/auth.service';
       justify-content: space-between;
       align-items: center;
       padding: 1rem;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-      background: #343434;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      background: linear-gradient(135deg, rgba(20, 20, 20, 0.4) 0%, rgba(15, 15, 15, 0.4) 100%);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
     }
     
     .burger-menu-header h3 {
       margin: 0;
-      color: #f8f9fa;
+      background: linear-gradient(135deg, #f8f9fa 0%, #8bb4f8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
       font-size: 1.2rem;
-      font-weight: 600;
+      font-weight: 700;
+      letter-spacing: 0.5px;
     }
     
     .burger-menu-items {
@@ -392,19 +409,27 @@ import { AuthService, User } from '../../core/services/auth.service';
     
     .burger-menu-items ion-button {
       --color: #f8f9fa;
-      --background: transparent;
-      --background-hover: rgba(255, 255, 255, 0.1);
-      --background-focused: rgba(255, 255, 255, 0.1);
-      --ripple-color: rgba(255, 255, 255, 0.2);
-      margin: 0 1rem;
+      --background: linear-gradient(135deg, rgba(20, 20, 20, 0.2) 0%, rgba(15, 15, 15, 0.2) 100%);
+      --background-hover: linear-gradient(135deg, rgba(71, 118, 230, 0.3) 0%, rgba(139, 180, 248, 0.3) 100%);
+      --background-focused: linear-gradient(135deg, rgba(71, 118, 230, 0.3) 0%, rgba(139, 180, 248, 0.3) 100%);
+      --ripple-color: rgba(139, 180, 248, 0.4);
+      margin: 0 1rem 0.5rem 1rem;
       height: 48px;
       font-size: 1rem;
       justify-content: flex-start;
       text-align: left;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      transition: all 0.3s ease;
     }
     
     .burger-menu-items ion-button:hover {
-      --background: rgba(255, 255, 255, 0.1);
+      --background: linear-gradient(135deg, rgba(71, 118, 230, 0.4) 0%, rgba(139, 180, 248, 0.4) 100%);
+      border-color: rgba(71, 118, 230, 0.5);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(71, 118, 230, 0.3);
     }
     
     .burger-menu-items ion-button ion-icon {
@@ -413,22 +438,30 @@ import { AuthService, User } from '../../core/services/auth.service';
     }
     
     .burger-menu-footer {
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
       padding: 1rem;
       margin-top: auto;
       display: flex;
       flex-direction: column;
       gap: 0.5rem;
+      background: linear-gradient(135deg, rgba(20, 20, 20, 0.4) 0%, rgba(15, 15, 15, 0.4) 100%);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
     }
     
     .burger-menu-footer ion-button {
       --color: #ff6b6b;
-      --background: transparent;
-      --background-hover: rgba(255, 107, 107, 0.1);
-      --background-focused: rgba(255, 107, 107, 0.1);
-      --ripple-color: rgba(255, 107, 107, 0.2);
+      --background: linear-gradient(135deg, rgba(220, 53, 69, 0.2) 0%, rgba(255, 107, 107, 0.2) 100%);
+      --background-hover: linear-gradient(135deg, rgba(220, 53, 69, 0.3) 0%, rgba(255, 107, 107, 0.3) 100%);
+      --background-focused: linear-gradient(135deg, rgba(220, 53, 69, 0.3) 0%, rgba(255, 107, 107, 0.3) 100%);
+      --ripple-color: rgba(255, 107, 107, 0.4);
       height: 40px;
       font-size: 0.9rem;
+      border: 1px solid rgba(220, 53, 69, 0.3);
+      border-radius: 8px;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      transition: all 0.3s ease;
     }
     
     .full-sync-status {
@@ -475,16 +508,25 @@ import { AuthService, User } from '../../core/services/auth.service';
       width: 56px;
       height: 56px;
       border-radius: 50%;
-      background-color: #3880ff;
-      color: white;
-      border: none;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      background: linear-gradient(135deg, rgba(71, 118, 230, 0.8) 0%, rgba(139, 180, 248, 0.8) 100%);
+      color: #f8f9fa;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 6px 20px rgba(71, 118, 230, 0.4);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 24px;
       cursor: pointer;
-      transition: transform 0.2s ease;
+      transition: all 0.3s ease;
+    }
+    
+    .mobile-fab-button:hover {
+      background: linear-gradient(135deg, rgba(71, 118, 230, 0.9) 0%, rgba(139, 180, 248, 0.9) 100%);
+      border-color: rgba(255, 255, 255, 0.5);
+      box-shadow: 0 8px 25px rgba(71, 118, 230, 0.6);
+      transform: translateY(-2px);
     }
     
     .mobile-fab-button:active {
@@ -495,28 +537,48 @@ import { AuthService, User } from '../../core/services/auth.service';
       position: absolute;
       bottom: 70px;
       right: 0;
-      background: var(--ion-color-dark);
-      border-radius: 8px;
+      background: 
+        linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)),
+        url('/assets/cyberpunk-anime-girl.png'),
+        rgba(45, 45, 45, 0.95);
+      background-size: cover, cover, auto;
+      background-position: center, center, center;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
       padding: 8px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+      min-width: 160px;
     }
     
     .mobile-fab-option {
       display: flex;
       align-items: center;
       gap: 8px;
-      background: transparent;
-      color: white;
-      border: none;
+      background: linear-gradient(135deg, rgba(20, 20, 20, 0.3) 0%, rgba(15, 15, 15, 0.3) 100%);
+      color: #f8f9fa;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
       padding: 12px 16px;
       width: 100%;
       text-align: left;
       cursor: pointer;
-      border-radius: 4px;
+      margin-bottom: 4px;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
     }
     
     .mobile-fab-option:hover {
-      background: rgba(255, 255, 255, 0.1);
+      background: linear-gradient(135deg, rgba(71, 118, 230, 0.3) 0%, rgba(139, 180, 248, 0.3) 100%);
+      border-color: rgba(71, 118, 230, 0.5);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(71, 118, 230, 0.3);
+    }
+    
+    .mobile-fab-option:last-child {
+      margin-bottom: 0;
     }
     
     .mobile-fab-option ion-icon {
