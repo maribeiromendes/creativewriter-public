@@ -276,9 +276,9 @@ import { EditorView } from 'prosemirror-view';
     
     .prompt-input.prosemirror-container {
       width: 100%;
-      background: rgba(30, 30, 30, 0.2);
-      backdrop-filter: blur(5px);
-      border: 1px solid rgba(255, 255, 255, 0.15);
+      background: rgba(20, 20, 20, 0.1);
+      backdrop-filter: blur(3px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 6px;
       padding: 0;
       color: #e0e0e0;
@@ -306,8 +306,8 @@ import { EditorView } from 'prosemirror-view';
       outline: none;
       padding: 0.6rem !important;
       min-height: auto;
-      background: rgba(20, 20, 20, 0.2);
-      backdrop-filter: blur(3px);
+      background: rgba(15, 15, 15, 0.1);
+      backdrop-filter: blur(2px);
       color: #e0e0e0 !important;
       font-size: 0.9rem;
       line-height: 1.2;
