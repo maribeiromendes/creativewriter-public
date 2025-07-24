@@ -549,7 +549,8 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
         flex: 1;
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
-        height: calc(100vh - var(--header-height, 60px));
+        height: calc(100vh - 112px); /* Account for primary + secondary toolbar */
+        max-height: calc(100vh - 112px);
       }
     }
     

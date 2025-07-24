@@ -144,6 +144,14 @@ export interface BurgerMenuItem {
       border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
     
+    /* Mobile header height fix for scroll calculation */
+    @media (max-width: 768px) {
+      ion-header {
+        height: auto;
+        min-height: 56px;
+      }
+    }
+    
     ion-toolbar {
       --background: transparent;
       --color: #f8f9fa;
