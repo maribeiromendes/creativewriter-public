@@ -148,6 +148,8 @@ import { HeaderNavigationService } from '../../shared/services/header-navigation
     ion-content {
       --background: transparent !important;
       background: transparent !important;
+      --overflow: visible !important;
+      overflow: visible !important;
     }
     
     /* Make sure ion-content doesn't override our background */
@@ -178,6 +180,7 @@ import { HeaderNavigationService } from '../../shared/services/header-navigation
       background-color: transparent;
       position: relative;
       z-index: 1;
+      overflow: visible;
     }
     
     .title-gradient {
@@ -514,21 +517,65 @@ import { HeaderNavigationService } from '../../shared/services/header-navigation
     .action-buttons {
       display: flex;
       gap: 1rem;
-      margin: 0 auto 1.5rem;
+      margin: 0 auto 2rem;
       max-width: 600px;
       flex-wrap: wrap;
+      padding: 0.5rem 0;
+      overflow: visible;
     }
     
     .action-buttons ion-button {
       flex: 1;
       min-width: 160px;
-      --background: linear-gradient(135deg, #4776E6 0%, #8E54E9 100%);
-      --border-radius: 8px;
-      --box-shadow: 0 2px 8px rgba(71, 118, 230, 0.2);
-      transition: all 0.3s ease;
-      font-weight: 500;
-      height: 36px;
+      --color: rgba(255, 255, 255, 0.95);
+      --background: rgba(255, 255, 255, 0.04);
+      --background-hover: rgba(139, 180, 248, 0.15);
+      --background-focused: rgba(139, 180, 248, 0.2);
+      --ripple-color: rgba(139, 180, 248, 0.3);
+      min-height: 36px;
       font-size: 0.9rem;
+      font-weight: 500;
+      justify-content: flex-start;
+      text-align: left;
+      border: 1px solid rgba(139, 180, 248, 0.2);
+      border-radius: 8px;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: visible;
+      --padding-top: 8px;
+      --padding-bottom: 8px;
+      --padding-start: 1rem;
+      --padding-end: 1rem;
+    }
+    
+    .action-buttons ion-button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(139, 180, 248, 0.1), transparent);
+      transition: left 0.5s ease;
+      z-index: 1;
+    }
+    
+    .action-buttons ion-button:hover {
+      --background: rgba(139, 180, 248, 0.15);
+      border-color: rgba(139, 180, 248, 0.4);
+      transform: scale(1.02);
+      box-shadow: 0 2px 8px rgba(139, 180, 248, 0.2);
+    }
+    
+    .action-buttons ion-button:hover::before {
+      left: 100%;
+    }
+    
+    .action-buttons ion-button ion-icon {
+      position: relative;
+      z-index: 2;
+      margin-right: 8px;
+      font-size: 1rem;
     }
     
     /* Custom Mobile FAB */

@@ -540,13 +540,74 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
 
     .codex-grid {
       height: 100%;
-      padding: 1rem;
+      padding: 0.125rem;
+      max-width: none;
+    }
+    
+    /* Reduce card padding throughout */
+    ion-card-header {
+      --padding-top: 4px;
+      --padding-bottom: 4px;
+      --padding-start: 8px;
+      --padding-end: 8px;
+    }
+
+    ion-card-content {
+      --padding-top: 4px;
+      --padding-bottom: 6px;
+      --padding-start: 8px;
+      --padding-end: 8px;
+    }
+    
+    /* Remove default grid/row/col padding */
+    ion-card-content ion-grid {
+      --ion-grid-padding: 0px;
+      --ion-grid-padding-xs: 0px;
+      --ion-grid-padding-sm: 0px;
+      --ion-grid-padding-md: 0px;
+      --ion-grid-padding-lg: 0px;
+      --ion-grid-padding-xl: 0px;
+      padding: 0;
+    }
+    
+    ion-card-content ion-row {
+      --ion-grid-column-padding: 1px;
+      --ion-grid-column-padding-xs: 1px;
+      --ion-grid-column-padding-sm: 1px;
+      --ion-grid-column-padding-md: 1px;
+      --ion-grid-column-padding-lg: 1px;
+      --ion-grid-column-padding-xl: 1px;
+    }
+    
+    ion-card-content ion-col {
+      padding: 1px;
     }
 
     .categories-sidebar {
       position: sticky;
       top: 0;
       height: fit-content;
+    }
+    
+    /* Make category items more compact */
+    .categories-sidebar ion-item {
+      --min-height: 40px;
+      --padding-top: 4px;
+      --padding-bottom: 4px;
+      --padding-start: 8px;
+      --padding-end: 8px;
+    }
+    
+    /* Make category titles smaller */
+    .categories-sidebar ion-label h3 {
+      font-size: 0.9rem !important;
+      margin: 0 !important;
+      font-weight: 500 !important;
+    }
+    
+    .categories-sidebar ion-label p {
+      font-size: 0.75rem !important;
+      margin: 2px 0 0 0 !important;
     }
     
     /* Apply cyberpunk styling to all ion-cards */
@@ -569,6 +630,8 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
     ion-card-title {
       color: #f8f9fa !important;
       --color: #f8f9fa !important;
+      font-size: 1rem !important;
+      font-weight: 600 !important;
     }
     
     ion-card-content {
@@ -651,7 +714,7 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
       -webkit-backdrop-filter: blur(8px) saturate(120%) !important;
       box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2) !important;
       transition: all 0.3s ease;
-      margin-bottom: 1rem;
+      margin-bottom: 0.125rem;
       --background: transparent !important;
     }
     
@@ -668,6 +731,8 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
     .entry-card ion-card-title {
       color: #f8f9fa !important;
       --color: #f8f9fa !important;
+      font-size: 0.9rem !important;
+      font-weight: 600 !important;
     }
     
     .entry-card ion-text {
@@ -684,10 +749,10 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
 
     .entry-meta {
       display: flex;
-      gap: 0.5rem;
+      gap: 0.125rem;
       flex-wrap: wrap;
       align-items: center;
-      margin-top: 0.5rem;
+      margin-top: 0.125rem;
     }
     
     .entry-meta ion-chip {
@@ -703,14 +768,14 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
 
     .tags-list {
       display: flex;
-      gap: 0.5rem;
+      gap: 0.125rem;
       flex-wrap: wrap;
       align-items: center;
     }
 
     @media (max-width: 768px) {
       .codex-grid {
-        padding: 0.5rem;
+        padding: 0.125rem;
       }
       
       .categories-sidebar {
@@ -755,7 +820,7 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
     .form-section {
       background: var(--ion-background-color);
       margin: 0;
-      padding: 24px;
+      padding: 4px;
       border-bottom: 1px solid var(--ion-color-step-150);
     }
 
@@ -764,13 +829,13 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
     }
 
     .section-title {
-      margin: 0 0 20px 0;
-      font-size: 1.2rem;
+      margin: 0 0 4px 0;
+      font-size: 1rem;
       font-weight: 600;
       color: var(--ion-color-primary);
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
     }
 
     .section-title::before {
@@ -785,14 +850,14 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 20px;
+      margin-bottom: 4px;
       flex-wrap: wrap;
       gap: 12px;
     }
 
     /* Form Groups and Items */
     .form-group {
-      margin-bottom: 20px;
+      margin-bottom: 4px;
     }
 
     .form-group:last-child {
@@ -816,7 +881,7 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
     .form-item ion-label {
       font-weight: 500;
       color: var(--ion-text-color);
-      margin-bottom: 8px;
+      margin-bottom: 4px;
       opacity: 0.8;
     }
 
@@ -828,7 +893,7 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
       --padding-end: 16px;
       --padding-top: 12px;
       --padding-bottom: 12px;
-      font-size: 1rem;
+      font-size: 0.9rem;
       border: 1px solid var(--ion-color-step-200);
       border-radius: 8px;
       margin-top: 8px;
@@ -848,7 +913,7 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
     /* Specific Input Styling */
     .title-input {
       font-weight: 600;
-      font-size: 1.1rem;
+      font-size: 1rem;
     }
 
     .content-item {
@@ -925,7 +990,7 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
       display: flex;
       align-items: flex-end;
       gap: 12px;
-      margin-bottom: 12px;
+      margin-bottom: 4px;
     }
 
     .field-name-item {
@@ -959,7 +1024,7 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
       justify-content: flex-end;
       align-items: center;
       gap: 12px;
-      padding: 24px;
+      padding: 4px;
       background: var(--ion-toolbar-background);
       border-top: 1px solid var(--ion-color-step-200);
       position: sticky;
