@@ -17,6 +17,95 @@
   --ion-text-color: #e0e0e0;
   --ion-text-color-rgb: 224, 224, 224;
   
+  /* Global compact spacing - makes entire app much more dense */
+  
+  /* Grid System */
+  --ion-grid-padding: 2px;
+  --ion-grid-column-padding: 1px;
+  --ion-grid-width: 100%;
+  
+  /* Cards - Universal and Mode-specific */
+  --ion-card-header-padding-top: 8px;
+  --ion-card-header-padding-bottom: 6px;
+  --ion-card-header-padding-start: 8px;
+  --ion-card-header-padding-end: 8px;
+  --ion-card-content-padding-top: 2px;
+  --ion-card-content-padding-bottom: 2px;
+  --ion-card-content-padding-start: 2px;
+  --ion-card-content-padding-end: 2px;
+  
+  /* Material Design specific */
+  --ion-card-md-header-padding-top: 8px;
+  --ion-card-md-header-padding-bottom: 6px;
+  --ion-card-md-header-padding-start: 8px;
+  --ion-card-md-header-padding-end: 8px;
+  --ion-card-md-content-padding-top: 2px;
+  --ion-card-md-content-padding-bottom: 2px;
+  --ion-card-md-content-padding-start: 2px;
+  --ion-card-md-content-padding-end: 2px;
+  
+  /* Platform-agnostic compact spacing */
+  
+  /* Items */
+  --ion-item-padding-top: 2px;
+  --ion-item-padding-bottom: 2px;
+  --ion-item-padding-start: 6px;
+  --ion-item-padding-end: 6px;
+  --ion-item-min-height: 32px;
+  
+  /* Lists */
+  --ion-list-padding-top: 0px;
+  --ion-list-padding-bottom: 0px;
+  --ion-list-header-padding-top: 2px;
+  --ion-list-header-padding-bottom: 2px;
+  --ion-list-header-padding-start: 6px;
+  --ion-list-header-padding-end: 6px;
+  
+  /* Labels (within items) */
+  --ion-label-padding-top: 0px;
+  --ion-label-padding-bottom: 0px;
+  --ion-label-padding-start: 0px;
+  --ion-label-padding-end: 0px;
+  
+  /* Icons */
+  --ion-icon-margin-top: 0px;
+  --ion-icon-margin-bottom: 0px;
+  --ion-icon-margin-start: 0px;
+  --ion-icon-margin-end: 4px;
+  
+  /* Buttons */
+  --ion-button-padding-top: 4px;
+  --ion-button-padding-bottom: 4px;
+  --ion-button-padding-start: 8px;
+  --ion-button-padding-end: 8px;
+  
+  /* Chips */
+  --ion-chip-padding-top: 2px;
+  --ion-chip-padding-bottom: 2px;
+  --ion-chip-padding-start: 6px;
+  --ion-chip-padding-end: 6px;
+  
+  /* Content areas */
+  --ion-content-padding-top: 0px;
+  --ion-content-padding-bottom: 0px;
+  --ion-content-padding-start: 0px;
+  --ion-content-padding-end: 0px;
+  
+  /* Toolbars */
+  --ion-toolbar-padding-top: 4px;
+  --ion-toolbar-padding-bottom: 4px;
+  --ion-toolbar-padding-start: 8px;
+  --ion-toolbar-padding-end: 8px;
+  
+  /* Modals and Popovers */
+  --ion-modal-padding-top: 8px;
+  --ion-modal-padding-bottom: 8px;
+  --ion-modal-padding-start: 8px;
+  --ion-modal-padding-end: 8px;
+  
+  /* Thinner borders */
+  --ion-item-border-width: 0.5px;
+  
   --ion-color-step-50: #242424;
   --ion-color-step-100: #2e2e2e;
   --ion-color-step-150: #383838;
@@ -94,6 +183,58 @@ ion-content {
   --background: #1a1a1a;
   --color: #e0e0e0;
   /* Allow Ionic to handle scrolling naturally */
+}
+
+/* Ultra-compact using correct Ionic CSS variables */
+ion-card-content {
+  --padding-top: 2px;
+  --padding-bottom: 2px;
+  --padding-start: 2px;
+  --padding-end: 2px;
+}
+
+/* Clean platform-agnostic styling - no iOS/MD specific overrides */
+
+/* Card headers inherit from global variables now */
+
+/* Material Design variables should handle this now */
+
+ion-list {
+  --padding-top: 0px;
+  --padding-bottom: 0px;
+}
+
+ion-item {
+  --padding-top: 1px;
+  --padding-bottom: 1px;
+  --padding-start: 4px;
+  --padding-end: 4px;
+  --inner-padding-top: 1px;
+  --inner-padding-bottom: 1px;
+  --inner-padding-start: 2px;
+  --inner-padding-end: 2px;
+  --min-height: 30px;
+}
+
+/* Compact text elements within items */
+ion-label h3 {
+  margin: 1px 0;
+  font-size: 0.85rem;
+  line-height: 1.1;
+}
+
+ion-label p {
+  margin: 0;
+  font-size: 0.75rem;
+  line-height: 1.0;
+}
+
+ion-button[size="small"] {
+  --padding-top: 2px;
+  --padding-bottom: 2px;
+  --padding-start: 4px;
+  --padding-end: 4px;
+  height: 24px;
 }
 
 ion-card {

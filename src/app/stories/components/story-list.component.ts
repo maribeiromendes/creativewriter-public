@@ -271,8 +271,7 @@ import { HeaderNavigationService } from '../../shared/services/header-navigation
       
       ion-toolbar {
         --min-height: 44px;
-        --padding-top: 4px;
-        --padding-bottom: 4px;
+        /* Padding now inherited from global :root variables */
       }
       
     }
@@ -541,10 +540,7 @@ import { HeaderNavigationService } from '../../shared/services/header-navigation
       transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
       position: relative;
       overflow: hidden;
-      --padding-top: 8px;
-      --padding-bottom: 8px;
-      --padding-start: 1rem;
-      --padding-end: 1rem;
+      /* Padding now inherited from global :root variables */
     }
     
     .action-buttons ion-button::before {

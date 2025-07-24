@@ -544,44 +544,9 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
       max-width: none;
     }
     
-    /* Reduce card padding throughout */
-    ion-card-header {
-      --padding-top: 4px;
-      --padding-bottom: 4px;
-      --padding-start: 8px;
-      --padding-end: 8px;
-    }
-
-    ion-card-content {
-      --padding-top: 4px;
-      --padding-bottom: 6px;
-      --padding-start: 8px;
-      --padding-end: 8px;
-    }
+    /* Card padding now inherited from global :root variables */
     
-    /* Remove default grid/row/col padding */
-    ion-card-content ion-grid {
-      --ion-grid-padding: 0px;
-      --ion-grid-padding-xs: 0px;
-      --ion-grid-padding-sm: 0px;
-      --ion-grid-padding-md: 0px;
-      --ion-grid-padding-lg: 0px;
-      --ion-grid-padding-xl: 0px;
-      padding: 0;
-    }
-    
-    ion-card-content ion-row {
-      --ion-grid-column-padding: 1px;
-      --ion-grid-column-padding-xs: 1px;
-      --ion-grid-column-padding-sm: 1px;
-      --ion-grid-column-padding-md: 1px;
-      --ion-grid-column-padding-lg: 1px;
-      --ion-grid-column-padding-xl: 1px;
-    }
-    
-    ion-card-content ion-col {
-      padding: 1px;
-    }
+    /* Grid and column spacing now inherited from global :root variables */
 
     .categories-sidebar {
       position: sticky;
@@ -726,6 +691,7 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
     .entry-card ion-card-content {
       background: transparent !important;
       --background: transparent !important;
+      /* Padding inherited from global :root variables */
     }
     
     .entry-card ion-card-title {
@@ -749,10 +715,9 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
 
     .entry-meta {
       display: flex;
-      gap: 0.125rem;
+      gap: 2px;
       flex-wrap: wrap;
       align-items: center;
-      margin-top: 0.125rem;
     }
     
     .entry-meta ion-chip {
@@ -760,6 +725,10 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
       --color: #8bb4f8 !important;
       border: 1px solid rgba(71, 118, 230, 0.3) !important;
       backdrop-filter: blur(5px);
+      font-size: 0.7rem !important;
+      height: 20px !important;
+      margin: 1px !important;
+      /* Padding now inherited from global :root variables */
     }
     
     .entry-meta ion-note {

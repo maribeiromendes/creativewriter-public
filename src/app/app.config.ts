@@ -12,7 +12,7 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     provideHttpClient(),
     provideIonicAngular({
-      mode: 'ios' // Ensures consistent design across platforms
+      // Auto-detect platform: iOS in Safari, MD in Chrome/others
     })
   ]
 };
