@@ -139,15 +139,16 @@ import { HeaderNavigationService } from '../../shared/services/header-navigation
     :host {
       display: block;
       width: 100%;
-      height: 100%;
+      height: 100vh;
       position: relative;
-      min-height: 100vh;
     }
     
     
     ion-content {
       --background: transparent !important;
       background: transparent !important;
+      --overflow: auto;
+      height: 100%;
     }
     
     /* Make sure ion-content doesn't override our background */
@@ -168,7 +169,7 @@ import { HeaderNavigationService } from '../../shared/services/header-navigation
       background-size: cover, cover, auto;
       background-position: center, center, center;
       background-repeat: no-repeat, no-repeat, repeat;
-      background-attachment: fixed, fixed, scroll;
+      background-attachment: scroll, scroll, scroll;
     }
     
     .story-list-container {
@@ -675,7 +676,7 @@ import { HeaderNavigationService } from '../../shared/services/header-navigation
     /* Hide action buttons on mobile, show FAB */
     @media (max-width: 767px) {
       .story-list-container {
-        padding-bottom: 8rem;
+        padding-bottom: 4rem;
       }
       
       .action-buttons {
@@ -687,7 +688,7 @@ import { HeaderNavigationService } from '../../shared/services/header-navigation
     
     @media (max-width: 480px) {
       .story-list-container {
-        padding: 1rem 0.5rem 10rem;
+        padding: 1rem 0.5rem 4rem;
       }
       
       
