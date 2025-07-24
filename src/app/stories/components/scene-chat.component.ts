@@ -280,6 +280,12 @@ interface PresetPrompt {
   `,
   styles: [`
     :host {
+      display: block;
+      width: 100%;
+      height: 100%;
+      position: relative;
+      min-height: 100vh;
+      
       background: 
         /* Dark overlay for text readability */
         linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
@@ -295,10 +301,10 @@ interface PresetPrompt {
     }
     
     .ion-page {
-      background: transparent;
-      height: 100vh;
       display: flex;
       flex-direction: column;
+      height: 100vh;
+      background: transparent;
     }
     
     ion-header {
@@ -326,6 +332,11 @@ interface PresetPrompt {
     ion-content {
       --background: transparent !important;
       background: transparent !important;
+      --padding-start: 0;
+      --padding-end: 0;
+      --padding-top: 0;
+      --padding-bottom: 0;
+      flex: 1;
     }
     
     ion-content::part(background) {
@@ -337,7 +348,8 @@ interface PresetPrompt {
     }
     
     .chat-content {
-      --background: transparent;
+      --background: transparent !important;
+      background: transparent !important;
     }
 
     .context-chips {
