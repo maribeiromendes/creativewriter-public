@@ -535,10 +535,13 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
         height: 100vh;
         display: flex;
         flex-direction: column;
+        min-height: 100vh;
       }
       
       .ion-page {
-        height: 100%;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
         overflow: hidden;
       }
       
@@ -546,6 +549,7 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
         flex: 1;
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
+        height: calc(100vh - var(--header-height, 60px));
       }
     }
     

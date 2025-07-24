@@ -6,3 +6,12 @@
   background-color: #1a1a1a;
   overflow: hidden;
 }
+
+/* Mobile fix for full height scrolling */
+@media (max-width: 768px) {
+  :host {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+}
