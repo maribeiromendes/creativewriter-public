@@ -537,7 +537,6 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
     }
     
     /* Remove mobile-specific overrides - use same layout as story-list */
-    }
     
     ion-content::part(background) {
       background: transparent !important;
