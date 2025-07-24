@@ -137,9 +137,10 @@ import { HeaderNavigationService } from '../../shared/services/header-navigation
   `,
   styles: [`
     :host {
-      display: block;
+      display: flex;
+      flex-direction: column;
       width: 100%;
-      height: 100%;
+      height: 100vh;
       position: relative;
     }
     
@@ -147,7 +148,8 @@ import { HeaderNavigationService } from '../../shared/services/header-navigation
     ion-content {
       --background: transparent !important;
       background: transparent !important;
-      height: 100%;
+      flex: 1;
+      position: relative;
     }
     
     /* Make sure ion-content doesn't override our background */
