@@ -533,24 +533,34 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
     @media (max-width: 768px) {
       :host {
         height: 100vh;
+        min-height: 100vh;
         display: flex;
         flex-direction: column;
-        min-height: 100vh;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
       }
       
       .ion-page {
-        height: 100vh;
+        height: 100%;
         display: flex;
         flex-direction: column;
         overflow: hidden;
+        position: relative;
       }
       
       ion-content {
         flex: 1;
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
-        height: calc(100vh - 112px); /* Account for primary + secondary toolbar */
-        max-height: calc(100vh - 112px);
+        position: relative;
+      }
+      
+      .codex-grid {
+        min-height: calc(100vh - 120px);
+        padding-bottom: 20px;
       }
     }
     
