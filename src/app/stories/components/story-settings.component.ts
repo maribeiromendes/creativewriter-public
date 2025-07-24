@@ -299,6 +299,34 @@ import { Story, StorySettings, DEFAULT_STORY_SETTINGS } from '../models/story.in
       box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
       transform: translateY(-2px);
     }
+    
+    /* Ensure card headers and titles are transparent */
+    ion-card-header {
+      background: transparent !important;
+      --background: transparent !important;
+    }
+    
+    ion-card-title {
+      color: #f8f9fa !important;
+      --color: #f8f9fa !important;
+    }
+    
+    ion-card-content {
+      background: transparent !important;
+      --background: transparent !important;
+    }
+    
+    .story-info-card ion-card-header,
+    .story-info-card ion-card-content,
+    .settings-section ion-card-header,
+    .settings-section ion-card-content {
+      background: transparent !important;
+    }
+    
+    .story-info-card ion-card-title,
+    .settings-section ion-card-title {
+      color: #f8f9fa !important;
+    }
 
     .setting-item {
       --background: transparent;
