@@ -148,8 +148,6 @@ import { HeaderNavigationService } from '../../shared/services/header-navigation
     ion-content {
       --background: transparent !important;
       background: transparent !important;
-      --overflow: visible !important;
-      overflow: visible !important;
     }
     
     /* Make sure ion-content doesn't override our background */
@@ -176,11 +174,10 @@ import { HeaderNavigationService } from '../../shared/services/header-navigation
     .story-list-container {
       max-width: 1200px;
       margin: 0 auto;
-      padding: 1rem 1rem 3rem 1rem;
+      padding: 1rem;
       background-color: transparent;
       position: relative;
       z-index: 1;
-      overflow: visible;
     }
     
     .title-gradient {
