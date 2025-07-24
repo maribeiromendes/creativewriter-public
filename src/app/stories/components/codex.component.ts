@@ -529,6 +529,26 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
       background: transparent;
     }
     
+    /* Mobile scroll fix */
+    @media (max-width: 768px) {
+      :host {
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+      
+      .ion-page {
+        height: 100%;
+        overflow: hidden;
+      }
+      
+      ion-content {
+        flex: 1;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+    }
+    
     ion-content {
       --background: transparent !important;
       background: transparent !important;
