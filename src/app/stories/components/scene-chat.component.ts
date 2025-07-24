@@ -1,12 +1,13 @@
-import { Component, OnInit, ViewChild, ElementRef, OnDestroy } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, OnDestroy, TemplateRef } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { 
-  IonHeader, IonToolbar, IonButtons, IonButton, IonIcon, IonTitle, 
   IonContent, IonFooter, IonItem, IonLabel, IonTextarea, IonList,
-  IonChip, IonAvatar, IonSearchbar, IonModal, IonCheckbox, IonItemDivider
+  IonChip, IonAvatar, IonSearchbar, IonModal, IonCheckbox, IonItemDivider,
+  IonButton, IonIcon, IonButtons, IonToolbar, IonTitle, IonHeader
 } from '@ionic/angular/standalone';
+import { AppHeaderComponent, HeaderAction, BurgerMenuItem } from '../../shared/components/app-header.component';
 import { addIcons } from 'ionicons';
 import { 
   arrowBack, sendOutline, peopleOutline, documentTextOutline, 
@@ -57,58 +58,46 @@ interface PresetPrompt {
   selector: 'app-scene-chat',
   standalone: true,
   imports: [
-    CommonModule, FormsModule, NgSelectModule,
-    IonHeader, IonToolbar, IonButtons, IonButton, IonIcon, IonTitle,
+    CommonModule, FormsModule, NgSelectModule, AppHeaderComponent,
     IonContent, IonFooter, IonItem, IonLabel, IonTextarea, IonList,
-    IonChip, IonAvatar, IonSearchbar, IonModal, IonCheckbox, IonItemDivider
+    IonChip, IonAvatar, IonSearchbar, IonModal, IonCheckbox, IonItemDivider,
+    IonButton, IonIcon, IonButtons, IonToolbar, IonTitle, IonHeader
   ],
   template: `
     <div class="ion-page">
-      <ion-header>
-        <ion-toolbar>
-          <ion-buttons slot="start">
-            <ion-button (click)="goBack()">
-              <ion-icon name="arrow-back" slot="icon-only"></ion-icon>
-            </ion-button>
-          </ion-buttons>
-          <ion-title>Szenen-Chat</ion-title>
-          <ion-buttons slot="end">
-            <ion-button (click)="showPresetPrompts = true">
-              <ion-icon name="sparkles-outline" slot="icon-only"></ion-icon>
-            </ion-button>
-            <ion-button (click)="includeStoryOutline = !includeStoryOutline" [color]="includeStoryOutline ? 'primary' : 'medium'">
-              <ion-icon name="reader-outline" slot="icon-only"></ion-icon>
-            </ion-button>
-            <ion-button (click)="showSceneSelector = true">
-              <ion-icon name="add-outline" slot="icon-only"></ion-icon>
-            </ion-button>
-          </ion-buttons>
-        </ion-toolbar>
-        <ion-toolbar class="model-toolbar">
-          <div class="model-selection-container">
-            <ng-select [(ngModel)]="selectedModel"
-                       [items]="availableModels"
-                       bindLabel="label"
-                       bindValue="id"
-                       [clearable]="false"
-                       [searchable]="true"
-                       placeholder="Modell auswählen..."
-                       class="model-select"
-                       appendTo="body">
-              <ng-template ng-option-tmp let-item="item">
-                <div class="model-option-inline">
-                  <ion-icon [name]="getProviderIcon(item.provider)" 
-                            class="provider-icon-inline" 
-                            [class.gemini]="item.provider === 'gemini'" 
-                            [class.openrouter]="item.provider === 'openrouter'">
-                  </ion-icon>
-                  <span class="model-label">{{ item.label }}</span>
-                </div>
-              </ng-template>
-            </ng-select>
-          </div>
-        </ion-toolbar>
-      </ion-header>
+      <app-header 
+        title="Szenen-Chat" 
+        [showBackButton]="true"
+        [backAction]="goBack.bind(this)"
+        [rightActions]="headerActions"
+        [showSecondaryToolbar]="true"
+        [secondaryContent]="modelToolbar">
+      </app-header>
+      
+      <ng-template #modelToolbar>
+        <div class="model-selection-container">
+          <ng-select [(ngModel)]="selectedModel"
+                     [items]="availableModels"
+                     bindLabel="label"
+                     bindValue="id"
+                     [clearable]="false"
+                     [searchable]="true"
+                     placeholder="Modell auswählen..."
+                     class="model-select"
+                     appendTo="body">
+            <ng-template ng-option-tmp let-item="item">
+              <div class="model-option-inline">
+                <ion-icon [name]="getProviderIcon(item.provider)" 
+                          class="provider-icon-inline" 
+                          [class.gemini]="item.provider === 'gemini'" 
+                          [class.openrouter]="item.provider === 'openrouter'">
+                </ion-icon>
+                <span class="model-label">{{ item.label }}</span>
+              </div>
+            </ng-template>
+          </ng-select>
+        </div>
+      </ng-template>
       
       <ion-content class="chat-content" [scrollEvents]="true">
         <div class="context-chips" *ngIf="selectedScenes.length > 0 || includeStoryOutline">
@@ -307,27 +296,6 @@ interface PresetPrompt {
       background: transparent;
     }
     
-    ion-header {
-      backdrop-filter: blur(15px);
-      background: rgba(45, 45, 45, 0.3);
-      box-shadow: 0 2px 20px rgba(0, 0, 0, 0.4);
-      position: relative;
-      z-index: 100;
-    }
-    
-    ion-toolbar {
-      --background: transparent;
-      --color: #f8f9fa;
-    }
-    
-    ion-title {
-      background: linear-gradient(135deg, #f8f9fa 0%, #8bb4f8 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-    }
     
     ion-content {
       --background: transparent !important;
@@ -616,15 +584,6 @@ interface PresetPrompt {
       border-radius: 8px;
     }
 
-    .model-toolbar {
-      --background: transparent;
-      --border-width: 0 0 1px 0;
-      --border-color: rgba(255, 255, 255, 0.1);
-      background: rgba(45, 45, 45, 0.3);
-      backdrop-filter: blur(15px);
-      -webkit-backdrop-filter: blur(15px);
-      padding: 8px 16px;
-    }
 
     .model-selection-container {
       width: 100%;
@@ -759,6 +718,7 @@ interface PresetPrompt {
 export class SceneChatComponent implements OnInit, OnDestroy {
   @ViewChild('scrollContainer') scrollContainer!: ElementRef;
   @ViewChild('messageInput') messageInput!: ElementRef;
+  @ViewChild('modelToolbar', { read: TemplateRef }) modelToolbar!: TemplateRef<any>;
 
   story: Story | null = null;
   activeChapterId: string = '';
@@ -778,6 +738,8 @@ export class SceneChatComponent implements OnInit, OnDestroy {
   
   selectedModel: string = '';
   availableModels: ModelOption[] = [];
+  
+  headerActions: HeaderAction[] = [];
   
   private subscriptions = new Subscription();
   private abortController: AbortController | null = null;
@@ -802,6 +764,7 @@ export class SceneChatComponent implements OnInit, OnDestroy {
     });
     
     this.initializePresetPrompts();
+    this.initializeHeaderActions();
   }
 
   ngOnInit() {
@@ -1678,5 +1641,29 @@ Strukturiere die Antwort klar nach Gegenständen getrennt.`
     });
     
     return formattedMessages.join('\n\n');
+  }
+
+  private initializeHeaderActions(): void {
+    this.headerActions = [
+      {
+        icon: 'sparkles-outline',
+        action: () => this.showPresetPrompts = true,
+        showOnMobile: true,
+        showOnDesktop: true
+      },
+      {
+        icon: 'reader-outline',
+        action: () => this.includeStoryOutline = !this.includeStoryOutline,
+        color: this.includeStoryOutline ? 'primary' : 'medium',
+        showOnMobile: true,
+        showOnDesktop: true
+      },
+      {
+        icon: 'add-outline',
+        action: () => this.showSceneSelector = true,
+        showOnMobile: true,
+        showOnDesktop: true
+      }
+    ];
   }
 }

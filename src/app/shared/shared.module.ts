@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
+import { AppHeaderComponent } from './components/app-header.component';
 
 @NgModule({
   declarations: [],
@@ -9,13 +10,15 @@ import { HttpClientModule } from '@angular/common/http';
     CommonModule,
     ReactiveFormsModule,
     FormsModule,
-    HttpClientModule
+    HttpClientModule,
+    AppHeaderComponent
   ],
   exports: [
     CommonModule,
-    ReactiveFormsModule,
+    ReactiveFormsModule,  
     FormsModule,
-    HttpClientModule
+    HttpClientModule,
+    AppHeaderComponent
   ]
 })
 export class SharedModule { }

@@ -1,16 +1,16 @@
-import { Component, OnInit, OnDestroy, inject, signal, computed, effect, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal, computed, effect, ChangeDetectorRef, TemplateRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import {
-  IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
-  IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonItem, IonLabel,
-  IonSearchbar, IonList, IonChip, IonTextarea, IonInput,
-  IonModal, IonGrid, IonRow, IonCol, IonText, IonNote,
+  IonContent, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonItem, IonLabel,
+  IonSearchbar, IonList, IonChip, IonTextarea, IonInput, IonButton, IonIcon,
+  IonModal, IonGrid, IonRow, IonCol, IonText, IonNote, IonButtons, IonToolbar, IonTitle, IonHeader,
   IonSelect, IonSelectOption, IonToggle
 } from '@ionic/angular/standalone';
+import { AppHeaderComponent, HeaderAction, BurgerMenuItem } from '../../shared/components/app-header.component';
 import { addIcons } from 'ionicons';
 import {
   arrowBack, add, ellipsisVertical, create, trash, save, close,
@@ -23,42 +23,32 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
   selector: 'app-codex',
   standalone: true,
   imports: [
-    CommonModule, FormsModule, NgSelectModule,
-    IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
-    IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonItem, IonLabel,
-    IonSearchbar, IonList, IonChip, IonTextarea, IonInput,
-    IonModal, IonGrid, IonRow, IonCol, IonText, IonNote,
+    CommonModule, FormsModule, NgSelectModule, AppHeaderComponent,
+    IonContent, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonItem, IonLabel,
+    IonSearchbar, IonList, IonChip, IonTextarea, IonInput, IonButton, IonIcon,
+    IonModal, IonGrid, IonRow, IonCol, IonText, IonNote, IonButtons, IonToolbar, IonTitle, IonHeader,
     IonSelect, IonSelectOption, IonToggle
   ],
   template: `
     <div class="ion-page">
       <!-- Header -->
-      <ion-header>
-        <ion-toolbar>
-          <ion-buttons slot="start">
-            <ion-button (click)="goBack()">
-              <ion-icon name="arrow-back" slot="icon-only"></ion-icon>
-            </ion-button>
-          </ion-buttons>
-          <ion-title>Codex</ion-title>
-          <ion-buttons slot="end">
-            <ion-button (click)="showAddCategoryModal.set(true)">
-              <ion-icon name="add" slot="start"></ion-icon>
-              Kategorie
-            </ion-button>
-          </ion-buttons>
-        </ion-toolbar>
-        
-        <!-- Search -->
-        <ion-toolbar>
-          <ion-searchbar
-            placeholder="Codex durchsuchen..."
-            [(ngModel)]="searchQuery"
-            (ionInput)="onSearch()"
-            debounce="300">
-          </ion-searchbar>
-        </ion-toolbar>
-      </ion-header>
+      <app-header 
+        title="Codex" 
+        [showBackButton]="true"
+        [backAction]="goBack.bind(this)"
+        [rightActions]="headerActions"
+        [showSecondaryToolbar]="true"
+        [secondaryContent]="searchToolbar">
+      </app-header>
+      
+      <ng-template #searchToolbar>
+        <ion-searchbar
+          placeholder="Codex durchsuchen..."
+          [(ngModel)]="searchQuery"
+          (ionInput)="onSearch()"
+          debounce="300">
+        </ion-searchbar>
+      </ng-template>
 
       <!-- Content -->
       <ion-content>
@@ -593,27 +583,6 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
       transform: translateY(-2px);
     }
     
-    ion-header {
-      backdrop-filter: blur(15px);
-      background: rgba(45, 45, 45, 0.85);
-      box-shadow: 0 2px 20px rgba(0, 0, 0, 0.4);
-      position: relative;
-      z-index: 100;
-    }
-    
-    ion-toolbar {
-      --background: transparent;
-      --color: #f8f9fa;
-    }
-    
-    ion-title {
-      background: linear-gradient(135deg, #f8f9fa 0%, #8bb4f8 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-    }
 
     /* Make ion-list and ion-items transparent */
     ion-list {
@@ -1120,12 +1089,15 @@ export class CodexComponent implements OnInit, OnDestroy {
   // Custom fields
   newCustomFieldName = '';
   newCustomFieldValue = '';
+  
+  headerActions: HeaderAction[] = [];
 
   constructor() {
     addIcons({
       arrowBack, add, ellipsisVertical, create, trash, save, close,
       search, person, bookmark, pricetag, star
     });
+    this.initializeHeaderActions();
   }
 
   getDefaultIcon(): string {
@@ -1431,5 +1403,17 @@ export class CodexComponent implements OnInit, OnDestroy {
 
   goBack() {
     this.router.navigate(['/stories/editor', this.storyId()]);
+  }
+
+  private initializeHeaderActions(): void {
+    this.headerActions = [
+      {
+        icon: 'add',
+        label: 'Kategorie',
+        action: () => this.showAddCategoryModal.set(true),
+        showOnMobile: true,
+        showOnDesktop: true
+      }
+    ];
   }
 }

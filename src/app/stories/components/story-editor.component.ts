@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit, ChangeDetectorRef, TemplateRef } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -25,98 +25,51 @@ import { BeatAI, BeatAIPromptEvent } from '../models/beat-ai.interface';
 import { BeatAIService } from '../../shared/services/beat-ai.service';
 import { PromptManagerService } from '../../shared/services/prompt-manager.service';
 import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/components/image-upload-dialog.component';
+import { AppHeaderComponent, HeaderAction, BurgerMenuItem } from '../../shared/components/app-header.component';
+import { HeaderNavigationService } from '../../shared/services/header-navigation.service';
 
 @Component({
   selector: 'app-story-editor',
   standalone: true,
   imports: [
     CommonModule, FormsModule, 
-    IonHeader, IonToolbar, IonButtons, IonButton, IonIcon, IonTitle,
-    IonContent, IonChip, IonLabel,
-    StoryStructureComponent, SlashCommandDropdownComponent, ImageUploadDialogComponent
+    IonContent, IonChip, IonLabel, IonButton, IonIcon,
+    StoryStructureComponent, SlashCommandDropdownComponent, ImageUploadDialogComponent,
+    AppHeaderComponent
   ],
   template: `
     <div class="ion-page">
-      <ion-header>
-        <ion-toolbar>
-          <ion-buttons slot="start">
-            <ion-button (click)="goBack()">
-              <ion-icon name="arrow-back" slot="icon-only"></ion-icon>
-            </ion-button>
-            <ion-button (click)="toggleSidebar()">
-              <ion-icon [name]="showSidebar ? 'book' : 'book-outline'" slot="icon-only"></ion-icon>
-            </ion-button>
-          </ion-buttons>
-          
-          <ion-title *ngIf="activeScene">
-            {{ getCurrentChapterTitle() }} - {{ getCurrentSceneTitle() }}
-          </ion-title>
-          
-          <ion-buttons slot="end">
-            <div class="editor-status-info">
-              <ion-chip [color]="hasUnsavedChanges ? 'warning' : 'success'" class="compact-status">
-                <ion-icon [name]="hasUnsavedChanges ? 'save-outline' : 'checkmark-circle-outline'"></ion-icon>
-              </ion-chip>
-              <ion-chip color="medium" class="compact-wordcount">
-                <ion-label>{{ wordCount }}w</ion-label>
-              </ion-chip>
-            </div>
-            <ion-button (click)="toggleBurgerMenu()">
-              <ion-icon [name]="burgerMenuOpen ? 'close' : 'menu'" slot="icon-only"></ion-icon>
-            </ion-button>
-          </ion-buttons>
-        </ion-toolbar>
-      </ion-header>
+      <app-header
+        [titleTemplate]="headerTitle"
+        [leftActions]="leftActions"
+        [rightActions]="rightActions"
+        [showBurgerMenu]="true"
+        [burgerMenuItems]="burgerMenuItems"
+        [burgerMenuFooterContent]="burgerMenuFooter"
+        (burgerMenuToggle)="onBurgerMenuToggle($event)">
+      </app-header>
       
-      <!-- Burger Menu Overlay -->
-      <div class="burger-menu-overlay" *ngIf="burgerMenuOpen" (click)="closeBurgerMenu()"></div>
+      <ng-template #headerTitle>
+        <div *ngIf="activeScene" class="app-title">
+          <div class="title-line">{{ getCurrentChapterTitle() }}</div>
+          <div class="title-line">{{ getCurrentSceneTitle() }}</div>
+        </div>
+      </ng-template>
       
-      <!-- Burger Menu -->
-      <div class="burger-menu" [class.open]="burgerMenuOpen">
-        <div class="burger-menu-content">
-          <div class="burger-menu-header">
-            <h3>Navigation</h3>
-            <ion-button fill="clear" color="medium" (click)="toggleBurgerMenu()">
-              <ion-icon name="close" slot="icon-only"></ion-icon>
-            </ion-button>
-          </div>
-          
-          <div class="burger-menu-items">
-            <ion-button fill="clear" expand="block" (click)="toggleDebugMode(); closeBurgerMenu()" [color]="debugModeEnabled ? 'warning' : 'medium'">
-              <ion-icon name="bug-outline" slot="start"></ion-icon>
-              Debug Modus
-            </ion-button>
-            <ion-button fill="clear" expand="block" (click)="goToCodex(); closeBurgerMenu()">
-              <ion-icon name="book-outline" slot="start"></ion-icon>
-              Codex
-            </ion-button>
-            <ion-button fill="clear" expand="block" (click)="goToSettings(); closeBurgerMenu()">
-              <ion-icon name="settings-outline" slot="start"></ion-icon>
-              Einstellungen
-            </ion-button>
-            <ion-button fill="clear" expand="block" (click)="goToAILogs(); closeBurgerMenu()">
-              <ion-icon name="stats-chart-outline" slot="start"></ion-icon>
-              AI Logs
-            </ion-button>
-            <ion-button fill="clear" expand="block" (click)="goToSceneChat(); closeBurgerMenu()">
-              <ion-icon name="chatbubbles-outline" slot="start"></ion-icon>
-              Szenen Chat
-            </ion-button>
-          </div>
-          
-          <div class="burger-menu-status">
-            <div class="status-detail">
-              <ion-chip [color]="hasUnsavedChanges ? 'warning' : 'success'" class="full-status">
-                <ion-icon [name]="hasUnsavedChanges ? 'save-outline' : 'checkmark-circle-outline'"></ion-icon>
-                <ion-label>{{ hasUnsavedChanges ? 'Nicht gespeichert' : 'Gespeichert' }}</ion-label>
-              </ion-chip>
-              <ion-chip color="medium" class="full-wordcount">
-                <ion-label>{{ wordCount }} Wörter</ion-label>
-              </ion-chip>
-            </div>
+      <ng-template #burgerMenuFooter>
+        <div class="burger-menu-status">
+          <div class="status-detail">
+            <ion-chip [color]="hasUnsavedChanges ? 'warning' : 'success'" class="full-status">
+              <ion-icon [name]="hasUnsavedChanges ? 'save-outline' : 'checkmark-circle-outline'"></ion-icon>
+              <ion-label>{{ hasUnsavedChanges ? 'Nicht gespeichert' : 'Gespeichert' }}</ion-label>
+            </ion-chip>
+            <ion-chip color="medium" class="full-status">
+              <ion-icon name="stats-chart-outline"></ion-icon>
+              <ion-label>{{ wordCount }} Wörter</ion-label>
+            </ion-chip>
           </div>
         </div>
-      </div>
+      </ng-template>
       
       <ion-content>
         <div class="editor-container" [class.sidebar-visible]="showSidebar">
@@ -264,14 +217,24 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
     }
     
     ion-header {
-      --ion-toolbar-background: rgba(45, 45, 45, 0.85);
+      --ion-toolbar-background: rgba(45, 45, 45, 0.3);
       --ion-toolbar-color: #f8f9fa;
-      backdrop-filter: blur(10px);
+      backdrop-filter: blur(15px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 2px 20px rgba(0, 0, 0, 0.2);
+      position: relative;
+      z-index: 100;
+    }
+    
+    ion-toolbar {
+      --background: transparent;
+      --padding-start: 16px;
+      --padding-end: 16px;
     }
     
     ion-title {
-      font-size: 0.95rem;
-      font-weight: 500;
+      font-size: 1.1rem;
+      font-weight: 600;
       line-height: 1.2;
       padding: 0;
       margin: 0;
@@ -279,13 +242,31 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
       overflow: hidden;
       text-overflow: ellipsis;
       max-width: 100%;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
     }
     
+    ion-button {
+      --color: #f8f9fa;
+      --background: rgba(255, 255, 255, 0.1);
+      --background-hover: rgba(255, 255, 255, 0.2);
+      --border-radius: 8px;
+      margin: 0 4px;
+      transition: all 0.2s ease;
+    }
+    
+    ion-button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+    
+    ion-icon {
+      font-size: 1.2rem;
+    }
     
     /* Desktop optimizations for compact header */
     @media (min-width: 768px) {
       ion-header {
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
       }
       
       ion-toolbar {
@@ -354,14 +335,25 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
     .burger-menu {
       position: fixed;
       top: 0;
-      right: -300px;
-      width: 300px;
+      right: -320px;
+      width: 320px;
       height: 100%;
-      background: #2d2d2d;
-      border-left: 1px solid rgba(255, 255, 255, 0.1);
+      background: 
+        /* Enhanced dark overlay with gradient for depth */
+        linear-gradient(135deg, rgba(15, 15, 25, 0.95) 0%, rgba(10, 10, 20, 0.95) 50%, rgba(20, 20, 35, 0.95) 100%),
+        /* Main anime image */
+        url('/assets/cyberpunk-anime-girl.png'),
+        /* Fallback dark background */
+        #1a1a2e;
+      background-size: cover, cover, auto;
+      background-position: center, center, center;
+      background-repeat: no-repeat, no-repeat, repeat;
+      border-left: 2px solid rgba(139, 180, 248, 0.3);
       z-index: 9999;
-      transition: right 0.3s ease-in-out;
-      box-shadow: -4px 0 8px rgba(0, 0, 0, 0.3);
+      transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+      box-shadow: -8px 0 40px rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
     }
     
     .burger-menu.open {
@@ -379,52 +371,132 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 1rem;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-      background: #343434;
+      padding: 1.5rem 1.25rem;
+      border-bottom: 2px solid rgba(139, 180, 248, 0.2);
+      background: linear-gradient(135deg, rgba(15, 15, 25, 0.8) 0%, rgba(10, 10, 20, 0.8) 100%);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      box-shadow: 0 2px 15px rgba(0, 0, 0, 0.4);
+      position: relative;
+    }
+    
+    .burger-menu-header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(135deg, rgba(139, 180, 248, 0.05) 0%, rgba(71, 118, 230, 0.05) 100%);
+      z-index: -1;
     }
     
     .burger-menu-header h3 {
       margin: 0;
-      color: #f8f9fa;
-      font-size: 1.2rem;
-      font-weight: 600;
+      background: linear-gradient(135deg, #ffffff 0%, #8bb4f8 50%, #4776e6 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-size: 1.4rem;
+      font-weight: 800;
+      letter-spacing: 1px;
+      text-shadow: 0 2px 10px rgba(139, 180, 248, 0.3);
+    }
+    
+    .burger-menu-header ion-button {
+      --color: rgba(255, 255, 255, 0.8);
+      --background: rgba(255, 255, 255, 0.1);
+      --background-hover: rgba(255, 255, 255, 0.2);
+      --border-radius: 12px;
+      --padding-start: 8px;
+      --padding-end: 8px;
+      transition: all 0.3s ease;
+    }
+    
+    .burger-menu-header ion-button:hover {
+      transform: scale(1.1) rotate(90deg);
+      --background: rgba(255, 107, 107, 0.2);
+      --color: #ff6b6b;
     }
     
     .burger-menu-items {
       flex: 1;
-      padding: 1rem 0;
+      padding: 1.5rem 0;
       display: flex;
       flex-direction: column;
-      gap: 0.5rem;
+      gap: 0.8rem;
+      overflow-y: auto;
     }
     
     .burger-menu-items ion-button {
-      --color: #f8f9fa;
-      --background: transparent;
-      --background-hover: rgba(255, 255, 255, 0.1);
-      --background-focused: rgba(255, 255, 255, 0.1);
-      --ripple-color: rgba(255, 255, 255, 0.2);
-      margin: 0 1rem;
-      height: 48px;
-      font-size: 1rem;
+      --color: #ffffff;
+      --background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(139, 180, 248, 0.08) 100%);
+      --background-hover: linear-gradient(135deg, rgba(71, 118, 230, 0.25) 0%, rgba(139, 180, 248, 0.25) 100%);
+      --background-focused: linear-gradient(135deg, rgba(71, 118, 230, 0.3) 0%, rgba(139, 180, 248, 0.3) 100%);
+      --ripple-color: rgba(139, 180, 248, 0.4);
+      margin: 0 1.25rem 0.5rem 1.25rem;
+      height: 54px;
+      font-size: 1.05rem;
+      font-weight: 500;
       justify-content: flex-start;
       text-align: left;
+      border: 1px solid rgba(139, 180, 248, 0.2);
+      border-radius: 16px;
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .burger-menu-items ion-button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+      transition: left 0.6s ease;
+    }
+    
+    .burger-menu-items ion-button:hover::before {
+      left: 100%;
     }
     
     .burger-menu-items ion-button:hover {
-      --background: rgba(255, 255, 255, 0.1);
+      --background: linear-gradient(135deg, rgba(71, 118, 230, 0.35) 0%, rgba(139, 180, 248, 0.35) 100%);
+      border-color: rgba(139, 180, 248, 0.6);
+      transform: translateY(-3px) scale(1.02);
+      box-shadow: 0 8px 25px rgba(71, 118, 230, 0.4);
     }
     
     .burger-menu-items ion-button ion-icon {
-      margin-right: 12px;
-      font-size: 1.2rem;
+      margin-right: 16px;
+      font-size: 1.3rem;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
     }
     
     .burger-menu-status {
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
-      padding: 1rem;
+      border-top: 2px solid rgba(139, 180, 248, 0.2);
+      padding: 1.5rem 1.25rem;
       margin-top: auto;
+      background: linear-gradient(135deg, rgba(15, 15, 25, 0.9) 0%, rgba(10, 10, 20, 0.9) 100%);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+      position: relative;
+    }
+    
+    .burger-menu-status::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(135deg, rgba(139, 180, 248, 0.05) 0%, rgba(71, 118, 230, 0.05) 100%);
+      z-index: -1;
     }
     
     .status-detail {
@@ -993,9 +1065,43 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
         padding-bottom: var(--keyboard-height, 0px);
       }
     }
+
+    /* Title styling to match AppHeaderComponent */
+    .app-title {
+      background: linear-gradient(135deg, #f8f9fa 0%, #8bb4f8 50%, #4776e6 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      text-shadow: 0 2px 10px rgba(139, 180, 248, 0.3);
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      height: 100%;
+      overflow: hidden;
+    }
+    
+    .title-line {
+      font-size: 0.8rem;
+      line-height: 1.1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    @media (max-width: 768px) {
+      .title-line {
+        font-size: 0.7rem;
+        line-height: 1.0;
+      }
+    }
   `]
 })
 export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
+  @ViewChild('headerTitle', { static: true }) headerTitle!: TemplateRef<any>;
+  @ViewChild('burgerMenuFooter', { static: true }) burgerMenuFooter!: TemplateRef<any>;
   @ViewChild('editorContainer') editorContainer!: ElementRef<HTMLDivElement>;
   private editorView: EditorView | null = null;
   wordCount: number = 0;
@@ -1012,7 +1118,9 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
   activeSceneId: string | null = null;
   activeScene: Scene | null = null;
   showSidebar: boolean = true;
-  burgerMenuOpen = false;
+  leftActions: HeaderAction[] = [];
+  rightActions: HeaderAction[] = [];
+  burgerMenuItems: BurgerMenuItem[] = [];
   
   // Slash command functionality
   showSlashDropdown = false;
@@ -1052,7 +1160,8 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     private proseMirrorService: ProseMirrorEditorService,
     private beatAIService: BeatAIService,
     private cdr: ChangeDetectorRef,
-    private promptManager: PromptManagerService
+    private promptManager: PromptManagerService,
+    private headerNavService: HeaderNavigationService
   ) {
     addIcons({ 
       arrowBack, bookOutline, book, settingsOutline, statsChartOutline,
@@ -1062,6 +1171,9 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   async ngOnInit(): Promise<void> {
+    // Setup header actions first
+    this.setupHeaderActions();
+    
     // Check if we're on mobile and start with sidebar hidden
     this.checkMobileAndHideSidebar();
     
@@ -1306,12 +1418,81 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     this.router.navigate(['/ai-logs']);
   }
 
-  toggleBurgerMenu(): void {
-    this.burgerMenuOpen = !this.burgerMenuOpen;
+  onBurgerMenuToggle(isOpen: boolean): void {
+    // Handle burger menu state changes if needed
   }
-
-  closeBurgerMenu(): void {
-    this.burgerMenuOpen = false;
+  
+  private setupHeaderActions(): void {
+    // Left actions
+    this.leftActions = [
+      {
+        icon: 'arrow-back',
+        action: () => this.goBack(),
+        showOnMobile: true,
+        showOnDesktop: true
+      },
+      {
+        icon: this.showSidebar ? 'book' : 'book-outline',
+        action: () => this.toggleSidebar(),
+        showOnMobile: true,
+        showOnDesktop: true
+      }
+    ];
+    
+    // Right actions (status chips for desktop)
+    this.rightActions = [
+      {
+        icon: this.hasUnsavedChanges ? 'save-outline' : 'checkmark-circle-outline',
+        chipContent: this.hasUnsavedChanges ? 'Nicht gespeichert' : 'Gespeichert',
+        chipColor: this.hasUnsavedChanges ? 'warning' : 'success',
+        action: () => {},
+        showOnMobile: false,
+        showOnDesktop: true
+      },
+      {
+        icon: 'stats-chart-outline',
+        chipContent: `${this.wordCount}w`,
+        chipColor: 'medium',
+        action: () => {},
+        showOnMobile: false,
+        showOnDesktop: true
+      }
+    ];
+    
+    // Burger menu items with custom actions for this component
+    this.burgerMenuItems = [
+      {
+        icon: 'bug-outline',
+        label: 'Debug Modus',
+        action: () => this.toggleDebugMode(),
+        color: 'warning'
+      },
+      {
+        icon: 'book-outline',
+        label: 'Codex',
+        action: () => this.goToCodex()
+      },
+      {
+        icon: 'settings-outline',
+        label: 'Story Einstellungen',
+        action: () => this.goToSettings()
+      },
+      {
+        icon: 'chatbubbles-outline',
+        label: 'Szenen Chat',
+        action: () => this.goToSceneChat()
+      },
+      {
+        icon: 'analytics',
+        label: 'AI Logs',
+        action: () => this.headerNavService.goToAILogger()
+      },
+      {
+        icon: 'image',
+        label: 'Bildgenerierung',
+        action: () => this.headerNavService.goToImageGeneration()
+      }
+    ];
   }
 
   async goToSceneChat(): Promise<void> {
@@ -1353,6 +1534,10 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
 
   toggleSidebar(): void {
     this.showSidebar = !this.showSidebar;
+    // Update the sidebar icon in left actions
+    if (this.leftActions.length > 1) {
+      this.leftActions[1].icon = this.showSidebar ? 'book' : 'book-outline';
+    }
   }
 
   private checkMobileAndHideSidebar(): void {
