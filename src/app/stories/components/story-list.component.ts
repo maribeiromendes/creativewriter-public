@@ -51,7 +51,7 @@ import { HeaderNavigationService } from '../../shared/services/header-navigation
       </div>
     </ng-template>
 
-    <ion-content>
+    <ion-content [scrollEvents]="true">
       <div class="story-list-container">
       
       <!-- App Branding Header -->
@@ -139,7 +139,7 @@ import { HeaderNavigationService } from '../../shared/services/header-navigation
     :host {
       display: block;
       width: 100%;
-      height: 100vh;
+      min-height: 100vh;
       position: relative;
     }
     
@@ -147,8 +147,8 @@ import { HeaderNavigationService } from '../../shared/services/header-navigation
     ion-content {
       --background: transparent !important;
       background: transparent !important;
-      --overflow: auto;
-      height: 100%;
+      position: relative;
+      /* Allow Ionic to handle natural scrolling behavior */
     }
     
     /* Make sure ion-content doesn't override our background */
@@ -179,6 +179,8 @@ import { HeaderNavigationService } from '../../shared/services/header-navigation
       background-color: transparent;
       position: relative;
       z-index: 1;
+      /* Ensure content has sufficient height for proper scrolling */
+      min-height: calc(100vh + 200px);
     }
     
     .title-gradient {
