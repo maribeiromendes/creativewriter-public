@@ -502,11 +502,11 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
   `,
   styles: [`
     :host {
-      display: block;
+      display: flex;
+      flex-direction: column;
       width: 100%;
-      height: 100%;
+      height: 100vh;
       position: relative;
-      min-height: 100vh;
       
       background: 
         /* Dark overlay for text readability */
@@ -519,54 +519,24 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
       background-size: cover, cover, auto;
       background-position: center, center, center;
       background-repeat: no-repeat, no-repeat, repeat;
-      background-attachment: fixed, fixed, scroll;
+      background-attachment: scroll, scroll, scroll;
     }
     
     .ion-page {
-      height: 100vh;
+      flex: 1;
       display: flex;
       flex-direction: column;
       background: transparent;
     }
     
-    /* Mobile scroll fix */
-    @media (max-width: 768px) {
-      :host {
-        height: 100vh;
-        min-height: 100vh;
-        display: flex;
-        flex-direction: column;
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-      }
-      
-      .ion-page {
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-        position: relative;
-      }
-      
-      ion-content {
-        flex: 1;
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
-        position: relative;
-      }
-      
-      .codex-grid {
-        min-height: calc(100vh - 120px);
-        padding-bottom: 20px;
-      }
-    }
-    
     ion-content {
       --background: transparent !important;
       background: transparent !important;
+      flex: 1;
+      position: relative;
+    }
+    
+    /* Remove mobile-specific overrides - use same layout as story-list */
     }
     
     ion-content::part(background) {
