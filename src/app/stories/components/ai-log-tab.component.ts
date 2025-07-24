@@ -28,12 +28,12 @@ import { Subscription } from 'rxjs';
     IonButtons, IonToolbar, IonAccordion, IonAccordionGroup
   ],
   template: `
-    <ion-toolbar>
+    <ion-toolbar class="cyberpunk-toolbar">
       <ion-buttons slot="end">
-        <ion-chip color="medium">
+        <ion-chip color="medium" class="logs-count-chip">
           <ion-label>{{ logs.length }} Logs</ion-label>
         </ion-chip>
-        <ion-button color="danger" (click)="clearLogs()" [disabled]="logs.length === 0">
+        <ion-button color="danger" (click)="clearLogs()" [disabled]="logs.length === 0" class="clear-button">
           <ion-icon name="trash" slot="icon-only"></ion-icon>
         </ion-button>
       </ion-buttons>
@@ -442,6 +442,40 @@ import { Subscription } from 'rxjs';
       background-position: center, center, center;
       background-repeat: no-repeat, no-repeat, repeat;
       background-attachment: fixed, fixed, scroll;
+    }
+
+    .cyberpunk-toolbar {
+      backdrop-filter: blur(15px);
+      background: rgba(45, 45, 45, 0.85);
+      box-shadow: 0 2px 20px rgba(0, 0, 0, 0.4);
+      --background: transparent;
+      --color: #f8f9fa;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .logs-count-chip {
+      --background: rgba(71, 118, 230, 0.2);
+      --color: #8bb4f8;
+      border: 1px solid rgba(71, 118, 230, 0.3);
+      backdrop-filter: blur(4px);
+    }
+    
+    .clear-button {
+      --background: rgba(220, 53, 69, 0.2);
+      --color: #ff6b7a;
+      border: 1px solid rgba(220, 53, 69, 0.3);
+      backdrop-filter: blur(4px);
+    }
+    
+    .clear-button:hover:not([disabled]) {
+      --background: rgba(220, 53, 69, 0.3);
+      --color: #ff8a95;
+    }
+    
+    .clear-button[disabled] {
+      --background: rgba(100, 100, 100, 0.1);
+      --color: #6c757d;
+      border-color: rgba(100, 100, 100, 0.2);
     }
 
     .logs-list {
