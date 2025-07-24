@@ -176,7 +176,7 @@ import { HeaderNavigationService } from '../../shared/services/header-navigation
     .story-list-container {
       max-width: 1200px;
       margin: 0 auto;
-      padding: 1rem;
+      padding: 1rem 1rem 3rem 1rem;
       background-color: transparent;
       position: relative;
       z-index: 1;
