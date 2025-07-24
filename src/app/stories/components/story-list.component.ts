@@ -179,8 +179,6 @@ import { HeaderNavigationService } from '../../shared/services/header-navigation
       background-color: transparent;
       position: relative;
       z-index: 1;
-      /* Ensure content has sufficient height for proper scrolling */
-      min-height: calc(100vh + 200px);
     }
     
     .title-gradient {
