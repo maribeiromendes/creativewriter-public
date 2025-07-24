@@ -423,6 +423,27 @@ import { Subscription } from 'rxjs';
     </ion-list>
   `,
   styles: [`
+    :host {
+      display: block;
+      width: 100%;
+      height: 100%;
+      position: relative;
+      min-height: 100vh;
+      
+      background: 
+        /* Dark overlay for text readability */
+        linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
+        /* Main anime image */
+        url('/assets/cyberpunk-anime-girl.png'),
+        /* Fallback dark background */
+        #1a1a1a;
+      
+      background-size: cover, cover, auto;
+      background-position: center, center, center;
+      background-repeat: no-repeat, no-repeat, repeat;
+      background-attachment: fixed, fixed, scroll;
+    }
+
     .logs-list {
       background: transparent;
       padding: 1rem;
@@ -466,11 +487,20 @@ import { Subscription } from 'rxjs';
 
     .log-header {
       --background: transparent;
-      --background-hover: var(--ion-color-step-150);
-      --color: var(--ion-text-color);
+      --background-hover: rgba(255, 255, 255, 0.1);
+      --color: #f8f9fa;
       --padding-start: 16px;
       --padding-end: 16px;
       --inner-padding-end: 0;
+    }
+    
+    .log-header ion-label {
+      color: #f8f9fa !important;
+    }
+    
+    .log-header ion-label h2,
+    .log-header ion-label p {
+      color: #f8f9fa !important;
     }
 
     .status-icon {
@@ -498,10 +528,12 @@ import { Subscription } from 'rxjs';
 
     .meta-chip {
       margin-right: 0.5rem;
-      --background: var(--ion-color-step-50);
-      --color: var(--ion-text-color);
+      --background: rgba(71, 118, 230, 0.15);
+      --color: #8bb4f8;
+      border: 1px solid rgba(71, 118, 230, 0.3);
       font-size: 0.8rem;
       height: 24px;
+      border-radius: 12px;
     }
 
     .meta-chip ion-icon {
@@ -540,9 +572,9 @@ import { Subscription } from 'rxjs';
     }
 
     .content-pre {
-      background: var(--ion-background-color);
-      border: 1px solid var(--ion-color-step-200);
-      border-radius: 6px;
+      background: rgba(30, 30, 30, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
       padding: 1rem;
       font-family: 'Courier New', monospace;
       font-size: 0.85rem;
@@ -552,7 +584,8 @@ import { Subscription } from 'rxjs';
       margin: 0;
       max-height: 400px;
       overflow-y: auto;
-      color: var(--ion-text-color);
+      color: #e0e0e0;
+      backdrop-filter: blur(4px);
       user-select: text;
       -webkit-user-select: text;
       -moz-user-select: text;
@@ -611,7 +644,7 @@ import { Subscription } from 'rxjs';
       margin: 0 0 1rem 0;
       font-size: 1rem;
       font-weight: 600;
-      color: var(--ion-color-primary);
+      color: #8bb4f8;
     }
 
     .debug-info-section h4 ion-icon {
@@ -625,7 +658,7 @@ import { Subscription } from 'rxjs';
       margin: 1rem 0 0.5rem 0;
       font-size: 0.9rem;
       font-weight: 600;
-      color: var(--ion-color-medium);
+      color: #adb5bd;
     }
 
     .debug-info-section h5 ion-icon {
@@ -651,20 +684,21 @@ import { Subscription } from 'rxjs';
       justify-content: space-between;
       align-items: center;
       padding: 0.75rem;
-      background: var(--ion-color-step-50);
+      background: rgba(42, 42, 42, 0.3);
+      backdrop-filter: blur(4px);
       border-radius: 8px;
-      border: 1px solid var(--ion-color-step-150);
+      border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     .config-item ion-label {
       font-weight: 500;
-      color: var(--ion-text-color);
+      color: #f8f9fa;
     }
 
     .debug-info {
-      background: var(--ion-background-color);
-      border: 1px solid var(--ion-color-step-200);
-      border-radius: 6px;
+      background: rgba(30, 30, 30, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
       padding: 1rem;
       font-family: 'Courier New', monospace;
       font-size: 0.8rem;
@@ -674,7 +708,8 @@ import { Subscription } from 'rxjs';
       margin: 0;
       max-height: 300px;
       overflow-y: auto;
-      color: var(--ion-text-color);
+      color: #e0e0e0;
+      backdrop-filter: blur(4px);
       user-select: text;
       -webkit-user-select: text;
       -moz-user-select: text;
@@ -686,7 +721,7 @@ import { Subscription } from 'rxjs';
     .monospace-text {
       font-family: 'Courier New', monospace;
       font-size: 0.85rem;
-      color: var(--ion-color-medium-tint);
+      color: #8bb4f8;
       word-break: break-all;
       user-select: text;
       -webkit-user-select: text;
@@ -702,9 +737,10 @@ import { Subscription } from 'rxjs';
     }
 
     ion-accordion ion-item {
-      --background: var(--ion-color-light);
-      --color: var(--ion-text-color);
+      --background: rgba(42, 42, 42, 0.4);
+      --color: #f8f9fa;
       font-weight: 500;
+      backdrop-filter: blur(4px);
     }
 
     ion-accordion[slot="content"] {
@@ -800,9 +836,10 @@ import { Subscription } from 'rxjs';
       align-items: center;
       padding: 0.75rem 1rem;
       margin-bottom: 0.5rem;
-      background: var(--ion-color-step-50);
+      background: rgba(42, 42, 42, 0.3);
+      backdrop-filter: blur(4px);
       border-radius: 8px;
-      border: 1px solid var(--ion-color-step-150);
+      border: 1px solid rgba(255, 255, 255, 0.1);
       transition: all 0.2s ease;
     }
 
@@ -823,7 +860,7 @@ import { Subscription } from 'rxjs';
 
     .rating-category ion-label {
       font-weight: 500;
-      color: var(--ion-text-color);
+      color: #f8f9fa;
     }
 
     .rating-probability {
