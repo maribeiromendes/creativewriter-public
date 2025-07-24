@@ -633,11 +633,11 @@ interface PresetPrompt {
     .model-select {
       --ng-select-height: 38px;
       --ng-select-value-font-size: 14px;
-      --ng-select-bg: rgba(20, 20, 20, 0.2);
+      --ng-select-bg: rgba(45, 45, 45, 0.3);
       --ng-select-border-color: rgba(255, 255, 255, 0.15);
       --ng-select-border-radius: 8px;
       --ng-select-highlight: #8bb4f8;
-      --ng-select-dropdown-bg: rgba(45, 45, 45, 0.4);
+      --ng-select-dropdown-bg: rgba(45, 45, 45, 0.3);
       --ng-select-dropdown-border-color: rgba(255, 255, 255, 0.15);
       --ng-select-option-bg: transparent;
       --ng-select-option-hover-bg: rgba(71, 118, 230, 0.3);
