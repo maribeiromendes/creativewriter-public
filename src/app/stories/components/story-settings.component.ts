@@ -334,6 +334,56 @@ import { Story, StorySettings, DEFAULT_STORY_SETTINGS } from '../models/story.in
       --padding-end: 0;
       margin: 1rem 0;
     }
+    
+    /* Make textareas transparent */
+    ion-textarea {
+      --background: rgba(30, 30, 30, 0.3);
+      --color: #f8f9fa;
+      --placeholder-color: #adb5bd;
+      --placeholder-opacity: 0.8;
+      backdrop-filter: blur(5px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      padding: 0.75rem;
+      transition: all 0.3s ease;
+    }
+    
+    ion-textarea:hover,
+    ion-textarea:focus {
+      --background: rgba(30, 30, 30, 0.4);
+      border-color: rgba(71, 118, 230, 0.5);
+      box-shadow: 0 0 0 2px rgba(71, 118, 230, 0.2);
+    }
+    
+    .settings-textarea {
+      margin-top: 1rem;
+      font-family: monospace;
+      font-size: 0.9rem;
+    }
+    
+    .settings-textarea.large {
+      min-height: 300px;
+    }
+    
+    /* Also make ion-input transparent */
+    ion-input {
+      --background: rgba(30, 30, 30, 0.3);
+      --color: #f8f9fa;
+      --placeholder-color: #adb5bd;
+      --placeholder-opacity: 0.8;
+      backdrop-filter: blur(5px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      padding: 0.5rem;
+      transition: all 0.3s ease;
+    }
+    
+    ion-input:hover,
+    ion-input:focus {
+      --background: rgba(30, 30, 30, 0.4);
+      border-color: rgba(71, 118, 230, 0.5);
+      box-shadow: 0 0 0 2px rgba(71, 118, 230, 0.2);
+    }
 
     .radio-section {
       --background: transparent;
