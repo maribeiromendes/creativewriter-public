@@ -93,7 +93,8 @@ interface PresetPrompt {
                        [clearable]="false"
                        [searchable]="true"
                        placeholder="Modell auswählen..."
-                       class="model-select">
+                       class="model-select"
+                       appendTo="body">
               <ng-template ng-option-tmp let-item="item">
                 <div class="model-option-inline">
                   <ion-icon [name]="getProviderIcon(item.provider)" 
@@ -644,32 +645,30 @@ interface PresetPrompt {
       --ng-select-color: #f8f9fa;
     }
     
-    /* Force transparency for all ng-select elements */
-    .model-selection-container ::ng-deep ng-select {
+    /* Aggressive ng-select styling overrides */
+    ::ng-deep ng-select.model-select {
       background: rgba(45, 45, 45, 0.3) !important;
     }
     
-    .model-selection-container ::ng-deep .ng-select-container {
+    ::ng-deep ng-select.model-select .ng-select-container {
       background-color: rgba(45, 45, 45, 0.3) !important;
       background: rgba(45, 45, 45, 0.3) !important;
       backdrop-filter: blur(15px) !important;
       -webkit-backdrop-filter: blur(15px) !important;
-      border: 1px solid rgba(255, 255, 255, 0.15) !important;
     }
     
-    .model-selection-container ::ng-deep .ng-value-container {
+    ::ng-deep ng-select.model-select .ng-select-container .ng-value-container {
       background: transparent !important;
     }
     
-    .model-selection-container ::ng-deep .ng-input > input {
+    ::ng-deep ng-select.model-select .ng-select-container .ng-value-container .ng-input {
       background: transparent !important;
     }
     
-    .model-selection-container ::ng-deep .ng-arrow-wrapper {
+    ::ng-deep ng-select.model-select .ng-select-container .ng-arrow-wrapper {
       background: transparent !important;
     }
     
-    /* Dropdown panel should now appear within component */
     ::ng-deep .ng-dropdown-panel {
       background-color: rgba(45, 45, 45, 0.3) !important;
       background: rgba(45, 45, 45, 0.3) !important;
@@ -678,20 +677,16 @@ interface PresetPrompt {
       border: 1px solid rgba(255, 255, 255, 0.15) !important;
     }
     
-    ::ng-deep .ng-dropdown-panel-items {
+    ::ng-deep .ng-dropdown-panel .ng-dropdown-panel-items {
       background: transparent !important;
     }
     
-    ::ng-deep .ng-option {
+    ::ng-deep .ng-dropdown-panel .ng-dropdown-panel-items .ng-option {
       background: transparent !important;
     }
     
-    ::ng-deep .ng-option.ng-option-highlighted {
+    ::ng-deep .ng-dropdown-panel .ng-dropdown-panel-items .ng-option.ng-option-highlighted {
       background: rgba(71, 118, 230, 0.3) !important;
-    }
-    
-    ::ng-deep .ng-option.ng-option-selected {
-      background: rgba(71, 118, 230, 0.4) !important;
     }
 
     :host-context(.dark) .model-select {
