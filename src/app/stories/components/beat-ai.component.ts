@@ -198,7 +198,7 @@ import { EditorView } from 'prosemirror-view';
     .beat-ai-container {
       border: 2px solid rgba(255, 255, 255, 0.15);
       border-radius: 8px;
-      background: rgba(42, 42, 42, 0.4);
+      background: rgba(42, 42, 42, 0.2);
       backdrop-filter: blur(8px);
       margin: 1rem 0;
       overflow: hidden;
@@ -276,9 +276,9 @@ import { EditorView } from 'prosemirror-view';
     
     .prompt-input.prosemirror-container {
       width: 100%;
-      background: rgba(30, 30, 30, 0.3);
+      background: rgba(30, 30, 30, 0.2);
       backdrop-filter: blur(5px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.15);
       border-radius: 6px;
       padding: 0;
       color: #e0e0e0;
@@ -565,7 +565,7 @@ import { EditorView } from 'prosemirror-view';
     
     .generation-status {
       padding: 0.5rem 1rem;
-      background: rgba(36, 36, 36, 0.4);
+      background: rgba(36, 36, 36, 0.2);
       backdrop-filter: blur(5px);
       border-top: 1px solid rgba(255, 255, 255, 0.15);
       display: flex;
