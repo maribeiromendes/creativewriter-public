@@ -1869,77 +1869,38 @@ Antworte nur mit dem Titel, ohne weitere Erklärungen oder Anführungszeichen.`;
       const activeSceneElement = document.querySelector(`.scene-item.active-scene`);
       if (!activeSceneElement) return;
       
-      // Find the ion-content element within the story structure
-      const storyStructure = document.querySelector('.story-structure');
-      const ionContent = storyStructure?.querySelector('ion-content');
+      // Find just the ion-content element - it's the scrollable container
+      const ionContent = document.querySelector('.story-structure ion-content');
       
       if (ionContent) {
-        // Try to get the scrollable element from ion-content
-        // Ion-content creates a scroll element inside its shadow DOM or as a direct child
-        let scrollElement = ionContent.shadowRoot?.querySelector('.inner-scroll');
+        // Get the scrollable element - for ion-content it's usually itself or a child
+        const scrollElement = ionContent.shadowRoot?.querySelector('.inner-scroll') || ionContent;
         
-        // Fallback: try to find scrollable element as direct child
-        if (!scrollElement) {
-          scrollElement = ionContent.querySelector('.inner-scroll') || 
-                         ionContent.querySelector('[scrollable]') ||
-                         ionContent;
-        }
-        
-        // Final fallback: use the ion-content element itself
-        if (!scrollElement) {
-          scrollElement = ionContent;
-        }
-        
-        // Get the bounding rectangles
-        const containerRect = scrollElement.getBoundingClientRect();
+        // Simple approach: get element position and scroll to center it
         const elementRect = activeSceneElement.getBoundingClientRect();
+        const containerRect = scrollElement.getBoundingClientRect();
         
-        // Calculate scroll position to ensure element is visible with good margin
-        const elementTop = (activeSceneElement as HTMLElement).offsetTop;
-        const containerHeight = containerRect.height;
-        const elementHeight = elementRect.height;
+        // Calculate how much to scroll to center the element
+        const elementCenter = elementRect.top + (elementRect.height / 2);
+        const containerCenter = containerRect.top + (containerRect.height / 2);
+        const scrollOffset = elementCenter - containerCenter;
         
-        // Add extra margin to ensure the scene is well visible
-        const topMargin = 100; // Extra space above the element
-        const bottomMargin = 150; // Extra space below the element
+        // Apply the scroll offset
+        const currentScrollTop = scrollElement.scrollTop || 0;
+        const newScrollTop = currentScrollTop + scrollOffset;
         
-        // Check if element needs scrolling with margins
-        const currentScrollTop = scrollElement.scrollTop;
-        const elementTopInView = elementTop - currentScrollTop;
-        const elementBottomInView = elementTopInView + elementHeight;
-        
-        const needsScrolling = elementTopInView < topMargin || 
-                              elementBottomInView > (containerHeight - bottomMargin);
-        
-        if (needsScrolling) {
-          // Calculate target scroll position with proper margins
-          let targetScrollTop;
-          
-          if (elementTopInView < topMargin) {
-            // Element is too high, scroll up to show it with top margin
-            targetScrollTop = elementTop - topMargin;
-          } else {
-            // Element is too low, scroll down to show it with bottom margin
-            targetScrollTop = elementTop - (containerHeight - elementHeight - bottomMargin);
-          }
-          
-          // Ensure we don't scroll beyond boundaries
-          const maxScrollTop = scrollElement.scrollHeight - containerHeight;
-          targetScrollTop = Math.max(0, Math.min(targetScrollTop, maxScrollTop));
-          
-          // Use scrollTo method if available, otherwise set scrollTop directly
-          // Use instant scrolling for faster response
-          if (scrollElement.scrollTo) {
-            scrollElement.scrollTo({
-              top: targetScrollTop,
-              behavior: 'instant'
-            });
-          } else {
-            scrollElement.scrollTop = targetScrollTop;
-          }
+        // Scroll to the calculated position
+        if (scrollElement.scrollTo) {
+          scrollElement.scrollTo({
+            top: newScrollTop,
+            behavior: 'instant'
+          });
+        } else {
+          scrollElement.scrollTop = newScrollTop;
         }
       }
-    }, 100); // Faster response for better UX
+      
+    }, 150); // Slightly longer timeout to ensure DOM is ready
   }
 
   private removeEmbeddedImages(content: string): string {
