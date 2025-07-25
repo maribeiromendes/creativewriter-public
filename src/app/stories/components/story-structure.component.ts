@@ -1859,12 +1859,33 @@ Antworte nur mit dem Titel, ohne weitere Erklärungen oder Anführungszeichen.`;
     // Wait for DOM to be updated
     setTimeout(() => {
       const activeSceneElement = document.querySelector(`.scene-item.active-scene`);
-      if (activeSceneElement) {
-        activeSceneElement.scrollIntoView({
-          behavior: 'smooth',
-          block: 'center',
-          inline: 'nearest'
-        });
+      const sidebarContent = document.querySelector('.structure-content ion-content');
+      
+      if (activeSceneElement && sidebarContent) {
+        // Get the scrollable container (the ion-content scroll element)
+        const scrollContainer = sidebarContent.shadowRoot?.querySelector('.inner-scroll') || 
+                               sidebarContent.querySelector('.inner-scroll') ||
+                               sidebarContent;
+        
+        if (scrollContainer) {
+          // Calculate the position of the active scene relative to the scroll container
+          const containerRect = scrollContainer.getBoundingClientRect();
+          const elementRect = activeSceneElement.getBoundingClientRect();
+          
+          // Calculate the scroll position to center the element
+          const elementTop = elementRect.top - containerRect.top;
+          const containerHeight = containerRect.height;
+          const elementHeight = elementRect.height;
+          
+          // Center the element in the container
+          const targetScrollTop = scrollContainer.scrollTop + elementTop - (containerHeight / 2) + (elementHeight / 2);
+          
+          // Smooth scroll to the target position
+          scrollContainer.scrollTo({
+            top: targetScrollTop,
+            behavior: 'smooth'
+          });
+        }
       }
     }, 200);
   }
