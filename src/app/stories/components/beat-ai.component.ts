@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { logoGoogle, globeOutline } from 'ionicons/icons';
+import { logoGoogle, globeOutline, createOutline, refreshOutline, trashOutline } from 'ionicons/icons';
 import { BeatAI, BeatAIPromptEvent } from '../models/beat-ai.interface';
 import { Subscription } from 'rxjs';
 import { ModelOption } from '../../core/models/model.interface';
@@ -28,24 +28,24 @@ import { EditorView } from 'prosemirror-view';
           <div class="beat-actions">
             <button 
               *ngIf="!beatData.isEditing && beatData.prompt" 
-              class="edit-btn"
+              class="action-btn edit-btn"
               (click)="startEditing()"
               title="Prompt bearbeiten">
-              ✏️
+              <ion-icon name="create-outline"></ion-icon>
             </button>
             <button 
               *ngIf="beatData.generatedContent && !beatData.isGenerating" 
-              class="regenerate-btn"
+              class="action-btn regenerate-btn"
               (click)="regenerateContent()"
               title="Neu generieren">
-              🔄
+              <ion-icon name="refresh-outline"></ion-icon>
             </button>
             <button 
               *ngIf="beatData.generatedContent && !beatData.isGenerating" 
-              class="delete-after-btn"
+              class="action-btn delete-btn"
               (click)="deleteContentAfterBeat()"
               title="Text nach diesem Beat löschen">
-              🗑️
+              <ion-icon name="trash-outline"></ion-icon>
             </button>
           </div>
         </div>
@@ -249,25 +249,82 @@ import { EditorView } from 'prosemirror-view';
     
     .beat-actions {
       display: flex;
-      gap: 0.25rem;
+      gap: 0.4rem;
     }
     
-    .edit-btn, .regenerate-btn, .delete-after-btn {
-      background: none;
-      border: none;
-      padding: 0.25rem;
-      border-radius: 4px;
+    .action-btn {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(139, 180, 248, 0.05) 100%);
+      border: 1px solid rgba(139, 180, 248, 0.2);
+      padding: 0.4rem;
+      border-radius: 8px;
       cursor: pointer;
-      transition: background 0.2s;
-      font-size: 0.9rem;
+      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      color: #8bb4f8;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      position: relative;
+      overflow: hidden;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     
-    .edit-btn:hover, .regenerate-btn:hover, .delete-after-btn:hover {
-      background: #404040;
+    .action-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(139, 180, 248, 0.2), transparent);
+      transition: left 0.6s ease;
     }
     
-    .delete-after-btn:hover {
-      background: #5c2020;
+    .action-btn:hover::before {
+      left: 100%;
+    }
+    
+    .action-btn ion-icon {
+      font-size: 1.1rem;
+      filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+    }
+    
+    .edit-btn:hover {
+      background: linear-gradient(135deg, rgba(71, 118, 230, 0.2) 0%, rgba(139, 180, 248, 0.2) 100%);
+      border-color: rgba(139, 180, 248, 0.4);
+      transform: translateY(-1px) scale(1.05);
+      box-shadow: 0 4px 12px rgba(71, 118, 230, 0.3);
+      color: #a8c7ff;
+    }
+    
+    .regenerate-btn:hover {
+      background: linear-gradient(135deg, rgba(64, 192, 87, 0.2) 0%, rgba(81, 207, 102, 0.2) 100%);
+      border-color: rgba(81, 207, 102, 0.4);
+      transform: translateY(-1px) scale(1.05) rotate(180deg);
+      box-shadow: 0 4px 12px rgba(64, 192, 87, 0.3);
+      color: #51cf66;
+    }
+    
+    .delete-btn:hover {
+      background: linear-gradient(135deg, rgba(255, 107, 107, 0.2) 0%, rgba(220, 53, 69, 0.2) 100%);
+      border-color: rgba(255, 107, 107, 0.4);
+      transform: translateY(-1px) scale(1.05);
+      box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+      color: #ff6b6b;
+    }
+    
+    @media (max-width: 768px) {
+      .action-btn {
+        width: 28px;
+        height: 28px;
+        padding: 0.3rem;
+      }
+      
+      .action-btn ion-icon {
+        font-size: 1rem;
+      }
     }
     
     .prompt-input-container {
@@ -987,7 +1044,7 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
     private proseMirrorService: ProseMirrorEditorService
   ) {
     // Register icons
-    addIcons({ logoGoogle, globeOutline });
+    addIcons({ logoGoogle, globeOutline, createOutline, refreshOutline, trashOutline });
   }
   
   ngOnInit(): void {
