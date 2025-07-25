@@ -999,10 +999,10 @@ import { HeaderNavigationService } from '../../shared/services/header-navigation
         width: 100vw;
         height: 100vh;
         z-index: 1000;
-        background: rgba(0, 0, 0, 0.8);
+        background: rgba(0, 0, 0, 0.5);
         display: flex;
         align-items: flex-start;
-        padding-top: 2rem;
+        backdrop-filter: blur(2px);
       }
 
       .sidebar-overlay :global(app-story-structure .story-structure) {
@@ -1015,6 +1015,9 @@ import { HeaderNavigationService } from '../../shared/services/header-navigation
         top: 0;
         left: 0;
         position: fixed;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
       }
     }
     

@@ -4,8 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import {
   IonContent, IonList, IonItem, IonLabel, IonButton, IonIcon, IonInput,
-  IonChip, IonTextarea, IonSelect, IonSelectOption,
-  IonButtons, IonHeader, IonToolbar, IonTitle, IonBadge
+  IonChip, IonTextarea, IonSelect, IonSelectOption, IonBadge
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { 
@@ -29,38 +28,28 @@ import { Subscription } from 'rxjs';
   imports: [
     CommonModule, FormsModule,
     IonContent, IonList, IonItem, IonLabel, IonButton, IonIcon, IonInput,
-    IonChip, IonTextarea, IonSelect, IonSelectOption,
-    IonButtons, IonHeader, IonToolbar, IonTitle, IonBadge
+    IonChip, IonTextarea, IonSelect, IonSelectOption, IonBadge
   ],
   template: `
     <div class="story-structure" role="navigation" aria-label="Story structure">
-      <ion-header class="structure-header">
-        <ion-toolbar>
-          <ion-title size="small">{{ story.title || 'Unbenannte Geschichte' }}</ion-title>
-          <ion-buttons slot="end">
-            <ion-button 
-              size="small" 
-              (click)="addChapter()"
-              aria-label="Neues Kapitel hinzufügen"
-              [attr.aria-describedby]="'add-chapter-help'"
-              class="desktop-only">
-              <ion-icon name="add" slot="icon-only"></ion-icon>
-            </ion-button>
-            <ion-button 
-              size="small" 
-              (click)="onCloseSidebar()"
-              aria-label="Struktur-Sidebar schließen"
-              class="mobile-close-btn">
-              <ion-icon name="close" slot="icon-only"></ion-icon>
-            </ion-button>
-          </ion-buttons>
-        </ion-toolbar>
-      </ion-header>
-      
       <ion-content class="structure-content" [scrollEvents]="true">
         <div id="add-chapter-help" class="sr-only">
           Fügt ein neues Kapitel zur Geschichte hinzu
         </div>
+        
+        <div class="structure-actions">
+          <ion-button 
+            expand="block" 
+            fill="outline" 
+            color="primary" 
+            class="add-chapter-btn" 
+            (click)="addChapter()"
+            aria-label="Neues Kapitel hinzufügen">
+            <ion-icon name="add" slot="start" [attr.aria-hidden]="true"></ion-icon>
+            Neues Kapitel
+          </ion-button>
+        </div>
+        
         <ion-list class="chapters-list" role="tree" aria-label="Kapitel und Szenen">
           <div *ngFor="let chapter of story.chapters; trackBy: trackChapter" 
                class="chapter-item">
@@ -350,16 +339,22 @@ import { Subscription } from 'rxjs';
         height: 100vh;
         width: 100vw;
         z-index: 1000;
+        background: 
+          /* Enhanced dark overlay for better readability on mobile */
+          linear-gradient(rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.9)),
+          /* Main anime image */
+          url('/assets/cyberpunk-anime-girl.png'),
+          /* Fallback dark background */
+          #1a1a1a;
+        background-size: cover, cover, auto;
+        background-position: center, center, center;
+        background-repeat: no-repeat, no-repeat, repeat;
+        background-attachment: fixed, fixed, scroll;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden; /* Container doesn't scroll */
       }
       
-      .mobile-close-btn {
-        display: block;
-        --color: #f8f9fa;
-      }
-      
-      .desktop-only {
-        display: none;
-      }
     }
     
     /* Small mobile devices */
@@ -369,36 +364,13 @@ import { Subscription } from 'rxjs';
       }
     }
     
-    .structure-header {
-      backdrop-filter: blur(15px);
-      background: rgba(45, 45, 45, 0.3);
-      box-shadow: 0 2px 20px rgba(0, 0, 0, 0.4);
-      --background: transparent;
-      --border-width: 0 0 1px 0;
-      --border-color: rgba(255, 255, 255, 0.1);
-    }
-    
-    .structure-header ion-toolbar {
-      --background: transparent;
-      --color: #f8f9fa;
-    }
-    
-    .structure-header ion-title {
-      background: linear-gradient(135deg, #f8f9fa 0%, #8bb4f8 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-      font-size: 1.1rem;
-    }
     
     .structure-content {
       --background: transparent !important;
       background: transparent !important;
-      flex: 1;
+      height: 100vh;
       overflow-y: auto;
-      height: 100%;
+      min-height: 0; /* Important for flex children */
     }
     
     .structure-content::part(background) {
@@ -410,6 +382,28 @@ import { Subscription } from 'rxjs';
       padding-bottom: 10rem;
     }
     
+    .structure-actions {
+      padding: 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      margin-bottom: 0.5rem;
+    }
+    
+    .add-chapter-btn {
+      --background: linear-gradient(135deg, rgba(71, 118, 230, 0.2) 0%, rgba(139, 180, 248, 0.2) 100%);
+      --background-hover: linear-gradient(135deg, rgba(71, 118, 230, 0.3) 0%, rgba(139, 180, 248, 0.3) 100%);
+      --color: #8bb4f8;
+      --border-color: rgba(71, 118, 230, 0.5);
+      --border-style: dashed;
+      --border-width: 2px;
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      transition: all 0.3s ease;
+    }
+    
+    .add-chapter-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(71, 118, 230, 0.3);
+    }
     
     .chapters-list {
       background: transparent;
@@ -722,22 +716,18 @@ import { Subscription } from 'rxjs';
     
     /* Mobile adjustments */
     @media (max-width: 768px) {
-      .story-structure {
-        width: 100%;
-        max-width: 320px;
-        height: 100vh;
-        overflow-y: auto;
-      }
-      
       .structure-content {
         overflow-y: auto;
-        height: calc(100vh - 56px); /* Only subtract sidebar header (56px) */
+        flex: 1;
+        min-height: 0; /* Allow content to shrink and be scrollable */
         -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+        /* Remove fixed height calculation to allow flex to handle it */
       }
       
       .chapters-list {
         padding-top: 0.75rem; /* Extra top padding on mobile */
         padding-bottom: 12rem; /* Further increased padding for mobile */
+        min-height: 100%; /* Ensure scrollable area */
       }
       
       .scenes-list {
@@ -852,12 +842,10 @@ import { Subscription } from 'rxjs';
     @media (max-width: 480px) {
       .story-structure {
         max-width: 100vw;
+        width: 100vw; /* Ensure full width */
         border-radius: 0; /* Remove border radius on very small screens */
       }
       
-      .structure-header ion-title {
-        font-size: 1rem;
-      }
       
       .chapters-list {
         padding: 0.5rem;
@@ -895,6 +883,7 @@ import { Subscription } from 'rxjs';
     @media (min-width: 481px) and (max-width: 768px) {
       .story-structure {
         max-width: 100vw; /* Full width on all mobile sizes */
+        width: 100vw; /* Ensure full width */
       }
       
       .scene-item.multi-line {
