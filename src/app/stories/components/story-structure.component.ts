@@ -1894,27 +1894,48 @@ Antworte nur mit dem Titel, ohne weitere Erklärungen oder Anführungszeichen.`;
         const containerRect = scrollElement.getBoundingClientRect();
         const elementRect = activeSceneElement.getBoundingClientRect();
         
-        // Only scroll if the element is outside the visible area
-        const isVisible = elementRect.top >= containerRect.top && 
-                         elementRect.bottom <= containerRect.bottom;
+        // Calculate scroll position to ensure element is visible with good margin
+        const elementTop = (activeSceneElement as HTMLElement).offsetTop;
+        const containerHeight = containerRect.height;
+        const elementHeight = elementRect.height;
         
-        if (!isVisible) {
-          // Calculate scroll position to center the element
-          const elementTop = (activeSceneElement as HTMLElement).offsetTop;
-          const containerHeight = containerRect.height;
-          const elementHeight = elementRect.height;
+        // Add extra margin to ensure the scene is well visible
+        const topMargin = 100; // Extra space above the element
+        const bottomMargin = 150; // Extra space below the element
+        
+        // Check if element needs scrolling with margins
+        const currentScrollTop = scrollElement.scrollTop;
+        const elementTopInView = elementTop - currentScrollTop;
+        const elementBottomInView = elementTopInView + elementHeight;
+        
+        const needsScrolling = elementTopInView < topMargin || 
+                              elementBottomInView > (containerHeight - bottomMargin);
+        
+        if (needsScrolling) {
+          // Calculate target scroll position with proper margins
+          let targetScrollTop;
           
-          const targetScrollTop = elementTop - (containerHeight / 2) + (elementHeight / 2);
+          if (elementTopInView < topMargin) {
+            // Element is too high, scroll up to show it with top margin
+            targetScrollTop = elementTop - topMargin;
+          } else {
+            // Element is too low, scroll down to show it with bottom margin
+            targetScrollTop = elementTop - (containerHeight - elementHeight - bottomMargin);
+          }
+          
+          // Ensure we don't scroll beyond boundaries
+          const maxScrollTop = scrollElement.scrollHeight - containerHeight;
+          targetScrollTop = Math.max(0, Math.min(targetScrollTop, maxScrollTop));
           
           // Use scrollTo method if available, otherwise set scrollTop directly
           // Use instant scrolling for faster response
           if (scrollElement.scrollTo) {
             scrollElement.scrollTo({
-              top: Math.max(0, targetScrollTop),
+              top: targetScrollTop,
               behavior: 'instant'
             });
           } else {
-            scrollElement.scrollTop = Math.max(0, targetScrollTop);
+            scrollElement.scrollTop = targetScrollTop;
           }
         }
       }
