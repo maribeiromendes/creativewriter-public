@@ -388,6 +388,14 @@ import { Subscription } from 'rxjs';
       margin-bottom: 0.5rem;
     }
     
+    /* Mobile: Add top padding to avoid header overlap */
+    @media (max-width: 768px) {
+      .structure-actions {
+        padding-top: 4rem; /* Add space for main header */
+        margin-top: 0;
+      }
+    }
+    
     .add-chapter-btn {
       --background: linear-gradient(135deg, rgba(71, 118, 230, 0.2) 0%, rgba(139, 180, 248, 0.2) 100%);
       --background-hover: linear-gradient(135deg, rgba(71, 118, 230, 0.3) 0%, rgba(139, 180, 248, 0.3) 100%);
