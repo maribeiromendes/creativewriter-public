@@ -1859,35 +1859,58 @@ Antworte nur mit dem Titel, ohne weitere Erklärungen oder Anführungszeichen.`;
     // Wait for DOM to be updated
     setTimeout(() => {
       const activeSceneElement = document.querySelector(`.scene-item.active-scene`);
-      const sidebarContent = document.querySelector('.structure-content ion-content');
+      if (!activeSceneElement) return;
       
-      if (activeSceneElement && sidebarContent) {
-        // Get the scrollable container (the ion-content scroll element)
-        const scrollContainer = sidebarContent.shadowRoot?.querySelector('.inner-scroll') || 
-                               sidebarContent.querySelector('.inner-scroll') ||
-                               sidebarContent;
+      // Find the ion-content element within the story structure
+      const storyStructure = document.querySelector('.story-structure');
+      const ionContent = storyStructure?.querySelector('ion-content');
+      
+      if (ionContent) {
+        // Try to get the scrollable element from ion-content
+        // Ion-content creates a scroll element inside its shadow DOM or as a direct child
+        let scrollElement = ionContent.shadowRoot?.querySelector('.inner-scroll');
         
-        if (scrollContainer) {
-          // Calculate the position of the active scene relative to the scroll container
-          const containerRect = scrollContainer.getBoundingClientRect();
-          const elementRect = activeSceneElement.getBoundingClientRect();
-          
-          // Calculate the scroll position to center the element
-          const elementTop = elementRect.top - containerRect.top;
+        // Fallback: try to find scrollable element as direct child
+        if (!scrollElement) {
+          scrollElement = ionContent.querySelector('.inner-scroll') || 
+                         ionContent.querySelector('[scrollable]') ||
+                         ionContent;
+        }
+        
+        // Final fallback: use the ion-content element itself
+        if (!scrollElement) {
+          scrollElement = ionContent;
+        }
+        
+        // Get the bounding rectangles
+        const containerRect = scrollElement.getBoundingClientRect();
+        const elementRect = activeSceneElement.getBoundingClientRect();
+        
+        // Only scroll if the element is outside the visible area
+        const isVisible = elementRect.top >= containerRect.top && 
+                         elementRect.bottom <= containerRect.bottom;
+        
+        if (!isVisible) {
+          // Calculate scroll position to center the element
+          const elementTop = (activeSceneElement as HTMLElement).offsetTop;
           const containerHeight = containerRect.height;
           const elementHeight = elementRect.height;
           
-          // Center the element in the container
-          const targetScrollTop = scrollContainer.scrollTop + elementTop - (containerHeight / 2) + (elementHeight / 2);
+          const targetScrollTop = elementTop - (containerHeight / 2) + (elementHeight / 2);
           
-          // Smooth scroll to the target position
-          scrollContainer.scrollTo({
-            top: targetScrollTop,
-            behavior: 'smooth'
-          });
+          // Use scrollTo method if available, otherwise set scrollTop directly
+          // Use instant scrolling for faster response
+          if (scrollElement.scrollTo) {
+            scrollElement.scrollTo({
+              top: Math.max(0, targetScrollTop),
+              behavior: 'instant'
+            });
+          } else {
+            scrollElement.scrollTop = Math.max(0, targetScrollTop);
+          }
         }
       }
-    }, 200);
+    }, 100); // Faster response for better UX
   }
 
   private removeEmbeddedImages(content: string): string {
