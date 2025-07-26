@@ -183,7 +183,14 @@ export class SettingsService {
       updatedAt: new Date()
     };
     
+    console.log('updateAppearanceSettings called with:', settings);
+    console.log('Updated settings will be:', updatedSettings);
+    
     this.saveSettings(updatedSettings);
     this.settingsSubject.next(updatedSettings);
+    
+    // Verify save
+    const saved = localStorage.getItem(this.STORAGE_KEY);
+    console.log('Saved to localStorage:', saved);
   }
 }

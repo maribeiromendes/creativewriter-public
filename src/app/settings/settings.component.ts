@@ -1291,6 +1291,15 @@ export class SettingsComponent implements OnInit, OnDestroy {
         this.originalSettings = JSON.parse(JSON.stringify(settings));
         this.hasUnsavedChanges = false;
         
+        // Debug: Check if appearance settings exist
+        console.log('Loaded settings:', settings);
+        console.log('Appearance settings:', settings.appearance);
+        
+        // Ensure appearance object exists
+        if (!this.settings.appearance) {
+          this.settings.appearance = { textColor: '#e0e0e0' };
+        }
+        
         // Auto-load models if a model is already selected but models aren't loaded yet
         this.autoLoadModelsIfNeeded();
       })
@@ -1341,6 +1350,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
   }
 
   saveSettings(): void {
+    console.log('Saving settings:', this.settings);
     this.settingsService.updateSettings(this.settings);
     this.hasUnsavedChanges = false;
   }
@@ -1550,9 +1560,13 @@ export class SettingsComponent implements OnInit, OnDestroy {
   }
 
   onTextColorChange(color: string): void {
-    // Update settings immediately using the proper service method
-    this.settingsService.updateAppearanceSettings({ textColor: color });
+    // Update local settings first to track changes
+    this.settings.appearance.textColor = color;
     this.onSettingsChange();
+    
+    // Debug logging
+    console.log('Text color changed to:', color);
+    console.log('Settings appearance:', this.settings.appearance);
   }
 
   getModelDisplayName(modelId: string): string {
