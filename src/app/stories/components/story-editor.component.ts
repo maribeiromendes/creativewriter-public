@@ -1114,6 +1114,7 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('burgerMenuFooter', { static: true }) burgerMenuFooter!: TemplateRef<any>;
   @ViewChild('editorContainer') editorContainer!: ElementRef<HTMLDivElement>;
   private editorView: EditorView | null = null;
+  private mutationObserver: MutationObserver | null = null;
   wordCount: number = 0;
   currentTextColor: string = '#e0e0e0';
   
@@ -1301,6 +1302,10 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     }
     if (this.editorView) {
       this.proseMirrorService.destroy();
+    }
+    if (this.mutationObserver) {
+      this.mutationObserver.disconnect();
+      this.mutationObserver = null;
     }
     this.subscription.unsubscribe();
     
@@ -2268,20 +2273,109 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
 
   private applyTextColorToProseMirror(): void {
     setTimeout(() => {
-      // Target the actual ProseMirror element created by the service
-      const prosemirrorElement = document.querySelector('.ProseMirror.prosemirror-editor');
-      if (prosemirrorElement) {
-        (prosemirrorElement as HTMLElement).style.setProperty('--editor-text-color', this.currentTextColor);
-        (prosemirrorElement as HTMLElement).style.color = this.currentTextColor;
-        console.log('Applied text color to ProseMirror element:', this.currentTextColor);
-      }
+      // Apply text color to all existing elements
+      this.applyTextColorToAllElements();
       
-      // Also target all child elements to ensure inheritance
-      const allProseMirrorElements = document.querySelectorAll('.ProseMirror.prosemirror-editor, .ProseMirror.prosemirror-editor *');
-      allProseMirrorElements.forEach(element => {
+      // Setup MutationObserver to watch for dynamically added Beat AI components
+      this.setupMutationObserver();
+    }, 100);
+  }
+
+  private applyTextColorToAllElements(): void {
+    // Target the actual ProseMirror element created by the service
+    const prosemirrorElement = document.querySelector('.ProseMirror.prosemirror-editor');
+    if (prosemirrorElement) {
+      (prosemirrorElement as HTMLElement).style.setProperty('--editor-text-color', this.currentTextColor);
+      (prosemirrorElement as HTMLElement).style.color = this.currentTextColor;
+      console.log('Applied text color to ProseMirror element:', this.currentTextColor);
+    }
+    
+    // Also target all child elements to ensure inheritance
+    const allProseMirrorElements = document.querySelectorAll('.ProseMirror.prosemirror-editor, .ProseMirror.prosemirror-editor *');
+    allProseMirrorElements.forEach(element => {
+      (element as HTMLElement).style.color = this.currentTextColor;
+    });
+    
+    // Apply to all Beat AI components
+    this.applyTextColorToBeatAIElements();
+    
+    console.log('Applied text color to all existing elements:', this.currentTextColor);
+  }
+
+  private applyTextColorToBeatAIElements(): void {
+    // Apply to all Beat AI containers
+    const beatAIContainers = document.querySelectorAll('.beat-ai-container');
+    beatAIContainers.forEach(container => {
+      // Set CSS custom property
+      (container as HTMLElement).style.setProperty('--beat-ai-text-color', this.currentTextColor);
+      
+      // Apply to prompt text elements
+      const promptTexts = container.querySelectorAll('.prompt-text');
+      promptTexts.forEach(element => {
         (element as HTMLElement).style.color = this.currentTextColor;
       });
-    }, 100);
+      
+      // Apply to Beat AI ProseMirror elements
+      const proseMirrorElements = container.querySelectorAll('.ProseMirror');
+      proseMirrorElements.forEach(element => {
+        (element as HTMLElement).style.color = this.currentTextColor;
+        const childElements = element.querySelectorAll('*');
+        childElements.forEach((child: Element) => {
+          (child as HTMLElement).style.color = this.currentTextColor;
+        });
+      });
+    });
+  }
+
+  private setupMutationObserver(): void {
+    // Disconnect existing observer if any
+    if (this.mutationObserver) {
+      this.mutationObserver.disconnect();
+    }
+
+    // Create new observer to watch for Beat AI components being added
+    this.mutationObserver = new MutationObserver((mutations) => {
+      let shouldApplyStyles = false;
+      
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'childList') {
+          mutation.addedNodes.forEach((node) => {
+            if (node.nodeType === Node.ELEMENT_NODE) {
+              const element = node as Element;
+              
+              // Check if the added node is a Beat AI container or contains one
+              if (element.classList?.contains('beat-ai-container') || 
+                  element.querySelector?.('.beat-ai-container')) {
+                shouldApplyStyles = true;
+              }
+              
+              // Also check for ProseMirror elements that might be Beat AI related
+              if (element.classList?.contains('ProseMirror') ||
+                  element.querySelector?.('.ProseMirror')) {
+                shouldApplyStyles = true;
+              }
+            }
+          });
+        }
+      });
+      
+      if (shouldApplyStyles) {
+        // Apply styles to newly added Beat AI elements
+        setTimeout(() => {
+          this.applyTextColorToBeatAIElements();
+          console.log('Applied text color to newly added Beat AI elements:', this.currentTextColor);
+        }, 50);
+      }
+    });
+
+    // Start observing the editor container and its subtree
+    const targetNode = document.querySelector('.content-editor') || document.body;
+    this.mutationObserver.observe(targetNode, {
+      childList: true,
+      subtree: true
+    });
+    
+    console.log('MutationObserver setup complete for Beat AI text color application');
   }
 
 }

@@ -1046,7 +1046,8 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
     private modelService: ModelService,
     private settingsService: SettingsService,
     private beatAIService: BeatAIService,
-    private proseMirrorService: ProseMirrorEditorService
+    private proseMirrorService: ProseMirrorEditorService,
+    private elementRef: ElementRef
   ) {
     // Register icons
     addIcons({ logoGoogle, globeOutline, createOutline, refreshOutline, trashOutline });
@@ -1123,6 +1124,9 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
     // Set initial text color from settings
     const settings = this.settingsService.getSettings();
     this.currentTextColor = settings.appearance?.textColor || '#e0e0e0';
+    
+    // Apply text color to this specific component
+    this.applyTextColorDirectly();
   }
 
   private initializeProseMirrorEditor(): void {
@@ -1326,6 +1330,9 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
         // Update text color
         this.currentTextColor = settings.appearance?.textColor || '#e0e0e0';
         console.log('Beat AI: Text color updated to:', this.currentTextColor);
+        
+        // Apply the new color to this component
+        this.applyTextColorDirectly();
       })
     );
     
@@ -1467,6 +1474,22 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
     }
     
     return modelId;
+  }
+
+  private applyTextColorDirectly(): void {
+    // The story editor's MutationObserver will handle this automatically,
+    // but we still apply it directly for immediate feedback
+    setTimeout(() => {
+      const hostElement = this.elementRef.nativeElement;
+      
+      if (hostElement) {
+        const container = hostElement.querySelector?.('.beat-ai-container') || hostElement;
+        if (container) {
+          (container as HTMLElement).style.setProperty('--beat-ai-text-color', this.currentTextColor);
+          console.log('Beat AI component: Set CSS custom property to:', this.currentTextColor);
+        }
+      }
+    }, 50);
   }
   
 }
