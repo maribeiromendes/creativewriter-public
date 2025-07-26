@@ -4,7 +4,12 @@ export interface Settings {
   googleGemini: GoogleGeminiSettings;
   sceneTitleGeneration: SceneTitleGenerationSettings;
   selectedModel: string; // Global selected model (format: "provider:model_id")
+  appearance: AppearanceSettings;
   updatedAt: Date;
+}
+
+export interface AppearanceSettings {
+  textColor: string; // Hex color code for text in editor and beat AI
 }
 
 export interface OpenRouterSettings {
@@ -87,6 +92,9 @@ export const DEFAULT_SETTINGS: Settings = {
     customPrompt: 'Erstelle einen Titel für die folgende Szene. Der Titel soll bis zu {maxWords} Wörter lang sein und den Kern der Szene erfassen.\n\n{styleInstruction}\n{genreInstruction}\n{languageInstruction}{customInstruction}\n\nSzenencontent (nur diese eine Szene):\n{sceneContent}\n\nAntworte nur mit dem Titel, ohne weitere Erklärungen oder Anführungszeichen.',
     useCustomPrompt: false,
     selectedModel: ''
+  },
+  appearance: {
+    textColor: '#e0e0e0' // Default light gray color for dark theme
   },
   selectedModel: '',
   updatedAt: new Date()

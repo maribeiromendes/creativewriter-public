@@ -338,7 +338,7 @@ import { EditorView } from 'prosemirror-view';
       border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 6px;
       padding: 0;
-      color: #e0e0e0;
+      color: var(--beat-ai-text-color, #e0e0e0);
       font-family: inherit;
       font-size: 0.9rem;
       line-height: 1.2;
@@ -365,7 +365,7 @@ import { EditorView } from 'prosemirror-view';
       min-height: auto;
       background: rgba(15, 15, 15, 0.1);
       backdrop-filter: blur(2px);
-      color: #e0e0e0 !important;
+      color: var(--beat-ai-text-color, #e0e0e0) !important;
       font-size: 0.9rem;
       line-height: 1.2;
       font-family: inherit;
@@ -393,7 +393,7 @@ import { EditorView } from 'prosemirror-view';
     
     .prompt-input.prosemirror-container :global(.ProseMirror p) {
       margin: 0;
-      color: #e0e0e0 !important;
+      color: var(--beat-ai-text-color, #e0e0e0) !important;
       font-size: 0.9rem;
       line-height: 1.2;
     }
@@ -1114,6 +1114,12 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
     if (this.beatData.isEditing && this.promptInput && !this.editorView) {
       this.initializeProseMirrorEditor();
     }
+    
+    // Apply initial text color from settings
+    const settings = this.settingsService.getSettings();
+    if (settings.appearance?.textColor) {
+      this.applyTextColor(settings.appearance.textColor);
+    }
   }
 
   private initializeProseMirrorEditor(): void {
@@ -1312,8 +1318,12 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
   private loadAvailableModels(): void {
     // Subscribe to settings changes to reload models when API switches
     this.subscription.add(
-      this.settingsService.settings$.subscribe(() => {
+      this.settingsService.settings$.subscribe(settings => {
         this.reloadModels();
+        // Apply text color if available
+        if (settings.appearance?.textColor) {
+          this.applyTextColor(settings.appearance.textColor);
+        }
       })
     );
     
@@ -1455,5 +1465,15 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
     }
     
     return modelId;
+  }
+  
+  private applyTextColor(color: string): void {
+    // Apply the text color as a CSS custom property to this component
+    setTimeout(() => {
+      const containers = document.querySelectorAll('.beat-ai-container');
+      containers.forEach(container => {
+        (container as HTMLElement).style.setProperty('--beat-ai-text-color', color);
+      });
+    }, 0);
   }
 }

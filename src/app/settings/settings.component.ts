@@ -402,6 +402,29 @@ import { NgSelectModule } from '@ng-select/ng-select';
           </ion-card-content>
         </ion-card>
 
+        <!-- Appearance Settings -->
+        <ion-card>
+          <ion-card-header>
+            <ion-card-title>Darstellung</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <ion-item>
+              <ion-label>Textfarbe</ion-label>
+              <input
+                type="color"
+                [(ngModel)]="settings.appearance.textColor"
+                (ngModelChange)="onSettingsChange()"
+                slot="end"
+                style="width: 60px; height: 40px; border: 1px solid rgba(139, 180, 248, 0.3); border-radius: 6px; background: rgba(0, 0, 0, 0.2); cursor: pointer;">
+            </ion-item>
+            <div class="model-info">
+              <p class="info-text">
+                Diese Farbe wird für den Text im Story-Editor und Beat AI-Input verwendet.
+              </p>
+            </div>
+          </ion-card-content>
+        </ion-card>
+
         <!-- Scene Title Generation Settings -->
         <ion-card>
           <ion-card-header>

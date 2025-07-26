@@ -27,6 +27,7 @@ import { PromptManagerService } from '../../shared/services/prompt-manager.servi
 import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/components/image-upload-dialog.component';
 import { AppHeaderComponent, HeaderAction, BurgerMenuItem } from '../../shared/components/app-header.component';
 import { HeaderNavigationService } from '../../shared/services/header-navigation.service';
+import { SettingsService } from '../../core/services/settings.service';
 
 @Component({
   selector: 'app-story-editor',
@@ -778,7 +779,7 @@ import { HeaderNavigationService } from '../../shared/services/header-navigation
       border: none !important;
       background: rgba(30, 30, 30, 0.3);
       backdrop-filter: blur(5px);
-      color: var(--ion-text-color, var(--ion-color-step-850, #e0e0e0));
+      color: var(--editor-text-color, var(--ion-text-color, var(--ion-color-step-850, #e0e0e0)));
       font-size: 1rem;
       line-height: 1.8;
       font-family: var(--ion-font-family, Georgia, serif);
@@ -811,7 +812,7 @@ import { HeaderNavigationService } from '../../shared/services/header-navigation
     .content-editor :global(.prosemirror-editor h1),
     .content-editor :global(.prosemirror-editor h2),
     .content-editor :global(.prosemirror-editor h3) {
-      color: var(--ion-text-color, var(--ion-color-step-900, #f8f9fa));
+      color: var(--editor-text-color, var(--ion-text-color, var(--ion-color-step-900, #f8f9fa)));
       font-weight: var(--ion-font-weight-bold, bold);
       margin: var(--ion-margin, 1.5rem) 0 var(--ion-margin-sm, 1rem) 0;
     }
@@ -829,12 +830,12 @@ import { HeaderNavigationService } from '../../shared/services/header-navigation
     }
     
     .content-editor :global(.prosemirror-editor strong) {
-      color: var(--ion-text-color, var(--ion-color-step-900, #f8f9fa));
+      color: var(--editor-text-color, var(--ion-text-color, var(--ion-color-step-900, #f8f9fa)));
       font-weight: var(--ion-font-weight-bold, bold);
     }
     
     .content-editor :global(.prosemirror-editor em) {
-      color: var(--ion-color-medium, #adb5bd);
+      color: var(--editor-text-color, var(--ion-color-medium, #adb5bd));
       font-style: italic;
     }
     
@@ -864,14 +865,14 @@ import { HeaderNavigationService } from '../../shared/services/header-navigation
       position: relative;
       white-space: pre-wrap;
       word-wrap: break-word;
-      caret-color: var(--ion-text-color, var(--ion-color-step-850, #e0e0e0));
+      caret-color: var(--editor-text-color, var(--ion-text-color, var(--ion-color-step-850, #e0e0e0)));
     }
     
     .content-editor :global(.ProseMirror-focused) {
       outline: none !important;
       border: none !important;
       box-shadow: none !important;
-      caret-color: var(--ion-text-color, var(--ion-color-step-850, #e0e0e0));
+      caret-color: var(--editor-text-color, var(--ion-text-color, var(--ion-color-step-850, #e0e0e0)));
       -webkit-font-variant-ligatures: none;
       font-variant-ligatures: none;
       font-feature-settings: "liga" 0;
@@ -1164,7 +1165,8 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     private beatAIService: BeatAIService,
     private cdr: ChangeDetectorRef,
     private promptManager: PromptManagerService,
-    private headerNavService: HeaderNavigationService
+    private headerNavService: HeaderNavigationService,
+    private settingsService: SettingsService
   ) {
     addIcons({ 
       arrowBack, bookOutline, book, settingsOutline, statsChartOutline,
@@ -1179,6 +1181,15 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     
     // Check if we're on mobile and start with sidebar hidden
     this.checkMobileAndHideSidebar();
+    
+    // Subscribe to settings changes for text color
+    this.subscription.add(
+      this.settingsService.settings$.subscribe(settings => {
+        if (settings.appearance?.textColor) {
+          this.applyTextColor(settings.appearance.textColor);
+        }
+      })
+    );
     
     const storyId = this.route.snapshot.paramMap.get('id');
     if (storyId) {
@@ -2244,6 +2255,14 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     }
     
     console.log('Debug mode:', this.debugModeEnabled ? 'enabled' : 'disabled');
+  }
+
+  private applyTextColor(color: string): void {
+    // Apply the text color as a CSS custom property
+    const editorElement = document.querySelector('.content-editor');
+    if (editorElement) {
+      (editorElement as HTMLElement).style.setProperty('--editor-text-color', color);
+    }
   }
 
 }

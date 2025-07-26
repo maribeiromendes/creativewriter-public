@@ -45,6 +45,10 @@ export class SettingsService {
             ...DEFAULT_SETTINGS.sceneTitleGeneration,
             ...parsed.sceneTitleGeneration
           },
+          appearance: {
+            ...DEFAULT_SETTINGS.appearance,
+            ...parsed.appearance
+          },
           updatedAt: new Date(parsed.updatedAt || new Date())
         };
       }
@@ -166,5 +170,20 @@ export class SettingsService {
   isGoogleGeminiConfigured(): boolean {
     const settings = this.getSettings();
     return settings.googleGemini.enabled && !!settings.googleGemini.apiKey;
+  }
+
+  updateAppearanceSettings(settings: Partial<Settings['appearance']>): void {
+    const currentSettings = this.settingsSubject.value;
+    const updatedSettings = {
+      ...currentSettings,
+      appearance: {
+        ...currentSettings.appearance,
+        ...settings
+      },
+      updatedAt: new Date()
+    };
+    
+    this.saveSettings(updatedSettings);
+    this.settingsSubject.next(updatedSettings);
   }
 }
