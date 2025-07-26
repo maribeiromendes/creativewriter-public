@@ -413,7 +413,7 @@ import { NgSelectModule } from '@ng-select/ng-select';
               <input
                 type="color"
                 [(ngModel)]="settings.appearance.textColor"
-                (ngModelChange)="onSettingsChange()"
+                (ngModelChange)="onTextColorChange($event)"
                 slot="end"
                 style="width: 60px; height: 40px; border: 1px solid rgba(139, 180, 248, 0.3); border-radius: 6px; background: rgba(0, 0, 0, 0.2); cursor: pointer;">
             </ion-item>
@@ -1546,6 +1546,12 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
   onSceneTitleModelChange(): void {
     console.log('Scene title model changed to:', this.settings.sceneTitleGeneration.selectedModel);
+    this.onSettingsChange();
+  }
+
+  onTextColorChange(color: string): void {
+    // Update settings immediately using the proper service method
+    this.settingsService.updateAppearanceSettings({ textColor: color });
     this.onSettingsChange();
   }
 

@@ -19,7 +19,7 @@ import { EditorView } from 'prosemirror-view';
   standalone: true,
   imports: [CommonModule, FormsModule, NgSelectModule, IonIcon],
   template: `
-    <div class="beat-ai-container" [class.editing]="beatData.isEditing" [class.generating]="beatData.isGenerating">
+    <div class="beat-ai-container" [class.editing]="beatData.isEditing" [class.generating]="beatData.isGenerating" [style.--beat-ai-text-color]="currentTextColor">
       <!-- Prompt Input Section -->
       <div class="beat-prompt-section" [class.collapsed]="!beatData.isEditing && beatData.generatedContent">
         <div class="beat-header">
@@ -997,6 +997,7 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
   @Input() chapterId?: string;
   @Input() sceneId?: string;
   @Output() promptSubmit = new EventEmitter<BeatAIPromptEvent>();
+  currentTextColor: string = '#e0e0e0';
   @Output() contentUpdate = new EventEmitter<BeatAI>();
   @Output() delete = new EventEmitter<string>();
   @Output() focus = new EventEmitter<void>();
@@ -1115,11 +1116,9 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
       this.initializeProseMirrorEditor();
     }
     
-    // Apply initial text color from settings
+    // Set initial text color from settings
     const settings = this.settingsService.getSettings();
-    if (settings.appearance?.textColor) {
-      this.applyTextColor(settings.appearance.textColor);
-    }
+    this.currentTextColor = settings.appearance?.textColor || '#e0e0e0';
   }
 
   private initializeProseMirrorEditor(): void {
@@ -1320,10 +1319,8 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
     this.subscription.add(
       this.settingsService.settings$.subscribe(settings => {
         this.reloadModels();
-        // Apply text color if available
-        if (settings.appearance?.textColor) {
-          this.applyTextColor(settings.appearance.textColor);
-        }
+        // Update text color
+        this.currentTextColor = settings.appearance?.textColor || '#e0e0e0';
       })
     );
     
@@ -1467,13 +1464,4 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
     return modelId;
   }
   
-  private applyTextColor(color: string): void {
-    // Apply the text color as a CSS custom property to this component
-    setTimeout(() => {
-      const containers = document.querySelectorAll('.beat-ai-container');
-      containers.forEach(container => {
-        (container as HTMLElement).style.setProperty('--beat-ai-text-color', color);
-      });
-    }, 0);
-  }
 }

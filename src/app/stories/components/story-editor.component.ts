@@ -85,7 +85,7 @@ import { SettingsService } from '../../core/services/settings.service';
           </div>
           
           <div class="editor-main">
-            <div class="editor-content">
+            <div class="editor-content" [style.--editor-text-color]="currentTextColor">
               <div class="editor-inner">
                 <input 
                   type="text" 
@@ -1109,6 +1109,7 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('editorContainer') editorContainer!: ElementRef<HTMLDivElement>;
   private editorView: EditorView | null = null;
   wordCount: number = 0;
+  currentTextColor: string = '#e0e0e0';
   
   story: Story = {
     id: '',
@@ -1185,9 +1186,7 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     // Subscribe to settings changes for text color
     this.subscription.add(
       this.settingsService.settings$.subscribe(settings => {
-        if (settings.appearance?.textColor) {
-          this.applyTextColor(settings.appearance.textColor);
-        }
+        this.currentTextColor = settings.appearance?.textColor || '#e0e0e0';
       })
     );
     
@@ -2257,12 +2256,5 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     console.log('Debug mode:', this.debugModeEnabled ? 'enabled' : 'disabled');
   }
 
-  private applyTextColor(color: string): void {
-    // Apply the text color as a CSS custom property
-    const editorElement = document.querySelector('.content-editor');
-    if (editorElement) {
-      (editorElement as HTMLElement).style.setProperty('--editor-text-color', color);
-    }
-  }
 
 }
