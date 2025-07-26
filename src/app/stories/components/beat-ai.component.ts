@@ -372,6 +372,10 @@ import { EditorView } from 'prosemirror-view';
       width: 100%;
       box-sizing: border-box;
       border-radius: 4px;
+    }
+    
+    .prompt-input.prosemirror-container :global(.ProseMirror *) {
+      color: inherit !important;
       cursor: text;
       /* Prevent text selection on mobile */
       -webkit-user-select: text;
@@ -1321,6 +1325,7 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
         this.reloadModels();
         // Update text color
         this.currentTextColor = settings.appearance?.textColor || '#e0e0e0';
+        console.log('Beat AI: Text color updated to:', this.currentTextColor);
       })
     );
     

@@ -865,7 +865,12 @@ import { SettingsService } from '../../core/services/settings.service';
       position: relative;
       white-space: pre-wrap;
       word-wrap: break-word;
+      color: var(--editor-text-color, #e0e0e0) !important;
       caret-color: var(--editor-text-color, var(--ion-text-color, var(--ion-color-step-850, #e0e0e0)));
+    }
+    
+    .content-editor :global(.ProseMirror *) {
+      color: inherit !important;
     }
     
     .content-editor :global(.ProseMirror-focused) {
@@ -1187,6 +1192,7 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     this.subscription.add(
       this.settingsService.settings$.subscribe(settings => {
         this.currentTextColor = settings.appearance?.textColor || '#e0e0e0';
+        console.log('Story Editor: Text color updated to:', this.currentTextColor);
       })
     );
     
