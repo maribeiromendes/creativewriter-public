@@ -139,6 +139,7 @@ import { SettingsService } from '../../core/services/settings.service';
                     <div 
                       #editorContainer
                       class="content-editor"
+                      [style.--editor-text-color]="currentTextColor"
                     ></div>
                   </div>
                   
@@ -1193,6 +1194,7 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
       this.settingsService.settings$.subscribe(settings => {
         this.currentTextColor = settings.appearance?.textColor || '#e0e0e0';
         console.log('Story Editor: Text color updated to:', this.currentTextColor);
+        this.applyTextColorToProseMirror();
       })
     );
     
@@ -1223,6 +1225,8 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
         setTimeout(() => {
           if (this.editorContainer) {
             this.initializeProseMirrorEditor();
+            // Apply text color after editor is initialized
+            this.applyTextColorToProseMirror();
             // Ensure scrolling happens after editor is fully initialized and content is rendered
             // Use requestAnimationFrame to ensure DOM is updated
             requestAnimationFrame(() => {
@@ -2262,5 +2266,22 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     console.log('Debug mode:', this.debugModeEnabled ? 'enabled' : 'disabled');
   }
 
+  private applyTextColorToProseMirror(): void {
+    setTimeout(() => {
+      // Target the actual ProseMirror element created by the service
+      const prosemirrorElement = document.querySelector('.ProseMirror.prosemirror-editor');
+      if (prosemirrorElement) {
+        (prosemirrorElement as HTMLElement).style.setProperty('--editor-text-color', this.currentTextColor);
+        (prosemirrorElement as HTMLElement).style.color = this.currentTextColor;
+        console.log('Applied text color to ProseMirror element:', this.currentTextColor);
+      }
+      
+      // Also target all child elements to ensure inheritance
+      const allProseMirrorElements = document.querySelectorAll('.ProseMirror.prosemirror-editor, .ProseMirror.prosemirror-editor *');
+      allProseMirrorElements.forEach(element => {
+        (element as HTMLElement).style.color = this.currentTextColor;
+      });
+    }, 100);
+  }
 
 }
