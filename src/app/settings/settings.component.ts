@@ -15,6 +15,7 @@ import { ModelService } from '../core/services/model.service';
 import { Settings } from '../core/models/settings.interface';
 import { ModelOption } from '../core/models/model.interface';
 import { NgSelectModule } from '@ng-select/ng-select';
+import { ColorPickerComponent } from '../shared/components/color-picker.component';
 
 @Component({
   selector: 'app-settings',
@@ -23,7 +24,8 @@ import { NgSelectModule } from '@ng-select/ng-select';
     CommonModule, FormsModule, NgSelectModule,
     IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
     IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonInput, IonToggle,
-    IonChip, IonItem, IonLabel, IonSelect, IonSelectOption, IonRange, IonTextarea
+    IonChip, IonItem, IonLabel, IonSelect, IonSelectOption, IonRange, IonTextarea,
+    ColorPickerComponent
   ],
   template: `
     <div class="ion-page">
@@ -408,19 +410,15 @@ import { NgSelectModule } from '@ng-select/ng-select';
             <ion-card-title>Darstellung</ion-card-title>
           </ion-card-header>
           <ion-card-content>
-            <ion-item>
-              <ion-label>Textfarbe</ion-label>
-              <input
-                type="color"
-                [(ngModel)]="settings.appearance.textColor"
-                (ngModelChange)="onTextColorChange($event)"
-                slot="end"
-                style="width: 60px; height: 40px; border: 1px solid rgba(139, 180, 248, 0.3); border-radius: 6px; background: rgba(0, 0, 0, 0.2); cursor: pointer;">
-            </ion-item>
-            <div class="model-info">
-              <p class="info-text">
+            <div class="appearance-section">
+              <h3>Textfarbe</h3>
+              <p class="appearance-description">
                 Diese Farbe wird für den Text im Story-Editor und Beat AI-Input verwendet.
               </p>
+              <app-color-picker 
+                [color]="settings.appearance.textColor"
+                (colorChange)="onTextColorChange($event)">
+              </app-color-picker>
             </div>
           </ion-card-content>
         </ion-card>
@@ -1242,6 +1240,24 @@ import { NgSelectModule } from '@ng-select/ng-select';
     }
 
     /* Mobile responsive adjustments */
+    .appearance-section {
+      padding: 0.5rem 0;
+    }
+
+    .appearance-section h3 {
+      color: #f8f9fa;
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+    }
+
+    .appearance-description {
+      color: #adb5bd;
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+      line-height: 1.4;
+    }
+
     @media (max-width: 768px) {
       .settings-content {
         padding: 0.5rem;
