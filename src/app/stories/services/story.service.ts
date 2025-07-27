@@ -28,12 +28,7 @@ export class StoryService {
           return row.doc as Story;
         })
         .filter((doc: any) => doc && doc.id && doc.type !== 'codex') // Filter out design docs and codex entries
-        .map((story: any) => {
-          console.log('Before migration:', story);
-          const migrated = this.migrateStory(story);
-          console.log('After migration:', migrated);
-          return migrated;
-        });
+        .map((story: any) => this.migrateStory(story));
         
       return stories;
     } catch (error) {
@@ -71,7 +66,6 @@ export class StoryService {
         }
       }
       const migrated = this.migrateStory(doc as Story);
-      console.log('Migrated story:', migrated);
       return migrated;
     } catch (error) {
       console.error('Error getting story:', error);
