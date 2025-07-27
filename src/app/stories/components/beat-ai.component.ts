@@ -29,21 +29,21 @@ import { EditorView } from 'prosemirror-view';
             <button 
               *ngIf="!beatData.isEditing && beatData.prompt" 
               class="action-btn edit-btn"
-              (click)="startEditing()"
+              (click)="startEditing(); $event.stopPropagation()"
               title="Prompt bearbeiten">
               <ion-icon name="create-outline"></ion-icon>
             </button>
             <button 
               *ngIf="beatData.generatedContent && !beatData.isGenerating" 
               class="action-btn regenerate-btn"
-              (click)="regenerateContent()"
+              (click)="regenerateContent(); $event.stopPropagation()"
               title="Neu generieren">
               <ion-icon name="refresh-outline"></ion-icon>
             </button>
             <button 
               *ngIf="beatData.generatedContent && !beatData.isGenerating" 
               class="action-btn delete-btn"
-              (click)="deleteContentAfterBeat()"
+              (click)="deleteContentAfterBeat(); $event.stopPropagation()"
               title="Text nach diesem Beat löschen">
               <ion-icon name="trash-outline"></ion-icon>
             </button>
@@ -125,13 +125,13 @@ import { EditorView } from 'prosemirror-view';
           <div class="prompt-actions">
             <button 
               class="generate-btn primary"
-              (click)="generateContent()"
+              (click)="generateContent(); $event.stopPropagation()"
               [disabled]="!currentPrompt.trim() || beatData.isGenerating || !selectedModel">
               {{ beatData.generatedContent ? 'Regenerieren' : 'Generieren' }}
             </button>
             <button 
               class="generate-btn primary"
-              (click)="showPromptPreview()"
+              (click)="showPromptPreview(); $event.stopPropagation()"
               [disabled]="!currentPrompt.trim()"
               title="Prompt-Vorschau anzeigen">
               👁️ Vorschau
@@ -139,7 +139,7 @@ import { EditorView } from 'prosemirror-view';
             <button 
               *ngIf="beatData.prompt && beatData.isEditing"
               class="cancel-btn"
-              (click)="cancelEditing()">
+              (click)="cancelEditing(); $event.stopPropagation()">
               Abbrechen
             </button>
           </div>
@@ -168,7 +168,7 @@ import { EditorView } from 'prosemirror-view';
         </div>
         <button 
           class="stop-btn"
-          (click)="stopGeneration()"
+          (click)="stopGeneration(); $event.stopPropagation()"
           title="Generierung stoppen">
           ⏹️ Stoppen
         </button>
@@ -180,14 +180,14 @@ import { EditorView } from 'prosemirror-view';
       <div class="preview-content" (click)="$event.stopPropagation()">
         <div class="preview-header">
           <h3>Prompt-Vorschau</h3>
-          <button class="close-btn" (click)="hidePromptPreview()">×</button>
+          <button class="close-btn" (click)="hidePromptPreview(); $event.stopPropagation()">×</button>
         </div>
         <div class="preview-body">
           <pre class="prompt-preview">{{ previewContent }}</pre>
         </div>
         <div class="preview-footer">
-          <button class="btn btn-secondary" (click)="hidePromptPreview()">Schließen</button>
-          <button class="btn btn-primary" (click)="hidePromptPreview(); generateContent()">
+          <button class="btn btn-secondary" (click)="hidePromptPreview(); $event.stopPropagation()">Schließen</button>
+          <button class="btn btn-primary" (click)="hidePromptPreview(); generateContent(); $event.stopPropagation()">
             Jetzt generieren
           </button>
         </div>
@@ -204,6 +204,10 @@ import { EditorView } from 'prosemirror-view';
       overflow: hidden;
       transition: all 0.3s ease;
       max-width: 100%;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
     }
     
     .beat-ai-container.editing {
@@ -269,6 +273,11 @@ import { EditorView } from 'prosemirror-view';
       display: flex;
       align-items: center;
       justify-content: center;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
     }
     
     .action-btn::before {
@@ -351,6 +360,11 @@ import { EditorView } from 'prosemirror-view';
       /* Isolate from parent editor */
       position: relative;
       z-index: 10;
+      /* Allow text selection in the prompt input */
+      -webkit-user-select: text;
+      -moz-user-select: text;
+      -ms-user-select: text;
+      user-select: text;
     }
     
     .prompt-input.prosemirror-container:focus-within {
