@@ -420,22 +420,19 @@ import { EditorView } from 'prosemirror-view';
       -webkit-tap-highlight-color: transparent;
     }
     
-    /* Ensure buttons and icons throughout the Beat AI component don't inherit text color */
-    .beat-ai-container button,
-    .beat-ai-container .action-btn,
-    .beat-ai-container .generate-btn,
-    .beat-ai-container .cancel-btn,
-    .beat-ai-container .stop-btn,
-    .beat-ai-container .close-btn,
-    .beat-ai-container .btn,
-    .beat-ai-container ion-icon {
-      color: revert !important;
+    /* Ensure buttons don't inherit text color - use initial instead of revert */
+    .beat-ai-container button {
+      color: initial !important;
       cursor: pointer !important;
     }
     
-    /* Specifically for action buttons - ensure they use their defined colors */
+    /* Specific colors for action buttons */
     .action-btn {
       color: #8bb4f8 !important;
+    }
+    
+    .action-btn ion-icon {
+      color: inherit !important;
     }
     
     .edit-btn:hover {
@@ -448,6 +445,40 @@ import { EditorView } from 'prosemirror-view';
     
     .delete-btn:hover {
       color: #ff6b6b !important;
+    }
+    
+    /* Generate and cancel buttons should use their default colors */
+    .generate-btn.primary {
+      background: #0d6efd !important;
+      color: white !important;
+    }
+    
+    .cancel-btn {
+      background: #6c757d !important;
+      color: white !important;
+    }
+    
+    .stop-btn {
+      background: #dc3545 !important;
+      color: white !important;
+    }
+    
+    /* Ensure badges don't inherit text color */
+    .beat-type-badge,
+    .model-badge {
+      color: initial !important;
+    }
+    
+    .beat-type-badge.story-beat {
+      color: #4dabf7 !important;
+    }
+    
+    .beat-type-badge.scene-beat {
+      color: #51cf66 !important;
+    }
+    
+    .model-badge {
+      color: #ffc107 !important;
     }
     
     .prompt-input.prosemirror-container :global(.ProseMirror[data-placeholder]:empty::before) {
@@ -1132,6 +1163,10 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
   }
   
   ngOnInit(): void {
+    // Set initial text color from settings immediately
+    const settings = this.settingsService.getSettings();
+    this.currentTextColor = settings.appearance?.textColor || '#e0e0e0';
+    
     this.currentPrompt = this.beatData.prompt;
     
     // Load saved beat type or use default
@@ -1198,10 +1233,6 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
     if (this.beatData.isEditing && this.promptInput && !this.editorView) {
       this.initializeProseMirrorEditor();
     }
-    
-    // Set initial text color from settings
-    const settings = this.settingsService.getSettings();
-    this.currentTextColor = settings.appearance?.textColor || '#e0e0e0';
     
     // Apply text color to this specific component
     this.applyTextColorDirectly();
@@ -1564,7 +1595,7 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
         const container = hostElement.querySelector?.('.beat-ai-container') || hostElement;
         if (container) {
           (container as HTMLElement).style.setProperty('--beat-ai-text-color', this.currentTextColor);
-          console.log('Beat AI component: Set CSS custom property to:', this.currentTextColor);
+          console.log('Beat AI component: Set CSS custom property to:', this.currentTextColor, 'on element:', container);
         }
       }
     }, 50);
