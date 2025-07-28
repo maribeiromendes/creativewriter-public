@@ -2320,6 +2320,7 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   showStoryStatsModal(): void {
+    console.log('Show story stats modal clicked!');
     this.showStoryStats = true;
   }
 

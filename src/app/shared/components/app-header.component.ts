@@ -83,7 +83,9 @@ export interface BurgerMenuItem {
             <ion-chip 
               *ngIf="action.chipContent"
               [color]="action.chipColor || 'medium'"
-              [class.desktop-only]="!action.showOnMobile">
+              [class.desktop-only]="!action.showOnMobile"
+              (click)="action.action()"
+              class="clickable-chip">
               <ion-icon [name]="action.icon" *ngIf="action.icon"></ion-icon>
               <ion-label>{{ action.chipContent }}</ion-label>
             </ion-chip>
@@ -401,6 +403,18 @@ export interface BurgerMenuItem {
       bottom: 0;
       background: linear-gradient(135deg, rgba(139, 180, 248, 0.05) 0%, rgba(71, 118, 230, 0.05) 100%);
       z-index: -1;
+    }
+
+    /* Clickable chips */
+    .clickable-chip {
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .clickable-chip:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      --background: rgba(255, 255, 255, 0.15);
     }
 
     /* Desktop optimizations */
