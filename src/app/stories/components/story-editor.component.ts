@@ -1351,6 +1351,7 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
   onContentChange(): void {
     if (this.activeScene && this.activeChapterId && !this.isStreamingActive) {
       this.hasUnsavedChanges = true;
+      this.updateHeaderActions(); // Update header to show unsaved status
       this.saveSubject.next();
       
       // Don't refresh prompt manager on every keystroke - it's too expensive
@@ -1358,6 +1359,7 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     } else if (this.isStreamingActive) {
       // During streaming, only mark as unsaved but don't trigger auto-save
       this.hasUnsavedChanges = true;
+      this.updateHeaderActions(); // Update header to show unsaved status
     }
   }
 
@@ -1403,6 +1405,7 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
       }
       
       this.hasUnsavedChanges = false;
+      this.updateHeaderActions(); // Update header to show saved status
       
     } catch (error) {
       console.error('Error saving story:', error);
@@ -1522,6 +1525,19 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
         action: () => this.headerNavService.goToImageGeneration()
       }
     ];
+  }
+
+  private updateHeaderActions(): void {
+    // Update the save status and word count in the right actions
+    if (this.rightActions.length >= 2) {
+      // Update save status chip
+      this.rightActions[0].icon = this.hasUnsavedChanges ? 'save-outline' : 'checkmark-circle-outline';
+      this.rightActions[0].chipContent = this.hasUnsavedChanges ? 'Nicht gespeichert' : 'Gespeichert';
+      this.rightActions[0].chipColor = this.hasUnsavedChanges ? 'warning' : 'success';
+      
+      // Update word count chip
+      this.rightActions[1].chipContent = `${this.wordCount}w`;
+    }
   }
 
   async goToSceneChat(): Promise<void> {
@@ -1937,6 +1953,10 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
           this.scrollToEndOfContent();
         }, 200);
       }
+    } else if (!this.activeScene) {
+      // No active scene, reset word count
+      this.wordCount = 0;
+      this.updateHeaderActions();
     }
   }
 
@@ -2020,6 +2040,10 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     }
     const textContent = this.proseMirrorService.getTextContent();
     this.wordCount = textContent.trim().split(/\s+/).filter(word => word.length > 0).length;
+    
+    // Update header actions to reflect the new word count
+    this.updateHeaderActions();
+    
     this.cdr.detectChanges();
   }
 
