@@ -12,8 +12,9 @@ import { Story } from '../models/story.interface';
 import { SyncStatusComponent } from '../../shared/components/sync-status.component';
 import { LoginComponent } from '../../shared/components/login.component';
 import { AuthService, User } from '../../core/services/auth.service';
-import { AppHeaderComponent, BurgerMenuItem } from '../../shared/components/app-header.component';
+import { AppHeaderComponent, BurgerMenuItem, HeaderAction } from '../../shared/components/app-header.component';
 import { HeaderNavigationService } from '../../shared/services/header-navigation.service';
+import { VersionService } from '../../core/services/version.service';
 
 @Component({
   selector: 'app-story-list',
@@ -30,6 +31,7 @@ import { HeaderNavigationService } from '../../shared/services/header-navigation
       [showBurgerMenu]="true"
       [burgerMenuItems]="burgerMenuItems"
       [burgerMenuFooterContent]="burgerMenuFooter"
+      [rightActions]="rightActions"
       [showUserInfo]="!!currentUser"
       [userGreeting]="currentUser ? '👋 ' + (currentUser.displayName || currentUser.username) : ''"
       (burgerMenuToggle)="onBurgerMenuToggle($event)">
@@ -843,12 +845,14 @@ export class StoryListComponent implements OnInit {
   currentUser: User | null = null;
   fabMenuOpen = false;
   burgerMenuItems: BurgerMenuItem[] = [];
+  rightActions: HeaderAction[] = [];
 
   constructor(
     private storyService: StoryService,
     private router: Router,
     private authService: AuthService,
-    private headerNavService: HeaderNavigationService
+    private headerNavService: HeaderNavigationService,
+    public versionService: VersionService
   ) {
     // Register Ionic icons
     addIcons({ add, download, settings, analytics, trash, create, image, menu, close });
@@ -866,6 +870,25 @@ export class StoryListComponent implements OnInit {
     
     // Setup burger menu items
     this.setupBurgerMenu();
+    
+    // Setup version chip as right action
+    this.setupRightActions();
+  }
+  
+  private setupRightActions(): void {
+    this.rightActions = [];
+    
+    // Add version chip
+    if (this.versionService.getVersionSync()) {
+      this.rightActions.push({
+        icon: '',
+        chipContent: this.versionService.getShortVersion(),
+        chipColor: 'medium',
+        action: () => {}, // No action needed for version chip
+        showOnMobile: true,
+        showOnDesktop: true
+      });
+    }
   }
 
   logout(): void {

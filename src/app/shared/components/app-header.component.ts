@@ -49,19 +49,12 @@ export interface BurgerMenuItem {
 
         <!-- Title -->
         <ion-title>
-          <div class="title-container">
-            <div class="title-content">
-              <ng-container *ngIf="titleTemplate; else staticTitle">
-                <ng-container *ngTemplateOutlet="titleTemplate"></ng-container>
-              </ng-container>
-              <ng-template #staticTitle>
-                <span class="app-title">{{ title }}</span>
-              </ng-template>
-            </div>
-            <span class="version-info" *ngIf="versionService.getVersionSync()">
-              {{ versionService.getShortVersion() }}
-            </span>
-          </div>
+          <ng-container *ngIf="titleTemplate; else staticTitle">
+            <ng-container *ngTemplateOutlet="titleTemplate"></ng-container>
+          </ng-container>
+          <ng-template #staticTitle>
+            <span class="app-title">{{ title }}</span>
+          </ng-template>
         </ion-title>
 
         <!-- Right Actions -->
@@ -170,21 +163,6 @@ export interface BurgerMenuItem {
     }
 
     /* Title Styling */
-    .title-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0;
-      width: 100%;
-    }
-    
-    .title-content {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 100%;
-    }
-    
     .app-title {
       background: linear-gradient(135deg, #f8f9fa 0%, #8bb4f8 50%, #4776e6 100%);
       -webkit-background-clip: text;
@@ -194,17 +172,6 @@ export interface BurgerMenuItem {
       font-weight: 700;
       letter-spacing: 0.5px;
       text-shadow: 0 2px 10px rgba(139, 180, 248, 0.3);
-      margin: 0;
-      line-height: 1;
-    }
-    
-    .version-info {
-      color: rgba(255, 255, 255, 0.6);
-      font-size: 0.6rem;
-      font-weight: 400;
-      letter-spacing: 0.3px;
-      margin-top: -2px;
-      opacity: 0.8;
     }
 
     /* Button Styling */
@@ -260,10 +227,6 @@ export interface BurgerMenuItem {
       
       .app-title {
         font-size: 1.2rem;
-      }
-      
-      .version-info {
-        font-size: 0.55rem;
       }
     }
 

@@ -30,6 +30,7 @@ import { AppHeaderComponent, HeaderAction, BurgerMenuItem } from '../../shared/c
 import { HeaderNavigationService } from '../../shared/services/header-navigation.service';
 import { SettingsService } from '../../core/services/settings.service';
 import { StoryStatsService } from '../services/story-stats.service';
+import { VersionService } from '../../core/services/version.service';
 
 @Component({
   selector: 'app-story-editor',
@@ -69,6 +70,9 @@ import { StoryStatsService } from '../services/story-stats.service';
             <ion-chip color="medium" class="full-status">
               <ion-icon name="stats-chart-outline"></ion-icon>
               <ion-label>{{ wordCount }} Wörter</ion-label>
+            </ion-chip>
+            <ion-chip *ngIf="versionService.getVersionSync()" color="medium" class="full-status">
+              <ion-label>{{ versionService.getShortVersion() }}</ion-label>
             </ion-chip>
           </div>
         </div>
@@ -1187,7 +1191,8 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     private promptManager: PromptManagerService,
     private headerNavService: HeaderNavigationService,
     private settingsService: SettingsService,
-    private storyStatsService: StoryStatsService
+    private storyStatsService: StoryStatsService,
+    public versionService: VersionService
   ) {
     addIcons({ 
       arrowBack, bookOutline, book, settingsOutline, statsChartOutline,
