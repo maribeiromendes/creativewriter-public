@@ -40,21 +40,31 @@ export interface StoryStatistics {
     IonGrid, IonRow, IonCol, IonChip, IonList
   ],
   template: `
-    <ion-modal [isOpen]="isOpen" (didDismiss)="onClose()">
-      <ion-header>
+    <ion-modal 
+      [isOpen]="isOpen" 
+      (didDismiss)="onClose()"
+      [showBackdrop]="true"
+      [backdropDismiss]="true">
+      <ion-header class="modal-header">
         <ion-toolbar>
-          <ion-title>Story Statistiken</ion-title>
+          <ion-title>
+            <div class="modal-title">
+              <ion-icon name="stats-chart-outline"></ion-icon>
+              Story Statistiken
+            </div>
+          </ion-title>
           <ion-button 
             slot="end" 
             fill="clear" 
             (click)="onClose()"
-            aria-label="Schließen">
+            aria-label="Schließen"
+            class="close-button">
             <ion-icon name="close" slot="icon-only"></ion-icon>
           </ion-button>
         </ion-toolbar>
       </ion-header>
       
-      <ion-content class="stats-content">
+      <ion-content class="stats-content" [scrollY]="true">
         <div class="stats-container" *ngIf="statistics">
           
           <!-- Overview Stats -->
@@ -229,54 +239,170 @@ export interface StoryStatistics {
     </ion-modal>
   `,
   styles: [`
+    /* Modal styling to match app theme */
+    ion-modal {
+      --backdrop-opacity: 0.6;
+      --border-radius: 16px;
+      --box-shadow: 0 28px 48px rgba(0, 0, 0, 0.4);
+      --width: 90%;
+      --max-width: 800px;
+      --height: 85%;
+      --max-height: 90vh;
+    }
+    
+    .modal-header {
+      --background: 
+        /* Enhanced dark overlay with gradient for depth */
+        linear-gradient(135deg, rgba(45, 45, 45, 0.95) 0%, rgba(30, 30, 50, 0.95) 50%, rgba(20, 20, 35, 0.95) 100%),
+        /* Main anime image */
+        url('/assets/cyberpunk-anime-girl.png'),
+        /* Fallback dark background */
+        #1a1a2e;
+      background-size: cover, cover, auto;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 2px solid rgba(139, 180, 248, 0.3);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+    
+    .modal-header ion-toolbar {
+      --background: transparent;
+      --color: #f8f9fa;
+      --border-width: 0;
+      --padding-start: 20px;
+      --padding-end: 20px;
+      --min-height: 60px;
+    }
+    
+    .modal-title {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      background: linear-gradient(135deg, #ffffff 0%, #8bb4f8 50%, #4776e6 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-size: 1.4rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-shadow: 0 2px 10px rgba(139, 180, 248, 0.3);
+    }
+    
+    .modal-title ion-icon {
+      font-size: 1.5rem;
+      color: #8bb4f8;
+      filter: drop-shadow(0 2px 4px rgba(139, 180, 248, 0.3));
+    }
+    
+    .close-button {
+      --color: rgba(255, 255, 255, 0.8);
+      --background: rgba(255, 255, 255, 0.1);
+      --background-hover: rgba(255, 255, 255, 0.2);
+      --border-radius: 12px;
+      --padding-start: 12px;
+      --padding-end: 12px;
+      transition: all 0.3s ease;
+    }
+    
+    .close-button:hover {
+      transform: scale(1.1) rotate(90deg);
+      --background: rgba(255, 107, 107, 0.2);
+      --color: #ff6b6b;
+    }
+    
     .stats-content {
-      --background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      --background: 
+        /* Dark overlay for text readability */
+        linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
+        /* Main anime image */
+        url('/assets/cyberpunk-anime-girl.png'),
+        /* Fallback dark background */
+        #1a1a2e;
+      background-size: 100% 100%, cover, auto;
+      background-position: center center, center center, center;
+      background-repeat: no-repeat, no-repeat, repeat;
+      background-attachment: scroll, scroll, scroll;
+      --padding-top: 0;
+      --padding-bottom: 0;
+      --padding-start: 0;
+      --padding-end: 0;
     }
     
     .stats-container {
-      padding: 1rem;
-      max-width: 800px;
-      margin: 0 auto;
+      padding: 1.5rem;
+      width: 100%;
+      box-sizing: border-box;
     }
     
     ion-card {
-      --background: rgba(30, 30, 50, 0.9);
+      --background: rgba(42, 42, 42, 0.85);
       --color: #f8f9fa;
-      backdrop-filter: blur(10px);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
       border: 1px solid rgba(139, 180, 248, 0.2);
       border-radius: 16px;
-      margin-bottom: 1rem;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      margin-bottom: 1.5rem;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      transition: all 0.3s ease;
+    }
+    
+    ion-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+      border-color: rgba(139, 180, 248, 0.4);
     }
     
     ion-card-header {
       --background: rgba(139, 180, 248, 0.1);
       border-bottom: 1px solid rgba(139, 180, 248, 0.2);
+      --padding-top: 16px;
+      --padding-bottom: 16px;
+      --padding-start: 20px;
+      --padding-end: 20px;
     }
     
     ion-card-title {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
-      font-size: 1.1rem;
+      gap: 0.75rem;
+      font-size: 1.2rem;
       font-weight: 600;
       color: #8bb4f8;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
     }
     
     ion-card-title ion-icon {
-      font-size: 1.2rem;
+      font-size: 1.3rem;
+      filter: drop-shadow(0 1px 2px rgba(139, 180, 248, 0.5));
+    }
+    
+    ion-card-content {
+      --padding-top: 20px;
+      --padding-bottom: 20px;
+      --padding-start: 20px;
+      --padding-end: 20px;
     }
     
     .stat-item {
       text-align: center;
-      padding: 0.5rem;
+      padding: 0.75rem;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(139, 180, 248, 0.1);
+      transition: all 0.2s ease;
+    }
+    
+    .stat-item:hover {
+      background: rgba(139, 180, 248, 0.1);
+      border-color: rgba(139, 180, 248, 0.3);
     }
     
     .stat-value {
-      font-size: 1.8rem;
+      font-size: 2rem;
       font-weight: 700;
       color: #ffffff;
-      margin-bottom: 0.25rem;
+      margin-bottom: 0.5rem;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
     }
     
     .stat-label {
@@ -284,79 +410,152 @@ export interface StoryStatistics {
       color: #adb5bd;
       text-transform: uppercase;
       letter-spacing: 0.5px;
+      font-weight: 500;
     }
     
     .overview-card .stat-value {
       color: #8bb4f8;
+      text-shadow: 0 0 20px rgba(139, 180, 248, 0.3);
     }
     
     .averages-card .stat-value {
       color: #4ecdc4;
+      text-shadow: 0 0 20px rgba(78, 205, 196, 0.3);
     }
     
     ion-item {
-      --background: transparent;
+      --background: rgba(255, 255, 255, 0.05);
       --color: #f8f9fa;
       --border-color: rgba(139, 180, 248, 0.1);
+      --border-radius: 12px;
+      --padding-start: 16px;
+      --padding-end: 16px;
+      margin-bottom: 8px;
+      transition: all 0.2s ease;
+    }
+    
+    ion-item:hover {
+      --background: rgba(139, 180, 248, 0.1);
+      --border-color: rgba(139, 180, 248, 0.3);
+      transform: translateX(4px);
     }
     
     ion-item h3 {
       color: #ffffff;
       font-weight: 600;
       margin-bottom: 0.25rem;
+      font-size: 1rem;
     }
     
     ion-item p {
       color: #adb5bd;
       font-size: 0.9rem;
+      margin: 0;
     }
     
     .word-count-chip {
       font-weight: 600;
       --border-radius: 12px;
+      font-size: 0.85rem;
     }
     
     .progress-info {
       text-align: center;
+      padding: 1rem;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      border: 1px solid rgba(139, 180, 248, 0.1);
     }
     
     .progress-item {
       text-align: center;
-      padding: 0.5rem;
+      padding: 0.75rem;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      border: 1px solid rgba(139, 180, 248, 0.1);
+      transition: all 0.2s ease;
+    }
+    
+    .progress-item:hover {
+      background: rgba(139, 180, 248, 0.1);
+      border-color: rgba(139, 180, 248, 0.3);
     }
     
     .progress-value {
-      font-size: 1.2rem;
+      font-size: 1.4rem;
       font-weight: 600;
       margin-bottom: 0.25rem;
+      color: #8bb4f8;
+      text-shadow: 0 0 10px rgba(139, 180, 248, 0.3);
     }
     
     .progress-label {
       font-size: 0.8rem;
       color: #adb5bd;
       text-transform: uppercase;
+      font-weight: 500;
+      letter-spacing: 0.5px;
     }
     
     .loading-state {
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 200px;
+      height: 300px;
       color: #adb5bd;
+      font-size: 1.1rem;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      margin: 2rem;
     }
     
-    /* Mobile responsiveness */
+    /* Improved mobile responsiveness */
     @media (max-width: 768px) {
+      ion-modal {
+        --width: 95%;
+        --height: 90%;
+      }
+      
       .stats-container {
-        padding: 0.5rem;
+        padding: 1rem;
       }
       
       .stat-value {
-        font-size: 1.5rem;
+        font-size: 1.6rem;
+      }
+      
+      .modal-title {
+        font-size: 1.2rem;
       }
       
       ion-card-title {
         font-size: 1rem;
+      }
+      
+      ion-card {
+        margin-bottom: 1rem;
+      }
+      
+      ion-card-header, ion-card-content {
+        --padding-top: 12px;
+        --padding-bottom: 12px;
+        --padding-start: 16px;
+        --padding-end: 16px;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .modal-title {
+        font-size: 1.1rem;
+        gap: 0.5rem;
+      }
+      
+      .stat-value {
+        font-size: 1.4rem;
+      }
+      
+      .progress-value {
+        font-size: 1.2rem;
       }
     }
   `]
@@ -385,9 +584,7 @@ export class StoryStatsComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    console.log('StoryStatsComponent ngOnChanges:', changes);
     if (changes['isOpen']?.currentValue && this.story) {
-      console.log('Calculating statistics for story:', this.story.title);
       this.calculateStatistics();
     }
   }
