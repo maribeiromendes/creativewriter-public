@@ -406,17 +406,7 @@ import { EditorView } from 'prosemirror-view';
       border-radius: 4px;
     }
     
-    .prompt-input.prosemirror-container :global(.ProseMirror p),
-    .prompt-input.prosemirror-container :global(.ProseMirror span), 
-    .prompt-input.prosemirror-container :global(.ProseMirror div:not(.action-btn):not(.generate-btn):not(.cancel-btn)), 
-    .prompt-input.prosemirror-container :global(.ProseMirror em), 
-    .prompt-input.prosemirror-container :global(.ProseMirror strong), 
-    .prompt-input.prosemirror-container :global(.ProseMirror h1), 
-    .prompt-input.prosemirror-container :global(.ProseMirror h2), 
-    .prompt-input.prosemirror-container :global(.ProseMirror h3), 
-    .prompt-input.prosemirror-container :global(.ProseMirror h4), 
-    .prompt-input.prosemirror-container :global(.ProseMirror h5), 
-    .prompt-input.prosemirror-container :global(.ProseMirror h6) {
+    .prompt-input.prosemirror-container :global(.ProseMirror *) {
       color: inherit !important;
       cursor: text;
       /* Prevent text selection on mobile */
@@ -428,20 +418,6 @@ import { EditorView } from 'prosemirror-view';
       -webkit-touch-callout: none;
       /* Prevent tap highlight */
       -webkit-tap-highlight-color: transparent;
-    }
-    
-    /* Ensure all buttons in Beat AI component retain their original styling and don't inherit text color */
-    .beat-ai-container button,
-    .beat-ai-container .action-btn,
-    .beat-ai-container .generate-btn,
-    .beat-ai-container .cancel-btn,
-    .beat-ai-container .stop-btn {
-      color: revert !important;
-      cursor: pointer !important;
-      -webkit-user-select: none !important;
-      -moz-user-select: none !important;
-      -ms-user-select: none !important;
-      user-select: none !important;
     }
     
     .prompt-input.prosemirror-container :global(.ProseMirror[data-placeholder]:empty::before) {
