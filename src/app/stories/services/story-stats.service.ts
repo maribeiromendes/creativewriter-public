@@ -117,14 +117,35 @@ export class StoryStatsService {
   }
 
   /**
-   * Strip HTML tags from content and return plain text
+   * Strip HTML tags from content and return plain text, excluding Beat AI content
    * @param html HTML content
-   * @returns Plain text content
+   * @returns Plain text content without formatting or Beat AI suggestions
    */
   private stripHtmlTags(html: string): string {
     // Create a temporary div element to parse HTML and extract text content
     const tempDiv = document.createElement('div');
     tempDiv.innerHTML = html;
+    
+    // Remove Beat AI elements before extracting text
+    const beatAIElements = tempDiv.querySelectorAll(
+      '.beat-ai-wrapper, .beat-ai-node, .beat-ai-container, .beat-ai-suggestion, ' +
+      '.beat-ai-input, .ai-suggestion, .beat-suggestion, [data-beat-ai], ' +
+      '[class*="beat-ai"], [class*="ai-beat"]'
+    );
+    
+    beatAIElements.forEach(element => element.remove());
+    
+    // Also remove any elements with Beat AI specific attributes or content
+    const allElements = tempDiv.querySelectorAll('*');
+    allElements.forEach(element => {
+      // Remove elements that contain Beat AI markers in their attributes
+      if (element.getAttribute('data-type') === 'beat-ai' ||
+          element.getAttribute('data-ai') === 'true' ||
+          element.className.includes('beat') && element.className.includes('ai')) {
+        element.remove();
+      }
+    });
+    
     return tempDiv.textContent || tempDiv.innerText || '';
   }
 
