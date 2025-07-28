@@ -197,9 +197,6 @@ import { StoryStatsService } from '../services/story-stats.service';
       <app-story-stats
         [isOpen]="showStoryStats"
         [story]="story"
-        [currentSceneContent]="getCurrentSceneContent()"
-        [currentChapterId]="activeChapterId || undefined"
-        [currentSceneId]="activeSceneId || undefined"
         (closed)="hideStoryStats()">
       </app-story-stats>
     </div>
@@ -2053,16 +2050,8 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private updateWordCount(): void {
-    // Get current scene content from editor if available
-    const currentSceneContent = this.editorView ? this.proseMirrorService.getHTMLContent() : undefined;
-    
-    // Calculate total word count for the entire story using the service
-    this.wordCount = this.storyStatsService.calculateTotalStoryWordCount(
-      this.story,
-      currentSceneContent,
-      this.activeChapterId || undefined,
-      this.activeSceneId || undefined
-    );
+    // Calculate total word count for the entire story using only saved content from localStorage
+    this.wordCount = this.storyStatsService.calculateTotalStoryWordCount(this.story);
     
     // Update header actions to reflect the new word count
     this.updateHeaderActions();
@@ -2327,12 +2316,6 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     this.showStoryStats = false;
   }
 
-  getCurrentSceneContent(): string | undefined {
-    if (this.editorView) {
-      return this.proseMirrorService.getHTMLContent();
-    }
-    return this.activeScene?.content;
-  }
 
   private applyTextColorToProseMirror(): void {
     setTimeout(() => {

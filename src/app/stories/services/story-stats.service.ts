@@ -10,18 +10,11 @@ export class StoryStatsService {
 
   /**
    * Calculate total word count for an entire story (all chapters and scenes)
+   * Uses only saved content from localStorage/database
    * @param story The story to calculate word count for
-   * @param currentSceneContent Optional: current content of active scene if being edited
-   * @param currentChapterId Optional: ID of currently active chapter
-   * @param currentSceneId Optional: ID of currently active scene
-   * @returns Total word count across all scenes
+   * @returns Total word count across all scenes from saved data
    */
-  calculateTotalStoryWordCount(
-    story: Story, 
-    currentSceneContent?: string, 
-    currentChapterId?: string, 
-    currentSceneId?: string
-  ): number {
+  calculateTotalStoryWordCount(story: Story): number {
     if (!story || !story.chapters) {
       return 0;
     }
@@ -32,15 +25,8 @@ export class StoryStatsService {
       if (!chapter.scenes) continue;
 
       for (const scene of chapter.scenes) {
-        let sceneContent = scene.content;
-
-        // If this is the currently active scene being edited, use the provided current content
-        if (currentChapterId === chapter.id && currentSceneId === scene.id && currentSceneContent !== undefined) {
-          sceneContent = currentSceneContent;
-        }
-
-        if (sceneContent) {
-          const words = this.countWordsInContent(sceneContent);
+        if (scene.content) {
+          const words = this.countWordsInContent(scene.content);
           totalWordCount += words;
         }
       }
@@ -64,16 +50,11 @@ export class StoryStatsService {
 
   /**
    * Calculate word count for a specific chapter (all its scenes)
+   * Uses only saved content from localStorage/database
    * @param scenes Array of scenes in the chapter
-   * @param currentSceneContent Optional: current content of active scene if being edited
-   * @param currentSceneId Optional: ID of currently active scene
-   * @returns Total word count for the chapter
+   * @returns Total word count for the chapter from saved data
    */
-  calculateChapterWordCount(
-    scenes: Scene[], 
-    currentSceneContent?: string, 
-    currentSceneId?: string
-  ): number {
+  calculateChapterWordCount(scenes: Scene[]): number {
     if (!scenes) {
       return 0;
     }
@@ -81,15 +62,8 @@ export class StoryStatsService {
     let chapterWordCount = 0;
 
     for (const scene of scenes) {
-      let sceneContent = scene.content;
-
-      // If this is the currently active scene being edited, use the provided current content
-      if (currentSceneId === scene.id && currentSceneContent !== undefined) {
-        sceneContent = currentSceneContent;
-      }
-
-      if (sceneContent) {
-        const words = this.countWordsInContent(sceneContent);
+      if (scene.content) {
+        const words = this.countWordsInContent(scene.content);
         chapterWordCount += words;
       }
     }
@@ -151,18 +125,11 @@ export class StoryStatsService {
 
   /**
    * Get word count statistics for a story
+   * Uses only saved content from localStorage/database
    * @param story The story to analyze
-   * @param currentSceneContent Optional: current content of active scene if being edited
-   * @param currentChapterId Optional: ID of currently active chapter
-   * @param currentSceneId Optional: ID of currently active scene
-   * @returns Object with detailed word count statistics
+   * @returns Object with detailed word count statistics from saved data
    */
-  getStoryWordCountStats(
-    story: Story, 
-    currentSceneContent?: string, 
-    currentChapterId?: string, 
-    currentSceneId?: string
-  ): {
+  getStoryWordCountStats(story: Story): {
     totalWords: number;
     chapterCounts: Array<{ chapterId: string; chapterTitle: string; wordCount: number; sceneCount: number }>;
     totalScenes: number;
@@ -184,11 +151,7 @@ export class StoryStatsService {
     for (const chapter of story.chapters) {
       if (!chapter.scenes) continue;
 
-      const chapterWordCount = this.calculateChapterWordCount(
-        chapter.scenes, 
-        currentChapterId === chapter.id ? currentSceneContent : undefined,
-        currentChapterId === chapter.id ? currentSceneId : undefined
-      );
+      const chapterWordCount = this.calculateChapterWordCount(chapter.scenes);
 
       stats.chapterCounts.push({
         chapterId: chapter.id,

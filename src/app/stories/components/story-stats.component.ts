@@ -583,9 +583,6 @@ export interface StoryStatistics {
 export class StoryStatsComponent implements OnInit, OnDestroy, OnChanges {
   @Input() isOpen: boolean = false;
   @Input() story: Story | null = null;
-  @Input() currentSceneContent?: string;
-  @Input() currentChapterId?: string;
-  @Input() currentSceneId?: string;
   @Output() closed = new EventEmitter<void>();
 
   statistics: StoryStatistics | null = null;
@@ -620,12 +617,7 @@ export class StoryStatsComponent implements OnInit, OnDestroy, OnChanges {
   private calculateStatistics(): void {
     if (!this.story) return;
 
-    const stats = this.storyStatsService.getStoryWordCountStats(
-      this.story,
-      this.currentSceneContent,
-      this.currentChapterId,
-      this.currentSceneId
-    );
+    const stats = this.storyStatsService.getStoryWordCountStats(this.story);
 
     // Enhanced statistics
     const enhancedChapterCounts = stats.chapterCounts.map(chapter => ({
