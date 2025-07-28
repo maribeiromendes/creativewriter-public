@@ -1,6 +1,7 @@
-import { Component, Input, Output, EventEmitter, TemplateRef } from '@angular/core';
+import { Component, Input, Output, EventEmitter, TemplateRef, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
+import { VersionService } from '../../core/services/version.service';
 
 export interface HeaderAction {
   icon: string;
@@ -52,7 +53,12 @@ export interface BurgerMenuItem {
             <ng-container *ngTemplateOutlet="titleTemplate"></ng-container>
           </ng-container>
           <ng-template #staticTitle>
-            <span class="app-title">{{ title }}</span>
+            <div class="title-container">
+              <span class="app-title">{{ title }}</span>
+              <span class="version-info" *ngIf="versionService.getVersionSync()">
+                {{ versionService.getShortVersion() }}
+              </span>
+            </div>
           </ng-template>
         </ion-title>
 
@@ -162,6 +168,13 @@ export interface BurgerMenuItem {
     }
 
     /* Title Styling */
+    .title-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+    }
+    
     .app-title {
       background: linear-gradient(135deg, #f8f9fa 0%, #8bb4f8 50%, #4776e6 100%);
       -webkit-background-clip: text;
@@ -171,6 +184,17 @@ export interface BurgerMenuItem {
       font-weight: 700;
       letter-spacing: 0.5px;
       text-shadow: 0 2px 10px rgba(139, 180, 248, 0.3);
+      margin: 0;
+      line-height: 1;
+    }
+    
+    .version-info {
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 0.6rem;
+      font-weight: 400;
+      letter-spacing: 0.3px;
+      margin-top: -2px;
+      opacity: 0.8;
     }
 
     /* Button Styling */
@@ -226,6 +250,10 @@ export interface BurgerMenuItem {
       
       .app-title {
         font-size: 1.2rem;
+      }
+      
+      .version-info {
+        font-size: 0.55rem;
       }
     }
 
@@ -522,7 +550,7 @@ export interface BurgerMenuItem {
     }
   `]
 })
-export class AppHeaderComponent {
+export class AppHeaderComponent implements OnInit {
   @Input() title: string = '';
   @Input() titleTemplate?: TemplateRef<any>;
   @Input() showBackButton: boolean = false;
@@ -542,7 +570,11 @@ export class AppHeaderComponent {
 
   burgerMenuOpen = false;
 
-  constructor() {}
+  constructor(public versionService: VersionService) {}
+
+  ngOnInit() {
+    // Version service loads automatically on initialization
+  }
 
   handleBackAction(): void {
     if (this.backAction) {
