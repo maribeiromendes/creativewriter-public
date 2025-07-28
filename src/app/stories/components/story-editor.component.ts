@@ -16,6 +16,7 @@ import { StoryService } from '../services/story.service';
 import { Story, Scene } from '../models/story.interface';
 import { StoryStructureComponent } from './story-structure.component';
 import { SlashCommandDropdownComponent } from './slash-command-dropdown.component';
+import { StoryStatsComponent } from './story-stats.component';
 import { SlashCommandResult, SlashCommandAction } from '../models/slash-command.interface';
 import { Subscription, debounceTime, Subject, throttleTime } from 'rxjs';
 import { ProseMirrorEditorService } from '../../shared/services/prosemirror-editor.service';
@@ -37,7 +38,7 @@ import { StoryStatsService } from '../services/story-stats.service';
     CommonModule, FormsModule, 
     IonContent, IonChip, IonLabel, IonButton, IonIcon,
     StoryStructureComponent, SlashCommandDropdownComponent, ImageUploadDialogComponent,
-    AppHeaderComponent
+    AppHeaderComponent, StoryStatsComponent
   ],
   template: `
     <div class="ion-page">
@@ -192,6 +193,15 @@ import { StoryStatsService } from '../services/story-stats.service';
         (imageInserted)="onImageInserted($event)"
         (cancelled)="hideImageDialog()">
       </app-image-upload-dialog>
+      
+      <app-story-stats
+        [isOpen]="showStoryStats"
+        [story]="story"
+        [currentSceneContent]="getCurrentSceneContent()"
+        [currentChapterId]="activeChapterId || undefined"
+        [currentSceneId]="activeSceneId || undefined"
+        (closed)="hideStoryStats()">
+      </app-story-stats>
     </div>
   `,
   styles: [`
@@ -1145,6 +1155,9 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
   showImageDialog = false;
   imageCursorPosition = 0;
   
+  // Story stats functionality
+  showStoryStats = false;
+  
   hasUnsavedChanges = false;
   debugModeEnabled = false;
   private saveSubject = new Subject<void>();
@@ -1490,7 +1503,7 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
         icon: 'stats-chart-outline',
         chipContent: `${this.wordCount}w`,
         chipColor: 'medium',
-        action: () => {},
+        action: () => this.showStoryStatsModal(),
         showOnMobile: false,
         showOnDesktop: true
       }
@@ -1542,6 +1555,7 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
       
       // Update word count chip
       this.rightActions[1].chipContent = `${this.wordCount}w`;
+      this.rightActions[1].action = () => this.showStoryStatsModal();
     }
   }
 
@@ -2303,6 +2317,21 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     }
     
     console.log('Debug mode:', this.debugModeEnabled ? 'enabled' : 'disabled');
+  }
+
+  showStoryStatsModal(): void {
+    this.showStoryStats = true;
+  }
+
+  hideStoryStats(): void {
+    this.showStoryStats = false;
+  }
+
+  getCurrentSceneContent(): string | undefined {
+    if (this.editorView) {
+      return this.proseMirrorService.getHTMLContent();
+    }
+    return this.activeScene?.content;
   }
 
   private applyTextColorToProseMirror(): void {
