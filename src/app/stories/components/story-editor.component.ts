@@ -2303,27 +2303,12 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private applyTextColorToBeatAIElements(): void {
-    // Apply to all Beat AI containers
+    // Apply to all Beat AI containers - only set CSS custom property, let CSS handle the rest
     const beatAIContainers = document.querySelectorAll('.beat-ai-container');
     beatAIContainers.forEach(container => {
       // Set CSS custom property
       (container as HTMLElement).style.setProperty('--beat-ai-text-color', this.currentTextColor);
-      
-      // Apply to prompt text elements
-      const promptTexts = container.querySelectorAll('.prompt-text');
-      promptTexts.forEach(element => {
-        (element as HTMLElement).style.color = this.currentTextColor;
-      });
-      
-      // Apply to Beat AI ProseMirror elements
-      const proseMirrorElements = container.querySelectorAll('.ProseMirror');
-      proseMirrorElements.forEach(element => {
-        (element as HTMLElement).style.color = this.currentTextColor;
-        const childElements = element.querySelectorAll('*');
-        childElements.forEach((child: Element) => {
-          (child as HTMLElement).style.color = this.currentTextColor;
-        });
-      });
+      console.log('Applied --beat-ai-text-color to container:', this.currentTextColor);
     });
   }
 

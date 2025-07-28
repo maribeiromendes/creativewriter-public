@@ -420,6 +420,36 @@ import { EditorView } from 'prosemirror-view';
       -webkit-tap-highlight-color: transparent;
     }
     
+    /* Ensure buttons and icons throughout the Beat AI component don't inherit text color */
+    .beat-ai-container button,
+    .beat-ai-container .action-btn,
+    .beat-ai-container .generate-btn,
+    .beat-ai-container .cancel-btn,
+    .beat-ai-container .stop-btn,
+    .beat-ai-container .close-btn,
+    .beat-ai-container .btn,
+    .beat-ai-container ion-icon {
+      color: revert !important;
+      cursor: pointer !important;
+    }
+    
+    /* Specifically for action buttons - ensure they use their defined colors */
+    .action-btn {
+      color: #8bb4f8 !important;
+    }
+    
+    .edit-btn:hover {
+      color: #a8c7ff !important;
+    }
+    
+    .regenerate-btn:hover {
+      color: #51cf66 !important;
+    }
+    
+    .delete-btn:hover {
+      color: #ff6b6b !important;
+    }
+    
     .prompt-input.prosemirror-container :global(.ProseMirror[data-placeholder]:empty::before) {
       content: attr(data-placeholder);
       color: #6c757d;
