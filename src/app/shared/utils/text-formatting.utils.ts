@@ -24,7 +24,7 @@ export function convertLineBreaksToParagraphs(content: string): string {
 
 /**
  * Converts text to streaming-friendly HTML paragraphs
- * Logic: Start with <p>, end current chunk with </p>, create new <p> after line breaks
+ * Logic: Only split on double line breaks to maintain proper paragraph structure
  * @param text - Plain text to convert
  * @returns HTML string with streaming-friendly paragraph structure
  */
@@ -33,30 +33,23 @@ export function convertTextToStreamingParagraphs(text: string): string {
     return '<p></p>';
   }
 
-  // Start with opening paragraph tag
-  let result = '<p>';
-  
-  // Process text character by character to handle line breaks properly
-  for (let i = 0; i < text.length; i++) {
-    const char = text[i];
-    const nextChar = text[i + 1];
-    
-    if (char === '\n' || (char === '\r' && nextChar === '\n')) {
-      // Found line break - close current paragraph and start new one
-      result += '</p><p>';
-      
-      // Skip \r in \r\n combination
-      if (char === '\r' && nextChar === '\n') {
-        i++; // Skip the \n as well
-      }
-    } else if (char !== '\r') {
-      // Add regular character (skip standalone \r)
-      result += char;
-    }
+  // Split only on double line breaks (paragraph boundaries)
+  // This preserves single line breaks within paragraphs
+  const paragraphs = text
+    .split(/\n\s*\n/) // Split on double newlines (with optional whitespace between)
+    .map(para => para.trim())
+    .filter(para => para.length > 0); // Remove empty paragraphs
+
+  if (paragraphs.length === 0) {
+    return '<p></p>';
   }
-  
-  // Always end with closing paragraph tag
-  result += '</p>';
-  
-  return result;
+
+  // Convert each paragraph, replacing single line breaks with spaces
+  return paragraphs
+    .map(para => {
+      // Replace single line breaks with spaces to avoid word/punctuation separation
+      const cleanedPara = para.replace(/\s*\n\s*/g, ' ').trim();
+      return `<p>${cleanedPara}</p>`;
+    })
+    .join('');
 }

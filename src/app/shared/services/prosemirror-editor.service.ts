@@ -800,50 +800,29 @@ export class ProseMirrorEditorService {
   }
 
   private createParagraphsFromContent(content: string, state: any): any[] {
-    if (!content) {
+    if (!content || !content.trim()) {
       // Return empty paragraph if no content
       return [state.schema.nodes['paragraph'].create()];
     }
     
-    const paragraphNodes: any[] = [];
-    let currentText = '';
+    // Split only on double line breaks (paragraph boundaries)
+    // This preserves single line breaks within paragraphs
+    const paragraphTexts = content
+      .split(/\n\s*\n/) // Split on double newlines (with optional whitespace between)
+      .map(para => para.trim())
+      .filter(para => para.length > 0); // Remove empty paragraphs
     
-    // Process content character by character to handle line breaks properly (streaming-friendly)
-    for (let i = 0; i < content.length; i++) {
-      const char = content[i];
-      const nextChar = content[i + 1];
-      
-      if (char === '\n' || (char === '\r' && nextChar === '\n')) {
-        // Found line break - create paragraph if we have text
-        if (currentText) {
-          const textNode = state.schema.text(currentText);
-          paragraphNodes.push(state.schema.nodes['paragraph'].create(null, [textNode]));
-          currentText = '';
-        } else {
-          // Empty line - create empty paragraph
-          paragraphNodes.push(state.schema.nodes['paragraph'].create());
-        }
-        
-        // Skip \r in \r\n combination
-        if (char === '\r' && nextChar === '\n') {
-          i++; // Skip the \n as well
-        }
-      } else if (char !== '\r') {
-        // Add regular character (skip standalone \r)
-        currentText += char;
-      }
+    if (paragraphTexts.length === 0) {
+      return [state.schema.nodes['paragraph'].create()];
     }
     
-    // Create final paragraph if there's remaining text
-    if (currentText) {
-      const textNode = state.schema.text(currentText);
-      paragraphNodes.push(state.schema.nodes['paragraph'].create(null, [textNode]));
-    }
-    
-    // Return at least one empty paragraph if no paragraphs were created
-    if (paragraphNodes.length === 0) {
-      paragraphNodes.push(state.schema.nodes['paragraph'].create());
-    }
+    // Create paragraph nodes for each text block
+    const paragraphNodes = paragraphTexts.map(paragraphText => {
+      // Replace single line breaks with spaces to avoid word/punctuation separation
+      const cleanedText = paragraphText.replace(/\s*\n\s*/g, ' ').trim();
+      const textNode = state.schema.text(cleanedText);
+      return state.schema.nodes['paragraph'].create(null, [textNode]);
+    });
     
     return paragraphNodes;
   }
