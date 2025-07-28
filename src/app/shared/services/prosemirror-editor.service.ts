@@ -820,24 +820,16 @@ export class ProseMirrorEditorService {
       return [state.schema.nodes['paragraph'].create()];
     }
     
-    // Split content by any newlines (single or multiple) to get paragraphs
+    // Normalize line endings and split content by any newlines (single or multiple) to get paragraphs
     const paragraphTexts = content
+      .replace(/\r\n/g, '\n') // Normalize CRLF to LF
       .split(/\n+/) // Split on one or more newlines
       .map(para => para.trim()) // Remove leading/trailing whitespace
-      .filter((para, index, array) => {
-        // Keep non-empty paragraphs and all empty paragraphs (they represent line breaks)
-        // Only filter out empty paragraphs at the very beginning
-        return para.length > 0 || index > 0;
-      });
+      .filter(para => para.length > 0); // Only keep non-empty paragraphs
     
     // Create paragraph nodes for each text block
     const paragraphNodes = paragraphTexts.map(paragraphText => {
-      // Handle empty paragraphs (represents intentional empty lines)
-      if (paragraphText.length === 0) {
-        return state.schema.nodes['paragraph'].create();
-      }
-      
-      // Create paragraph with text content
+      // Create paragraph with text content (empty paragraphs already filtered out)
       const textNode = state.schema.text(paragraphText);
       return state.schema.nodes['paragraph'].create(null, [textNode]);
     });
@@ -1198,14 +1190,23 @@ export class ProseMirrorEditorService {
         const beforeInsertPos = insertPos - 1;
         const resolvedPos = state.doc.resolve(beforeInsertPos);
         
-        // Always create proper paragraph nodes to preserve linebreaks
-        const paragraphNodes = this.createParagraphsFromContent(newContent, state);
-        const fragment = Fragment.from(paragraphNodes);
-        const tr = state.tr.insert(insertPos, fragment);
-        this.editorView.dispatch(tr);
-        
-        // Update stored position
-        this.beatStreamingPositions.set(beatId, insertPos + fragment.size);
+        if (resolvedPos.parent && resolvedPos.parent.type.name === 'paragraph' && !newContent.includes('\n') && !newContent.includes('\r\n')) {
+          // Append to existing paragraph only if no linebreaks at all
+          const tr = state.tr.insertText(newContent, beforeInsertPos);
+          this.editorView.dispatch(tr);
+          
+          // Update stored position
+          this.beatStreamingPositions.set(beatId, insertPos + newContent.length);
+        } else {
+          // Create new paragraph(s)
+          const paragraphNodes = this.createParagraphsFromContent(newContent, state);
+          const fragment = Fragment.from(paragraphNodes);
+          const tr = state.tr.insert(insertPos, fragment);
+          this.editorView.dispatch(tr);
+          
+          // Update stored position
+          this.beatStreamingPositions.set(beatId, insertPos + fragment.size);
+        }
       } else {
         // No existing content, insert right after beat
         const paragraphNodes = this.createParagraphsFromContent(newContent, state);
