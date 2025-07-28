@@ -27,6 +27,7 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
 import { PromptManagerService } from '../../shared/services/prompt-manager.service';
 import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/components/image-upload-dialog.component';
 import { AppHeaderComponent, HeaderAction, BurgerMenuItem } from '../../shared/components/app-header.component';
+import { VersionTooltipComponent } from '../../shared/components/version-tooltip.component';
 import { HeaderNavigationService } from '../../shared/services/header-navigation.service';
 import { SettingsService } from '../../core/services/settings.service';
 import { StoryStatsService } from '../services/story-stats.service';
@@ -39,7 +40,7 @@ import { VersionService } from '../../core/services/version.service';
     CommonModule, FormsModule, 
     IonContent, IonChip, IonLabel, IonButton, IonIcon,
     StoryStructureComponent, SlashCommandDropdownComponent, ImageUploadDialogComponent,
-    AppHeaderComponent, StoryStatsComponent
+    AppHeaderComponent, StoryStatsComponent, VersionTooltipComponent
   ],
   template: `
     <div class="ion-page">
@@ -71,9 +72,11 @@ import { VersionService } from '../../core/services/version.service';
               <ion-icon name="stats-chart-outline"></ion-icon>
               <ion-label>{{ wordCount }} Wörter</ion-label>
             </ion-chip>
-            <ion-chip *ngIf="versionService.getVersionSync()" color="medium" class="full-status">
-              <ion-label>{{ versionService.getShortVersion() }}</ion-label>
-            </ion-chip>
+            <app-version-tooltip *ngIf="versionService.getVersionSync()">
+              <ion-chip color="medium" class="full-status">
+                <ion-label>{{ versionService.getShortVersion() }}</ion-label>
+              </ion-chip>
+            </app-version-tooltip>
           </div>
         </div>
       </ng-template>

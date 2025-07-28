@@ -886,7 +886,8 @@ export class StoryListComponent implements OnInit {
         chipColor: 'medium',
         action: () => {}, // No action needed for version chip
         showOnMobile: true,
-        showOnDesktop: true
+        showOnDesktop: true,
+        showVersionTooltip: true
       });
     }
   }

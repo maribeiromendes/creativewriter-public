@@ -2,6 +2,7 @@ import { Component, Input, Output, EventEmitter, TemplateRef, OnInit } from '@an
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
 import { VersionService } from '../../core/services/version.service';
+import { VersionTooltipComponent } from './version-tooltip.component';
 
 export interface HeaderAction {
   icon: string;
@@ -13,6 +14,7 @@ export interface HeaderAction {
   showOnDesktop?: boolean;
   chipContent?: string;
   chipColor?: string;
+  showVersionTooltip?: boolean;
 }
 
 export interface BurgerMenuItem {
@@ -25,7 +27,7 @@ export interface BurgerMenuItem {
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule, IonicModule],
+  imports: [CommonModule, IonicModule, VersionTooltipComponent],
   template: `
     <ion-header>
       <ion-toolbar>
@@ -81,8 +83,19 @@ export interface BurgerMenuItem {
 
           <!-- Status Chips -->
           <ng-container *ngFor="let action of rightActions">
+            <app-version-tooltip *ngIf="action.chipContent && action.showVersionTooltip">
+              <ion-chip 
+                [color]="action.chipColor || 'medium'"
+                [class.desktop-only]="!action.showOnMobile"
+                (click)="action.action()"
+                class="clickable-chip">
+                <ion-icon [name]="action.icon" *ngIf="action.icon"></ion-icon>
+                <ion-label>{{ action.chipContent }}</ion-label>
+              </ion-chip>
+            </app-version-tooltip>
+            
             <ion-chip 
-              *ngIf="action.chipContent"
+              *ngIf="action.chipContent && !action.showVersionTooltip"
               [color]="action.chipColor || 'medium'"
               [class.desktop-only]="!action.showOnMobile"
               (click)="action.action()"
