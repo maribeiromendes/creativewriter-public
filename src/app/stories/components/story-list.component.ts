@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { 
   IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonChip, IonIcon, IonButton, 
-  IonContent
+  IonContent, IonLabel
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { add, download, settings, analytics, trash, create, image, menu, close } from 'ionicons/icons';
@@ -22,7 +22,7 @@ import { VersionService } from '../../core/services/version.service';
   imports: [
     CommonModule, 
     IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonChip, IonIcon, IonButton, 
-    IonContent,
+    IonContent, IonLabel,
     SyncStatusComponent, LoginComponent, AppHeaderComponent
   ],
   template: `
@@ -45,11 +45,18 @@ import { VersionService } from '../../core/services/version.service';
     </app-header>
     
     <ng-template #burgerMenuFooter>
-      <div *ngIf="currentUser">
-        <app-sync-status [showActions]="true" class="full-sync-status"></app-sync-status>
-        <ion-button fill="clear" color="danger" (click)="logout()" class="logout-button">
-          Abmelden
-        </ion-button>
+      <div class="burger-menu-footer-content">
+        <div *ngIf="currentUser">
+          <app-sync-status [showActions]="true" class="full-sync-status"></app-sync-status>
+          <ion-button fill="clear" color="danger" (click)="logout()" class="logout-button">
+            Abmelden
+          </ion-button>
+        </div>
+        <div class="version-info">
+          <ion-chip color="medium" class="version-chip">
+            <ion-label>v{{ versionService.getShortVersion() }}</ion-label>
+          </ion-chip>
+        </div>
       </div>
     </ng-template>
 
@@ -512,7 +519,51 @@ import { VersionService } from '../../core/services/version.service';
       align-self: stretch;
     }
     
+    /* Burger Menu Footer Content */
+    .burger-menu-footer-content {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
     
+    .version-info {
+      display: flex;
+      justify-content: center;
+      padding-top: 0.5rem;
+      margin-top: auto;
+    }
+    
+    .version-chip {
+      --background: rgba(139, 180, 248, 0.15);
+      --color: #8bb4f8;
+      border: 1px solid rgba(139, 180, 248, 0.3);
+      font-size: 0.75rem;
+      height: 24px;
+    }
+    
+    /* Ensure burger menu can scroll on mobile */
+    @media (max-width: 768px) {
+      .burger-menu {
+        max-height: 100vh;
+        max-height: -webkit-fill-available;
+        overflow: hidden;
+      }
+      
+      .burger-menu-content {
+        max-height: 100vh;
+        max-height: -webkit-fill-available;
+        overflow: hidden;
+      }
+      
+      .burger-menu-items {
+        min-height: 0;
+        flex-shrink: 1;
+      }
+      
+      .burger-menu-footer {
+        flex-shrink: 0;
+      }
+    }
     
     .action-buttons {
       display: flex;

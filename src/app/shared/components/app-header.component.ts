@@ -290,6 +290,7 @@ export interface BurgerMenuItem {
       flex-direction: column;
       height: 100%;
       padding: 0;
+      overflow: hidden;
     }
     
     .burger-menu-header {
@@ -342,12 +343,13 @@ export interface BurgerMenuItem {
     }
     
     .burger-menu-items {
-      flex: 1;
+      flex: 1 1 auto;
       padding: 0.5rem 0;
       display: flex;
       flex-direction: column;
       gap: 0.25rem;
       overflow-y: auto;
+      min-height: 0;
     }
     
     .burger-menu-items ion-button {
@@ -408,6 +410,7 @@ export interface BurgerMenuItem {
       margin-top: auto;
       background: rgba(15, 15, 25, 0.95);
       position: relative;
+      flex-shrink: 0;
     }
     
     .burger-menu-footer::before {
