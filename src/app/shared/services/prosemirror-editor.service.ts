@@ -1198,23 +1198,14 @@ export class ProseMirrorEditorService {
         const beforeInsertPos = insertPos - 1;
         const resolvedPos = state.doc.resolve(beforeInsertPos);
         
-        if (resolvedPos.parent && resolvedPos.parent.type.name === 'paragraph' && !newContent.startsWith('\n\n')) {
-          // Append to existing paragraph
-          const tr = state.tr.insertText(newContent, beforeInsertPos);
-          this.editorView.dispatch(tr);
-          
-          // Update stored position
-          this.beatStreamingPositions.set(beatId, insertPos + newContent.length);
-        } else {
-          // Create new paragraph(s)
-          const paragraphNodes = this.createParagraphsFromContent(newContent, state);
-          const fragment = Fragment.from(paragraphNodes);
-          const tr = state.tr.insert(insertPos, fragment);
-          this.editorView.dispatch(tr);
-          
-          // Update stored position
-          this.beatStreamingPositions.set(beatId, insertPos + fragment.size);
-        }
+        // Always create proper paragraph nodes to preserve linebreaks
+        const paragraphNodes = this.createParagraphsFromContent(newContent, state);
+        const fragment = Fragment.from(paragraphNodes);
+        const tr = state.tr.insert(insertPos, fragment);
+        this.editorView.dispatch(tr);
+        
+        // Update stored position
+        this.beatStreamingPositions.set(beatId, insertPos + fragment.size);
       } else {
         // No existing content, insert right after beat
         const paragraphNodes = this.createParagraphsFromContent(newContent, state);
