@@ -1058,7 +1058,7 @@ export class ProseMirrorEditorService {
       let contentLength = 0;
       
       // Calculate approximately how much content to replace based on current generated content
-      const currentParagraphs = currentContent.split('\n\n').filter((p: string) => p.trim());
+      const currentParagraphs = currentContent.split('\n\n').filter((p: string) => p.length > 0);
       let paragraphsToReplace = currentParagraphs.length;
       
       while (pos < state.doc.content.size && paragraphsToReplace > 0) {
