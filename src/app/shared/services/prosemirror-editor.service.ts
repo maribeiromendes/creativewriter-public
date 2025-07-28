@@ -800,24 +800,50 @@ export class ProseMirrorEditorService {
   }
 
   private createParagraphsFromContent(content: string, state: any): any[] {
-    if (!content || !content.trim()) {
+    if (!content) {
       // Return empty paragraph if no content
       return [state.schema.nodes['paragraph'].create()];
     }
     
-    // Normalize line endings and split content by any newlines (single or multiple) to get paragraphs
-    const paragraphTexts = content
-      .replace(/\r\n/g, '\n') // Normalize CRLF to LF
-      .split(/\n+/) // Split on one or more newlines
-      .map(para => para.trim()) // Remove leading/trailing whitespace
-      .filter(para => para.length > 0); // Only keep non-empty paragraphs
+    const paragraphNodes: any[] = [];
+    let currentText = '';
     
-    // Create paragraph nodes for each text block
-    const paragraphNodes = paragraphTexts.map(paragraphText => {
-      // Create paragraph with text content (empty paragraphs already filtered out)
-      const textNode = state.schema.text(paragraphText);
-      return state.schema.nodes['paragraph'].create(null, [textNode]);
-    });
+    // Process content character by character to handle line breaks properly (streaming-friendly)
+    for (let i = 0; i < content.length; i++) {
+      const char = content[i];
+      const nextChar = content[i + 1];
+      
+      if (char === '\n' || (char === '\r' && nextChar === '\n')) {
+        // Found line break - create paragraph if we have text
+        if (currentText) {
+          const textNode = state.schema.text(currentText);
+          paragraphNodes.push(state.schema.nodes['paragraph'].create(null, [textNode]));
+          currentText = '';
+        } else {
+          // Empty line - create empty paragraph
+          paragraphNodes.push(state.schema.nodes['paragraph'].create());
+        }
+        
+        // Skip \r in \r\n combination
+        if (char === '\r' && nextChar === '\n') {
+          i++; // Skip the \n as well
+        }
+      } else if (char !== '\r') {
+        // Add regular character (skip standalone \r)
+        currentText += char;
+      }
+    }
+    
+    // Create final paragraph if there's remaining text
+    if (currentText) {
+      const textNode = state.schema.text(currentText);
+      paragraphNodes.push(state.schema.nodes['paragraph'].create(null, [textNode]));
+    }
+    
+    // Return at least one empty paragraph if no paragraphs were created
+    if (paragraphNodes.length === 0) {
+      paragraphNodes.push(state.schema.nodes['paragraph'].create());
+    }
     
     return paragraphNodes;
   }
