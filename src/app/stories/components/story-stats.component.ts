@@ -8,7 +8,7 @@ import {
 import { addIcons } from 'ionicons';
 import { 
   close, statsChartOutline, bookOutline, documentTextOutline, 
-  timeOutline, trendingUpOutline, trendingDownOutline, layersOutline
+  timeOutline, trendingUpOutline, trendingDownOutline, layersOutline, serverOutline
 } from 'ionicons/icons';
 import { Story } from '../models/story.interface';
 import { StoryStatsService } from '../services/story-stats.service';
@@ -28,6 +28,13 @@ export interface StoryStatistics {
   averageWordsPerScene: number;
   longestChapter: { title: string; wordCount: number; } | null;
   shortestChapter: { title: string; wordCount: number; } | null;
+  storageUsage: {
+    storySize: number;
+    storySizeFormatted: string;
+    totalLocalStorage: number;
+    totalLocalStorageFormatted: string;
+    percentageUsed: number;
+  };
 }
 
 @Component({
@@ -195,6 +202,44 @@ export interface StoryStatistics {
                   </ion-chip>
                 </ion-item>
               </ion-list>
+            </ion-card-content>
+          </ion-card>
+
+          <!-- Storage Usage -->
+          <ion-card class="storage-card" *ngIf="statistics?.storageUsage">
+            <ion-card-header>
+              <ion-card-title>
+                <ion-icon name="server-outline"></ion-icon>
+                Speicherverbrauch
+              </ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <ion-grid>
+                <ion-row>
+                  <ion-col size="6">
+                    <div class="stat-item">
+                      <div class="stat-value">{{ statistics.storageUsage.storySizeFormatted }}</div>
+                      <div class="stat-label">Diese Story</div>
+                    </div>
+                  </ion-col>
+                  <ion-col size="6">
+                    <div class="stat-item">
+                      <div class="stat-value">{{ statistics.storageUsage.totalLocalStorageFormatted }}</div>
+                      <div class="stat-label">Gesamt localStorage</div>
+                    </div>
+                  </ion-col>
+                </ion-row>
+                <ion-row>
+                  <ion-col size="12">
+                    <div class="storage-progress">
+                      <div class="storage-bar">
+                        <div class="storage-fill" [style.width.%]="statistics.storageUsage.percentageUsed"></div>
+                      </div>
+                      <div class="storage-percentage">{{ statistics.storageUsage.percentageUsed }}% belegt</div>
+                    </div>
+                  </ion-col>
+                </ion-row>
+              </ion-grid>
             </ion-card-content>
           </ion-card>
 
@@ -479,6 +524,40 @@ export interface StoryStatistics {
       font-size: 0.85rem;
     }
     
+    /* Storage Usage Styles */
+    .storage-card .stat-value {
+      color: #ff9f43;
+      text-shadow: 0 0 20px rgba(255, 159, 67, 0.3);
+    }
+    
+    .storage-progress {
+      margin-top: 1rem;
+      text-align: center;
+    }
+    
+    .storage-bar {
+      width: 100%;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 0.5rem;
+      border: 1px solid rgba(139, 180, 248, 0.2);
+    }
+    
+    .storage-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #4ecdc4 0%, #44a08d 50%, #ff9f43 100%);
+      transition: width 0.5s ease;
+      box-shadow: 0 0 8px rgba(78, 205, 196, 0.3);
+    }
+    
+    .storage-percentage {
+      font-size: 0.85rem;
+      color: #adb5bd;
+      font-weight: 500;
+    }
+    
     .progress-info {
       text-align: center;
       padding: 1rem;
@@ -590,7 +669,7 @@ export class StoryStatsComponent implements OnInit, OnDestroy, OnChanges {
   constructor(private storyStatsService: StoryStatsService) {
     addIcons({ 
       close, statsChartOutline, bookOutline, documentTextOutline, 
-      timeOutline, trendingUpOutline, trendingDownOutline, layersOutline
+      timeOutline, trendingUpOutline, trendingDownOutline, layersOutline, serverOutline
     });
   }
 

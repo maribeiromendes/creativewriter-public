@@ -124,6 +124,51 @@ export class StoryStatsService {
   }
 
   /**
+   * Calculate storage usage for a story in bytes
+   * @param story The story to calculate storage usage for
+   * @returns Storage usage in bytes
+   */
+  calculateStorageUsage(story: Story): number {
+    if (!story) return 0;
+    
+    // Convert story object to JSON string and calculate byte size
+    const storyJson = JSON.stringify(story);
+    return new Blob([storyJson]).size;
+  }
+
+  /**
+   * Get total localStorage usage in bytes
+   * @returns Total localStorage usage in bytes
+   */
+  getTotalLocalStorageUsage(): number {
+    let totalSize = 0;
+    
+    for (let key in localStorage) {
+      if (localStorage.hasOwnProperty(key)) {
+        totalSize += localStorage[key].length + key.length;
+      }
+    }
+    
+    // Convert to bytes (each character is roughly 2 bytes in UTF-16)
+    return totalSize * 2;
+  }
+
+  /**
+   * Format bytes to human readable format
+   * @param bytes Number of bytes
+   * @returns Formatted string (e.g., "1.2 KB", "3.4 MB")
+   */
+  formatBytes(bytes: number): string {
+    if (bytes === 0) return '0 B';
+    
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
+
+  /**
    * Get word count statistics for a story
    * Uses only saved content from localStorage/database
    * @param story The story to analyze
@@ -134,12 +179,31 @@ export class StoryStatsService {
     chapterCounts: Array<{ chapterId: string; chapterTitle: string; wordCount: number; sceneCount: number }>;
     totalScenes: number;
     totalChapters: number;
+    storageUsage: {
+      storySize: number;
+      storySizeFormatted: string;
+      totalLocalStorage: number;
+      totalLocalStorageFormatted: string;
+      percentageUsed: number;
+    };
   } {
+    // Calculate storage usage
+    const storySize = this.calculateStorageUsage(story);
+    const totalLocalStorage = this.getTotalLocalStorageUsage();
+    const localStorageLimit = 5 * 1024 * 1024; // 5MB typical limit for localStorage
+    
     const stats = {
       totalWords: 0,
       chapterCounts: [] as Array<{ chapterId: string; chapterTitle: string; wordCount: number; sceneCount: number }>,
       totalScenes: 0,
-      totalChapters: 0
+      totalChapters: 0,
+      storageUsage: {
+        storySize,
+        storySizeFormatted: this.formatBytes(storySize),
+        totalLocalStorage,
+        totalLocalStorageFormatted: this.formatBytes(totalLocalStorage),
+        percentageUsed: Math.round((totalLocalStorage / localStorageLimit) * 100)
+      }
     };
 
     if (!story || !story.chapters) {
