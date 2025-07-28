@@ -711,7 +711,7 @@ import { EditorView } from 'prosemirror-view';
     }
     
     .prompt-text {
-      color: #adb5bd;
+      color: var(--beat-ai-text-color, #adb5bd);
       font-style: italic;
       font-size: 0.9rem;
       line-height: 1.4;
