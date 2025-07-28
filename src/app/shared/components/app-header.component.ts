@@ -49,17 +49,19 @@ export interface BurgerMenuItem {
 
         <!-- Title -->
         <ion-title>
-          <ng-container *ngIf="titleTemplate; else staticTitle">
-            <ng-container *ngTemplateOutlet="titleTemplate"></ng-container>
-          </ng-container>
-          <ng-template #staticTitle>
-            <div class="title-container">
-              <span class="app-title">{{ title }}</span>
-              <span class="version-info" *ngIf="versionService.getVersionSync()">
-                {{ versionService.getShortVersion() }}
-              </span>
+          <div class="title-container">
+            <div class="title-content">
+              <ng-container *ngIf="titleTemplate; else staticTitle">
+                <ng-container *ngTemplateOutlet="titleTemplate"></ng-container>
+              </ng-container>
+              <ng-template #staticTitle>
+                <span class="app-title">{{ title }}</span>
+              </ng-template>
             </div>
-          </ng-template>
+            <span class="version-info" *ngIf="versionService.getVersionSync()">
+              {{ versionService.getShortVersion() }}
+            </span>
+          </div>
         </ion-title>
 
         <!-- Right Actions -->
@@ -173,6 +175,14 @@ export interface BurgerMenuItem {
       flex-direction: column;
       align-items: center;
       gap: 0;
+      width: 100%;
+    }
+    
+    .title-content {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
     }
     
     .app-title {
