@@ -30,6 +30,10 @@ import { DatabaseService, SyncStatus } from '../../core/services/database.servic
       border-radius: 4px;
       font-size: 0.875rem;
       transition: all 0.2s ease;
+      max-width: 100%;
+      overflow: hidden;
+      z-index: 1;
+      position: relative;
     }
     
     .sync-status.online {
@@ -58,6 +62,16 @@ import { DatabaseService, SyncStatus } from '../../core/services/database.servic
     
     .sync-icon {
       font-size: 1rem;
+      flex-shrink: 0;
+    }
+    
+    .sync-text {
+      word-break: break-word;
+      overflow-wrap: break-word;
+      hyphens: auto;
+      line-height: 1.2;
+      flex: 1;
+      min-width: 0;
     }
     
     .sync-actions {
@@ -84,6 +98,35 @@ import { DatabaseService, SyncStatus } from '../../core/services/database.servic
     .sync-actions button:disabled {
       opacity: 0.5;
       cursor: not-allowed;
+    }
+    
+    /* Responsive styles */
+    @media (max-width: 768px) {
+      .sync-status {
+        padding: 0.4rem;
+        font-size: 0.8rem;
+        gap: 0.4rem;
+      }
+      
+      .sync-actions {
+        gap: 0.2rem;
+      }
+      
+      .sync-actions button {
+        padding: 0.2rem 0.4rem;
+        font-size: 0.7rem;
+      }
+    }
+    
+    /* Prevent overflow in compact areas */
+    .compact-sync-status .sync-status {
+      max-width: 200px;
+    }
+    
+    /* Full status in burger menu */
+    .full-sync-status .sync-status {
+      max-width: 100%;
+      width: 100%;
     }
   `]
 })
@@ -127,7 +170,21 @@ export class SyncStatusComponent implements OnInit, OnDestroy {
   }
 
   get syncText(): string {
-    if (this.syncStatus.error) return `Fehler: ${this.syncStatus.error}`;
+    if (this.syncStatus.error) {
+      // Truncate long error messages and provide meaningful short text
+      const errorText = this.syncStatus.error;
+      if (errorText.includes('not reachable') || errorText.includes('connection')) {
+        return 'DB nicht erreichbar';
+      }
+      if (errorText.includes('timeout')) {
+        return 'Verbindung timeout';
+      }
+      if (errorText.includes('auth')) {
+        return 'Anmeldung fehlgeschlagen';
+      }
+      // Generic truncation for other errors
+      return errorText.length > 30 ? `Fehler: ${errorText.substring(0, 27)}...` : `Fehler: ${errorText}`;
+    }
     if (this.syncStatus.isSync) return 'Synchronisiert...';
     if (!this.syncStatus.isOnline) return 'Offline';
     
