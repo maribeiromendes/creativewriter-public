@@ -253,7 +253,7 @@ import { EditorView } from 'prosemirror-view';
     
     .beat-actions {
       display: flex;
-      gap: 0.4rem;
+      gap: 0.5rem;
     }
     
     .action-btn {
@@ -268,8 +268,11 @@ import { EditorView } from 'prosemirror-view';
       -webkit-backdrop-filter: blur(10px);
       position: relative;
       overflow: hidden;
-      width: 32px;
-      height: 32px;
+      width: 44px;
+      height: 44px;
+      /* Ensure minimum touch target size */
+      min-width: 44px;
+      min-height: 44px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -278,6 +281,10 @@ import { EditorView } from 'prosemirror-view';
       -ms-user-select: none;
       user-select: none;
       -webkit-tap-highlight-color: transparent;
+      /* Better touch feedback */
+      -webkit-touch-callout: none;
+      /* Prevent text selection on double-tap */
+      -webkit-text-size-adjust: none;
     }
     
     .action-btn::before {
@@ -325,14 +332,25 @@ import { EditorView } from 'prosemirror-view';
     }
     
     @media (max-width: 768px) {
+      .beat-actions {
+        gap: 0.6rem;
+        /* Add padding to prevent edge tapping issues */
+        padding: 0.25rem;
+      }
+      
       .action-btn {
-        width: 28px;
-        height: 28px;
-        padding: 0.3rem;
+        width: 48px;
+        height: 48px;
+        padding: 0.5rem;
+        /* Increase spacing between buttons on mobile */
+        margin: 0 2px;
+        /* Ensure adequate touch area even with visual styling */
+        min-width: 48px;
+        min-height: 48px;
       }
       
       .action-btn ion-icon {
-        font-size: 1rem;
+        font-size: 1.2rem;
       }
     }
     
@@ -986,6 +1004,22 @@ import { EditorView } from 'prosemirror-view';
       
       .beat-header {
         margin-bottom: 0.3rem;
+      }
+      
+      .beat-actions {
+        gap: 0.75rem;
+        /* More padding on very small screens */
+        padding: 0.4rem;
+        /* Prevent buttons from being too close to screen edges */
+        margin: 0 0.2rem;
+      }
+      
+      .action-btn {
+        /* Slightly larger on very small screens for better accessibility */
+        width: 52px;
+        height: 52px;
+        min-width: 52px;
+        min-height: 52px;
       }
       
       .prompt-actions {
