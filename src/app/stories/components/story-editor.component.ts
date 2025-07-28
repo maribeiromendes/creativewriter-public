@@ -2315,12 +2315,13 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
         (element as HTMLElement).style.color = this.currentTextColor;
       });
       
-      // Apply to Beat AI ProseMirror elements
+      // Apply to Beat AI ProseMirror elements (only text content, not buttons)
       const proseMirrorElements = container.querySelectorAll('.ProseMirror');
       proseMirrorElements.forEach(element => {
         (element as HTMLElement).style.color = this.currentTextColor;
-        const childElements = element.querySelectorAll('*');
-        childElements.forEach((child: Element) => {
+        // Only target text elements like paragraphs, spans, divs - not buttons or form elements
+        const textElements = element.querySelectorAll('p, span, div:not(.action-btn):not(.generate-btn):not(.cancel-btn), em, strong, h1, h2, h3, h4, h5, h6');
+        textElements.forEach((child: Element) => {
           (child as HTMLElement).style.color = this.currentTextColor;
         });
       });
