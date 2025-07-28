@@ -1,108 +1,89 @@
-import { Component, Input, OnInit, ElementRef, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { IonPopover, IonContent } from '@ionic/angular/standalone';
 import { VersionService, VersionInfo } from '../../core/services/version.service';
 
 @Component({
   selector: 'app-version-tooltip',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, IonPopover, IonContent],
   template: `
-    <div class="version-tooltip-wrapper" 
-         (mouseenter)="showTooltip = true" 
-         (mouseleave)="showTooltip = false">
+    <div #triggerElement 
+         id="version-tooltip-trigger"
+         (mouseenter)="openPopover()" 
+         (mouseleave)="closePopover()">
       <ng-content></ng-content>
-      
-      <div class="version-tooltip" 
-           [class.visible]="showTooltip && versionInfo"
-           #tooltip>
-        <div class="tooltip-content" *ngIf="versionInfo">
-          <div class="tooltip-header">
-            <strong>Version Info</strong>
-          </div>
-          <div class="tooltip-row">
-            <span class="label">Version:</span>
-            <span class="value">{{ versionInfo.version }}</span>
-          </div>
-          <div class="tooltip-row">
-            <span class="label">Build:</span>
-            <span class="value">{{ versionInfo.buildNumber }}</span>
-          </div>
-          <div class="tooltip-row">
-            <span class="label">Branch:</span>
-            <span class="value">{{ versionInfo.branch }}</span>
-          </div>
-          <div class="tooltip-row">
-            <span class="label">Commit:</span>
-            <span class="value commit-hash">{{ versionInfo.commitHash.substring(0, 8) }}...</span>
-          </div>
-          <div class="tooltip-row commit-message">
-            <span class="label">Message:</span>
-            <span class="value">{{ versionInfo.commitMessage }}</span>
-          </div>
-          <div class="tooltip-row">
-            <span class="label">Built:</span>
-            <span class="value">{{ formatBuildDate(versionInfo.buildDate) }}</span>
-          </div>
-        </div>
-      </div>
     </div>
+    
+    <ion-popover 
+      #popover
+      trigger="version-tooltip-trigger"
+      side="bottom"
+      alignment="center" 
+      reference="trigger"
+      [showBackdrop]="false"
+      size="auto"
+      class="version-popover"
+      (ionPopoverWillDismiss)="onPopoverDismiss()">
+      
+      <ng-template>
+        <ion-content class="version-tooltip-content">
+          <div class="tooltip-content" *ngIf="versionInfo">
+            <div class="tooltip-header">
+              <strong>Version Info</strong>
+            </div>
+            <div class="tooltip-row">
+              <span class="label">Version:</span>
+              <span class="value">{{ versionInfo.version }}</span>
+            </div>
+            <div class="tooltip-row">
+              <span class="label">Build:</span>
+              <span class="value">{{ versionInfo.buildNumber }}</span>
+            </div>
+            <div class="tooltip-row">
+              <span class="label">Branch:</span>
+              <span class="value">{{ versionInfo.branch }}</span>
+            </div>
+            <div class="tooltip-row">
+              <span class="label">Commit:</span>
+              <span class="value commit-hash">{{ versionInfo.commitHash.substring(0, 8) }}...</span>
+            </div>
+            <div class="tooltip-row commit-message">
+              <span class="label">Message:</span>
+              <span class="value">{{ versionInfo.commitMessage }}</span>
+            </div>
+            <div class="tooltip-row">
+              <span class="label">Built:</span>
+              <span class="value">{{ formatBuildDate(versionInfo.buildDate) }}</span>
+            </div>
+          </div>
+        </ion-content>
+      </ng-template>
+    </ion-popover>
   `,
   styles: [`
-    .version-tooltip-wrapper {
-      position: relative;
+    :host {
       display: inline-block;
     }
     
-    .version-tooltip {
-      position: absolute;
-      bottom: 100%;
-      left: 50%;
-      transform: translateX(-50%);
-      background: linear-gradient(135deg, rgba(15, 15, 25, 0.98) 0%, rgba(25, 25, 40, 0.98) 100%);
+    .version-popover::part(content) {
+      --background: linear-gradient(135deg, rgba(15, 15, 25, 0.98) 0%, rgba(25, 25, 40, 0.98) 100%);
+      --box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 8px 16px rgba(139, 180, 248, 0.1);
+      --border-radius: 12px;
+      --border-color: rgba(139, 180, 248, 0.3);
+      --border-width: 1px;
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
-      border: 1px solid rgba(139, 180, 248, 0.3);
-      border-radius: 12px;
-      padding: 0;
       min-width: 280px;
       max-width: 350px;
-      opacity: 0;
-      visibility: hidden;
-      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-      transform: translateX(-50%) translateY(10px) scale(0.95);
-      z-index: 9999;
-      box-shadow: 
-        0 20px 40px rgba(0, 0, 0, 0.4),
-        0 8px 16px rgba(139, 180, 248, 0.1),
-        inset 0 1px 0 rgba(255, 255, 255, 0.1);
-      margin-bottom: 8px;
     }
     
-    .version-tooltip.visible {
-      opacity: 1;
-      visibility: visible;
-      transform: translateX(-50%) translateY(0) scale(1);
-    }
-    
-    .version-tooltip::after {
-      content: '';
-      position: absolute;
-      top: 100%;
-      left: 50%;
-      transform: translateX(-50%);
-      border: 8px solid transparent;
-      border-top-color: rgba(25, 25, 40, 0.98);
-    }
-    
-    .version-tooltip::before {
-      content: '';
-      position: absolute;
-      top: 100%;
-      left: 50%;
-      transform: translateX(-50%);
-      border: 9px solid transparent;
-      border-top-color: rgba(139, 180, 248, 0.3);
-      z-index: -1;
+    .version-tooltip-content {
+      --background: transparent;
+      --padding-start: 0;
+      --padding-end: 0;
+      --padding-top: 0;
+      --padding-bottom: 0;
     }
     
     .tooltip-content {
@@ -175,12 +156,11 @@ import { VersionService, VersionInfo } from '../../core/services/version.service
       border: 1px solid rgba(139, 180, 248, 0.2);
     }
     
-    /* Responsive adjustments */
+    /* Responsive styles */
     @media (max-width: 768px) {
-      .version-tooltip {
+      .version-popover::part(content) {
         min-width: 260px;
         max-width: 300px;
-        font-size: 0.85rem;
       }
       
       .tooltip-content {
@@ -198,28 +178,20 @@ import { VersionService, VersionInfo } from '../../core/services/version.service
       }
     }
     
-    /* Prevent tooltip from going off-screen */
     @media (max-width: 400px) {
-      .version-tooltip {
-        left: 0;
-        transform: none;
+      .version-popover::part(content) {
         min-width: 240px;
-        margin-left: 10px;
-        margin-right: 10px;
-      }
-      
-      .version-tooltip::after,
-      .version-tooltip::before {
-        left: 80px;
+        max-width: 280px;
       }
     }
   `]
 })
 export class VersionTooltipComponent implements OnInit {
-  @ViewChild('tooltip') tooltipElement!: ElementRef;
+  @ViewChild('popover') popover!: IonPopover;
+  @ViewChild('triggerElement') triggerElement!: ElementRef;
   
-  showTooltip = false;
   versionInfo: VersionInfo | null = null;
+  private hoverTimeout: any;
 
   constructor(private versionService: VersionService) {}
 
@@ -227,6 +199,41 @@ export class VersionTooltipComponent implements OnInit {
     this.versionService.version$.subscribe(version => {
       this.versionInfo = version;
     });
+  }
+
+  openPopover() {
+    if (this.versionInfo && this.popover) {
+      // Clear any existing timeout
+      if (this.hoverTimeout) {
+        clearTimeout(this.hoverTimeout);
+      }
+      
+      // Small delay to prevent flickering
+      this.hoverTimeout = setTimeout(() => {
+        this.popover.present();
+      }, 100);
+    }
+  }
+
+  closePopover() {
+    // Clear timeout if user moves away quickly
+    if (this.hoverTimeout) {
+      clearTimeout(this.hoverTimeout);
+    }
+    
+    // Add small delay before closing to allow moving to popover
+    this.hoverTimeout = setTimeout(() => {
+      if (this.popover) {
+        this.popover.dismiss();
+      }
+    }, 200);
+  }
+
+  onPopoverDismiss() {
+    // Clear any pending timeouts when popover is dismissed
+    if (this.hoverTimeout) {
+      clearTimeout(this.hoverTimeout);
+    }
   }
 
   formatBuildDate(dateString: string): string {
