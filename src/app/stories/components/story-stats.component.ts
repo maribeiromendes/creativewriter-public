@@ -44,28 +44,34 @@ export interface StoryStatistics {
       [isOpen]="isOpen" 
       (didDismiss)="onClose()"
       [showBackdrop]="true"
-      [backdropDismiss]="true">
-      <ion-header class="modal-header">
-        <ion-toolbar>
-          <ion-title>
-            <div class="modal-title">
-              <ion-icon name="stats-chart-outline"></ion-icon>
-              Story Statistiken
-            </div>
-          </ion-title>
-          <ion-button 
-            slot="end" 
-            fill="clear" 
-            (click)="onClose()"
-            aria-label="Schließen"
-            class="close-button">
-            <ion-icon name="close" slot="icon-only"></ion-icon>
-          </ion-button>
-        </ion-toolbar>
-      </ion-header>
-      
-      <ion-content class="stats-content" [scrollY]="true">
-        <div class="stats-container" *ngIf="statistics">
+      [backdropDismiss]="true"
+      class="story-stats-modal">
+      <ng-template>
+        <ion-header class="modal-header">
+          <ion-toolbar>
+            <ion-title>
+              <div class="modal-title">
+                <ion-icon name="stats-chart-outline"></ion-icon>
+                Story Statistiken
+              </div>
+            </ion-title>
+            <ion-button 
+              slot="end" 
+              fill="clear" 
+              (click)="onClose()"
+              aria-label="Schließen"
+              class="close-button">
+              <ion-icon name="close" slot="icon-only"></ion-icon>
+            </ion-button>
+          </ion-toolbar>
+        </ion-header>
+        
+        <ion-content 
+          class="stats-content" 
+          [scrollY]="true"
+          [scrollEvents]="true"
+          [fullscreen]="false">
+          <div class="stats-container" *ngIf="statistics">
           
           <!-- Overview Stats -->
           <ion-card class="overview-card">
@@ -229,18 +235,19 @@ export interface StoryStatistics {
             </ion-card-content>
           </ion-card>
 
-        </div>
-        
-        <div class="loading-state" *ngIf="!statistics">
-          <p>Statistiken werden berechnet...</p>
-        </div>
-        
-      </ion-content>
+          </div>
+          
+          <div class="loading-state" *ngIf="!statistics">
+            <p>Statistiken werden berechnet...</p>
+          </div>
+          
+        </ion-content>
+      </ng-template>
     </ion-modal>
   `,
   styles: [`
     /* Modal styling to match app theme */
-    ion-modal {
+    .story-stats-modal {
       --backdrop-opacity: 0.6;
       --border-radius: 16px;
       --box-shadow: 0 28px 48px rgba(0, 0, 0, 0.4);
@@ -248,6 +255,11 @@ export interface StoryStatistics {
       --max-width: 800px;
       --height: 85%;
       --max-height: 90vh;
+    }
+    
+    .story-stats-modal ion-content {
+      --overflow: auto;
+      overflow-y: auto !important;
     }
     
     .modal-header {
@@ -326,12 +338,20 @@ export interface StoryStatistics {
       --padding-bottom: 0;
       --padding-start: 0;
       --padding-end: 0;
+      --overflow: auto;
+      overflow-y: auto !important;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
     }
     
     .stats-container {
       padding: 1.5rem;
       width: 100%;
       box-sizing: border-box;
+      flex: 1;
+      min-height: min-content;
+      overflow-y: visible;
     }
     
     ion-card {
