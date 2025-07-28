@@ -6,10 +6,11 @@ import { Subscription } from 'rxjs';
 import { 
   IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
   IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonInput, IonToggle,
-  IonChip, IonItem, IonLabel, IonSelect, IonSelectOption, IonRange, IonTextarea
+  IonChip, IonItem, IonLabel, IonSelect, IonSelectOption, IonRange, IonTextarea,
+  IonSegment, IonSegmentButton
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { arrowBack, analytics, warning, checkmarkCircle, globeOutline, logoGoogle } from 'ionicons/icons';
+import { arrowBack, analytics, warning, checkmarkCircle, globeOutline, logoGoogle, colorPaletteOutline, documentTextOutline, cloudOutline } from 'ionicons/icons';
 import { SettingsService } from '../core/services/settings.service';
 import { ModelService } from '../core/services/model.service';
 import { Settings } from '../core/models/settings.interface';
@@ -25,6 +26,7 @@ import { ColorPickerComponent } from '../shared/components/color-picker.componen
     IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
     IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonInput, IonToggle,
     IonChip, IonItem, IonLabel, IonSelect, IonSelectOption, IonRange, IonTextarea,
+    IonSegment, IonSegmentButton,
     ColorPickerComponent
   ],
   template: `
@@ -51,8 +53,29 @@ import { ColorPickerComponent } from '../shared/components/color-picker.componen
     </ion-header>
 
     <ion-content>
+      <!-- Tab Navigation -->
+      <ion-segment [(ngModel)]="selectedTab" mode="md" class="settings-tabs">
+        <ion-segment-button value="models">
+          <ion-icon name="cloud-outline"></ion-icon>
+          <ion-label>AI Modelle</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="appearance">
+          <ion-icon name="color-palette-outline"></ion-icon>
+          <ion-label>Darstellung</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="scene-title">
+          <ion-icon name="document-text-outline"></ion-icon>
+          <ion-label>Szenentitel</ion-label>
+        </ion-segment-button>
+      </ion-segment>
+
       <div class="settings-content">
-        <!-- Global Model Selection -->
+        <!-- Tab Content -->
+        <div [ngSwitch]="selectedTab">
+          
+          <!-- Models Tab -->
+          <div *ngSwitchCase="'models'">
+            <!-- Global Model Selection -->
         <ion-card>
           <ion-card-header>
             <ion-card-title>AI Model Auswahl</ion-card-title>
@@ -403,9 +426,11 @@ import { ColorPickerComponent } from '../shared/components/color-picker.componen
             </div>
           </ion-card-content>
         </ion-card>
-
-        <!-- Appearance Settings -->
-        <ion-card>
+          </div>
+          
+          <!-- Appearance Tab -->
+          <div *ngSwitchCase="'appearance'">
+            <ion-card>
           <ion-card-header>
             <ion-card-title>Darstellung</ion-card-title>
           </ion-card-header>
@@ -422,9 +447,11 @@ import { ColorPickerComponent } from '../shared/components/color-picker.componen
             </div>
           </ion-card-content>
         </ion-card>
-
-        <!-- Scene Title Generation Settings -->
-        <ion-card>
+          </div>
+          
+          <!-- Scene Title Tab -->
+          <div *ngSwitchCase="'scene-title'">
+            <ion-card>
           <ion-card-header>
             <ion-card-title>Szenentitel-Generierung</ion-card-title>
           </ion-card-header>
@@ -579,6 +606,8 @@ import { ColorPickerComponent } from '../shared/components/color-picker.componen
             </ion-item>
           </ion-card-content>
         </ion-card>
+          </div>
+        </div>
 
         <!-- Actions -->
         <div class="settings-actions">
@@ -679,6 +708,57 @@ import { ColorPickerComponent } from '../shared/components/color-picker.componen
       --color: #e0e0e0;
     }
 
+    /* Tab Navigation Styles */
+    .settings-tabs {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: linear-gradient(135deg, rgba(45, 45, 45, 0.9) 0%, rgba(30, 30, 30, 0.9) 100%);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      border-bottom: 1px solid rgba(139, 180, 248, 0.2);
+      padding: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    
+    ion-segment {
+      --background: transparent;
+    }
+    
+    ion-segment-button {
+      --background: transparent;
+      --background-checked: linear-gradient(135deg, rgba(71, 118, 230, 0.2) 0%, rgba(139, 180, 248, 0.2) 100%);
+      --color: #8bb4f8;
+      --color-checked: #ffffff;
+      --indicator-color: linear-gradient(135deg, #4776e6 0%, #8bb4f8 100%);
+      --indicator-height: 3px;
+      --border-radius: 8px;
+      padding: 0.5rem;
+      min-height: 48px;
+      transition: all 0.3s ease;
+      border: 1px solid transparent;
+    }
+    
+    ion-segment-button:hover {
+      --background: rgba(139, 180, 248, 0.1);
+    }
+    
+    ion-segment-button.segment-button-checked {
+      border-color: rgba(139, 180, 248, 0.3);
+      background: linear-gradient(135deg, rgba(71, 118, 230, 0.2) 0%, rgba(139, 180, 248, 0.2) 100%);
+    }
+    
+    ion-segment-button ion-icon {
+      font-size: 1.3rem;
+      margin-bottom: 0.2rem;
+    }
+    
+    ion-segment-button ion-label {
+      font-size: 0.85rem;
+      font-weight: 500;
+      letter-spacing: 0.3px;
+    }
+
     /* Ensure ng-dropdown-panel appears above everything */
     :global(.ng-dropdown-panel-open) {
       overflow: visible !important;
@@ -689,6 +769,18 @@ import { ColorPickerComponent } from '../shared/components/color-picker.componen
       margin: 0 auto;
       padding: 1rem;
       padding-bottom: 4rem; /* Extra space for bottom buttons */
+      animation: fadeIn 0.3s ease-in-out;
+    }
+    
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     ion-card {
@@ -1272,6 +1364,24 @@ import { ColorPickerComponent } from '../shared/components/color-picker.componen
         align-items: flex-start;
         gap: 0.5rem;
       }
+      
+      .settings-tabs {
+        padding: 0.25rem;
+      }
+      
+      ion-segment-button {
+        padding: 0.25rem;
+        min-height: 40px;
+      }
+      
+      ion-segment-button ion-icon {
+        font-size: 1.1rem;
+        margin-bottom: 0;
+      }
+      
+      ion-segment-button ion-label {
+        font-size: 0.75rem;
+      }
     }
   `]
 })
@@ -1288,6 +1398,9 @@ export class SettingsComponent implements OnInit, OnDestroy {
   combinedModels: ModelOption[] = [];
   loadingModels = false;
   modelLoadError: string | null = null;
+  
+  // Tab control
+  selectedTab = 'models';
 
   constructor(
     private router: Router,
@@ -1296,7 +1409,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
   ) {
     this.settings = this.settingsService.getSettings();
     // Register Ionic icons
-    addIcons({ arrowBack, analytics, warning, checkmarkCircle, globeOutline, logoGoogle });
+    addIcons({ arrowBack, analytics, warning, checkmarkCircle, globeOutline, logoGoogle, colorPaletteOutline, documentTextOutline, cloudOutline });
   }
 
   ngOnInit(): void {
