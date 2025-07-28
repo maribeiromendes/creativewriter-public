@@ -68,11 +68,11 @@ import { HeaderNavigationService } from '../../shared/services/header-navigation
           <ion-icon name="add" slot="start"></ion-icon>
           Neue Geschichte schreiben
         </ion-button>
-        <ion-button expand="block" size="default" fill="outline" color="medium" (click)="importNovelCrafter()">
+        <ion-button expand="block" size="default" color="medium" (click)="importNovelCrafter()">
           <ion-icon name="download" slot="start"></ion-icon>
           NovelCrafter Import
         </ion-button>
-        <ion-button expand="block" size="default" fill="outline" color="secondary" (click)="goToImageGeneration()">
+        <ion-button expand="block" size="default" color="secondary" (click)="goToImageGeneration()">
           <ion-icon name="image" slot="start"></ion-icon>
           Bildgenerierung
         </ion-button>
