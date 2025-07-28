@@ -535,7 +535,7 @@ import { HeaderNavigationService } from '../../shared/services/header-navigation
       font-weight: 500;
       justify-content: flex-start;
       text-align: left;
-      border: 1px solid rgba(139, 180, 248, 0.2);
+      border: none;
       border-radius: 8px;
       transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
       position: relative;
@@ -557,7 +557,6 @@ import { HeaderNavigationService } from '../../shared/services/header-navigation
     
     .action-buttons ion-button:hover {
       --background: rgba(139, 180, 248, 0.15);
-      border-color: rgba(139, 180, 248, 0.4);
       transform: scale(1.02);
       box-shadow: 0 2px 8px rgba(139, 180, 248, 0.2);
     }
