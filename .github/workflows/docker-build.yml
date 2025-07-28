@@ -21,6 +21,34 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Generate version information
+      run: |
+        BUILD_NUMBER=${{ github.run_number }}
+        COMMIT_HASH=$(git rev-parse HEAD)
+        COMMIT_MESSAGE=$(git log -1 --pretty=format:'%s')
+        BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+        BRANCH=${GITHUB_REF#refs/heads/}
+        
+        # Get version from package.json
+        VERSION=$(node -p "require('./package.json').version")
+        
+        # Create version.json
+        cat > src/assets/version.json << EOF
+        {
+          "version": "$VERSION",
+          "buildNumber": "$BUILD_NUMBER",
+          "commitHash": "$COMMIT_HASH",
+          "commitMessage": "$COMMIT_MESSAGE",
+          "buildDate": "$BUILD_DATE",
+          "branch": "$BRANCH"
+        }
+        EOF
+        
+        echo "Generated version.json:"
+        cat src/assets/version.json
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
