@@ -28,7 +28,7 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
 import { AppHeaderComponent, HeaderAction, BurgerMenuItem } from '../../shared/components/app-header.component';
 import { HeaderNavigationService } from '../../shared/services/header-navigation.service';
 import { SettingsService } from '../../core/services/settings.service';
-import { WordCountService } from '../services/word-count.service';
+import { StoryStatsService } from '../services/story-stats.service';
 
 @Component({
   selector: 'app-story-editor',
@@ -1177,7 +1177,7 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     private promptManager: PromptManagerService,
     private headerNavService: HeaderNavigationService,
     private settingsService: SettingsService,
-    private wordCountService: WordCountService
+    private storyStatsService: StoryStatsService
   ) {
     addIcons({ 
       arrowBack, bookOutline, book, settingsOutline, statsChartOutline,
@@ -2043,7 +2043,7 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     const currentSceneContent = this.editorView ? this.proseMirrorService.getHTMLContent() : undefined;
     
     // Calculate total word count for the entire story using the service
-    this.wordCount = this.wordCountService.calculateTotalStoryWordCount(
+    this.wordCount = this.storyStatsService.calculateTotalStoryWordCount(
       this.story,
       currentSceneContent,
       this.activeChapterId || undefined,

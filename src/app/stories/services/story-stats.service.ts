@@ -4,7 +4,7 @@ import { Story, Scene } from '../models/story.interface';
 @Injectable({
   providedIn: 'root'
 })
-export class WordCountService {
+export class StoryStatsService {
 
   constructor() { }
 
