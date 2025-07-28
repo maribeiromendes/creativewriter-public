@@ -28,6 +28,7 @@ import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/comp
 import { AppHeaderComponent, HeaderAction, BurgerMenuItem } from '../../shared/components/app-header.component';
 import { HeaderNavigationService } from '../../shared/services/header-navigation.service';
 import { SettingsService } from '../../core/services/settings.service';
+import { WordCountService } from '../services/word-count.service';
 
 @Component({
   selector: 'app-story-editor',
@@ -1175,7 +1176,8 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     private cdr: ChangeDetectorRef,
     private promptManager: PromptManagerService,
     private headerNavService: HeaderNavigationService,
-    private settingsService: SettingsService
+    private settingsService: SettingsService,
+    private wordCountService: WordCountService
   ) {
     addIcons({ 
       arrowBack, bookOutline, book, settingsOutline, statsChartOutline,
@@ -1219,6 +1221,9 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
             this.activeScene = lastScene;
           }
         }
+        
+        // Calculate initial word count for the entire story
+        this.updateWordCount();
         
         // Trigger change detection to ensure template is updated
         this.cdr.detectChanges();
@@ -2034,12 +2039,16 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private updateWordCount(): void {
-    if (!this.editorView) {
-      this.wordCount = 0;
-      return;
-    }
-    const textContent = this.proseMirrorService.getTextContent();
-    this.wordCount = textContent.trim().split(/\s+/).filter(word => word.length > 0).length;
+    // Get current scene content from editor if available
+    const currentSceneContent = this.editorView ? this.proseMirrorService.getHTMLContent() : undefined;
+    
+    // Calculate total word count for the entire story using the service
+    this.wordCount = this.wordCountService.calculateTotalStoryWordCount(
+      this.story,
+      currentSceneContent,
+      this.activeChapterId || undefined,
+      this.activeSceneId || undefined
+    );
     
     // Update header actions to reflect the new word count
     this.updateHeaderActions();
