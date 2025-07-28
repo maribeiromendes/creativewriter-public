@@ -8,6 +8,7 @@ import { keymap } from 'prosemirror-keymap';
 import { baseKeymap, splitBlock, chainCommands, newlineInCode, createParagraphNear, liftEmptyBlock } from 'prosemirror-commands';
 import { history, undo, redo } from 'prosemirror-history';
 import { Subject } from 'rxjs';
+import { convertLineBreaksToParagraphs } from '../utils/text-formatting.utils';
 import { BeatAINodeView } from './beat-ai-nodeview';
 import { BeatAI, BeatAIPromptEvent, BeatContentInsertEvent } from '../../stories/models/beat-ai.interface';
 import { BeatAIService } from './beat-ai.service';
@@ -423,24 +424,8 @@ export class ProseMirrorEditorService {
     try {
       const div = document.createElement('div');
       
-      // Check if content looks like plain text (no HTML tags)
-      if (content && !content.includes('<') && !content.includes('>')) {
-        // Convert plain text to HTML paragraphs
-        const paragraphs = content
-          .split(/\n+/) // Split on any newline (single or multiple)
-          .map(para => {
-            // Don't filter out empty paragraphs - they represent intentional empty lines
-            if (para.trim() === '') {
-              return '<p></p>'; // Empty paragraph for empty lines
-            }
-            return `<p>${para}</p>`; // Each line becomes a separate paragraph
-          })
-          .join('');
-        
-        div.innerHTML = paragraphs || '<p></p>';
-      } else {
-        div.innerHTML = content || '<p></p>';
-      }
+      // Convert line breaks to paragraphs using utility function
+      div.innerHTML = convertLineBreaksToParagraphs(content);
       
       const doc = DOMParser.fromSchema(this.editorSchema).parse(div);
       const state = EditorState.create({
