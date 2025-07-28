@@ -87,6 +87,7 @@ export interface BurgerMenuItem {
               <ion-chip 
                 [color]="action.chipColor || 'medium'"
                 [class.desktop-only]="!action.showOnMobile"
+                [class.mobile-only]="!action.showOnDesktop"
                 (click)="action.action()"
                 class="clickable-chip">
                 <ion-icon [name]="action.icon" *ngIf="action.icon"></ion-icon>
@@ -98,6 +99,7 @@ export interface BurgerMenuItem {
               *ngIf="action.chipContent && !action.showVersionTooltip"
               [color]="action.chipColor || 'medium'"
               [class.desktop-only]="!action.showOnMobile"
+              [class.mobile-only]="!action.showOnDesktop"
               (click)="action.action()"
               class="clickable-chip">
               <ion-icon [name]="action.icon" *ngIf="action.icon"></ion-icon>
