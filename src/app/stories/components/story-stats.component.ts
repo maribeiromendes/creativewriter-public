@@ -8,7 +8,7 @@ import {
 import { addIcons } from 'ionicons';
 import { 
   close, statsChartOutline, bookOutline, documentTextOutline, 
-  timeOutline, trendingUpOutline, trendingDownOutline, layersOutline, serverOutline
+  timeOutline, trendingUpOutline, trendingDownOutline, layersOutline, serverOutline, analyticsOutline
 } from 'ionicons/icons';
 import { Story } from '../models/story.interface';
 import { StoryStatsService } from '../services/story-stats.service';
@@ -31,6 +31,11 @@ export interface StoryStatistics {
   storageUsage: {
     storySize: number;
     storySizeFormatted: string;
+    storyTextSize: number;
+    storyTextSizeFormatted: string;
+    storyImageSize: number;
+    storyImageSizeFormatted: string;
+    storyImageCount: number;
     totalLocalStorage: number;
     totalLocalStorageFormatted: string;
     percentageUsed: number;
@@ -219,7 +224,7 @@ export interface StoryStatistics {
                   <ion-col size="6">
                     <div class="stat-item">
                       <div class="stat-value">{{ statistics.storageUsage.storySizeFormatted }}</div>
-                      <div class="stat-label">Diese Story</div>
+                      <div class="stat-label">Diese Story (Total)</div>
                     </div>
                   </ion-col>
                   <ion-col size="6">
@@ -230,13 +235,45 @@ export interface StoryStatistics {
                   </ion-col>
                 </ion-row>
                 <ion-row>
+                  <ion-col size="4">
+                    <div class="stat-item">
+                      <div class="stat-value">{{ statistics.storageUsage.storyTextSizeFormatted }}</div>
+                      <div class="stat-label">Text-Inhalt</div>
+                    </div>
+                  </ion-col>
+                  <ion-col size="4">
+                    <div class="stat-item">
+                      <div class="stat-value">{{ statistics.storageUsage.storyImageSizeFormatted }}</div>
+                      <div class="stat-label">Bilder</div>
+                    </div>
+                  </ion-col>
+                  <ion-col size="4">
+                    <div class="stat-item">
+                      <div class="stat-value">{{ statistics.storageUsage.storyImageCount }}</div>
+                      <div class="stat-label">Bilder-Anzahl</div>
+                    </div>
+                  </ion-col>
+                </ion-row>
+                <ion-row>
                   <ion-col size="12">
                     <div class="storage-progress">
                       <div class="storage-bar">
                         <div class="storage-fill" [style.width.%]="statistics.storageUsage.percentageUsed"></div>
                       </div>
-                      <div class="storage-percentage">{{ statistics.storageUsage.percentageUsed }}% belegt</div>
+                      <div class="storage-percentage">{{ statistics.storageUsage.percentageUsed }}% des localStorage belegt</div>
                     </div>
+                  </ion-col>
+                </ion-row>
+                <ion-row *ngIf="showDetailedBreakdown">
+                  <ion-col size="12">
+                    <ion-button 
+                      fill="outline" 
+                      size="small" 
+                      (click)="toggleDetailedBreakdown()"
+                      class="breakdown-toggle">
+                      <ion-icon name="analytics-outline" slot="start"></ion-icon>
+                      Detaillierte Speicher-Analyse
+                    </ion-button>
                   </ion-col>
                 </ion-row>
               </ion-grid>
@@ -665,11 +702,12 @@ export class StoryStatsComponent implements OnInit, OnDestroy, OnChanges {
   @Output() closed = new EventEmitter<void>();
 
   statistics: StoryStatistics | null = null;
+  showDetailedBreakdown = true; // Show detailed breakdown button
 
   constructor(private storyStatsService: StoryStatsService) {
     addIcons({ 
       close, statsChartOutline, bookOutline, documentTextOutline, 
-      timeOutline, trendingUpOutline, trendingDownOutline, layersOutline, serverOutline
+      timeOutline, trendingUpOutline, trendingDownOutline, layersOutline, serverOutline, analyticsOutline
     });
   }
 
@@ -768,5 +806,28 @@ export class StoryStatsComponent implements OnInit, OnDestroy, OnChanges {
     // Epic: 200,000+ words
     const progress = Math.min(100, (this.statistics.totalWords / 200000) * 100);
     return Math.round(progress) + '%';
+  }
+
+  toggleDetailedBreakdown(): void {
+    // This could open a separate detailed breakdown modal
+    // For now, just show an alert with detailed info
+    const breakdown = this.storyStatsService.getDetailedStorageBreakdown();
+    
+    let message = `Detaillierte Speicher-Analyse:\n\n`;
+    message += `Gesamtspeicher: ${breakdown.totalSizeFormatted}\n\n`;
+    
+    message += `localStorage Einträge:\n`;
+    breakdown.items.forEach(item => {
+      message += `• ${item.description}: ${item.sizeFormatted}\n`;
+    });
+    
+    if (breakdown.storiesBreakdown.length > 0) {
+      message += `\nStories Einzeln:\n`;
+      breakdown.storiesBreakdown.forEach(story => {
+        message += `• ${story.title}: ${story.sizeFormatted} (${story.textSizeFormatted} Text + ${story.imageSizeFormatted} Bilder [${story.imageCount}x])\n`;
+      });
+    }
+    
+    alert(message);
   }
 }

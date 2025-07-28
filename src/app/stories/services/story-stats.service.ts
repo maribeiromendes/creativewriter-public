@@ -124,16 +124,132 @@ export class StoryStatsService {
   }
 
   /**
-   * Calculate storage usage for a story in bytes
+   * Calculate storage usage for a story in bytes including images
    * @param story The story to calculate storage usage for
-   * @returns Storage usage in bytes
+   * @returns Object with detailed storage breakdown
    */
-  calculateStorageUsage(story: Story): number {
-    if (!story) return 0;
+  calculateStorageUsage(story: Story): {
+    total: number;
+    textContent: number;
+    images: number;
+    imageCount: number;
+    breakdown: {
+      storyData: number;
+      imageData: number;
+    };
+  } {
+    if (!story) return {
+      total: 0,
+      textContent: 0,
+      images: 0, 
+      imageCount: 0,
+      breakdown: { storyData: 0, imageData: 0 }
+    };
     
-    // Convert story object to JSON string and calculate byte size
-    const storyJson = JSON.stringify(story);
-    return new Blob([storyJson]).size;
+    // Calculate text content size (story without base64 images)
+    const storyWithoutImages = this.removeImagesFromStoryContent(story);
+    const textContentSize = new Blob([JSON.stringify(storyWithoutImages)]).size;
+    
+    // Calculate image sizes
+    let totalImageSize = 0;
+    let imageCount = 0;
+    
+    const imageData = this.extractImageDataFromStory(story);
+    imageData.forEach(img => {
+      totalImageSize += img.size;
+      imageCount++;
+    });
+    
+    const totalSize = new Blob([JSON.stringify(story)]).size;
+    
+    return {
+      total: totalSize,
+      textContent: textContentSize,
+      images: totalImageSize,
+      imageCount,
+      breakdown: {
+        storyData: textContentSize,
+        imageData: totalImageSize
+      }
+    };
+  }
+
+  /**
+   * Extract image data from story content
+   * @param story The story to analyze
+   * @returns Array of image data with sizes
+   */
+  private extractImageDataFromStory(story: Story): Array<{
+    src: string;
+    size: number;
+    sizeFormatted: string;
+    type: string;
+  }> {
+    const images: Array<{
+      src: string;
+      size: number;
+      sizeFormatted: string;
+      type: string;
+    }> = [];
+    
+    if (!story.chapters) return images;
+    
+    // Search through all scenes for base64 images
+    story.chapters.forEach(chapter => {
+      if (!chapter.scenes) return;
+      
+      chapter.scenes.forEach(scene => {
+        if (!scene.content) return;
+        
+        // Find base64 images in HTML content
+        const base64Regex = /<img[^>]*src="data:image\/([^;]+);base64,([^"]+)"/gi;
+        let match;
+        
+        while ((match = base64Regex.exec(scene.content)) !== null) {
+          const imageType = match[1]; // png, jpeg, etc.
+          const base64Data = match[2];
+          
+          // Calculate size of base64 data (each base64 char is ~0.75 bytes)
+          const imageSize = Math.round(base64Data.length * 0.75);
+          
+          images.push({
+            src: `data:image/${imageType};base64,${base64Data.substring(0, 50)}...`,
+            size: imageSize,
+            sizeFormatted: this.formatBytes(imageSize),
+            type: imageType.toUpperCase()
+          });
+        }
+      });
+    });
+    
+    return images;
+  }
+
+  /**
+   * Remove image data from story content for text-only size calculation
+   * @param story The story to process
+   * @returns Story object without base64 image data
+   */
+  private removeImagesFromStoryContent(story: Story): Story {
+    const storyClone = JSON.parse(JSON.stringify(story));
+    
+    if (!storyClone.chapters) return storyClone;
+    
+    storyClone.chapters.forEach((chapter: any) => {
+      if (!chapter.scenes) return;
+      
+      chapter.scenes.forEach((scene: any) => {
+        if (!scene.content) return;
+        
+        // Replace base64 images with placeholder
+        scene.content = scene.content.replace(
+          /<img[^>]*src="data:image\/[^;]+;base64,[^"]+"/gi,
+          '<img src="[IMAGE_PLACEHOLDER]"'
+        );
+      });
+    });
+    
+    return storyClone;
   }
 
   /**
@@ -151,6 +267,135 @@ export class StoryStatsService {
     
     // Convert to bytes (each character is roughly 2 bytes in UTF-16)
     return totalSize * 2;
+  }
+
+  /**
+   * Get detailed breakdown of localStorage usage
+   * @returns Object with detailed storage breakdown
+   */
+  getDetailedStorageBreakdown(): {
+    totalSize: number;
+    totalSizeFormatted: string;
+    items: Array<{
+      key: string;
+      size: number;
+      sizeFormatted: string;
+      type: 'story' | 'settings' | 'other';
+      description: string;
+    }>;
+    storiesBreakdown: Array<{
+      id: string;
+      title: string;
+      size: number;
+      sizeFormatted: string;
+      wordCount: number;
+      textSize: number;
+      textSizeFormatted: string;
+      imageSize: number;
+      imageSizeFormatted: string;
+      imageCount: number;
+    }>;
+  } {
+    const items: Array<{
+      key: string;
+      size: number;
+      sizeFormatted: string;
+      type: 'story' | 'settings' | 'other';
+      description: string;
+    }> = [];
+
+    const storiesBreakdown: Array<{
+      id: string;
+      title: string;
+      size: number;
+      sizeFormatted: string;
+      wordCount: number;
+      textSize: number;
+      textSizeFormatted: string;
+      imageSize: number;
+      imageSizeFormatted: string;
+      imageCount: number;
+    }> = [];
+
+    let totalSize = 0;
+
+    // Analyze each localStorage item
+    for (let key in localStorage) {
+      if (localStorage.hasOwnProperty(key)) {
+        const value = localStorage[key];
+        const itemSize = (key.length + value.length) * 2; // UTF-16 bytes
+        totalSize += itemSize;
+
+        let type: 'story' | 'settings' | 'other' = 'other';
+        let description = 'Unbekannte Daten';
+
+        // Categorize the item
+        if (key === 'creative-writer-stories') {
+          type = 'story';
+          description = 'Alle Stories';
+          
+          // Parse stories and get individual breakdown
+          try {
+            const stories = JSON.parse(value);
+            if (Array.isArray(stories)) {
+              stories.forEach(story => {
+                const storageInfo = this.calculateStorageUsage(story);
+                const storyWordCount = this.calculateTotalStoryWordCount(story);
+                
+                storiesBreakdown.push({
+                  id: story.id,
+                  title: story.title || 'Unbenannte Story',
+                  size: storageInfo.total,
+                  sizeFormatted: this.formatBytes(storageInfo.total),
+                  wordCount: storyWordCount,
+                  textSize: storageInfo.textContent,
+                  textSizeFormatted: this.formatBytes(storageInfo.textContent),
+                  imageSize: storageInfo.images,
+                  imageSizeFormatted: this.formatBytes(storageInfo.images),
+                  imageCount: storageInfo.imageCount
+                });
+              });
+            }
+          } catch (e) {
+            console.warn('Could not parse stories for breakdown:', e);
+          }
+        } else if (key.includes('settings') || key.includes('config')) {
+          type = 'settings';
+          description = 'App-Einstellungen';
+        } else if (key.includes('theme') || key.includes('color')) {
+          type = 'settings';
+          description = 'Design-Einstellungen';
+        } else if (key.includes('user') || key.includes('auth')) {
+          type = 'settings';
+          description = 'Benutzer-Daten';
+        } else if (key.includes('cache')) {
+          type = 'other';
+          description = 'Cache-Daten';
+        } else if (key.startsWith('ion-')) {
+          type = 'other';
+          description = 'Ionic Framework Daten';
+        }
+
+        items.push({
+          key,
+          size: itemSize,
+          sizeFormatted: this.formatBytes(itemSize),
+          type,
+          description
+        });
+      }
+    }
+
+    // Sort items by size (largest first)
+    items.sort((a, b) => b.size - a.size);
+    storiesBreakdown.sort((a, b) => b.size - a.size);
+
+    return {
+      totalSize,
+      totalSizeFormatted: this.formatBytes(totalSize),
+      items,
+      storiesBreakdown
+    };
   }
 
   /**
@@ -182,13 +427,18 @@ export class StoryStatsService {
     storageUsage: {
       storySize: number;
       storySizeFormatted: string;
+      storyTextSize: number;
+      storyTextSizeFormatted: string;
+      storyImageSize: number;
+      storyImageSizeFormatted: string;
+      storyImageCount: number;
       totalLocalStorage: number;
       totalLocalStorageFormatted: string;
       percentageUsed: number;
     };
   } {
     // Calculate storage usage
-    const storySize = this.calculateStorageUsage(story);
+    const storageInfo = this.calculateStorageUsage(story);
     const totalLocalStorage = this.getTotalLocalStorageUsage();
     const localStorageLimit = 5 * 1024 * 1024; // 5MB typical limit for localStorage
     
@@ -198,8 +448,13 @@ export class StoryStatsService {
       totalScenes: 0,
       totalChapters: 0,
       storageUsage: {
-        storySize,
-        storySizeFormatted: this.formatBytes(storySize),
+        storySize: storageInfo.total,
+        storySizeFormatted: this.formatBytes(storageInfo.total),
+        storyTextSize: storageInfo.textContent,
+        storyTextSizeFormatted: this.formatBytes(storageInfo.textContent),
+        storyImageSize: storageInfo.images,
+        storyImageSizeFormatted: this.formatBytes(storageInfo.images),
+        storyImageCount: storageInfo.imageCount,
         totalLocalStorage,
         totalLocalStorageFormatted: this.formatBytes(totalLocalStorage),
         percentageUsed: Math.round((totalLocalStorage / localStorageLimit) * 100)
