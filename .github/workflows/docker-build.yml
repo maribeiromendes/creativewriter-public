@@ -24,7 +24,7 @@ jobs:
       with:
         fetch-depth: 0
 
-    - name: Generate version information
+    - name: Auto-increment patch version and generate version info
       run: |
         BUILD_NUMBER=${{ github.run_number }}
         COMMIT_HASH=$(git rev-parse HEAD)
@@ -32,13 +32,26 @@ jobs:
         BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
         BRANCH=${GITHUB_REF#refs/heads/}
         
-        # Get version from package.json
-        VERSION=$(node -p "require('./package.json').version")
+        # Auto-increment patch version based on build number
+        CURRENT_VERSION=$(node -p "require('./package.json').version")
+        
+        # Extract major.minor from current version, use build number as patch
+        MAJOR_MINOR=$(echo $CURRENT_VERSION | cut -d. -f1-2)
+        NEW_VERSION="${MAJOR_MINOR}.$BUILD_NUMBER"
+        
+        # Update package.json with new version
+        node -e "
+          const pkg = require('./package.json');
+          pkg.version = '$NEW_VERSION';
+          require('fs').writeFileSync('./package.json', JSON.stringify(pkg, null, 2) + '\n');
+        "
+        
+        echo "Version updated from $CURRENT_VERSION to $NEW_VERSION"
         
         # Create version.json
         cat > src/assets/version.json << EOF
         {
-          "version": "$VERSION",
+          "version": "$NEW_VERSION",
           "buildNumber": "$BUILD_NUMBER",
           "commitHash": "$COMMIT_HASH",
           "commitMessage": "$COMMIT_MESSAGE",
