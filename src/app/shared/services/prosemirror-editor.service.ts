@@ -428,7 +428,6 @@ export class ProseMirrorEditorService {
         // Plain text - convert to paragraphs
         const paragraphs = content
           .split(/\n\n+/) // Split on double newlines
-          .map(para => para.trim())
           .filter(para => para.length > 0)
           .map(para => `<p>${para}</p>`)
           .join('');
@@ -1123,7 +1122,7 @@ export class ProseMirrorEditorService {
         const nodes = [];
         
         for (let i = 0; i < paragraphs.length; i++) {
-          const paragraphText = paragraphs[i].trim();
+          const paragraphText = paragraphs[i];
           if (paragraphText || i === 0) { // Always create first paragraph, even if empty
             // Convert single line breaks within paragraph to hard breaks
             const textParts = paragraphText.split(/\n|\r\n/);
@@ -1218,7 +1217,7 @@ export class ProseMirrorEditorService {
         
         // Remaining parts create new paragraphs
         for (let i = 1; i < parts.length; i++) {
-          const paragraphText = parts[i].trim();
+          const paragraphText = parts[i];
           if (paragraphText) {
             const textParts = paragraphText.split(/\n|\r\n/);
             const paragraphContent = [];
