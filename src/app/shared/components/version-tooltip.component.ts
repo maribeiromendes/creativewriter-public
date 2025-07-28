@@ -10,8 +10,8 @@ import { VersionService, VersionInfo } from '../../core/services/version.service
   template: `
     <div #triggerElement 
          id="version-tooltip-trigger"
-         (mouseenter)="onTriggerEnter()" 
-         (mouseleave)="onTriggerLeave()">
+         (click)="togglePopover()"
+         style="cursor: pointer;">
       <ng-content></ng-content>
     </div>
     
@@ -21,16 +21,13 @@ import { VersionService, VersionInfo } from '../../core/services/version.service
       side="bottom"
       alignment="center" 
       reference="trigger"
-      [showBackdrop]="false"
+      [showBackdrop]="true"
       size="auto"
       class="version-popover"
-      (ionPopoverDidPresent)="onPopoverPresent()"
       (ionPopoverWillDismiss)="onPopoverDismiss()">
       
       <ng-template>
-        <ion-content class="version-tooltip-content"
-                     (mouseenter)="onPopoverEnter()"
-                     (mouseleave)="onPopoverLeave()">
+        <ion-content class="version-tooltip-content">
           <div class="tooltip-content" *ngIf="versionInfo">
             <div class="tooltip-header">
               <strong>Version Info</strong>
@@ -191,13 +188,9 @@ import { VersionService, VersionInfo } from '../../core/services/version.service
 })
 export class VersionTooltipComponent implements OnInit {
   @ViewChild('popover') popover!: IonPopover;
-  @ViewChild('triggerElement') triggerElement!: ElementRef;
   
   versionInfo: VersionInfo | null = null;
-  private showTimeout: any;
-  private hideTimeout: any;
-  private isHovering = false;
-  private isPopoverOpen = false;
+  private isOpen = false;
 
   constructor(private versionService: VersionService) {}
 
@@ -207,65 +200,19 @@ export class VersionTooltipComponent implements OnInit {
     });
   }
 
-  onTriggerEnter() {
-    this.isHovering = true;
-    this.clearTimeouts();
+  togglePopover() {
+    if (!this.versionInfo || !this.popover) return;
     
-    if (!this.isPopoverOpen && this.versionInfo) {
-      this.showTimeout = setTimeout(() => {
-        if (this.isHovering && this.popover) {
-          this.popover.present();
-        }
-      }, 300); // Longer delay to prevent accidental opening
+    if (this.isOpen) {
+      this.popover.dismiss();
+    } else {
+      this.popover.present();
     }
-  }
-
-  onTriggerLeave() {
-    this.isHovering = false;
-    this.clearTimeouts();
-    
-    // Delay closing to allow moving to popover
-    this.hideTimeout = setTimeout(() => {
-      if (!this.isHovering && this.isPopoverOpen && this.popover) {
-        this.popover.dismiss();
-      }
-    }, 500);
-  }
-
-  onPopoverEnter() {
-    // User moved mouse into popover area
-    this.clearTimeouts();
-  }
-
-  onPopoverLeave() {
-    // User left popover area
-    this.clearTimeouts();
-    
-    this.hideTimeout = setTimeout(() => {
-      if (this.popover && this.isPopoverOpen) {
-        this.popover.dismiss();
-      }
-    }, 300);
-  }
-
-  onPopoverPresent() {
-    this.isPopoverOpen = true;
+    this.isOpen = !this.isOpen;
   }
 
   onPopoverDismiss() {
-    this.isPopoverOpen = false;
-    this.clearTimeouts();
-  }
-
-  private clearTimeouts() {
-    if (this.showTimeout) {
-      clearTimeout(this.showTimeout);
-      this.showTimeout = null;
-    }
-    if (this.hideTimeout) {
-      clearTimeout(this.hideTimeout);
-      this.hideTimeout = null;
-    }
+    this.isOpen = false;
   }
 
   formatBuildDate(dateString: string): string {
