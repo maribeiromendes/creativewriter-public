@@ -797,6 +797,7 @@ import { SettingsService } from '../../core/services/settings.service';
     .content-editor :global(.prosemirror-editor p) {
       margin: 0 0 1.5rem 0;
       text-indent: 2rem;
+      color: var(--editor-text-color, #e0e0e0) !important;
     }
     
     .content-editor :global(.prosemirror-editor p:last-child) {
@@ -2282,6 +2283,13 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private applyTextColorToAllElements(): void {
+    // Set CSS variable on content-editor element
+    const contentEditor = document.querySelector('.content-editor');
+    if (contentEditor) {
+      (contentEditor as HTMLElement).style.setProperty('--editor-text-color', this.currentTextColor);
+      console.log('Applied --editor-text-color to content-editor:', this.currentTextColor);
+    }
+    
     // Target the actual ProseMirror element created by the service
     const prosemirrorElement = document.querySelector('.ProseMirror.prosemirror-editor');
     if (prosemirrorElement) {
@@ -2289,12 +2297,6 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
       (prosemirrorElement as HTMLElement).style.color = this.currentTextColor;
       console.log('Applied text color to ProseMirror element:', this.currentTextColor);
     }
-    
-    // Also target all child elements to ensure inheritance
-    const allProseMirrorElements = document.querySelectorAll('.ProseMirror.prosemirror-editor, .ProseMirror.prosemirror-editor *');
-    allProseMirrorElements.forEach(element => {
-      (element as HTMLElement).style.color = this.currentTextColor;
-    });
     
     // Apply to all Beat AI components
     this.applyTextColorToBeatAIElements();
@@ -2305,10 +2307,16 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
   private applyTextColorToBeatAIElements(): void {
     // Apply to all Beat AI containers - only set CSS custom property, let CSS handle the rest
     const beatAIContainers = document.querySelectorAll('.beat-ai-container');
-    beatAIContainers.forEach(container => {
+    console.log('Found', beatAIContainers.length, 'Beat AI containers to update with color:', this.currentTextColor);
+    beatAIContainers.forEach((container, index) => {
       // Set CSS custom property
       (container as HTMLElement).style.setProperty('--beat-ai-text-color', this.currentTextColor);
-      console.log('Applied --beat-ai-text-color to container:', this.currentTextColor);
+      console.log(`Applied --beat-ai-text-color to container ${index}:`, this.currentTextColor);
+      
+      // Debug: Check if the variable is actually set
+      const computedStyle = window.getComputedStyle(container as HTMLElement);
+      const appliedColor = computedStyle.getPropertyValue('--beat-ai-text-color');
+      console.log(`Container ${index} computed --beat-ai-text-color:`, appliedColor);
     });
   }
 
@@ -2346,10 +2354,11 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
       
       if (shouldApplyStyles) {
         // Apply styles to newly added Beat AI elements
+        // Use longer delay to ensure Angular components are fully initialized
         setTimeout(() => {
           this.applyTextColorToBeatAIElements();
           console.log('Applied text color to newly added Beat AI elements:', this.currentTextColor);
-        }, 50);
+        }, 200);
       }
     });
 
