@@ -11,7 +11,7 @@ import {
   cloudUploadOutline, imageOutline, closeCircleOutline, 
   checkmarkCircleOutline, trashOutline 
 } from 'ionicons/icons';
-import { CustomBackgroundStorageService, CustomBackground } from '../services/custom-background-storage.service';
+import { SyncedCustomBackgroundService, CustomBackground } from '../services/synced-custom-background.service';
 
 @Component({
   selector: 'app-background-upload',
@@ -98,10 +98,15 @@ import { CustomBackgroundStorageService, CustomBackground } from '../services/cu
                   expand="block" 
                   color="primary"
                   (click)="uploadFile()"
-                  [disabled]="isUploading()">
+                  [disabled]="isUploading() || !isUserLoggedIn()">
                   <ion-icon name="cloud-upload-outline" slot="start"></ion-icon>
-                  Hochladen
+                  <span *ngIf="isUserLoggedIn()">Hochladen & Synchronisieren</span>
+                  <span *ngIf="!isUserLoggedIn()">Anmeldung erforderlich</span>
                 </ion-button>
+                
+                <ion-text color="warning" *ngIf="!isUserLoggedIn()">
+                  <p><small>Sie müssen angemeldet sein, um eigene Hintergründe zu verwenden.</small></p>
+                </ion-text>
               </div>
             </div>
           </div>
@@ -125,9 +130,13 @@ import { CustomBackgroundStorageService, CustomBackground } from '../services/cu
       <ion-card class="storage-info">
         <ion-card-content>
           <div class="storage-stats">
-            <ion-text color="medium">
+            <ion-text color="medium" *ngIf="isUserLoggedIn()">
               <p>Speicher: {{ formatFileSize(getTotalStorage()) }} belegt</p>
-              <p>{{ getBackgroundCount() }} eigene Hintergründe</p>
+              <p>{{ getUserBackgroundCount() }} eigene Hintergründe</p>
+              <p>Synchronisiert als: {{ getCurrentUser()?.displayName }}</p>
+            </ion-text>
+            <ion-text color="medium" *ngIf="!isUserLoggedIn()">
+              <p>Melden Sie sich an für geräteübergreifende Synchronisation</p>
             </ion-text>
           </div>
           
@@ -298,7 +307,7 @@ import { CustomBackgroundStorageService, CustomBackground } from '../services/cu
   `]
 })
 export class BackgroundUploadComponent {
-  private customBackgroundService = inject(CustomBackgroundStorageService);
+  private customBackgroundService = inject(SyncedCustomBackgroundService);
 
   @Output() backgroundUploaded = new EventEmitter<CustomBackground>();
 
@@ -443,6 +452,18 @@ export class BackgroundUploadComponent {
 
   getBackgroundCount(): number {
     return this.customBackgroundService.backgrounds().length;
+  }
+
+  getUserBackgroundCount(): number {
+    return this.customBackgroundService.getStorageInfo().userBackgrounds;
+  }
+
+  isUserLoggedIn(): boolean {
+    return this.customBackgroundService.isUserLoggedIn();
+  }
+
+  getCurrentUser() {
+    return this.customBackgroundService.getCurrentUser();
   }
 
   formatFileSize(bytes: number): string {

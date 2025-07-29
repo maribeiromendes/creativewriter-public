@@ -22,7 +22,7 @@ import { SettingsContentComponent } from '../shared/components/settings-content.
 import { BackgroundSelectorComponent } from '../shared/components/background-selector.component';
 import { BackgroundUploadComponent } from '../shared/components/background-upload.component';
 import { BackgroundService } from '../shared/services/background.service';
-import { CustomBackground } from '../shared/services/custom-background-storage.service';
+import { CustomBackground } from '../shared/services/synced-custom-background.service';
 
 @Component({
   selector: 'app-settings',
@@ -1655,7 +1655,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
   onBackgroundUploaded(customBackground: CustomBackground): void {
     // Automatically select the newly uploaded background
-    const customId = `custom:${customBackground.id}`;
+    const customId = `custom:${customBackground._id}`;
     this.onBackgroundImageChange(customId);
     
     console.log('Custom background uploaded and selected:', customBackground);

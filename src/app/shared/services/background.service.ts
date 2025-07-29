@@ -1,13 +1,13 @@
 import { Injectable, signal, computed, effect, inject } from '@angular/core';
 import { SettingsService } from '../../core/services/settings.service';
-import { CustomBackgroundStorageService } from './custom-background-storage.service';
+import { SyncedCustomBackgroundService } from './synced-custom-background.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class BackgroundService {
   private settingsService = inject(SettingsService);
-  private customBackgroundService = inject(CustomBackgroundStorageService);
+  private customBackgroundService = inject(SyncedCustomBackgroundService);
 
   // Signal for the current background image
   private backgroundImage = signal<string>('none');

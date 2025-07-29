@@ -5,7 +5,7 @@ import { IonIcon, IonGrid, IonRow, IonCol, IonText, IonCard, IonCardContent, Ion
 import { checkmarkCircle, trashOutline } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
 import { SettingsService } from '../../core/services/settings.service';
-import { CustomBackgroundStorageService, CustomBackgroundOption } from '../services/custom-background-storage.service';
+import { SyncedCustomBackgroundService, CustomBackgroundOption } from '../services/synced-custom-background.service';
 
 interface BackgroundOption {
   filename: string;
@@ -356,7 +356,7 @@ interface BackgroundOption {
 })
 export class BackgroundSelectorComponent implements OnInit, OnChanges {
   private settingsService = inject(SettingsService);
-  private customBackgroundService = inject(CustomBackgroundStorageService);
+  private customBackgroundService = inject(SyncedCustomBackgroundService);
 
   // Input/Output for parent component integration
   @Input() selectedBackgroundImage: string = 'none';
