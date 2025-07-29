@@ -266,8 +266,6 @@ export interface BurgerMenuItem {
       background: 
         /* Enhanced dark overlay with gradient for depth */
         linear-gradient(135deg, rgba(15, 15, 25, 0.98) 0%, rgba(10, 10, 20, 0.98) 50%, rgba(20, 20, 35, 0.98) 100%),
-        /* Main anime image */
-        url('/assets/cyberpunk-anime-girl.png'),
         /* Fallback dark background */
         #1a1a2e;
       background-size: cover, cover, auto;

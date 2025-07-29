@@ -226,19 +226,7 @@ import { SettingsContentComponent } from '../../shared/components/settings-conte
       height: 100%;
       position: relative;
       min-height: 100vh;
-      
-      background: 
-        /* Dark overlay for text readability */
-        linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
-        /* Main anime image */
-        url('/assets/cyberpunk-anime-girl.png'),
-        /* Fallback dark background */
-        #1a1a1a;
-      
-      background-size: cover, cover, auto;
-      background-position: center, center, center;
-      background-repeat: no-repeat, no-repeat, repeat;
-      background-attachment: fixed, fixed, scroll;
+      background: transparent;
     }
     
     .ion-page {
