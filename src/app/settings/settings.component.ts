@@ -248,8 +248,6 @@ import { ColorPickerComponent } from '../shared/components/color-picker.componen
                            [disabled]="!settings.replicate.enabled"
                            placeholder="Modell auswählen oder suchen..."
                            (ngModelChange)="onSettingsChange()"
-                           (open)="onDropdownOpen('replicate')"
-                           (close)="onDropdownClose('replicate')"
                            [loading]="loadingModels"
                            [virtualScroll]="true"
                            class="ng-select-custom">
@@ -1618,15 +1616,6 @@ export class SettingsComponent implements OnInit, OnDestroy {
     } else {
       this.router.navigate(['/logs']);
     }
-  }
-  
-  onDropdownOpen(provider: string): void {
-    console.log(`${provider} dropdown opened`);
-    console.log(`${provider} models available:`, provider === 'openRouter' ? this.openRouterModels.length : this.replicateModels.length);
-  }
-  
-  onDropdownClose(provider: string): void {
-    console.log(`${provider} dropdown closed`);
   }
 
   loadCombinedModels(): void {
