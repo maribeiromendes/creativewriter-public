@@ -800,9 +800,7 @@ export class ProseMirrorEditorService {
     // Refresh prompt manager to update scene context
     // This ensures that the next beat prompt will use the correct context
     setTimeout(() => {
-      this.promptManager.refresh().then(() => {
-        console.log('Prompt manager refreshed after content deletion');
-      }).catch(error => {
+      this.promptManager.refresh().catch(error => {
         console.error('Error refreshing prompt manager:', error);
       });
     }, 500); // Small delay to ensure content is saved first
@@ -829,7 +827,6 @@ export class ProseMirrorEditorService {
       const isInBeatNode = nodeAtPos.type.name === 'beatAI';
       
       if (!isInBeatNode) {
-        console.log('Triggering slash command at position:', from);
         this.slashCommand$.next(from);
         onSlashCommand?.(from);
       }
@@ -1055,7 +1052,6 @@ export class ProseMirrorEditorService {
       // Find the range that contains the previously generated content
       let endPos = insertPos;
       let pos = insertPos;
-      let contentLength = 0;
       
       // Calculate approximately how much content to replace based on current generated content
       const currentParagraphs = currentContent.split('\n\n').filter((p: string) => p.length > 0);
@@ -1101,15 +1097,6 @@ export class ProseMirrorEditorService {
   private appendContentAfterBeatNode(beatId: string, newContent: string, isFirstChunk: boolean = false): void {
     if (!this.editorView) return;
     
-    // Debug logging for paragraph detection
-    console.log('🔍 appendContentAfterBeatNode:', {
-      beatId,
-      isFirstChunk,
-      contentLength: newContent.length,
-      hasParagraphBreaks: /\n\n|\r\n\r\n/.test(newContent),
-      content: JSON.stringify(newContent),
-      contentPreview: newContent.substring(0, 100) + '...'
-    });
     
     const beatPos = this.findBeatNodePosition(beatId);
     if (beatPos === null) return;
@@ -1129,10 +1116,6 @@ export class ProseMirrorEditorService {
       if (newContent.includes('\n\n') || newContent.includes('\r\n\r\n')) {
         // Split content by double line breaks to create multiple paragraphs
         const paragraphs = newContent.split(/\n\n+|\r\n\r\n+/);
-        console.log('🔍 First chunk with paragraph breaks:', {
-          paragraphCount: paragraphs.length,
-          paragraphs: paragraphs.map(p => p.substring(0, 50) + '...')
-        });
         const nodes = [];
         
         for (let i = 0; i < paragraphs.length; i++) {
@@ -1167,7 +1150,6 @@ export class ProseMirrorEditorService {
         this.beatStreamingPositions.set(beatId, textEndPos);
       } else {
         // No paragraph breaks - create single paragraph
-        console.log('🔍 First chunk without paragraph breaks');
         const textParts = newContent.split(/\n|\r\n/);
         const paragraphContent = [];
         
@@ -1195,20 +1177,12 @@ export class ProseMirrorEditorService {
       // Subsequent chunks - check for paragraph breaks and handle accordingly
       const insertPos = this.beatStreamingPositions.get(beatId);
       
-      console.log('🔍 Subsequent chunk processing:', {
-        beatId,
-        storedPosition: insertPos,
-        docSize: state.doc.content.size,
-        isValidPosition: insertPos && insertPos <= state.doc.content.size
-      });
       
       if (!insertPos) {
-        console.warn('No stored position for beat streaming, skipping chunk');
         return;
       }
       
       if (insertPos > state.doc.content.size) {
-        console.error('🚨 Invalid stored position:', insertPos, 'doc size:', state.doc.content.size);
         return;
       }
       
@@ -1216,10 +1190,6 @@ export class ProseMirrorEditorService {
       if (newContent.includes('\n\n') || newContent.includes('\r\n\r\n')) {
         // Split content by double line breaks
         const parts = newContent.split(/\n\n+|\r\n\r\n+/);
-        console.log('🔍 Subsequent chunk with paragraph breaks:', {
-          partsCount: parts.length,
-          parts: parts.map(p => p.substring(0, 50) + '...')
-        });
         
         // First part continues current paragraph (append as text)
         if (parts.length > 0 && parts[0]) {
@@ -1293,7 +1263,6 @@ export class ProseMirrorEditorService {
         }
       } else {
         // No paragraph breaks - handle single line breaks in one transaction
-        console.log('🔍 Subsequent chunk without paragraph breaks');
         
         const textParts = newContent.split(/\n|\r\n/);
         let tr = state.tr;
@@ -1301,7 +1270,6 @@ export class ProseMirrorEditorService {
         
         for (let j = 0; j < textParts.length; j++) {
           if (textParts[j]) {
-            console.log('🔍 Inserting text part:', JSON.stringify(textParts[j]), 'at position:', currentPos);
             tr = tr.insertText(textParts[j], currentPos);
             currentPos += textParts[j].length;
           }
@@ -1312,11 +1280,6 @@ export class ProseMirrorEditorService {
           }
         }
         
-        console.log('🔍 Position update:', {
-          oldPosition: insertPos,
-          newPosition: currentPos,
-          lengthDiff: currentPos - insertPos
-        });
         
         // Single dispatch for entire chunk
         this.editorView.dispatch(tr);
