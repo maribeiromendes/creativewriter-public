@@ -1166,11 +1166,20 @@ export class ProseMirrorEditorService {
       return;
     }
     
+    // Lazy cleanup: Remove empty paragraphs that might have been created by previous chunks
+    this.removeLastEmptyParagraphIfExists(beatId);
+    
+    // Get updated position after potential cleanup
+    const updatedInsertPos = this.beatStreamingPositions.get(beatId);
+    if (!updatedInsertPos || updatedInsertPos > this.editorView.state.doc.content.size) {
+      return;
+    }
+    
     // If the processed content contains </p><p>, we need to handle it specially
     if (processedContent.includes('</p><p>')) {
       // Split by paragraph boundaries
       const parts = processedContent.split('</p><p>');
-      let currentPos = insertPos;
+      let currentPos = updatedInsertPos;
       
       // First part goes into current paragraph
       if (parts[0]) {
@@ -1220,7 +1229,7 @@ export class ProseMirrorEditorService {
     } else {
       // Simple text append - ensure we're at the right position
       const state = this.editorView.state;
-      const validPos = Math.min(insertPos, state.doc.content.size);
+      const validPos = Math.min(updatedInsertPos, state.doc.content.size);
       
       const tr = state.tr.insertText(processedContent, validPos);
       this.editorView.dispatch(tr);
@@ -1241,6 +1250,56 @@ export class ProseMirrorEditorService {
     }
     
     return null;
+  }
+
+  private removeLastEmptyParagraphIfExists(beatId: string): void {
+    if (!this.editorView) return;
+    
+    const currentPos = this.beatStreamingPositions.get(beatId);
+    if (!currentPos) return;
+    
+    const state = this.editorView.state;
+    
+    try {
+      // Find the current paragraph containing our position
+      const $pos = state.doc.resolve(currentPos);
+      let currentParagraphNode = null;
+      let currentParagraphPos = -1;
+      
+      // Walk up to find the paragraph
+      for (let depth = $pos.depth; depth >= 0; depth--) {
+        if ($pos.node(depth).type.name === 'paragraph') {
+          currentParagraphNode = $pos.node(depth);
+          currentParagraphPos = $pos.start(depth) - 1;
+          break;
+        }
+      }
+      
+      if (currentParagraphNode && currentParagraphPos >= 0) {
+        // Check if current paragraph is empty (only contains whitespace or is completely empty)
+        const paragraphContent = currentParagraphNode.textContent.trim();
+        
+        if (paragraphContent === '') {
+          // This paragraph is empty, remove it
+          const paragraphEndPos = currentParagraphPos + currentParagraphNode.nodeSize;
+          const tr = state.tr.delete(currentParagraphPos, paragraphEndPos);
+          this.editorView.dispatch(tr);
+          
+          // Update the stored position - move to the end of the previous paragraph or beat
+          // Find the position right before where the empty paragraph was
+          const newState = this.editorView.state;
+          let newPos = Math.max(0, currentParagraphPos - 1);
+          
+          // Make sure we're at a valid position
+          if (newPos < newState.doc.content.size) {
+            this.beatStreamingPositions.set(beatId, newPos);
+          }
+        }
+      }
+    } catch (error) {
+      // If anything goes wrong, don't crash - just log and continue
+      console.warn('Failed to remove empty paragraph:', error);
+    }
   }
 
   private createCodexHighlightingPlugin(config: EditorConfig): Plugin {
