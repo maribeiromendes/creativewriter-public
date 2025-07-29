@@ -708,10 +708,11 @@ import { ColorPickerComponent } from '../shared/components/color-picker.componen
       position: sticky;
       top: 0;
       z-index: 10;
-      background: linear-gradient(135deg, rgba(45, 45, 45, 0.9) 0%, rgba(30, 30, 30, 0.9) 100%);
+      background: rgba(45, 45, 45, 0.3);
       backdrop-filter: blur(15px);
       -webkit-backdrop-filter: blur(15px);
-      border-bottom: 1px solid rgba(139, 180, 248, 0.2);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 2px 20px rgba(0, 0, 0, 0.2);
       padding: 0.5rem;
       margin-bottom: 1rem;
     }
@@ -723,7 +724,7 @@ import { ColorPickerComponent } from '../shared/components/color-picker.componen
     ion-segment-button {
       --background: transparent;
       --background-checked: linear-gradient(135deg, rgba(71, 118, 230, 0.2) 0%, rgba(139, 180, 248, 0.2) 100%);
-      --color: #8bb4f8;
+      --color: #f8f9fa;
       --color-checked: #ffffff;
       --indicator-color: linear-gradient(135deg, #4776e6 0%, #8bb4f8 100%);
       --indicator-height: 3px;
@@ -732,26 +733,38 @@ import { ColorPickerComponent } from '../shared/components/color-picker.componen
       min-height: 48px;
       transition: all 0.3s ease;
       border: 1px solid transparent;
+      opacity: 0.8;
     }
     
     ion-segment-button:hover {
       --background: rgba(139, 180, 248, 0.1);
+      opacity: 1;
+      transform: translateY(-1px);
     }
     
     ion-segment-button.segment-button-checked {
       border-color: rgba(139, 180, 248, 0.3);
       background: linear-gradient(135deg, rgba(71, 118, 230, 0.2) 0%, rgba(139, 180, 248, 0.2) 100%);
+      opacity: 1;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
     }
     
     ion-segment-button ion-icon {
       font-size: 1.3rem;
       margin-bottom: 0.2rem;
+      color: inherit;
     }
     
     ion-segment-button ion-label {
       font-size: 0.85rem;
       font-weight: 500;
       letter-spacing: 0.3px;
+      color: inherit;
+    }
+    
+    ion-segment-button.segment-button-checked ion-icon,
+    ion-segment-button.segment-button-checked ion-label {
+      color: #ffffff;
     }
 
     /* Ensure ng-dropdown-panel appears above everything */
