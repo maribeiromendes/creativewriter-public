@@ -55,23 +55,33 @@ export class BackgroundService {
   private applyBackgroundToBody(): void {
     const style = this.backgroundStyle();
     const body = document.body;
+    const html = document.documentElement;
+    const ionApp = document.querySelector('ion-app');
     
-    // Apply styles to body
-    if (style.backgroundImage === 'none') {
-      body.style.backgroundImage = 'none';
-      body.style.backgroundColor = style.backgroundColor!;
-      body.style.backgroundSize = '';
-      body.style.backgroundPosition = '';
-      body.style.backgroundRepeat = '';
-      body.style.backgroundAttachment = '';
-    } else {
-      body.style.backgroundImage = style.backgroundImage!;
-      body.style.backgroundSize = style.backgroundSize!;
-      body.style.backgroundPosition = style.backgroundPosition!;
-      body.style.backgroundRepeat = style.backgroundRepeat!;
-      body.style.backgroundAttachment = style.backgroundAttachment!;
-      body.style.backgroundColor = style.backgroundColor!;
-    }
+    console.log('BackgroundService: Applying background style:', style);
+    
+    // Apply styles to html, body and ion-app
+    const elements = [html, body, ionApp].filter(el => el) as HTMLElement[];
+    
+    elements.forEach(element => {
+      console.log('BackgroundService: Applying to element:', element.tagName);
+      if (style.backgroundImage === 'none') {
+        element.style.backgroundImage = 'none';
+        element.style.backgroundColor = style.backgroundColor!;
+        element.style.backgroundSize = '';
+        element.style.backgroundPosition = '';
+        element.style.backgroundRepeat = '';
+        element.style.backgroundAttachment = '';
+      } else {
+        element.style.backgroundImage = style.backgroundImage!;
+        element.style.backgroundSize = style.backgroundSize!;
+        element.style.backgroundPosition = style.backgroundPosition!;
+        element.style.backgroundRepeat = style.backgroundRepeat!;
+        element.style.backgroundAttachment = style.backgroundAttachment!;
+        element.style.backgroundColor = style.backgroundColor!;
+      }
+      console.log('BackgroundService: Applied background to', element.tagName, ':', element.style.backgroundImage);
+    });
   }
 
   // Get current background image filename
