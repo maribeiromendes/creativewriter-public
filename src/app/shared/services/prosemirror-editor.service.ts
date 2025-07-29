@@ -1101,14 +1101,6 @@ export class ProseMirrorEditorService {
   private appendContentAfterBeatNode(beatId: string, newContent: string, isFirstChunk: boolean = false): void {
     if (!this.editorView) return;
     
-    // Debug logging
-    console.log('🔍 appendContentAfterBeatNode:', {
-      beatId,
-      newContent: JSON.stringify(newContent),
-      contentLength: newContent.length,
-      isFirstChunk,
-      contentPreview: newContent.substring(0, 50) + '...'
-    });
     
     const beatPos = this.findBeatNodePosition(beatId);
     if (beatPos === null) return;
@@ -1157,7 +1149,6 @@ export class ProseMirrorEditorService {
         this.editorView.dispatch(tr);
         
         // Store position at the end of the last paragraph's text node
-        const lastNode = nodes[nodes.length - 1];
         const totalSize = nodes.reduce((sum, node) => sum + node.nodeSize, 0);
         const textEndPos = afterBeatPos + totalSize - 1; // Inside last text node
         this.beatStreamingPositions.set(beatId, textEndPos);
