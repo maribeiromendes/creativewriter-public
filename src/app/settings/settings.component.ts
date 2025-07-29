@@ -817,14 +817,15 @@ import { ColorPickerComponent } from '../shared/components/color-picker.componen
     }
 
     ion-card-header {
-      background: linear-gradient(135deg, rgba(30, 30, 30, 0.8) 0%, rgba(20, 20, 20, 0.8) 100%);
-      border-bottom: 2px solid rgba(139, 180, 248, 0.3);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
+      background: rgba(45, 45, 45, 0.3);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
       padding: 1.2rem 1.5rem;
       border-radius: 12px 12px 0 0;
       position: relative;
       overflow: hidden;
+      box-shadow: 0 2px 20px rgba(0, 0, 0, 0.2);
     }
     
     ion-card-header::before {
@@ -843,13 +844,13 @@ import { ColorPickerComponent } from '../shared/components/color-picker.componen
     }
 
     ion-card-title {
-      color: #ffffff;
+      color: #f8f9fa;
       font-size: 1.3rem;
       font-weight: 700;
       letter-spacing: 0.5px;
       margin: 0;
       padding: 0;
-      text-shadow: 0 2px 10px rgba(139, 180, 248, 0.3);
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
       position: relative;
       display: inline-block;
     }
