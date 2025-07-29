@@ -622,18 +622,8 @@ import { BackgroundService } from '../shared/services/background.service';
   `,
   styles: [`
     :host {
-      background: 
-        /* Dark overlay for text readability */
-        linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
-        /* Main anime image */
-        url('/assets/cyberpunk-anime-girl.png'),
-        /* Fallback dark background */
-        #1a1a1a;
-      
-      background-size: 100% 100%, cover, auto;
-      background-position: center center, center center, center;
-      background-repeat: no-repeat, no-repeat, repeat;
-      background-attachment: scroll, scroll, scroll;
+      /* Remove static background to allow dynamic background from BackgroundService */
+      background: transparent;
       min-height: 100vh;
       display: block;
     }
