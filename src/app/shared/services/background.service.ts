@@ -58,13 +58,10 @@ export class BackgroundService {
     const html = document.documentElement;
     const ionApp = document.querySelector('ion-app');
     
-    console.log('BackgroundService: Applying background style:', style);
-    
     // Apply styles to html, body and ion-app
     const elements = [html, body, ionApp].filter(el => el) as HTMLElement[];
     
     elements.forEach(element => {
-      console.log('BackgroundService: Applying to element:', element.tagName);
       if (style.backgroundImage === 'none') {
         element.style.backgroundImage = 'none';
         element.style.backgroundColor = style.backgroundColor!;
@@ -80,7 +77,6 @@ export class BackgroundService {
         element.style.backgroundAttachment = style.backgroundAttachment!;
         element.style.backgroundColor = style.backgroundColor!;
       }
-      console.log('BackgroundService: Applied background to', element.tagName, ':', element.style.backgroundImage);
     });
   }
 
