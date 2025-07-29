@@ -789,6 +789,7 @@ import { ColorPickerComponent } from '../shared/components/color-picker.componen
       transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
       position: relative;
+      --ion-card-header-color: #ffffff;
     }
     
     ion-card::before {
@@ -816,26 +817,58 @@ import { ColorPickerComponent } from '../shared/components/color-picker.componen
     }
 
     ion-card-header {
-      background: linear-gradient(135deg, rgba(20, 20, 20, 0.6) 0%, rgba(15, 15, 15, 0.6) 100%);
-      border-bottom: 1px solid rgba(139, 180, 248, 0.2);
-      backdrop-filter: blur(5px);
-      -webkit-backdrop-filter: blur(5px);
+      background: linear-gradient(135deg, rgba(30, 30, 30, 0.8) 0%, rgba(20, 20, 20, 0.8) 100%);
+      border-bottom: 2px solid rgba(139, 180, 248, 0.3);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      padding: 1.2rem 1.5rem;
+      border-radius: 12px 12px 0 0;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    ion-card-header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(139, 180, 248, 0.1), transparent);
+      transition: left 0.6s ease;
+    }
+    
+    ion-card:hover ion-card-header::before {
+      left: 100%;
     }
 
     ion-card-title {
-      background: linear-gradient(135deg, #ffffff 0%, #8bb4f8 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+      color: #ffffff;
       font-size: 1.3rem;
       font-weight: 700;
       letter-spacing: 0.5px;
-      text-shadow: 0 2px 10px rgba(139, 180, 248, 0.2);
+      margin: 0;
+      padding: 0;
+      text-shadow: 0 2px 10px rgba(139, 180, 248, 0.3);
+      position: relative;
+      display: inline-block;
+    }
+    
+    ion-card-title::after {
+      content: '';
+      position: absolute;
+      bottom: -5px;
+      left: 0;
+      width: 50px;
+      height: 3px;
+      background: linear-gradient(90deg, #4776e6 0%, #8bb4f8 100%);
+      border-radius: 2px;
     }
 
     ion-card-content {
       overflow: visible !important;
       background: transparent;
+      padding: 1.5rem;
     }
 
     ion-item {
