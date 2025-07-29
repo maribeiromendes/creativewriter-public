@@ -1101,6 +1101,15 @@ export class ProseMirrorEditorService {
   private appendContentAfterBeatNode(beatId: string, newContent: string, isFirstChunk: boolean = false): void {
     if (!this.editorView) return;
     
+    // Debug logging
+    console.log('🔍 appendContentAfterBeatNode:', {
+      beatId,
+      newContent: JSON.stringify(newContent),
+      contentLength: newContent.length,
+      isFirstChunk,
+      contentPreview: newContent.substring(0, 50) + '...'
+    });
+    
     const beatPos = this.findBeatNodePosition(beatId);
     if (beatPos === null) return;
     
@@ -1181,8 +1190,20 @@ export class ProseMirrorEditorService {
       // Subsequent chunks - check for paragraph breaks and handle accordingly
       const insertPos = this.beatStreamingPositions.get(beatId);
       
+      console.log('🔍 Subsequent chunk processing:', {
+        beatId,
+        storedPosition: insertPos,
+        docSize: state.doc.content.size,
+        isValidPosition: insertPos && insertPos <= state.doc.content.size
+      });
+      
       if (!insertPos) {
         console.warn('No stored position for beat streaming, skipping chunk');
+        return;
+      }
+      
+      if (insertPos > state.doc.content.size) {
+        console.error('🚨 Invalid stored position:', insertPos, 'doc size:', state.doc.content.size);
         return;
       }
       
@@ -1242,13 +1263,17 @@ export class ProseMirrorEditorService {
         
         // Insert all new paragraphs in a single transaction
         if (newParagraphs.length > 0) {
-          const currentParagraphPos = this.findContainingParagraph(finalPosition, state);
+          // Get fresh state after previous insertions
+          const currentState = this.editorView.state;
+          const validatedPosition = Math.min(finalPosition, currentState.doc.content.size);
+          
+          const currentParagraphPos = this.findContainingParagraph(validatedPosition, currentState);
           if (currentParagraphPos !== null) {
-            const currentParagraph = state.doc.nodeAt(currentParagraphPos);
+            const currentParagraph = currentState.doc.nodeAt(currentParagraphPos);
             if (currentParagraph) {
               const afterCurrentParagraph = currentParagraphPos + currentParagraph.nodeSize;
               const fragment = Fragment.from(newParagraphs);
-              const tr = state.tr.insert(afterCurrentParagraph, fragment);
+              const tr = currentState.tr.insert(afterCurrentParagraph, fragment);
               this.editorView.dispatch(tr);
               
               // Update position to end of last new paragraph
@@ -1259,12 +1284,19 @@ export class ProseMirrorEditorService {
         }
       } else {
         // No paragraph breaks - handle single line breaks in one transaction
+        console.log('🔍 Subsequent chunk - no paragraph breaks:', {
+          insertPos,
+          storedPosition: this.beatStreamingPositions.get(beatId),
+          newContent: JSON.stringify(newContent)
+        });
+        
         const textParts = newContent.split(/\n|\r\n/);
         let tr = state.tr;
         let currentPos = insertPos;
         
         for (let j = 0; j < textParts.length; j++) {
           if (textParts[j]) {
+            console.log('🔍 Inserting text part:', JSON.stringify(textParts[j]), 'at position:', currentPos);
             tr = tr.insertText(textParts[j], currentPos);
             currentPos += textParts[j].length;
           }
@@ -1274,6 +1306,12 @@ export class ProseMirrorEditorService {
             currentPos += hardBreak.nodeSize;
           }
         }
+        
+        console.log('🔍 Position update:', {
+          oldPosition: insertPos,
+          newPosition: currentPos,
+          lengthDiff: currentPos - insertPos
+        });
         
         // Single dispatch for entire chunk
         this.editorView.dispatch(tr);
