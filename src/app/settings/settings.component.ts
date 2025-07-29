@@ -617,9 +617,6 @@ import { ColorPickerComponent } from '../shared/components/color-picker.componen
           <ion-button expand="block" fill="outline" color="medium" (click)="resetSettings()">
             Auf Standard zurücksetzen
           </ion-button>
-          <ion-button expand="block" fill="outline" color="warning" (click)="testDropdown()">
-            Debug: Test Dropdown
-          </ion-button>
         </div>
       </div>
     </ion-content>
@@ -1630,14 +1627,6 @@ export class SettingsComponent implements OnInit, OnDestroy {
   
   onDropdownClose(provider: string): void {
     console.log(`${provider} dropdown closed`);
-  }
-  
-  testDropdown(): void {
-    console.log('Testing dropdown functionality...');
-    console.log('OpenRouter enabled:', this.settings.openRouter.enabled);
-    console.log('OpenRouter models:', this.openRouterModels);
-    console.log('Replicate enabled:', this.settings.replicate.enabled);
-    console.log('Replicate models:', this.replicateModels);
   }
 
   loadCombinedModels(): void {
