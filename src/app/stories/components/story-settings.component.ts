@@ -6,12 +6,13 @@ import {
   IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
   IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonItem, IonLabel,
   IonTextarea, IonCheckbox, IonRadio, IonRadioGroup, IonChip, IonNote,
-  IonText, IonGrid, IonRow, IonCol
+  IonText, IonGrid, IonRow, IonCol, IonSegment, IonSegmentButton
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { 
   arrowBack, saveOutline, refreshOutline, checkmarkCircleOutline,
-  warningOutline, informationCircleOutline, codeSlashOutline
+  warningOutline, informationCircleOutline, codeSlashOutline,
+  settingsOutline, chatboxOutline, documentTextOutline
 } from 'ionicons/icons';
 import { StoryService } from '../services/story.service';
 import { Story, StorySettings, DEFAULT_STORY_SETTINGS } from '../models/story.interface';
@@ -24,7 +25,7 @@ import { Story, StorySettings, DEFAULT_STORY_SETTINGS } from '../models/story.in
     IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
     IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonItem, IonLabel,
     IonTextarea, IonCheckbox, IonRadio, IonRadioGroup, IonChip, IonNote,
-    IonText, IonGrid, IonRow, IonCol
+    IonText, IonGrid, IonRow, IonCol, IonSegment, IonSegmentButton
   ],
   template: `
     <div class="ion-page">
@@ -46,121 +47,150 @@ import { Story, StorySettings, DEFAULT_STORY_SETTINGS } from '../models/story.in
       </ion-header>
 
       <ion-content *ngIf="story">
-      <ion-card class="story-info-card">
-        <ion-card-header>
-          <ion-card-title>{{ story.title || 'Unbenannte Geschichte' }}</ion-card-title>
-        </ion-card-header>
-        <ion-card-content>
-          <ion-note>
-            Erstellt: {{ story.createdAt | date:'short' }} | Zuletzt bearbeitet: {{ story.updatedAt | date:'short' }}
-          </ion-note>
-        </ion-card-content>
-      </ion-card>
+        <!-- Tab Navigation -->
+        <ion-segment [(ngModel)]="selectedTab" mode="md" class="settings-tabs">
+          <ion-segment-button value="general">
+            <ion-icon name="information-circle-outline"></ion-icon>
+            <ion-label>Allgemein</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="ai-system">
+            <ion-icon name="chatbox-outline"></ion-icon>
+            <ion-label>AI System</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="beat-config">
+            <ion-icon name="settings-outline"></ion-icon>
+            <ion-label>Beat Config</ion-label>
+          </ion-segment-button>
+        </ion-segment>
 
-      <ion-card class="settings-section">
-        <ion-card-header>
-          <ion-card-title>AI System Message</ion-card-title>
-        </ion-card-header>
-        <ion-card-content>
-          <ion-text color="medium">
-            <p>Diese Nachricht definiert den Kontext und die Persönlichkeit des AI-Assistenten für diese Geschichte.</p>
-          </ion-text>
-          <ion-textarea
-            [(ngModel)]="settings.systemMessage"
-            (ionInput)="onSettingsChange()"
-            placeholder="Geben Sie die System-Nachricht ein..."
-            rows="6"
-            class="settings-textarea"
-            auto-grow="true">
-          </ion-textarea>
-          <ion-note class="char-count">{{ settings.systemMessage.length }} Zeichen</ion-note>
-        </ion-card-content>
-      </ion-card>
-
-      <ion-card class="settings-section">
-        <ion-card-header>
-          <ion-card-title>Beat Generation Template</ion-card-title>
-        </ion-card-header>
-        <ion-card-content>
-          <ion-text color="medium">
-            <p>XML-Template für Beat-Generierung im Messages-Format. Verfügbare Platzhalter:</p>
-          </ion-text>
+        <!-- Tab Content -->
+        <div [ngSwitch]="selectedTab">
           
-          <div class="template-placeholders">
-            <ion-grid>
-              <ion-row>
-                <ion-col size="12" size-md="6" size-lg="4" *ngFor="let placeholder of placeholders">
-                  <ion-chip color="warning" class="placeholder-chip">
-                    <ion-icon name="code-slash-outline"></ion-icon>
-                    <ion-label>{{ placeholder }}</ion-label>
-                  </ion-chip>
-                </ion-col>
-              </ion-row>
-            </ion-grid>
+          <!-- General Tab -->
+          <div *ngSwitchCase="'general'">
+            <ion-card class="story-info-card">
+              <ion-card-header>
+                <ion-card-title>{{ story.title || 'Unbenannte Geschichte' }}</ion-card-title>
+              </ion-card-header>
+              <ion-card-content>
+                <ion-note>
+                  Erstellt: {{ story.createdAt | date:'short' }} | Zuletzt bearbeitet: {{ story.updatedAt | date:'short' }}
+                </ion-note>
+              </ion-card-content>
+            </ion-card>
           </div>
           
-          <ion-textarea
-            [(ngModel)]="settings.beatGenerationTemplate"
-            (ionInput)="onSettingsChange()"
-            placeholder="Geben Sie das Beat-Template ein..."
-            rows="12"
-            class="settings-textarea large"
-            auto-grow="true">
-          </ion-textarea>
+          <!-- AI System Tab -->
+          <div *ngSwitchCase="'ai-system'">
+            <ion-card class="settings-section">
+              <ion-card-header>
+                <ion-card-title>AI System Message</ion-card-title>
+              </ion-card-header>
+              <ion-card-content>
+                <ion-text color="medium">
+                  <p>Diese Nachricht definiert den Kontext und die Persönlichkeit des AI-Assistenten für diese Geschichte.</p>
+                </ion-text>
+                <ion-textarea
+                  [(ngModel)]="settings.systemMessage"
+                  (ionInput)="onSettingsChange()"
+                  placeholder="Geben Sie die System-Nachricht ein..."
+                  rows="6"
+                  class="settings-textarea"
+                  auto-grow="true">
+                </ion-textarea>
+                <ion-note class="char-count">{{ settings.systemMessage.length }} Zeichen</ion-note>
+              </ion-card-content>
+            </ion-card>
+            
+            <ion-card class="settings-section">
+              <ion-card-header>
+                <ion-card-title>Beat Generation Template</ion-card-title>
+              </ion-card-header>
+              <ion-card-content>
+                <ion-text color="medium">
+                  <p>XML-Template für Beat-Generierung im Messages-Format. Verfügbare Platzhalter:</p>
+                </ion-text>
+                
+                <div class="template-placeholders">
+                  <ion-grid>
+                    <ion-row>
+                      <ion-col size="12" size-md="6" size-lg="4" *ngFor="let placeholder of placeholders">
+                        <ion-chip color="warning" class="placeholder-chip">
+                          <ion-icon name="code-slash-outline"></ion-icon>
+                          <ion-label>{{ placeholder }}</ion-label>
+                        </ion-chip>
+                      </ion-col>
+                    </ion-row>
+                  </ion-grid>
+                </div>
+                
+                <ion-textarea
+                  [(ngModel)]="settings.beatGenerationTemplate"
+                  (ionInput)="onSettingsChange()"
+                  placeholder="Geben Sie das Beat-Template ein..."
+                  rows="12"
+                  class="settings-textarea large"
+                  auto-grow="true">
+                </ion-textarea>
+                
+                <ion-note class="char-count">{{ settings.beatGenerationTemplate.length }} Zeichen</ion-note>
+                
+                <ion-item *ngIf="!settings.beatGenerationTemplate.includes('{prompt}')" class="template-warning">
+                  <ion-icon name="warning-outline" color="warning" slot="start"></ion-icon>
+                  <ion-label color="warning">
+                    Das Template sollte {{ '{prompt}' }} enthalten, um den Benutzer-Prompt einzufügen.
+                  </ion-label>
+                </ion-item>
+              </ion-card-content>
+            </ion-card>
+          </div>
           
-          <ion-note class="char-count">{{ settings.beatGenerationTemplate.length }} Zeichen</ion-note>
-          
-          <ion-item *ngIf="!settings.beatGenerationTemplate.includes('{prompt}')" class="template-warning">
-            <ion-icon name="warning-outline" color="warning" slot="start"></ion-icon>
-            <ion-label color="warning">
-              Das Template sollte {{ '{prompt}' }} enthalten, um den Benutzer-Prompt einzufügen.
-            </ion-label>
-          </ion-item>
-        </ion-card-content>
-      </ion-card>
+          <!-- Beat Config Tab -->
+          <div *ngSwitchCase="'beat-config'">
+            <ion-card class="settings-section">
+              <ion-card-header>
+                <ion-card-title>Beat AI Konfiguration</ion-card-title>
+              </ion-card-header>
+              <ion-card-content>
+                <ion-text color="medium">
+                  <p>Konfiguration für die Beat AI Generierung.</p>
+                </ion-text>
+                
+                <ion-item class="setting-item">
+                  <ion-checkbox
+                    [(ngModel)]="settings.useFullStoryContext"
+                    (ionChange)="onSettingsChange()"
+                    slot="start">
+                  </ion-checkbox>
+                  <ion-label>
+                    <h3>Vollständigen Story-Kontext verwenden</h3>
+                    <p>Wenn aktiviert, wird der vollständige Text aller Szenen als Kontext verwendet. Andernfalls werden nur Zusammenfassungen verwendet (falls verfügbar).</p>
+                  </ion-label>
+                </ion-item>
 
-      <ion-card class="settings-section">
-        <ion-card-header>
-          <ion-card-title>Beat AI Konfiguration</ion-card-title>
-        </ion-card-header>
-        <ion-card-content>
-          <ion-text color="medium">
-            <p>Konfiguration für die Beat AI Generierung.</p>
-          </ion-text>
-          
-          <ion-item class="setting-item">
-            <ion-checkbox
-              [(ngModel)]="settings.useFullStoryContext"
-              (ionChange)="onSettingsChange()"
-              slot="start">
-            </ion-checkbox>
-            <ion-label>
-              <h3>Vollständigen Story-Kontext verwenden</h3>
-              <p>Wenn aktiviert, wird der vollständige Text aller Szenen als Kontext verwendet. Andernfalls werden nur Zusammenfassungen verwendet (falls verfügbar).</p>
-            </ion-label>
-          </ion-item>
-
-          <ion-item class="radio-section">
-            <ion-label>
-              <h3>Beat Anweisung</h3>
-              <p>Standardanweisung für die Beat AI Generierung.</p>
-            </ion-label>
-          </ion-item>
-          
-          <ion-radio-group
-            [(ngModel)]="settings.beatInstruction"
-            (ionChange)="onSettingsChange()">
-            <ion-item>
-              <ion-radio slot="start" value="continue"></ion-radio>
-              <ion-label>Setze die Geschichte fort</ion-label>
-            </ion-item>
-            <ion-item>
-              <ion-radio slot="start" value="stay"></ion-radio>
-              <ion-label>Bleibe im Moment</ion-label>
-            </ion-item>
-          </ion-radio-group>
-        </ion-card-content>
-      </ion-card>
+                <ion-item class="radio-section">
+                  <ion-label>
+                    <h3>Beat Anweisung</h3>
+                    <p>Standardanweisung für die Beat AI Generierung.</p>
+                  </ion-label>
+                </ion-item>
+                
+                <ion-radio-group
+                  [(ngModel)]="settings.beatInstruction"
+                  (ionChange)="onSettingsChange()">
+                  <ion-item>
+                    <ion-radio slot="start" value="continue"></ion-radio>
+                    <ion-label>Setze die Geschichte fort</ion-label>
+                  </ion-item>
+                  <ion-item>
+                    <ion-radio slot="start" value="stay"></ion-radio>
+                    <ion-label>Bleibe im Moment</ion-label>
+                  </ion-item>
+                </ion-radio-group>
+              </ion-card-content>
+            </ion-card>
+          </div>
+        </div>
 
       <div class="settings-actions">
         <ion-button 
@@ -259,6 +289,70 @@ import { Story, StorySettings, DEFAULT_STORY_SETTINGS } from '../models/story.in
       background: transparent !important;
     }
 
+    /* Tab Navigation Styles */
+    .settings-tabs {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: rgba(45, 45, 45, 0.3);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 2px 20px rgba(0, 0, 0, 0.2);
+      padding: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    
+    ion-segment {
+      --background: transparent;
+    }
+    
+    ion-segment-button {
+      --background: transparent;
+      --background-checked: linear-gradient(135deg, rgba(71, 118, 230, 0.2) 0%, rgba(139, 180, 248, 0.2) 100%);
+      --color: #f8f9fa;
+      --color-checked: #ffffff;
+      --indicator-color: linear-gradient(135deg, #4776e6 0%, #8bb4f8 100%);
+      --indicator-height: 3px;
+      --border-radius: 8px;
+      padding: 0.5rem;
+      min-height: 48px;
+      transition: all 0.3s ease;
+      border: 1px solid transparent;
+      opacity: 0.8;
+    }
+    
+    ion-segment-button:hover {
+      --background: rgba(139, 180, 248, 0.1);
+      opacity: 1;
+      transform: translateY(-1px);
+    }
+    
+    ion-segment-button.segment-button-checked {
+      border-color: rgba(139, 180, 248, 0.3);
+      background: linear-gradient(135deg, rgba(71, 118, 230, 0.2) 0%, rgba(139, 180, 248, 0.2) 100%);
+      opacity: 1;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+    
+    ion-segment-button ion-icon {
+      font-size: 1.3rem;
+      margin-bottom: 0.2rem;
+      color: inherit;
+    }
+    
+    ion-segment-button ion-label {
+      font-size: 0.85rem;
+      font-weight: 500;
+      letter-spacing: 0.3px;
+      color: inherit;
+    }
+    
+    ion-segment-button.segment-button-checked ion-icon,
+    ion-segment-button.segment-button-checked ion-label {
+      color: #ffffff;
+    }
+
     .story-info-card {
       background: linear-gradient(135deg, rgba(20, 20, 20, 0.3) 0%, rgba(15, 15, 15, 0.3) 100%);
       border: 1px solid rgba(255, 255, 255, 0.1);
@@ -300,32 +394,60 @@ import { Story, StorySettings, DEFAULT_STORY_SETTINGS } from '../models/story.in
       transform: translateY(-2px);
     }
     
-    /* Ensure card headers and titles are transparent */
+    /* Card Header Styling */
     ion-card-header {
-      background: transparent !important;
-      --background: transparent !important;
+      background: rgba(45, 45, 45, 0.3);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      padding: 1.2rem 1.5rem;
+      border-radius: 12px 12px 0 0;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 2px 20px rgba(0, 0, 0, 0.2);
+    }
+    
+    ion-card-header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(139, 180, 248, 0.1), transparent);
+      transition: left 0.6s ease;
+    }
+    
+    ion-card:hover ion-card-header::before {
+      left: 100%;
     }
     
     ion-card-title {
-      color: #f8f9fa !important;
-      --color: #f8f9fa !important;
+      color: #f8f9fa;
+      font-size: 1.3rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      margin: 0;
+      padding: 0;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+      position: relative;
+      display: inline-block;
+    }
+    
+    ion-card-title::after {
+      content: '';
+      position: absolute;
+      bottom: -5px;
+      left: 0;
+      width: 50px;
+      height: 3px;
+      background: linear-gradient(90deg, #4776e6 0%, #8bb4f8 100%);
+      border-radius: 2px;
     }
     
     ion-card-content {
-      background: transparent !important;
-      --background: transparent !important;
-    }
-    
-    .story-info-card ion-card-header,
-    .story-info-card ion-card-content,
-    .settings-section ion-card-header,
-    .settings-section ion-card-content {
-      background: transparent !important;
-    }
-    
-    .story-info-card ion-card-title,
-    .settings-section ion-card-title {
-      color: #f8f9fa !important;
+      background: transparent;
+      padding: 1.5rem;
     }
 
     .setting-item {
@@ -490,6 +612,7 @@ export class StorySettingsComponent implements OnInit {
   settings: StorySettings = { ...DEFAULT_STORY_SETTINGS };
   hasUnsavedChanges = false;
   private originalSettings!: StorySettings;
+  selectedTab = 'general';
   
   placeholders = [
     '{systemMessage}',
@@ -510,7 +633,8 @@ export class StorySettingsComponent implements OnInit {
   ) {
     addIcons({ 
       arrowBack, saveOutline, refreshOutline, checkmarkCircleOutline,
-      warningOutline, informationCircleOutline, codeSlashOutline
+      warningOutline, informationCircleOutline, codeSlashOutline,
+      settingsOutline, chatboxOutline, documentTextOutline
     });
   }
 
