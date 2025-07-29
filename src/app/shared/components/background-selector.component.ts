@@ -1,5 +1,6 @@
 import { Component, OnInit, OnChanges, SimpleChanges, Input, Output, EventEmitter, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { HttpClient, provideHttpClient } from '@angular/common/http';
 import { IonIcon, IonGrid, IonRow, IonCol, IonText, IonCard, IonCardContent } from '@ionic/angular/standalone';
 import { checkmarkCircle } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
@@ -208,70 +209,22 @@ export class BackgroundSelectorComponent implements OnInit, OnChanges {
   @Input() selectedBackgroundImage: string = 'none';
   @Output() backgroundImageChange = new EventEmitter<string>();
 
-  // Available background images
-  backgroundOptions: BackgroundOption[] = [
-    {
-      filename: 'noir-theater-man.png',
-      displayName: 'Noir Theater',
-      previewPath: 'assets/backgrounds/noir-theater-man.png'
-    },
-    {
-      filename: 'zombie-apocalypse-scene.png',
-      displayName: 'Apokalypse',
-      previewPath: 'assets/backgrounds/zombie-apocalypse-scene.png'
-    },
-    {
-      filename: 'modern-dark-apartment.png',
-      displayName: 'Moderne Wohnung',
-      previewPath: 'assets/backgrounds/modern-dark-apartment.png'
-    },
-    {
-      filename: 'medieval-castle-street.png',
-      displayName: 'Mittelalter',
-      previewPath: 'assets/backgrounds/medieval-castle-street.png'
-    },
-    {
-      filename: 'sci-fi-laboratory.png',
-      displayName: 'Sci-Fi Labor',
-      previewPath: 'assets/backgrounds/sci-fi-laboratory.png'
-    },
-    {
-      filename: 'dark-witch-forest.png',
-      displayName: 'Hexenwald',
-      previewPath: 'assets/backgrounds/dark-witch-forest.png'
-    },
-    {
-      filename: 'cyberpunk-neon-corridor.png',
-      displayName: 'Cyberpunk',
-      previewPath: 'assets/backgrounds/cyberpunk-neon-corridor.png'
-    },
-    {
-      filename: 'space-nebula-stars.png',
-      displayName: 'Weltraum',
-      previewPath: 'assets/backgrounds/space-nebula-stars.png'
-    },
-    {
-      filename: 'abstract-energy-lines.png',
-      displayName: 'Energie',
-      previewPath: 'assets/backgrounds/abstract-energy-lines.png'
-    },
-    {
-      filename: 'cosmic-galaxy-burst.png',
-      displayName: 'Galaxie',
-      previewPath: 'assets/backgrounds/cosmic-galaxy-burst.png'
-    }
-  ];
+  // Available background images (loaded dynamically)
+  backgroundOptions: BackgroundOption[] = [];
 
   // Signal for currently selected background
   selectedBackground = signal<string>('none');
 
-  constructor() {
+  constructor(private http: HttpClient) {
     addIcons({ checkmarkCircle });
   }
 
   ngOnInit() {
     // Initialize with input value
     this.selectedBackground.set(this.selectedBackgroundImage);
+    
+    // Load available backgrounds dynamically
+    this.loadAvailableBackgrounds();
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -286,5 +239,133 @@ export class BackgroundSelectorComponent implements OnInit, OnChanges {
     
     // Emit change to parent component
     this.backgroundImageChange.emit(filename);
+  }
+
+  private async loadAvailableBackgrounds() {
+    // List of known image files in the backgrounds folder
+    const knownBackgrounds = [
+      'abstract-energy-lines.png',
+      'cosmic-galaxy-burst.png', 
+      'cyberpunk-anime-girl.png',
+      'cyberpunk-neon-corridor.png',
+      'dark-witch-forest.png',
+      'medieval-castle-street.png',
+      'modern-dark-apartment.png',
+      'noir-theater-man.png',
+      'sci-fi-laboratory.png',
+      'space-nebula-stars.png',
+      'zombie-apocalypse-scene.png'
+    ];
+    
+    const backgrounds: BackgroundOption[] = [];
+    
+    // Check which images actually exist and are accessible
+    for (const filename of knownBackgrounds) {
+      try {
+        const img = new Image();
+        const imagePath = `assets/backgrounds/${filename}`;
+        
+        // Test if image loads successfully
+        await new Promise<void>((resolve, reject) => {
+          img.onload = () => resolve();
+          img.onerror = () => reject();
+          img.src = imagePath;
+        });
+        
+        // If image loads successfully, add to list
+        backgrounds.push({
+          filename,
+          displayName: this.generateDisplayName(filename),
+          previewPath: imagePath
+        });
+        
+      } catch (error) {
+        // Image doesn't exist or failed to load, skip it
+        console.debug(`Background image ${filename} not found or failed to load`);
+      }
+    }
+    
+    // Sort alphabetically by display name
+    this.backgroundOptions = backgrounds.sort((a, b) => a.displayName.localeCompare(b.displayName));
+    
+    // If no images were found, use fallback
+    if (this.backgroundOptions.length === 0) {
+      console.warn('No background images found, using fallback list');
+      this.backgroundOptions = this.getFallbackBackgrounds();
+    }
+  }
+
+  private generateDisplayName(filename: string): string {
+    // Remove file extension
+    const nameWithoutExt = filename.replace(/\.(png|jpg|jpeg|webp)$/i, '');
+    
+    // Convert kebab-case or snake_case to readable format
+    const readable = nameWithoutExt
+      .replace(/[-_]/g, ' ')
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+    
+    return readable;
+  }
+
+  private getFallbackBackgrounds(): BackgroundOption[] {
+    return [
+      {
+        filename: 'abstract-energy-lines.png',
+        displayName: 'Energie',
+        previewPath: 'assets/backgrounds/abstract-energy-lines.png'
+      },
+      {
+        filename: 'cosmic-galaxy-burst.png',
+        displayName: 'Galaxie',
+        previewPath: 'assets/backgrounds/cosmic-galaxy-burst.png'
+      },
+      {
+        filename: 'cyberpunk-anime-girl.png',
+        displayName: 'Cyberpunk Anime',
+        previewPath: 'assets/backgrounds/cyberpunk-anime-girl.png'
+      },
+      {
+        filename: 'cyberpunk-neon-corridor.png',
+        displayName: 'Cyberpunk Korridor',
+        previewPath: 'assets/backgrounds/cyberpunk-neon-corridor.png'
+      },
+      {
+        filename: 'dark-witch-forest.png',
+        displayName: 'Hexenwald',
+        previewPath: 'assets/backgrounds/dark-witch-forest.png'
+      },
+      {
+        filename: 'medieval-castle-street.png',
+        displayName: 'Mittelalter',
+        previewPath: 'assets/backgrounds/medieval-castle-street.png'
+      },
+      {
+        filename: 'modern-dark-apartment.png',
+        displayName: 'Moderne Wohnung',
+        previewPath: 'assets/backgrounds/modern-dark-apartment.png'
+      },
+      {
+        filename: 'noir-theater-man.png',
+        displayName: 'Noir Theater',
+        previewPath: 'assets/backgrounds/noir-theater-man.png'
+      },
+      {
+        filename: 'sci-fi-laboratory.png',
+        displayName: 'Sci-Fi Labor',
+        previewPath: 'assets/backgrounds/sci-fi-laboratory.png'
+      },
+      {
+        filename: 'space-nebula-stars.png',
+        displayName: 'Weltraum',
+        previewPath: 'assets/backgrounds/space-nebula-stars.png'
+      },
+      {
+        filename: 'zombie-apocalypse-scene.png',
+        displayName: 'Apokalypse',
+        previewPath: 'assets/backgrounds/zombie-apocalypse-scene.png'
+      }
+    ];
   }
 }
