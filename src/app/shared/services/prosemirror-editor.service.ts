@@ -1101,6 +1101,15 @@ export class ProseMirrorEditorService {
   private appendContentAfterBeatNode(beatId: string, newContent: string, isFirstChunk: boolean = false): void {
     if (!this.editorView) return;
     
+    // Debug logging for paragraph detection
+    console.log('🔍 appendContentAfterBeatNode:', {
+      beatId,
+      isFirstChunk,
+      contentLength: newContent.length,
+      hasParagraphBreaks: /\n\n|\r\n\r\n/.test(newContent),
+      content: JSON.stringify(newContent),
+      contentPreview: newContent.substring(0, 100) + '...'
+    });
     
     const beatPos = this.findBeatNodePosition(beatId);
     if (beatPos === null) return;
@@ -1120,6 +1129,10 @@ export class ProseMirrorEditorService {
       if (newContent.includes('\n\n') || newContent.includes('\r\n\r\n')) {
         // Split content by double line breaks to create multiple paragraphs
         const paragraphs = newContent.split(/\n\n+|\r\n\r\n+/);
+        console.log('🔍 First chunk with paragraph breaks:', {
+          paragraphCount: paragraphs.length,
+          paragraphs: paragraphs.map(p => p.substring(0, 50) + '...')
+        });
         const nodes = [];
         
         for (let i = 0; i < paragraphs.length; i++) {
@@ -1154,6 +1167,7 @@ export class ProseMirrorEditorService {
         this.beatStreamingPositions.set(beatId, textEndPos);
       } else {
         // No paragraph breaks - create single paragraph
+        console.log('🔍 First chunk without paragraph breaks');
         const textParts = newContent.split(/\n|\r\n/);
         const paragraphContent = [];
         
@@ -1202,6 +1216,10 @@ export class ProseMirrorEditorService {
       if (newContent.includes('\n\n') || newContent.includes('\r\n\r\n')) {
         // Split content by double line breaks
         const parts = newContent.split(/\n\n+|\r\n\r\n+/);
+        console.log('🔍 Subsequent chunk with paragraph breaks:', {
+          partsCount: parts.length,
+          parts: parts.map(p => p.substring(0, 50) + '...')
+        });
         
         // First part continues current paragraph (append as text)
         if (parts.length > 0 && parts[0]) {
@@ -1275,11 +1293,7 @@ export class ProseMirrorEditorService {
         }
       } else {
         // No paragraph breaks - handle single line breaks in one transaction
-        console.log('🔍 Subsequent chunk - no paragraph breaks:', {
-          insertPos,
-          storedPosition: this.beatStreamingPositions.get(beatId),
-          newContent: JSON.stringify(newContent)
-        });
+        console.log('🔍 Subsequent chunk without paragraph breaks');
         
         const textParts = newContent.split(/\n|\r\n/);
         let tr = state.tr;
