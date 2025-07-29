@@ -10,6 +10,7 @@ export interface Settings {
 
 export interface AppearanceSettings {
   textColor: string; // Hex color code for text in editor and beat AI
+  backgroundImage: string; // Background image filename or 'none' for no background
 }
 
 export interface OpenRouterSettings {
@@ -94,7 +95,8 @@ export const DEFAULT_SETTINGS: Settings = {
     selectedModel: ''
   },
   appearance: {
-    textColor: '#e0e0e0' // Default light gray color for dark theme
+    textColor: '#e0e0e0', // Default light gray color for dark theme
+    backgroundImage: 'none' // No background image by default
   },
   selectedModel: '',
   updatedAt: new Date()

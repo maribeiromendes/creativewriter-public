@@ -19,6 +19,7 @@ import { NgSelectModule } from '@ng-select/ng-select';
 import { ColorPickerComponent } from '../shared/components/color-picker.component';
 import { SettingsTabsComponent, TabItem } from '../shared/components/settings-tabs.component';
 import { SettingsContentComponent } from '../shared/components/settings-content.component';
+import { BackgroundSelectorComponent } from '../shared/components/background-selector.component';
 
 @Component({
   selector: 'app-settings',
@@ -28,7 +29,7 @@ import { SettingsContentComponent } from '../shared/components/settings-content.
     IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
     IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonInput, IonToggle,
     IonChip, IonItem, IonLabel, IonSelect, IonSelectOption, IonRange, IonTextarea,
-    ColorPickerComponent, SettingsTabsComponent, SettingsContentComponent
+    ColorPickerComponent, SettingsTabsComponent, SettingsContentComponent, BackgroundSelectorComponent
   ],
   template: `
     <div class="ion-page">
@@ -433,6 +434,10 @@ import { SettingsContentComponent } from '../shared/components/settings-content.
                 [color]="settings.appearance.textColor"
                 (colorChange)="onTextColorChange($event)">
               </app-color-picker>
+            </div>
+            
+            <div class="appearance-section">
+              <app-background-selector></app-background-selector>
             </div>
           </ion-card-content>
         </ion-card>
@@ -1361,7 +1366,10 @@ export class SettingsComponent implements OnInit, OnDestroy {
         
         // Ensure appearance object exists
         if (!this.settings.appearance) {
-          this.settings.appearance = { textColor: '#e0e0e0' };
+          this.settings.appearance = { 
+            textColor: '#e0e0e0',
+            backgroundImage: 'none'
+          };
         }
         
         // Auto-load models if a model is already selected but models aren't loaded yet
