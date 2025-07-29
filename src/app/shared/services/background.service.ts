@@ -9,10 +9,16 @@ export class BackgroundService {
 
   // Signal for the current background image
   private backgroundImage = signal<string>('none');
+  
+  // Signal for preview background (for settings page preview)
+  private previewBackgroundImage = signal<string | null>(null);
 
-  // Computed background style
+  // Computed background style (uses preview if available, otherwise saved background)
   backgroundStyle = computed(() => {
-    const image = this.backgroundImage();
+    const previewImage = this.previewBackgroundImage();
+    const savedImage = this.backgroundImage();
+    const image = previewImage !== null ? previewImage : savedImage;
+    
     if (image === 'none' || !image) {
       return {
         backgroundImage: 'none',
@@ -73,10 +79,20 @@ export class BackgroundService {
     return this.backgroundImage();
   }
 
-  // Set new background image
+  // Set new background image (saves to settings)
   setBackground(filename: string): void {
     this.settingsService.updateAppearanceSettings({
       backgroundImage: filename
     });
+  }
+
+  // Set preview background (temporary, for settings preview)
+  setPreviewBackground(filename: string | null): void {
+    this.previewBackgroundImage.set(filename);
+  }
+
+  // Clear preview background (returns to saved background)
+  clearPreviewBackground(): void {
+    this.previewBackgroundImage.set(null);
   }
 }

@@ -20,6 +20,7 @@ import { ColorPickerComponent } from '../shared/components/color-picker.componen
 import { SettingsTabsComponent, TabItem } from '../shared/components/settings-tabs.component';
 import { SettingsContentComponent } from '../shared/components/settings-content.component';
 import { BackgroundSelectorComponent } from '../shared/components/background-selector.component';
+import { BackgroundService } from '../shared/services/background.service';
 
 @Component({
   selector: 'app-settings',
@@ -1348,7 +1349,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
   constructor(
     private router: Router,
     private settingsService: SettingsService,
-    private modelService: ModelService
+    private modelService: ModelService,
+    private backgroundService: BackgroundService
   ) {
     this.settings = this.settingsService.getSettings();
     // Register Ionic icons
@@ -1428,11 +1430,16 @@ export class SettingsComponent implements OnInit, OnDestroy {
     console.log('Saving settings:', this.settings);
     this.settingsService.updateSettings(this.settings);
     this.hasUnsavedChanges = false;
+    
+    // Clear preview background since settings are now saved
+    this.backgroundService.clearPreviewBackground();
   }
 
   resetSettings(): void {
     if (confirm('Sind Sie sicher, dass Sie alle Einstellungen auf die Standardwerte zurücksetzen möchten?')) {
       this.settingsService.clearSettings();
+      // Clear preview background
+      this.backgroundService.clearPreviewBackground();
     }
   }
 
@@ -1552,9 +1559,13 @@ export class SettingsComponent implements OnInit, OnDestroy {
   goBack(): void {
     if (this.hasUnsavedChanges) {
       if (confirm('Sie haben ungespeicherte Änderungen. Möchten Sie die Seite wirklich verlassen?')) {
+        // Clear preview background since we're discarding changes
+        this.backgroundService.clearPreviewBackground();
         this.router.navigate(['/']);
       }
     } else {
+      // Clear preview background
+      this.backgroundService.clearPreviewBackground();
       this.router.navigate(['/']);
     }
   }
@@ -1562,9 +1573,13 @@ export class SettingsComponent implements OnInit, OnDestroy {
   goToAILogs(): void {
     if (this.hasUnsavedChanges) {
       if (confirm('Sie haben ungespeicherte Änderungen. Möchten Sie die Seite wirklich verlassen?')) {
+        // Clear preview background since we're discarding changes
+        this.backgroundService.clearPreviewBackground();
         this.router.navigate(['/logs']);
       }
     } else {
+      // Clear preview background
+      this.backgroundService.clearPreviewBackground();
       this.router.navigate(['/logs']);
     }
   }
@@ -1631,6 +1646,9 @@ export class SettingsComponent implements OnInit, OnDestroy {
     // Update local settings first to track changes
     this.settings.appearance.backgroundImage = backgroundImage;
     this.onSettingsChange();
+    
+    // Set preview background for immediate visual feedback
+    this.backgroundService.setPreviewBackground(backgroundImage);
     
     // Debug logging
     console.log('Background image changed to:', backgroundImage);
