@@ -49,10 +49,12 @@ export class SyncedCustomBackgroundService {
   constructor() {
     this.loadCustomBackgrounds();
     
-    // React to user changes
-    this.authService.currentUser$.subscribe(() => {
-      this.clearBlobCache();
-      this.loadCustomBackgrounds();
+    // React to user changes - but don't clear cache immediately
+    this.authService.currentUser$.subscribe((user) => {
+      // Only reload if user actually changed (not initial load)
+      if (user !== null || this.customBackgrounds().length > 0) {
+        this.loadCustomBackgrounds();
+      }
     });
   }
 
@@ -102,6 +104,9 @@ export class SyncedCustomBackgroundService {
     const result = await db.put(backgroundDoc);
     backgroundDoc._rev = result.rev;
 
+    // Small delay to ensure document is persisted and indexed
+    await new Promise(resolve => setTimeout(resolve, 200));
+    
     // Reload backgrounds to update signals
     await this.loadCustomBackgrounds();
 
@@ -185,36 +190,48 @@ export class SyncedCustomBackgroundService {
   private async loadCustomBackgrounds(): Promise<void> {
     try {
       const db = await this.databaseService.getDatabase();
-      const result = await db.find({
-        selector: {
-          type: 'custom-background'
-        },
-        sort: [{ 'createdAt': 'desc' }]
+      
+      // Use allDocs with startkey/endkey for more reliable results
+      const result = await db.allDocs({
+        include_docs: true,
+        startkey: 'custom-bg_',
+        endkey: 'custom-bg_\ufff0'
       });
 
       const backgrounds: CustomBackgroundOption[] = [];
 
-      for (const doc of result.docs as CustomBackground[]) {
-        if (doc._attachments) {
+      for (const row of result.rows) {
+        const doc = row.doc as CustomBackground;
+        
+        // Verify document structure
+        if (doc && doc.type === 'custom-background' && doc._attachments) {
           // Get the first attachment (should be the image)
           const attachmentKey = Object.keys(doc._attachments)[0];
           if (attachmentKey) {
-            const blobUrl = await this.getBackgroundBlobUrl(doc._id, attachmentKey);
-            if (blobUrl) {
-              backgrounds.push({
-                id: doc._id,
-                name: doc.name,
-                filename: doc.filename,
-                blobUrl,
-                size: doc.size,
-                createdAt: new Date(doc.createdAt),
-                createdBy: doc.createdBy
-              });
+            try {
+              const blobUrl = await this.getBackgroundBlobUrl(doc._id, attachmentKey);
+              if (blobUrl) {
+                backgrounds.push({
+                  id: doc._id,
+                  name: doc.name,
+                  filename: doc.filename,
+                  blobUrl,
+                  size: doc.size,
+                  createdAt: new Date(doc.createdAt),
+                  createdBy: doc.createdBy
+                });
+              }
+            } catch (attachmentError) {
+              // Skip this background if attachment loading fails
+              continue;
             }
           }
         }
       }
 
+      // Sort by creation date (newest first)
+      backgrounds.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      
       this.customBackgrounds.set(backgrounds);
     } catch (error) {
       console.error('Error loading custom backgrounds:', error);
