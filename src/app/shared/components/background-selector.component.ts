@@ -247,11 +247,15 @@ export class BackgroundSelectorComponent implements OnInit, OnChanges {
       'abstract-energy-lines.png',
       'cosmic-galaxy-burst.png', 
       'cyberpunk-anime-girl.png',
+      'cyberpunk-asian-street.png',
+      'cyberpunk-city-noir.png',
       'cyberpunk-neon-corridor.png',
       'dark-witch-forest.png',
+      'gothic-dark-moon-woman.png',
       'medieval-castle-street.png',
       'modern-dark-apartment.png',
       'noir-theater-man.png',
+      'pirate-ship-captain.png',
       'sci-fi-laboratory.png',
       'space-nebula-stars.png',
       'zombie-apocalypse-scene.png'
@@ -327,6 +331,16 @@ export class BackgroundSelectorComponent implements OnInit, OnChanges {
         previewPath: 'assets/backgrounds/cyberpunk-anime-girl.png'
       },
       {
+        filename: 'cyberpunk-asian-street.png',
+        displayName: 'Cyberpunk Asien',
+        previewPath: 'assets/backgrounds/cyberpunk-asian-street.png'
+      },
+      {
+        filename: 'cyberpunk-city-noir.png',
+        displayName: 'Cyberpunk Noir',
+        previewPath: 'assets/backgrounds/cyberpunk-city-noir.png'
+      },
+      {
         filename: 'cyberpunk-neon-corridor.png',
         displayName: 'Cyberpunk Korridor',
         previewPath: 'assets/backgrounds/cyberpunk-neon-corridor.png'
@@ -335,6 +349,11 @@ export class BackgroundSelectorComponent implements OnInit, OnChanges {
         filename: 'dark-witch-forest.png',
         displayName: 'Hexenwald',
         previewPath: 'assets/backgrounds/dark-witch-forest.png'
+      },
+      {
+        filename: 'gothic-dark-moon-woman.png',
+        displayName: 'Gothic Mond',
+        previewPath: 'assets/backgrounds/gothic-dark-moon-woman.png'
       },
       {
         filename: 'medieval-castle-street.png',
@@ -350,6 +369,11 @@ export class BackgroundSelectorComponent implements OnInit, OnChanges {
         filename: 'noir-theater-man.png',
         displayName: 'Noir Theater',
         previewPath: 'assets/backgrounds/noir-theater-man.png'
+      },
+      {
+        filename: 'pirate-ship-captain.png',
+        displayName: 'Piraten Kapitän',
+        previewPath: 'assets/backgrounds/pirate-ship-captain.png'
       },
       {
         filename: 'sci-fi-laboratory.png',
