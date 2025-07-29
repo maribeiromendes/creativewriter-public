@@ -63,11 +63,12 @@ import { Story, StorySettings, DEFAULT_STORY_SETTINGS } from '../models/story.in
           </ion-segment-button>
         </ion-segment>
 
-        <!-- Tab Content -->
-        <div [ngSwitch]="selectedTab">
-          
-          <!-- General Tab -->
-          <div *ngSwitchCase="'general'">
+        <div class="settings-content">
+          <!-- Tab Content -->
+          <div [ngSwitch]="selectedTab">
+            
+            <!-- General Tab -->
+            <div *ngSwitchCase="'general'">
             <ion-card class="story-info-card">
               <ion-card-header>
                 <ion-card-title>{{ story.title || 'Unbenannte Geschichte' }}</ion-card-title>
@@ -191,8 +192,9 @@ import { Story, StorySettings, DEFAULT_STORY_SETTINGS } from '../models/story.in
             </ion-card>
           </div>
         </div>
+        </div>
 
-      <div class="settings-actions">
+        <div class="settings-actions">
         <ion-button 
           expand="block" 
           color="primary" 
@@ -351,6 +353,25 @@ import { Story, StorySettings, DEFAULT_STORY_SETTINGS } from '../models/story.in
     ion-segment-button.segment-button-checked ion-icon,
     ion-segment-button.segment-button-checked ion-label {
       color: #ffffff;
+    }
+
+    .settings-content {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 1rem;
+      padding-bottom: 4rem; /* Extra space for bottom buttons */
+      animation: fadeIn 0.3s ease-in-out;
+    }
+    
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     .story-info-card {
@@ -597,12 +618,34 @@ import { Story, StorySettings, DEFAULT_STORY_SETTINGS } from '../models/story.in
     }
 
     @media (max-width: 768px) {
+      .settings-content {
+        padding: 0.5rem;
+      }
+
       .settings-actions {
         padding: 0 0.5rem;
       }
       
       .settings-textarea.large {
         min-height: 150px;
+      }
+      
+      .settings-tabs {
+        padding: 0.25rem;
+      }
+      
+      ion-segment-button {
+        padding: 0.25rem;
+        min-height: 40px;
+      }
+      
+      ion-segment-button ion-icon {
+        font-size: 1.1rem;
+        margin-bottom: 0;
+      }
+      
+      ion-segment-button ion-label {
+        font-size: 0.75rem;
       }
     }
   `]
