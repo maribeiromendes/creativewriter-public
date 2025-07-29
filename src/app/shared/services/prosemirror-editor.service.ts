@@ -1131,9 +1131,27 @@ export class ProseMirrorEditorService {
       const tr = this.editorView.state.tr.replaceRange(position, position, fragment);
       this.editorView.dispatch(tr);
       
-      // Calculate position at the end of the inserted content
+      // Find the actual end position by looking for the last text node
+      const newState = this.editorView.state;
       const insertedSize = fragment.content.size;
-      const endPosition = position + insertedSize - 1; // Inside the last text node
+      const insertEndPos = position + insertedSize;
+      
+      // Find the last paragraph that was inserted and get position at end of its text content
+      let endPosition = insertEndPos - 1;
+      
+      // Walk backwards to find the last text position
+      for (let pos = insertEndPos - 1; pos >= position; pos--) {
+        try {
+          const $pos = newState.doc.resolve(pos);
+          if ($pos.parent.type.name === 'paragraph' && $pos.parentOffset > 0) {
+            endPosition = pos;
+            break;
+          }
+        } catch (e) {
+          // Position might be invalid, continue searching
+        }
+      }
+      
       this.beatStreamingPositions.set(beatId, endPosition);
     } catch (error) {
       console.error('Failed to insert HTML content:', error);
@@ -1152,44 +1170,61 @@ export class ProseMirrorEditorService {
     if (processedContent.includes('</p><p>')) {
       // Split by paragraph boundaries
       const parts = processedContent.split('</p><p>');
+      let currentPos = insertPos;
       
       // First part goes into current paragraph
       if (parts[0]) {
-        const tr1 = this.editorView.state.tr.insertText(parts[0], insertPos);
+        // Ensure we're inserting at the end of the text content, not in the middle
+        const tr1 = this.editorView.state.tr.insertText(parts[0], currentPos);
         this.editorView.dispatch(tr1);
+        currentPos += parts[0].length;
       }
       
       // Remaining parts create new paragraphs
-      let currentPos = insertPos + (parts[0]?.length || 0);
       for (let i = 1; i < parts.length; i++) {
         if (this.editorView) {
           const state = this.editorView.state;
-          const currentParagraphPos = this.findContainingParagraph(currentPos, state);
           
-          if (currentParagraphPos !== null) {
-            const currentParagraph = state.doc.nodeAt(currentParagraphPos + 1);
-            if (currentParagraph && this.editorView) {
-              const afterCurrentParagraph = currentParagraphPos + 1 + currentParagraph.nodeSize;
-              
-              // Create new paragraph with content
-              const newParagraphNode = state.schema.nodes['paragraph'].create(null, 
-                parts[i] ? [state.schema.text(parts[i])] : []);
-              
-              const tr = state.tr.insert(afterCurrentParagraph, newParagraphNode);
-              this.editorView.dispatch(tr);
-              
-              currentPos = afterCurrentParagraph + newParagraphNode.nodeSize - 1;
+          // Find the paragraph containing the current position
+          const $pos = state.doc.resolve(currentPos);
+          let paragraphNode = null;
+          let paragraphPos = -1;
+          
+          // Walk up to find the paragraph
+          for (let depth = $pos.depth; depth >= 0; depth--) {
+            if ($pos.node(depth).type.name === 'paragraph') {
+              paragraphNode = $pos.node(depth);
+              paragraphPos = $pos.start(depth) - 1;
+              break;
             }
+          }
+          
+          if (paragraphNode && paragraphPos >= 0) {
+            // Insert new paragraph after the current one
+            const afterCurrentParagraph = paragraphPos + paragraphNode.nodeSize;
+            
+            // Create new paragraph with content
+            const newParagraphNode = state.schema.nodes['paragraph'].create(null, 
+              parts[i] ? [state.schema.text(parts[i])] : []);
+            
+            const tr = state.tr.insert(afterCurrentParagraph, newParagraphNode);
+            this.editorView.dispatch(tr);
+            
+            // Update position to end of new paragraph's text content
+            currentPos = afterCurrentParagraph + (parts[i] ? parts[i].length : 0) + 1; // +1 for paragraph structure
           }
         }
       }
       
       this.beatStreamingPositions.set(beatId, currentPos);
     } else {
-      // Simple text append
-      const tr = this.editorView.state.tr.insertText(processedContent, insertPos);
+      // Simple text append - ensure we're at the right position
+      const state = this.editorView.state;
+      const validPos = Math.min(insertPos, state.doc.content.size);
+      
+      const tr = state.tr.insertText(processedContent, validPos);
       this.editorView.dispatch(tr);
-      this.beatStreamingPositions.set(beatId, insertPos + processedContent.length);
+      this.beatStreamingPositions.set(beatId, validPos + processedContent.length);
     }
   }
 
