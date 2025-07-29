@@ -680,7 +680,7 @@ export class ProseMirrorEditorService {
           isFirstChunk = false;
         }
       } else if (generationEvent.isComplete) {
-        // Generation completed
+        // Generation completed - no need to append closing </p> as it's handled in the HTML structure
         this.updateBeatNode(event.beatId, { 
           isGenerating: false,
           generatedContent: accumulatedContent,
@@ -1097,7 +1097,6 @@ export class ProseMirrorEditorService {
   private appendContentAfterBeatNode(beatId: string, newContent: string, isFirstChunk: boolean = false): void {
     if (!this.editorView) return;
     
-    
     const beatPos = this.findBeatNodePosition(beatId);
     if (beatPos === null) return;
     
@@ -1109,184 +1108,91 @@ export class ProseMirrorEditorService {
     const afterBeatPos = beatPos + beatNode.nodeSize;
     
     if (isFirstChunk) {
-      // First chunk - clear any stored position and process content for paragraphs
-      this.beatStreamingPositions.delete(beatId);
+      // First chunk - create HTML with <p> wrapper and process linebreaks
+      const htmlContent = '<p>' + newContent.replace(/\n/g, '</p><p>') + '</p>';
       
-      // Check if content contains paragraph breaks (\n\n or \r\n\r\n)
-      if (newContent.includes('\n\n') || newContent.includes('\r\n\r\n')) {
-        // Split content by double line breaks to create multiple paragraphs
-        const paragraphs = newContent.split(/\n\n+|\r\n\r\n+/);
-        const nodes = [];
-        
-        for (let i = 0; i < paragraphs.length; i++) {
-          const paragraphText = paragraphs[i];
-          if (paragraphText || i === 0) { // Always create first paragraph, even if empty
-            // Convert single line breaks within paragraph to hard breaks
-            const textParts = paragraphText.split(/\n|\r\n/);
-            const paragraphContent = [];
-            
-            for (let j = 0; j < textParts.length; j++) {
-              if (textParts[j]) {
-                paragraphContent.push(state.schema.text(textParts[j]));
-              }
-              if (j < textParts.length - 1) {
-                paragraphContent.push(state.schema.nodes['hard_break'].create());
-              }
-            }
-            
-            const paragraphNode = state.schema.nodes['paragraph'].create(null, 
-              paragraphContent.length > 0 ? paragraphContent : [state.schema.text('')]);
-            nodes.push(paragraphNode);
-          }
-        }
-        
-        const fragment = Fragment.from(nodes);
-        const tr = state.tr.insert(afterBeatPos, fragment);
-        this.editorView.dispatch(tr);
-        
-        // Store position at the end of the last paragraph's text node
-        const totalSize = nodes.reduce((sum, node) => sum + node.nodeSize, 0);
-        const textEndPos = afterBeatPos + totalSize - 1; // Inside last text node
-        this.beatStreamingPositions.set(beatId, textEndPos);
-      } else {
-        // No paragraph breaks - create single paragraph
-        const textParts = newContent.split(/\n|\r\n/);
-        const paragraphContent = [];
-        
-        for (let j = 0; j < textParts.length; j++) {
-          if (textParts[j]) {
-            paragraphContent.push(state.schema.text(textParts[j]));
-          }
-          if (j < textParts.length - 1) {
-            paragraphContent.push(state.schema.nodes['hard_break'].create());
-          }
-        }
-        
-        const paragraphNode = state.schema.nodes['paragraph'].create(null, 
-          paragraphContent.length > 0 ? paragraphContent : [state.schema.text('')]);
-        const fragment = Fragment.from([paragraphNode]);
-        
-        const tr = state.tr.insert(afterBeatPos, fragment);
-        this.editorView.dispatch(tr);
-        
-        // Store position at the end of the text node
-        const textEndPos = afterBeatPos + paragraphNode.nodeSize - 1;
-        this.beatStreamingPositions.set(beatId, textEndPos);
-      }
+      // Parse HTML and insert into document
+      this.insertHtmlContent(beatId, htmlContent, afterBeatPos);
     } else {
-      // Subsequent chunks - check for paragraph breaks and handle accordingly
-      const insertPos = this.beatStreamingPositions.get(beatId);
-      
-      
-      if (!insertPos) {
-        return;
-      }
-      
-      if (insertPos > state.doc.content.size) {
-        return;
-      }
-      
-      // Check if content contains paragraph breaks
-      if (newContent.includes('\n\n') || newContent.includes('\r\n\r\n')) {
-        // Split content by double line breaks
-        const parts = newContent.split(/\n\n+|\r\n\r\n+/);
-        
-        // First part continues current paragraph (append as text)
-        if (parts.length > 0 && parts[0]) {
-          const firstPart = parts[0];
-          // Convert single line breaks to hard breaks in a single transaction
-          const textParts = firstPart.split(/\n|\r\n/);
-          let tr = state.tr;
-          let currentPos = insertPos;
-          
-          for (let j = 0; j < textParts.length; j++) {
-            if (textParts[j]) {
-              tr = tr.insertText(textParts[j], currentPos);
-              currentPos += textParts[j].length;
-            }
-            if (j < textParts.length - 1) {
-              const hardBreak = state.schema.nodes['hard_break'].create();
-              tr = tr.insert(currentPos, hardBreak);
-              currentPos += hardBreak.nodeSize;
-            }
-          }
-          
-          // Single dispatch for entire chunk
-          this.editorView.dispatch(tr);
-          this.beatStreamingPositions.set(beatId, currentPos);
-        }
-        
-        // Remaining parts create new paragraphs - collect all nodes first
-        const newParagraphs = [];
-        let finalPosition = this.beatStreamingPositions.get(beatId) || insertPos;
-        
-        for (let i = 1; i < parts.length; i++) {
-          const paragraphText = parts[i];
-          if (paragraphText) {
-            const textParts = paragraphText.split(/\n|\r\n/);
-            const paragraphContent = [];
-            
-            for (let j = 0; j < textParts.length; j++) {
-              if (textParts[j]) {
-                paragraphContent.push(state.schema.text(textParts[j]));
-              }
-              if (j < textParts.length - 1) {
-                paragraphContent.push(state.schema.nodes['hard_break'].create());
-              }
-            }
-            
-            const paragraphNode = state.schema.nodes['paragraph'].create(null, paragraphContent);
-            newParagraphs.push(paragraphNode);
-          }
-        }
-        
-        // Insert all new paragraphs in a single transaction
-        if (newParagraphs.length > 0) {
-          // Get fresh state after previous insertions
-          const currentState = this.editorView.state;
-          const validatedPosition = Math.min(finalPosition, currentState.doc.content.size);
-          
-          const currentParagraphPos = this.findContainingParagraph(validatedPosition, currentState);
-          if (currentParagraphPos !== null) {
-            const currentParagraph = currentState.doc.nodeAt(currentParagraphPos);
-            if (currentParagraph) {
-              const afterCurrentParagraph = currentParagraphPos + currentParagraph.nodeSize;
-              const fragment = Fragment.from(newParagraphs);
-              const tr = currentState.tr.insert(afterCurrentParagraph, fragment);
-              this.editorView.dispatch(tr);
-              
-              // Update position to end of last new paragraph
-              const totalSize = newParagraphs.reduce((sum, node) => sum + node.nodeSize, 0);
-              this.beatStreamingPositions.set(beatId, afterCurrentParagraph + totalSize - 1);
-            }
-          }
-        }
-      } else {
-        // No paragraph breaks - handle single line breaks in one transaction
-        
-        const textParts = newContent.split(/\n|\r\n/);
-        let tr = state.tr;
-        let currentPos = insertPos;
-        
-        for (let j = 0; j < textParts.length; j++) {
-          if (textParts[j]) {
-            tr = tr.insertText(textParts[j], currentPos);
-            currentPos += textParts[j].length;
-          }
-          if (j < textParts.length - 1) {
-            const hardBreak = state.schema.nodes['hard_break'].create();
-            tr = tr.insert(currentPos, hardBreak);
-            currentPos += hardBreak.nodeSize;
-          }
-        }
-        
-        
-        // Single dispatch for entire chunk
-        this.editorView.dispatch(tr);
-        this.beatStreamingPositions.set(beatId, currentPos);
-      }
+      // Subsequent chunks - process linebreaks and append to existing content
+      const processedContent = newContent.replace(/\n/g, '</p><p>');
+      this.appendHtmlChunk(beatId, processedContent);
     }
   }
+
+  private insertHtmlContent(beatId: string, htmlContent: string, position: number): void {
+    if (!this.editorView) return;
+    
+    try {
+      const div = document.createElement('div');
+      div.innerHTML = htmlContent;
+      
+      const fragment = DOMParser.fromSchema(this.editorSchema).parseSlice(div);
+      const tr = this.editorView.state.tr.replaceRange(position, position, fragment);
+      this.editorView.dispatch(tr);
+      
+      // Calculate position at the end of the inserted content
+      const insertedSize = fragment.content.size;
+      const endPosition = position + insertedSize - 1; // Inside the last text node
+      this.beatStreamingPositions.set(beatId, endPosition);
+    } catch (error) {
+      console.error('Failed to insert HTML content:', error);
+    }
+  }
+
+  private appendHtmlChunk(beatId: string, processedContent: string): void {
+    if (!this.editorView) return;
+    
+    const insertPos = this.beatStreamingPositions.get(beatId);
+    if (!insertPos || insertPos > this.editorView.state.doc.content.size) {
+      return;
+    }
+    
+    // If the processed content contains </p><p>, we need to handle it specially
+    if (processedContent.includes('</p><p>')) {
+      // Split by paragraph boundaries
+      const parts = processedContent.split('</p><p>');
+      
+      // First part goes into current paragraph
+      if (parts[0]) {
+        const tr1 = this.editorView.state.tr.insertText(parts[0], insertPos);
+        this.editorView.dispatch(tr1);
+      }
+      
+      // Remaining parts create new paragraphs
+      let currentPos = insertPos + (parts[0]?.length || 0);
+      for (let i = 1; i < parts.length; i++) {
+        if (this.editorView) {
+          const state = this.editorView.state;
+          const currentParagraphPos = this.findContainingParagraph(currentPos, state);
+          
+          if (currentParagraphPos !== null) {
+            const currentParagraph = state.doc.nodeAt(currentParagraphPos + 1);
+            if (currentParagraph && this.editorView) {
+              const afterCurrentParagraph = currentParagraphPos + 1 + currentParagraph.nodeSize;
+              
+              // Create new paragraph with content
+              const newParagraphNode = state.schema.nodes['paragraph'].create(null, 
+                parts[i] ? [state.schema.text(parts[i])] : []);
+              
+              const tr = state.tr.insert(afterCurrentParagraph, newParagraphNode);
+              this.editorView.dispatch(tr);
+              
+              currentPos = afterCurrentParagraph + newParagraphNode.nodeSize - 1;
+            }
+          }
+        }
+      }
+      
+      this.beatStreamingPositions.set(beatId, currentPos);
+    } else {
+      // Simple text append
+      const tr = this.editorView.state.tr.insertText(processedContent, insertPos);
+      this.editorView.dispatch(tr);
+      this.beatStreamingPositions.set(beatId, insertPos + processedContent.length);
+    }
+  }
+
 
   private findContainingParagraph(pos: number, state: any): number | null {
     const $pos = state.doc.resolve(pos);
