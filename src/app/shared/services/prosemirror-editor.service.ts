@@ -190,7 +190,8 @@ export class ProseMirrorEditorService {
       }),
       keymap(baseKeymap),
       this.createBeatAIPlugin(config),
-      this.createCodexHighlightingPlugin(config)
+      this.createCodexHighlightingPlugin(config),
+      this.createContextMenuPlugin()
     ];
 
 
@@ -591,9 +592,14 @@ export class ProseMirrorEditorService {
   }
 
   destroy(): void {
+    this.hideContextMenu(); // Clean up context menu
     if (this.editorView) {
       this.editorView.destroy();
       this.editorView = null;
+    }
+    if (this.simpleEditorView) {
+      this.simpleEditorView.destroy();
+      this.simpleEditorView = null;
     }
     this.beatNodeViews.clear();
   }
@@ -1471,6 +1477,146 @@ export class ProseMirrorEditorService {
       if (editorContainer) {
         editorContainer.classList.remove('pm-debug-mode');
       }
+    }
+  }
+
+  private createContextMenuPlugin(): Plugin {
+    let contextMenuElement: HTMLElement | null = null;
+
+    return new Plugin({
+      key: new PluginKey('contextMenu'),
+      props: {
+        handleDOMEvents: {
+          contextmenu: (view, event) => {
+            event.preventDefault();
+            this.showContextMenu(view, event);
+            return true;
+          },
+          click: (view, event) => {
+            // Hide context menu on any click
+            this.hideContextMenu();
+            return false;
+          }
+        }
+      }
+    });
+  }
+
+  private showContextMenu(view: EditorView, event: MouseEvent): void {
+    this.hideContextMenu(); // Remove any existing menu
+    
+    const { state } = view;
+    const pos = view.posAtCoords({ left: event.clientX, top: event.clientY });
+    
+    if (!pos) return;
+    
+    // Check if there are empty paragraphs in the document
+    const hasEmptyParagraphs = this.hasEmptyParagraphs(state);
+    
+    if (!hasEmptyParagraphs) return; // Don't show menu if no empty paragraphs
+    
+    const menu = document.createElement('div');
+    menu.className = 'prosemirror-context-menu';
+    menu.style.cssText = `
+      position: fixed;
+      left: ${event.clientX}px;
+      top: ${event.clientY}px;
+      background: #2d2d30;
+      border: 1px solid #404040;
+      border-radius: 4px;
+      padding: 4px 0;
+      z-index: 1000;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+      min-width: 180px;
+      font-size: 13px;
+      color: #cccccc;
+    `;
+    
+    const menuItem = document.createElement('div');
+    menuItem.className = 'context-menu-item';
+    menuItem.textContent = 'Leere Absätze entfernen';
+    menuItem.style.cssText = `
+      padding: 6px 12px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    `;
+    
+    menuItem.addEventListener('mouseenter', () => {
+      menuItem.style.backgroundColor = '#404040';
+    });
+    
+    menuItem.addEventListener('mouseleave', () => {
+      menuItem.style.backgroundColor = 'transparent';
+    });
+    
+    menuItem.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.removeEmptyParagraphs(view);
+      this.hideContextMenu();
+    });
+    
+    menu.appendChild(menuItem);
+    document.body.appendChild(menu);
+    
+    // Store reference for cleanup
+    (this as any).contextMenuElement = menu;
+    
+    // Position adjustment if menu goes off screen
+    const rect = menu.getBoundingClientRect();
+    if (rect.right > window.innerWidth) {
+      menu.style.left = `${event.clientX - rect.width}px`;
+    }
+    if (rect.bottom > window.innerHeight) {
+      menu.style.top = `${event.clientY - rect.height}px`;
+    }
+  }
+
+  private hideContextMenu(): void {
+    const menu = (this as any).contextMenuElement;
+    if (menu && menu.parentNode) {
+      menu.parentNode.removeChild(menu);
+      (this as any).contextMenuElement = null;
+    }
+  }
+
+  private hasEmptyParagraphs(state: EditorState): boolean {
+    let hasEmpty = false;
+    
+    state.doc.descendants((node) => {
+      if (node.type.name === 'paragraph' && node.content.size === 0) {
+        hasEmpty = true;
+        return false; // Stop iteration
+      }
+      return true;
+    });
+    
+    return hasEmpty;
+  }
+
+  private removeEmptyParagraphs(view: EditorView): void {
+    const { state } = view;
+    const tr = state.tr;
+    const toRemove: { from: number; to: number }[] = [];
+    
+    // Collect all empty paragraph positions
+    state.doc.descendants((node, pos) => {
+      if (node.type.name === 'paragraph' && node.content.size === 0) {
+        toRemove.push({ from: pos, to: pos + node.nodeSize });
+      }
+      return true;
+    });
+    
+    // Remove empty paragraphs from end to beginning to maintain position validity
+    toRemove.reverse().forEach(({ from, to }) => {
+      tr.delete(from, to);
+    });
+    
+    if (toRemove.length > 0) {
+      view.dispatch(tr);
+      
+      // Emit content update to trigger save
+      const content = this.getHTMLContent();
+      this.contentUpdate$.next(content);
     }
   }
 }
