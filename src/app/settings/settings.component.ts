@@ -437,7 +437,10 @@ import { BackgroundSelectorComponent } from '../shared/components/background-sel
             </div>
             
             <div class="appearance-section">
-              <app-background-selector></app-background-selector>
+              <app-background-selector 
+                [selectedBackgroundImage]="settings.appearance.backgroundImage"
+                (backgroundImageChange)="onBackgroundImageChange($event)">
+              </app-background-selector>
             </div>
           </ion-card-content>
         </ion-card>
@@ -1621,6 +1624,16 @@ export class SettingsComponent implements OnInit, OnDestroy {
     
     // Debug logging
     console.log('Text color changed to:', color);
+    console.log('Settings appearance:', this.settings.appearance);
+  }
+
+  onBackgroundImageChange(backgroundImage: string): void {
+    // Update local settings first to track changes
+    this.settings.appearance.backgroundImage = backgroundImage;
+    this.onSettingsChange();
+    
+    // Debug logging
+    console.log('Background image changed to:', backgroundImage);
     console.log('Settings appearance:', this.settings.appearance);
   }
 

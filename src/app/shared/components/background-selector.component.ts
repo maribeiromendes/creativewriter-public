@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, computed, inject } from '@angular/core';
+import { Component, OnInit, OnChanges, SimpleChanges, Input, Output, EventEmitter, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonIcon, IonGrid, IonRow, IonCol, IonText, IonCard, IonCardContent } from '@ionic/angular/standalone';
 import { checkmarkCircle } from 'ionicons/icons';
@@ -201,8 +201,12 @@ interface BackgroundOption {
     }
   `]
 })
-export class BackgroundSelectorComponent implements OnInit {
+export class BackgroundSelectorComponent implements OnInit, OnChanges {
   private settingsService = inject(SettingsService);
+
+  // Input/Output for parent component integration
+  @Input() selectedBackgroundImage: string = 'none';
+  @Output() backgroundImageChange = new EventEmitter<string>();
 
   // Available background images
   backgroundOptions: BackgroundOption[] = [
@@ -266,22 +270,21 @@ export class BackgroundSelectorComponent implements OnInit {
   }
 
   ngOnInit() {
-    // Load current background setting
-    const settings = this.settingsService.getSettings();
-    this.selectedBackground.set(settings.appearance.backgroundImage);
+    // Initialize with input value
+    this.selectedBackground.set(this.selectedBackgroundImage);
+  }
 
-    // Subscribe to settings changes
-    this.settingsService.settings$.subscribe(settings => {
-      this.selectedBackground.set(settings.appearance.backgroundImage);
-    });
+  ngOnChanges(changes: SimpleChanges) {
+    // Update when input changes
+    if (changes['selectedBackgroundImage'] && changes['selectedBackgroundImage'].currentValue !== undefined) {
+      this.selectedBackground.set(changes['selectedBackgroundImage'].currentValue);
+    }
   }
 
   selectBackground(filename: string) {
     this.selectedBackground.set(filename);
     
-    // Update settings
-    this.settingsService.updateAppearanceSettings({
-      backgroundImage: filename
-    });
+    // Emit change to parent component
+    this.backgroundImageChange.emit(filename);
   }
 }
