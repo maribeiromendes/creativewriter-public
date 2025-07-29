@@ -17,6 +17,8 @@ import { Settings } from '../core/models/settings.interface';
 import { ModelOption } from '../core/models/model.interface';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { ColorPickerComponent } from '../shared/components/color-picker.component';
+import { SettingsTabsComponent, TabItem } from '../shared/components/settings-tabs.component';
+import { SettingsContentComponent } from '../shared/components/settings-content.component';
 
 @Component({
   selector: 'app-settings',
@@ -26,8 +28,7 @@ import { ColorPickerComponent } from '../shared/components/color-picker.componen
     IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
     IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonInput, IonToggle,
     IonChip, IonItem, IonLabel, IonSelect, IonSelectOption, IonRange, IonTextarea,
-    IonSegment, IonSegmentButton,
-    ColorPickerComponent
+    ColorPickerComponent, SettingsTabsComponent, SettingsContentComponent
   ],
   template: `
     <div class="ion-page">
@@ -54,22 +55,12 @@ import { ColorPickerComponent } from '../shared/components/color-picker.componen
 
     <ion-content>
       <!-- Tab Navigation -->
-      <ion-segment [(ngModel)]="selectedTab" mode="md" class="settings-tabs">
-        <ion-segment-button value="models">
-          <ion-icon name="cloud-outline"></ion-icon>
-          <ion-label>AI Modelle</ion-label>
-        </ion-segment-button>
-        <ion-segment-button value="appearance">
-          <ion-icon name="color-palette-outline"></ion-icon>
-          <ion-label>Darstellung</ion-label>
-        </ion-segment-button>
-        <ion-segment-button value="scene-title">
-          <ion-icon name="document-text-outline"></ion-icon>
-          <ion-label>Szenentitel</ion-label>
-        </ion-segment-button>
-      </ion-segment>
+      <app-settings-tabs 
+        [tabs]="tabItems" 
+        [(selectedTab)]="selectedTab">
+      </app-settings-tabs>
 
-      <div class="settings-content">
+      <app-settings-content>
         <!-- Tab Content -->
         <div [ngSwitch]="selectedTab">
           
@@ -616,7 +607,7 @@ import { ColorPickerComponent } from '../shared/components/color-picker.componen
             Auf Standard zurücksetzen
           </ion-button>
         </div>
-      </div>
+      </app-settings-content>
     </ion-content>
     </div>
   `,
@@ -703,93 +694,12 @@ import { ColorPickerComponent } from '../shared/components/color-picker.componen
       --color: #e0e0e0;
     }
 
-    /* Tab Navigation Styles */
-    .settings-tabs {
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      background: rgba(45, 45, 45, 0.3);
-      backdrop-filter: blur(15px);
-      -webkit-backdrop-filter: blur(15px);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-      box-shadow: 0 2px 20px rgba(0, 0, 0, 0.2);
-      padding: 0.5rem;
-      margin-bottom: 1rem;
-    }
-    
-    ion-segment {
-      --background: transparent;
-    }
-    
-    ion-segment-button {
-      --background: transparent;
-      --background-checked: linear-gradient(135deg, rgba(71, 118, 230, 0.2) 0%, rgba(139, 180, 248, 0.2) 100%);
-      --color: #f8f9fa;
-      --color-checked: #ffffff;
-      --indicator-color: linear-gradient(135deg, #4776e6 0%, #8bb4f8 100%);
-      --indicator-height: 3px;
-      --border-radius: 8px;
-      padding: 0.5rem;
-      min-height: 48px;
-      transition: all 0.3s ease;
-      border: 1px solid transparent;
-      opacity: 0.8;
-    }
-    
-    ion-segment-button:hover {
-      --background: rgba(139, 180, 248, 0.1);
-      opacity: 1;
-      transform: translateY(-1px);
-    }
-    
-    ion-segment-button.segment-button-checked {
-      border-color: rgba(139, 180, 248, 0.3);
-      background: linear-gradient(135deg, rgba(71, 118, 230, 0.2) 0%, rgba(139, 180, 248, 0.2) 100%);
-      opacity: 1;
-      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-    }
-    
-    ion-segment-button ion-icon {
-      font-size: 1.3rem;
-      margin-bottom: 0.2rem;
-      color: inherit;
-    }
-    
-    ion-segment-button ion-label {
-      font-size: 0.85rem;
-      font-weight: 500;
-      letter-spacing: 0.3px;
-      color: inherit;
-    }
-    
-    ion-segment-button.segment-button-checked ion-icon,
-    ion-segment-button.segment-button-checked ion-label {
-      color: #ffffff;
-    }
 
     /* Ensure ng-dropdown-panel appears above everything */
     :global(.ng-dropdown-panel-open) {
       overflow: visible !important;
     }
 
-    .settings-content {
-      max-width: 800px;
-      margin: 0 auto;
-      padding: 1rem;
-      padding-bottom: 4rem; /* Extra space for bottom buttons */
-      animation: fadeIn 0.3s ease-in-out;
-    }
-    
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(10px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
 
     ion-card {
       margin-bottom: 1rem;
@@ -1393,10 +1303,6 @@ import { ColorPickerComponent } from '../shared/components/color-picker.componen
     }
 
     @media (max-width: 768px) {
-      .settings-content {
-        padding: 0.5rem;
-      }
-
       .settings-row {
         grid-template-columns: 1fr;
       }
@@ -1405,24 +1311,6 @@ import { ColorPickerComponent } from '../shared/components/color-picker.componen
         flex-direction: column;
         align-items: flex-start;
         gap: 0.5rem;
-      }
-      
-      .settings-tabs {
-        padding: 0.25rem;
-      }
-      
-      ion-segment-button {
-        padding: 0.25rem;
-        min-height: 40px;
-      }
-      
-      ion-segment-button ion-icon {
-        font-size: 1.1rem;
-        margin-bottom: 0;
-      }
-      
-      ion-segment-button ion-label {
-        font-size: 0.75rem;
       }
     }
   `]
@@ -1443,6 +1331,11 @@ export class SettingsComponent implements OnInit, OnDestroy {
   
   // Tab control
   selectedTab = 'models';
+  tabItems: TabItem[] = [
+    { value: 'models', icon: 'cloud-outline', label: 'AI Modelle' },
+    { value: 'appearance', icon: 'color-palette-outline', label: 'Darstellung' },
+    { value: 'scene-title', icon: 'document-text-outline', label: 'Szenentitel' }
+  ];
 
   constructor(
     private router: Router,

@@ -6,7 +6,7 @@ import {
   IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
   IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonItem, IonLabel,
   IonTextarea, IonCheckbox, IonRadio, IonRadioGroup, IonChip, IonNote,
-  IonText, IonGrid, IonRow, IonCol, IonSegment, IonSegmentButton
+  IonText, IonGrid, IonRow, IonCol
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { 
@@ -16,6 +16,8 @@ import {
 } from 'ionicons/icons';
 import { StoryService } from '../services/story.service';
 import { Story, StorySettings, DEFAULT_STORY_SETTINGS } from '../models/story.interface';
+import { SettingsTabsComponent, TabItem } from '../../shared/components/settings-tabs.component';
+import { SettingsContentComponent } from '../../shared/components/settings-content.component';
 
 @Component({
   selector: 'app-story-settings',
@@ -25,7 +27,8 @@ import { Story, StorySettings, DEFAULT_STORY_SETTINGS } from '../models/story.in
     IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
     IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonItem, IonLabel,
     IonTextarea, IonCheckbox, IonRadio, IonRadioGroup, IonChip, IonNote,
-    IonText, IonGrid, IonRow, IonCol, IonSegment, IonSegmentButton
+    IonText, IonGrid, IonRow, IonCol,
+    SettingsTabsComponent, SettingsContentComponent
   ],
   template: `
     <div class="ion-page">
@@ -48,22 +51,12 @@ import { Story, StorySettings, DEFAULT_STORY_SETTINGS } from '../models/story.in
 
       <ion-content *ngIf="story">
         <!-- Tab Navigation -->
-        <ion-segment [(ngModel)]="selectedTab" mode="md" class="settings-tabs">
-          <ion-segment-button value="general">
-            <ion-icon name="information-circle-outline"></ion-icon>
-            <ion-label>Allgemein</ion-label>
-          </ion-segment-button>
-          <ion-segment-button value="ai-system">
-            <ion-icon name="chatbox-outline"></ion-icon>
-            <ion-label>AI System</ion-label>
-          </ion-segment-button>
-          <ion-segment-button value="beat-config">
-            <ion-icon name="settings-outline"></ion-icon>
-            <ion-label>Beat Config</ion-label>
-          </ion-segment-button>
-        </ion-segment>
+        <app-settings-tabs 
+          [tabs]="tabItems" 
+          [(selectedTab)]="selectedTab">
+        </app-settings-tabs>
 
-        <div class="settings-content">
+        <app-settings-content>
           <!-- Tab Content -->
           <div [ngSwitch]="selectedTab">
             
@@ -192,7 +185,7 @@ import { Story, StorySettings, DEFAULT_STORY_SETTINGS } from '../models/story.in
             </ion-card>
           </div>
         </div>
-        </div>
+        </app-settings-content>
 
         <div class="settings-actions">
         <ion-button 
@@ -291,88 +284,6 @@ import { Story, StorySettings, DEFAULT_STORY_SETTINGS } from '../models/story.in
       background: transparent !important;
     }
 
-    /* Tab Navigation Styles */
-    .settings-tabs {
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      background: rgba(45, 45, 45, 0.3);
-      backdrop-filter: blur(15px);
-      -webkit-backdrop-filter: blur(15px);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-      box-shadow: 0 2px 20px rgba(0, 0, 0, 0.2);
-      padding: 0.5rem;
-      margin-bottom: 1rem;
-    }
-    
-    ion-segment {
-      --background: transparent;
-    }
-    
-    ion-segment-button {
-      --background: transparent;
-      --background-checked: linear-gradient(135deg, rgba(71, 118, 230, 0.2) 0%, rgba(139, 180, 248, 0.2) 100%);
-      --color: #f8f9fa;
-      --color-checked: #ffffff;
-      --indicator-color: linear-gradient(135deg, #4776e6 0%, #8bb4f8 100%);
-      --indicator-height: 3px;
-      --border-radius: 8px;
-      padding: 0.5rem;
-      min-height: 48px;
-      transition: all 0.3s ease;
-      border: 1px solid transparent;
-      opacity: 0.8;
-    }
-    
-    ion-segment-button:hover {
-      --background: rgba(139, 180, 248, 0.1);
-      opacity: 1;
-      transform: translateY(-1px);
-    }
-    
-    ion-segment-button.segment-button-checked {
-      border-color: rgba(139, 180, 248, 0.3);
-      background: linear-gradient(135deg, rgba(71, 118, 230, 0.2) 0%, rgba(139, 180, 248, 0.2) 100%);
-      opacity: 1;
-      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-    }
-    
-    ion-segment-button ion-icon {
-      font-size: 1.3rem;
-      margin-bottom: 0.2rem;
-      color: inherit;
-    }
-    
-    ion-segment-button ion-label {
-      font-size: 0.85rem;
-      font-weight: 500;
-      letter-spacing: 0.3px;
-      color: inherit;
-    }
-    
-    ion-segment-button.segment-button-checked ion-icon,
-    ion-segment-button.segment-button-checked ion-label {
-      color: #ffffff;
-    }
-
-    .settings-content {
-      max-width: 800px;
-      margin: 0 auto;
-      padding: 1rem;
-      padding-bottom: 4rem; /* Extra space for bottom buttons */
-      animation: fadeIn 0.3s ease-in-out;
-    }
-    
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(10px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
 
     .story-info-card {
       background: linear-gradient(135deg, rgba(20, 20, 20, 0.3) 0%, rgba(15, 15, 15, 0.3) 100%);
@@ -618,34 +529,12 @@ import { Story, StorySettings, DEFAULT_STORY_SETTINGS } from '../models/story.in
     }
 
     @media (max-width: 768px) {
-      .settings-content {
-        padding: 0.5rem;
-      }
-
       .settings-actions {
         padding: 0 0.5rem;
       }
       
       .settings-textarea.large {
         min-height: 150px;
-      }
-      
-      .settings-tabs {
-        padding: 0.25rem;
-      }
-      
-      ion-segment-button {
-        padding: 0.25rem;
-        min-height: 40px;
-      }
-      
-      ion-segment-button ion-icon {
-        font-size: 1.1rem;
-        margin-bottom: 0;
-      }
-      
-      ion-segment-button ion-label {
-        font-size: 0.75rem;
       }
     }
   `]
@@ -656,6 +545,11 @@ export class StorySettingsComponent implements OnInit {
   hasUnsavedChanges = false;
   private originalSettings!: StorySettings;
   selectedTab = 'general';
+  tabItems: TabItem[] = [
+    { value: 'general', icon: 'information-circle-outline', label: 'Allgemein' },
+    { value: 'ai-system', icon: 'chatbox-outline', label: 'AI System' },
+    { value: 'beat-config', icon: 'settings-outline', label: 'Beat Config' }
+  ];
   
   placeholders = [
     '{systemMessage}',
