@@ -1,11 +1,13 @@
 import { Injectable, signal, computed, effect, inject } from '@angular/core';
 import { SettingsService } from '../../core/services/settings.service';
+import { CustomBackgroundStorageService } from './custom-background-storage.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class BackgroundService {
   private settingsService = inject(SettingsService);
+  private customBackgroundService = inject(CustomBackgroundStorageService);
 
   // Signal for the current background image
   private backgroundImage = signal<string>('none');
@@ -26,6 +28,24 @@ export class BackgroundService {
       };
     }
     
+    // Handle custom backgrounds
+    if (image.startsWith('custom:')) {
+      const customId = image.replace('custom:', '');
+      const customBg = this.customBackgroundService.backgrounds().find(bg => bg.id === customId);
+      
+      if (customBg) {
+        return {
+          backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('${customBg.blobUrl}')`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center center',
+          backgroundRepeat: 'no-repeat',
+          backgroundAttachment: 'fixed',
+          backgroundColor: '#1a1a1a'
+        };
+      }
+    }
+    
+    // Handle standard backgrounds
     return {
       backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('assets/backgrounds/${image}')`,
       backgroundSize: 'cover',
@@ -48,6 +68,13 @@ export class BackgroundService {
 
     // Apply background to body element when it changes
     effect(() => {
+      this.applyBackgroundToBody();
+    });
+    
+    // React to custom background changes
+    effect(() => {
+      // Trigger re-evaluation when custom backgrounds change
+      this.customBackgroundService.backgrounds();
       this.applyBackgroundToBody();
     });
   }

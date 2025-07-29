@@ -1,10 +1,11 @@
 import { Component, OnInit, OnChanges, SimpleChanges, Input, Output, EventEmitter, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient, provideHttpClient } from '@angular/common/http';
-import { IonIcon, IonGrid, IonRow, IonCol, IonText, IonCard, IonCardContent } from '@ionic/angular/standalone';
-import { checkmarkCircle } from 'ionicons/icons';
+import { IonIcon, IonGrid, IonRow, IonCol, IonText, IonCard, IonCardContent, IonButton, IonAlert } from '@ionic/angular/standalone';
+import { checkmarkCircle, trashOutline } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
 import { SettingsService } from '../../core/services/settings.service';
+import { CustomBackgroundStorageService, CustomBackgroundOption } from '../services/custom-background-storage.service';
 
 interface BackgroundOption {
   filename: string;
@@ -23,11 +24,18 @@ interface BackgroundOption {
     IonCol,
     IonText,
     IonCard,
-    IonCardContent
+    IonCardContent,
+    IonButton,
+    IonAlert
   ],
   template: `
     <div class="background-selector">
       <h3>Hintergrund auswählen</h3>
+      
+      <!-- Standard Backgrounds -->
+      <div class="section-header">
+        <h4>Standard Hintergründe</h4>
+      </div>
       
       <ion-grid>
         <ion-row>
@@ -54,7 +62,7 @@ interface BackgroundOption {
             </ion-card>
           </ion-col>
 
-          <!-- Background image options -->
+          <!-- Standard background image options -->
           <ion-col 
             size="6" 
             size-md="4" 
@@ -86,6 +94,77 @@ interface BackgroundOption {
           </ion-col>
         </ion-row>
       </ion-grid>
+
+      <!-- Custom Backgrounds Section -->
+      <div class="section-header" *ngIf="customBackgrounds().length > 0">
+        <h4>Meine Hintergründe</h4>
+        <ion-text color="medium">
+          <small>{{ customBackgrounds().length }} eigene Hintergründe</small>
+        </ion-text>
+      </div>
+      
+      <ion-grid *ngIf="customBackgrounds().length > 0">
+        <ion-row>
+          <ion-col 
+            size="6" 
+            size-md="4" 
+            size-lg="3"
+            *ngFor="let customBg of customBackgrounds()"
+          >
+            <ion-card 
+              [class.selected]="selectedBackground() === 'custom:' + customBg.id"
+              (click)="selectBackground('custom:' + customBg.id)"
+              button
+            >
+              <ion-card-content class="preview-card custom-card">
+                <div class="preview-container">
+                  <img 
+                    [src]="customBg.blobUrl" 
+                    [alt]="customBg.name"
+                    class="background-preview"
+                    loading="lazy"
+                  />
+                  
+                  <!-- Delete button -->
+                  <ion-button 
+                    fill="clear" 
+                    size="small" 
+                    color="danger"
+                    class="delete-button"
+                    (click)="confirmDeleteCustomBackground($event, customBg)"
+                  >
+                    <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+                  </ion-button>
+                </div>
+                <div class="background-name">{{ customBg.name }}</div>
+                <div class="background-size">{{ formatFileSize(customBg.size) }}</div>
+                <ion-icon 
+                  *ngIf="selectedBackground() === 'custom:' + customBg.id"
+                  name="checkmark-circle"
+                  class="selected-icon"
+                ></ion-icon>
+              </ion-card-content>
+            </ion-card>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+
+      <!-- Empty state for custom backgrounds -->
+      <div class="empty-custom-backgrounds" *ngIf="customBackgrounds().length === 0">
+        <ion-text color="medium">
+          <p>Noch keine eigenen Hintergründe vorhanden.</p>
+          <p>Laden Sie über die Einstellungen eigene Bilder hoch.</p>
+        </ion-text>
+      </div>
+
+      <!-- Delete Confirmation Alert -->
+      <ion-alert
+        [isOpen]="showDeleteAlert"
+        header="Hintergrund löschen?"
+        [message]="deleteMessage"
+        [buttons]="deleteButtons"
+        (didDismiss)="cancelDelete()"
+      ></ion-alert>
     </div>
   `,
   styles: [`
@@ -97,6 +176,26 @@ interface BackgroundOption {
       color: var(--ion-color-primary);
       margin-bottom: 1rem;
       font-size: 1.2rem;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 1.5rem 0 1rem 0;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--ion-color-light-shade);
+    }
+
+    .section-header h4 {
+      color: var(--ion-color-primary);
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .section-header:first-of-type {
+      margin-top: 0;
     }
 
     .preview-card {
@@ -180,6 +279,47 @@ interface BackgroundOption {
       font-size: 1.2rem;
     }
 
+    .custom-card {
+      position: relative;
+    }
+
+    .delete-button {
+      position: absolute;
+      top: 0.25rem;
+      left: 0.25rem;
+      z-index: 10;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      --background: rgba(0, 0, 0, 0.7);
+      --color: white;
+      width: 28px;
+      height: 28px;
+    }
+
+    .custom-card:hover .delete-button {
+      opacity: 1;
+    }
+
+    .background-size {
+      font-size: 0.7rem;
+      color: var(--ion-color-medium-shade);
+      text-align: center;
+      margin-top: 0.25rem;
+    }
+
+    .empty-custom-backgrounds {
+      text-align: center;
+      padding: 2rem;
+      background: var(--ion-color-light-tint);
+      border-radius: 8px;
+      margin-top: 1rem;
+    }
+
+    .empty-custom-backgrounds p {
+      margin: 0.5rem 0;
+      font-size: 0.9rem;
+    }
+
     ion-card {
       margin: 0.25rem;
       cursor: pointer;
@@ -199,11 +339,24 @@ interface BackgroundOption {
       .background-name {
         font-size: 0.7rem;
       }
+      
+      .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+      }
+      
+      .delete-button {
+        opacity: 1;
+        width: 24px;
+        height: 24px;
+      }
     }
   `]
 })
 export class BackgroundSelectorComponent implements OnInit, OnChanges {
   private settingsService = inject(SettingsService);
+  private customBackgroundService = inject(CustomBackgroundStorageService);
 
   // Input/Output for parent component integration
   @Input() selectedBackgroundImage: string = 'none';
@@ -214,9 +367,27 @@ export class BackgroundSelectorComponent implements OnInit, OnChanges {
 
   // Signal for currently selected background
   selectedBackground = signal<string>('none');
+  
+  // Custom backgrounds from service
+  customBackgrounds = computed(() => this.customBackgroundService.backgrounds());
+  
+  // Delete confirmation state
+  showDeleteAlert = false;
+  backgroundToDelete: CustomBackgroundOption | null = null;
+  
+  // Alert content
+  get deleteMessage(): string {
+    return this.backgroundToDelete ? 
+      `Möchten Sie "${this.backgroundToDelete.name}" wirklich löschen?` : '';
+  }
+  
+  deleteButtons = [
+    { text: 'Abbrechen', role: 'cancel' },
+    { text: 'Löschen', role: 'destructive', handler: () => this.deleteCustomBackground() }
+  ];
 
   constructor(private http: HttpClient) {
-    addIcons({ checkmarkCircle });
+    addIcons({ checkmarkCircle, trashOutline });
   }
 
   ngOnInit() {
@@ -239,6 +410,39 @@ export class BackgroundSelectorComponent implements OnInit, OnChanges {
     
     // Emit change to parent component
     this.backgroundImageChange.emit(filename);
+  }
+  
+  confirmDeleteCustomBackground(event: Event, customBg: CustomBackgroundOption): void {
+    event.stopPropagation(); // Prevent card selection
+    this.backgroundToDelete = customBg;
+    this.showDeleteAlert = true;
+  }
+  
+  async deleteCustomBackground(): Promise<void> {
+    if (!this.backgroundToDelete) return;
+    
+    try {
+      await this.customBackgroundService.deleteBackground(this.backgroundToDelete.id);
+      
+      // If the deleted background was selected, reset to 'none'
+      if (this.selectedBackground() === 'custom:' + this.backgroundToDelete.id) {
+        this.selectBackground('none');
+      }
+      
+    } catch (error) {
+      console.error('Error deleting custom background:', error);
+    } finally {
+      this.cancelDelete();
+    }
+  }
+  
+  cancelDelete(): void {
+    this.showDeleteAlert = false;
+    this.backgroundToDelete = null;
+  }
+  
+  formatFileSize(bytes: number): string {
+    return this.customBackgroundService.formatFileSize(bytes);
   }
 
   private async loadAvailableBackgrounds() {

@@ -47,6 +47,9 @@
     "@angular/build": "^20.0.2",
     "@angular/cli": "^20.0.2",
     "@angular/compiler-cli": "^20.0.0",
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^11.0.0",
     "@types/jasmine": "~5.1.0",
     "@types/js-yaml": "^4.0.9",
     "jasmine-core": "~5.7.0",
@@ -57,9 +60,6 @@
     "karma-jasmine-html-reporter": "~2.1.0",
     "prosemirror-dev-tools": "^4.2.0",
     "semantic-release": "^24.2.0",
-    "@semantic-release/changelog": "^6.0.3",
-    "@semantic-release/git": "^10.0.1",
-    "@semantic-release/github": "^11.0.0",
     "typescript": "~5.8.2"
   }
 }

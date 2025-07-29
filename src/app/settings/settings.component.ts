@@ -20,7 +20,9 @@ import { ColorPickerComponent } from '../shared/components/color-picker.componen
 import { SettingsTabsComponent, TabItem } from '../shared/components/settings-tabs.component';
 import { SettingsContentComponent } from '../shared/components/settings-content.component';
 import { BackgroundSelectorComponent } from '../shared/components/background-selector.component';
+import { BackgroundUploadComponent } from '../shared/components/background-upload.component';
 import { BackgroundService } from '../shared/services/background.service';
+import { CustomBackground } from '../shared/services/custom-background-storage.service';
 
 @Component({
   selector: 'app-settings',
@@ -30,7 +32,7 @@ import { BackgroundService } from '../shared/services/background.service';
     IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
     IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonInput, IonToggle,
     IonChip, IonItem, IonLabel, IonSelect, IonSelectOption, IonRange, IonTextarea,
-    ColorPickerComponent, SettingsTabsComponent, SettingsContentComponent, BackgroundSelectorComponent
+    ColorPickerComponent, SettingsTabsComponent, SettingsContentComponent, BackgroundSelectorComponent, BackgroundUploadComponent
   ],
   template: `
     <div class="ion-page">
@@ -442,6 +444,12 @@ import { BackgroundService } from '../shared/services/background.service';
                 [selectedBackgroundImage]="settings.appearance.backgroundImage"
                 (backgroundImageChange)="onBackgroundImageChange($event)">
               </app-background-selector>
+            </div>
+            
+            <div class="appearance-section">
+              <app-background-upload
+                (backgroundUploaded)="onBackgroundUploaded($event)">
+              </app-background-upload>
             </div>
           </ion-card-content>
         </ion-card>
@@ -1643,6 +1651,14 @@ export class SettingsComponent implements OnInit, OnDestroy {
     // Debug logging
     console.log('Background image changed to:', backgroundImage);
     console.log('Settings appearance:', this.settings.appearance);
+  }
+
+  onBackgroundUploaded(customBackground: CustomBackground): void {
+    // Automatically select the newly uploaded background
+    const customId = `custom:${customBackground.id}`;
+    this.onBackgroundImageChange(customId);
+    
+    console.log('Custom background uploaded and selected:', customBackground);
   }
 
   getModelDisplayName(modelId: string): string {
