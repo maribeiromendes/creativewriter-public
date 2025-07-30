@@ -72,11 +72,7 @@ export class PDFExportService {
     container.style.color = '#000000';
     
     // Apply background if enabled
-    if (options.includeBackground) {
-      await this.applyBackgroundToContainer(container);
-    } else {
-      container.style.backgroundColor = '#ffffff';
-    }
+    await this.applyBackgroundToContainer(container, options);
 
     // Add story content
     this.addStoryContent(container, story);
@@ -90,40 +86,18 @@ export class PDFExportService {
     return container;
   }
 
-  private async applyBackgroundToContainer(container: HTMLElement): Promise<void> {
-    const backgroundStyle = this.backgroundService.backgroundStyle();
-    const currentBackground = this.backgroundService.getCurrentBackground();
-    
-    if (currentBackground === 'none' || !currentBackground) {
-      container.style.backgroundColor = '#1a1a1a';
-      return;
-    }
-
-    // Handle custom backgrounds
-    if (currentBackground.startsWith('custom:')) {
-      const customId = currentBackground.replace('custom:', '');
-      const customBg = this.customBackgroundService.backgrounds().find(bg => bg.id === customId);
-      
-      if (customBg) {
-        // Convert blob URL to base64 for PDF compatibility
-        const base64Image = await this.convertBlobToBase64(customBg.blobUrl);
-        container.style.backgroundImage = `linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('${base64Image}')`;
-        container.style.backgroundSize = 'cover';
-        container.style.backgroundPosition = 'center center';
-        container.style.backgroundRepeat = 'no-repeat';
-        container.style.backgroundColor = '#1a1a1a';
-      }
+  private async applyBackgroundToContainer(container: HTMLElement, options: Required<PDFExportOptions>): Promise<void> {
+    // Don't apply background to container for now - we'll add it directly to PDF
+    // This is because html2canvas doesn't handle CSS background images reliably
+    if (options.includeBackground) {
+      // Use transparent background and white text for content that will be overlaid on dark background
+      container.style.backgroundColor = 'transparent';
+      container.style.color = '#ffffff';
     } else {
-      // Handle standard backgrounds
-      container.style.backgroundImage = `linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('assets/backgrounds/${currentBackground}')`;
-      container.style.backgroundSize = 'cover';
-      container.style.backgroundPosition = 'center center';
-      container.style.backgroundRepeat = 'no-repeat';
-      container.style.backgroundColor = '#1a1a1a';
+      // Use white background and black text for plain PDF
+      container.style.backgroundColor = '#ffffff';
+      container.style.color = '#000000';
     }
-    
-    // Set text color to white for dark backgrounds
-    container.style.color = '#ffffff';
   }
 
   private addStoryContent(container: HTMLElement, story: Story): void {
@@ -191,6 +165,7 @@ export class PDFExportService {
       p.style.textIndent = '2em';
       p.style.marginBottom = '1em';
       p.style.lineHeight = '1.6';
+      p.style.color = 'inherit';
     });
 
     // Handle images - ensure they fit within page width
@@ -248,17 +223,20 @@ export class PDFExportService {
     options: Required<PDFExportOptions>
   ): Promise<void> {
     try {
-      // Configure html2canvas options for better quality
+      // Configure html2canvas options for better quality and background handling
       const canvas = await html2canvas(container, {
         scale: 2, // Higher resolution
         useCORS: true,
         allowTaint: true,
-        backgroundColor: null, // Preserve transparency if any
+        backgroundColor: options.includeBackground ? null : '#ffffff', // Transparent if background, white if not
         logging: false,
         width: container.scrollWidth,
         height: container.scrollHeight,
         scrollX: 0,
-        scrollY: 0
+        scrollY: 0,
+        foreignObjectRendering: true, // Better support for complex content
+        imageTimeout: 15000, // Allow more time for images to load
+        removeContainer: true
       });
 
       // Create PDF
@@ -283,6 +261,11 @@ export class PDFExportService {
       const xOffset = (pdfWidth - scaledWidth) / 2;
       const yOffset = (pdfHeight - scaledHeight) / 2;
 
+      // Add background image first if enabled
+      if (options.includeBackground) {
+        await this.addBackgroundToPDF(pdf, pdfWidth, pdfHeight);
+      }
+
       // Convert canvas to image data
       const imgData = canvas.toDataURL('image/png', 1.0);
 
@@ -298,6 +281,10 @@ export class PDFExportService {
         while (currentY < canvasHeight) {
           if (pageNumber > 0) {
             pdf.addPage();
+            // Add background to each new page
+            if (options.includeBackground) {
+              await this.addBackgroundToPDF(pdf, pdfWidth, pdfHeight);
+            }
           }
 
           const remainingHeight = canvasHeight - currentY;
@@ -336,5 +323,113 @@ export class PDFExportService {
       console.error('Error generating PDF from container:', error);
       throw error;
     }
+  }
+
+  private async addBackgroundToPDF(pdf: any, pdfWidth: number, pdfHeight: number): Promise<void> {
+    const currentBackground = this.backgroundService.getCurrentBackground();
+    
+    if (currentBackground === 'none' || !currentBackground) {
+      // Add dark background color if no image
+      pdf.setFillColor('#1a1a1a');
+      pdf.rect(0, 0, pdfWidth, pdfHeight, 'F');
+      return;
+    }
+
+    try {
+      let backgroundImageData: string | null = null;
+
+      // Handle custom backgrounds
+      if (currentBackground.startsWith('custom:')) {
+        const customId = currentBackground.replace('custom:', '');
+        const customBg = this.customBackgroundService.backgrounds().find(bg => bg.id === customId);
+        
+        if (customBg) {
+          backgroundImageData = await this.convertBlobToBase64(customBg.blobUrl);
+        }
+      } else {
+        // Handle standard backgrounds - load from assets
+        backgroundImageData = await this.loadImageAsBase64(`assets/backgrounds/${currentBackground}`);
+      }
+
+      if (backgroundImageData) {
+        // Create a canvas to composite the background image with overlay
+        const backgroundCanvas = await this.createBackgroundCanvas(backgroundImageData, pdfWidth, pdfHeight);
+        const backgroundDataUrl = backgroundCanvas.toDataURL('image/jpeg', 0.9);
+        
+        // Add the composited background to PDF
+        pdf.addImage(backgroundDataUrl, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+      } else {
+        // Fallback to dark background
+        pdf.setFillColor('#1a1a1a');
+        pdf.rect(0, 0, pdfWidth, pdfHeight, 'F');
+      }
+    } catch (error) {
+      console.warn('Failed to add background to PDF:', error);
+      // Fallback to dark background
+      pdf.setFillColor('#1a1a1a');
+      pdf.rect(0, 0, pdfWidth, pdfHeight, 'F');
+    }
+  }
+
+  private async loadImageAsBase64(imagePath: string): Promise<string | null> {
+    try {
+      const response = await fetch(imagePath);
+      if (!response.ok) {
+        throw new Error(`Failed to load image: ${response.status}`);
+      }
+      
+      const blob = await response.blob();
+      
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    } catch (error) {
+      console.error('Error loading image as base64:', error);
+      return null;
+    }
+  }
+
+  private async createBackgroundCanvas(backgroundImageData: string, pdfWidth: number, pdfHeight: number): Promise<HTMLCanvasElement> {
+    return new Promise((resolve, reject) => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d')!;
+      
+      // Set canvas size (convert mm to pixels at 150 DPI for good quality)
+      const dpi = 150;
+      const mmToInch = 1 / 25.4;
+      canvas.width = pdfWidth * mmToInch * dpi;
+      canvas.height = pdfHeight * mmToInch * dpi;
+      
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      
+      img.onload = () => {
+        try {
+          // Fill with dark background first
+          ctx.fillStyle = '#1a1a1a';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          
+          // Draw background image to cover entire canvas
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          
+          // Add semi-transparent dark overlay for text readability
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          
+          resolve(canvas);
+        } catch (error) {
+          reject(error);
+        }
+      };
+      
+      img.onerror = () => {
+        reject(new Error('Failed to load background image'));
+      };
+      
+      img.src = backgroundImageData;
+    });
   }
 }
