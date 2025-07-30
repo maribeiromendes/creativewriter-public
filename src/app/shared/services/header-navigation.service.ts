@@ -52,7 +52,7 @@ export class HeaderNavigationService {
   getCommonBurgerMenuItems(): BurgerMenuItem[] {
     return [
       {
-        icon: 'analytics',
+        icon: 'stats-chart',
         label: 'AI Logs',
         action: () => this.goToAILogger()
       },

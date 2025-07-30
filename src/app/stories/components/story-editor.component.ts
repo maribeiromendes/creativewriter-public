@@ -1492,7 +1492,7 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
         action: () => this.goToSceneChat()
       },
       {
-        icon: 'analytics',
+        icon: 'stats-chart',
         label: 'AI Logs',
         action: () => this.headerNavService.goToAILogger()
       },

@@ -6,7 +6,7 @@ import {
   IonContent, IonLabel
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { add, download, settings, analytics, trash, create, image, menu, close } from 'ionicons/icons';
+import { add, download, settings, statsChart, trash, create, images, menu, close } from 'ionicons/icons';
 import { StoryService } from '../services/story.service';
 import { Story } from '../models/story.interface';
 import { SyncStatusComponent } from '../../shared/components/sync-status.component';
@@ -894,7 +894,7 @@ export class StoryListComponent implements OnInit {
     public versionService: VersionService
   ) {
     // Register Ionic icons
-    addIcons({ add, download, settings, analytics, trash, create, image, menu, close });
+    addIcons({ add, download, settings, statsChart, trash, create, images, menu, close });
   }
 
   ngOnInit(): void {
