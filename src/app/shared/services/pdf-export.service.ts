@@ -64,7 +64,6 @@ export class PDFExportService {
     container.style.top = '0';
     container.style.width = '210mm'; // A4 width
     container.style.minHeight = '297mm'; // A4 height
-    container.style.padding = `${options.margins.top}mm ${options.margins.right}mm ${options.margins.bottom}mm ${options.margins.left}mm`;
     container.style.boxSizing = 'border-box';
     container.style.fontFamily = 'Georgia, serif';
     container.style.fontSize = '12pt';
@@ -74,8 +73,23 @@ export class PDFExportService {
     // Apply background if enabled
     await this.applyBackgroundToContainer(container, options);
 
-    // Add story content
-    this.addStoryContent(container, story);
+    // Create content wrapper for better visibility over background
+    const contentWrapper = document.createElement('div');
+    if (options.includeBackground) {
+      contentWrapper.style.backgroundColor = 'rgba(255, 255, 255, 0.95)';
+      contentWrapper.style.padding = '30px';
+      contentWrapper.style.margin = '20mm';
+      contentWrapper.style.borderRadius = '10px';
+      contentWrapper.style.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.3)';
+      contentWrapper.style.backdropFilter = 'blur(5px)';
+    } else {
+      contentWrapper.style.backgroundColor = '#ffffff';
+      contentWrapper.style.padding = `${options.margins.top}mm ${options.margins.right}mm ${options.margins.bottom}mm ${options.margins.left}mm`;
+    }
+
+    // Add story content to wrapper
+    this.addStoryContent(contentWrapper, story);
+    container.appendChild(contentWrapper);
 
     // Append to body for rendering
     document.body.appendChild(container);
@@ -87,17 +101,9 @@ export class PDFExportService {
   }
 
   private async applyBackgroundToContainer(container: HTMLElement, options: Required<PDFExportOptions>): Promise<void> {
-    // Don't apply background to container for now - we'll add it directly to PDF
-    // This is because html2canvas doesn't handle CSS background images reliably
-    if (options.includeBackground) {
-      // Use transparent background and white text for content that will be overlaid on dark background
-      container.style.backgroundColor = 'transparent';
-      container.style.color = '#ffffff';
-    } else {
-      // Use white background and black text for plain PDF
-      container.style.backgroundColor = '#ffffff';
-      container.style.color = '#000000';
-    }
+    // Set transparent background for container - contentWrapper will handle visibility
+    container.style.backgroundColor = 'transparent';
+    container.style.color = '#000000';
   }
 
   private addStoryContent(container: HTMLElement, story: Story): void {
@@ -228,7 +234,7 @@ export class PDFExportService {
         scale: 2, // Higher resolution
         useCORS: true,
         allowTaint: true,
-        backgroundColor: options.includeBackground ? null : '#ffffff', // Transparent if background, white if not
+        backgroundColor: '#ffffff', // Always use white background to ensure text visibility
         logging: false,
         width: container.scrollWidth,
         height: container.scrollHeight,
@@ -415,8 +421,8 @@ export class PDFExportService {
           // Draw background image to cover entire canvas
           ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
           
-          // Add semi-transparent dark overlay for text readability
-          ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+          // Add semi-transparent dark overlay for text readability (lighter for better text visibility)
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
           ctx.fillRect(0, 0, canvas.width, canvas.height);
           
           resolve(canvas);
