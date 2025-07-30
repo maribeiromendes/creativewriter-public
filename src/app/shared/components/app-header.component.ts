@@ -459,6 +459,10 @@ export class AppHeaderComponent implements OnInit {
 
   handleBurgerMenuAction(action: () => void): void {
     action();
+    // Close the popover programmatically
+    if (this.burgerMenuPopover) {
+      this.burgerMenuPopover.dismiss();
+    }
     // Emit that burger menu was used (for any parent components that need to know)
     this.burgerMenuToggle.emit(false);
   }
