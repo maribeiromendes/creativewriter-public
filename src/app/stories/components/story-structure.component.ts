@@ -32,6 +32,18 @@ import { Subscription } from 'rxjs';
   ],
   template: `
     <div class="story-structure" role="navigation" aria-label="Story structure">
+      <div class="structure-header">
+        <h2>Struktur</h2>
+        <ion-button 
+          fill="clear" 
+          size="small"
+          class="close-button"
+          (click)="onCloseSidebar()"
+          aria-label="Sidebar schließen">
+          <ion-icon name="close" slot="icon-only"></ion-icon>
+        </ion-button>
+      </div>
+      
       <ion-content class="structure-content" [scrollEvents]="true">
         <div id="add-chapter-help" class="sr-only">
           Fügt ein neues Kapitel zur Geschichte hinzu
@@ -322,6 +334,50 @@ import { Subscription } from 'rxjs';
       flex-direction: column;
       overflow: hidden; /* Prevent container overflow */
     }
+    
+    .structure-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+    
+    .structure-header h2 {
+      margin: 0;
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #f8f9fa;
+    }
+    
+    .close-button {
+      --color: #f8f9fa;
+      --background: rgba(255, 255, 255, 0.1);
+      --background-hover: rgba(255, 255, 255, 0.2);
+      --background-activated: rgba(255, 255, 255, 0.3);
+      --border-radius: 8px;
+      --padding-start: 8px;
+      --padding-end: 8px;
+      margin: -4px -4px -4px 0;
+      transition: all 0.2s ease;
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+    }
+    
+    .close-button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+    
+    /* Hide close button on desktop since menu is always visible */
+    @media (min-width: 1024px) {
+      .close-button {
+        display: none;
+      }
+    }
 
     
     
@@ -350,14 +406,6 @@ import { Subscription } from 'rxjs';
       margin-bottom: 0.5rem;
     }
     
-    /* Mobile: Add top padding to avoid header overlap */
-    @media (max-width: 768px) {
-      .structure-actions {
-        padding-top: 4rem; /* Add space for main header */
-        margin-top: 0;
-      }
-    }
-    
     .add-chapter-btn {
       --background: linear-gradient(135deg, rgba(71, 118, 230, 0.2) 0%, rgba(139, 180, 248, 0.2) 100%);
       --background-hover: linear-gradient(135deg, rgba(71, 118, 230, 0.3) 0%, rgba(139, 180, 248, 0.3) 100%);
@@ -377,7 +425,7 @@ import { Subscription } from 'rxjs';
     
     .chapters-list {
       background: transparent;
-      padding-top: 0.5rem; /* Add top padding to prevent header overlap */
+      padding-top: 0.5rem;
       padding-bottom: 10rem; /* Increased bottom padding to ensure last items are reachable */
     }
     
