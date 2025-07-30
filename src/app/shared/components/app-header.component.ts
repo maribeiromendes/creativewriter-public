@@ -249,7 +249,7 @@ export interface BurgerMenuItem {
     /* Popover Styles */
     ion-popover {
       --background: linear-gradient(135deg, rgba(15, 15, 25, 0.6) 0%, rgba(10, 10, 20, 0.6) 50%, rgba(20, 20, 35, 0.6) 100%);
-      --backdrop-opacity: 0.4;
+      --backdrop-opacity: 0.6;
       --box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
       --width: 280px;
       --max-width: 90vw;
