@@ -151,7 +151,7 @@ export class GoogleGeminiApiService {
         temperature: request.generationConfig?.temperature,
         topP: request.generationConfig?.topP,
         contentsLength: contents.length,
-        safetySettings: request.safetySettings?.length,
+        safetySettings: request.safetySettings?.length ? `${request.safetySettings.length} settings` : undefined,
         requestId: requestId,
         messagesFormat: options.messages ? 'structured' : 'simple',
         contentFilterSettings: {
@@ -434,7 +434,7 @@ export class GoogleGeminiApiService {
         temperature: request.generationConfig?.temperature,
         topP: request.generationConfig?.topP,
         contentsLength: contents.length,
-        safetySettings: request.safetySettings?.length,
+        safetySettings: request.safetySettings?.length ? `${request.safetySettings.length} settings` : undefined,
         requestId: requestId,
         messagesFormat: options.messages ? 'structured' : 'simple',
         contentFilterSettings: {

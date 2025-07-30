@@ -1,5 +1,27 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject } from 'rxjs';
+
+export interface AIRequestDetails {
+  temperature?: number;
+  topP?: number;
+  contentsLength?: number;
+  safetySettings?: string | number | Record<string, unknown>;
+  messagesFormat?: string;
+  streamingUrl?: string;
+  requestId?: string;
+  promptFeedback?: Record<string, unknown>;
+  debugInfo?: {
+    promptFeedback?: Record<string, unknown>;
+    streamingPromptFeedback?: Record<string, unknown>;
+    safetyRatings?: unknown[];
+    responseStructure?: {
+      finishReason?: string;
+      [key: string]: unknown;
+    };
+    [key: string]: unknown;
+  };
+  [key: string]: unknown;
+}
 
 export interface AIRequestLog {
   id: string;
@@ -14,13 +36,13 @@ export interface AIRequestLog {
   duration?: number;
   status: 'pending' | 'success' | 'error' | 'aborted';
   // Additional debugging fields
-  requestDetails?: any;
-  responseHeaders?: any;
+  requestDetails?: AIRequestDetails;
+  responseHeaders?: Record<string, unknown>;
   httpStatus?: number;
   retryCount?: number;
   apiProvider?: 'openrouter' | 'gemini' | 'replicate';
   streamingMode?: boolean;
-  errorDetails?: any;
+  errorDetails?: Record<string, unknown>;
   networkInfo?: {
     connectionType?: string;
     effectiveType?: string;
@@ -57,13 +79,13 @@ export class AIRequestLoggerService {
     const savedLogs = localStorage.getItem('ai-request-logs');
     if (savedLogs) {
       try {
-        const logs = JSON.parse(savedLogs).map((log: any) => ({
+        const logs = JSON.parse(savedLogs).map((log: AIRequestLog) => ({
           ...log,
-          timestamp: new Date(log.timestamp)
+          timestamp: new Date(log.timestamp as unknown as string)
         }));
         this.logsSubject.next(logs);
-      } catch (e) {
-        console.error('Failed to load AI request logs:', e);
+      } catch {
+        console.error('Failed to load AI request logs');
       }
     }
   }
@@ -76,7 +98,7 @@ export class AIRequestLoggerService {
     prompt: string;
     apiProvider?: 'openrouter' | 'gemini' | 'replicate';
     streamingMode?: boolean;
-    requestDetails?: any;
+    requestDetails?: AIRequestDetails;
   }): string {
     const id = this.generateId();
     
@@ -128,10 +150,23 @@ export class AIRequestLoggerService {
   }
 
   logSuccess(id: string, response: string, duration: number, additionalData?: {
-    responseHeaders?: any;
+    responseHeaders?: Record<string, unknown>;
     httpStatus?: number;
     retryCount?: number;
-    safetyRatings?: any;
+    safetyRatings?: {
+      promptFeedback?: {
+        blockReason?: string;
+        safetyRatings?: {
+          category: string;
+          probability: string;
+        }[];
+      };
+      candidateSafetyRatings?: {
+        category: string;
+        probability: string;
+      }[];
+      finishReason?: string;
+    };
   }): void {
     console.log('✅ AI Request Logger - Success:', {
       id,
@@ -155,7 +190,7 @@ export class AIRequestLoggerService {
   }
 
   logError(id: string, error: string, duration: number, additionalData?: {
-    errorDetails?: any;
+    errorDetails?: Record<string, unknown>;
     httpStatus?: number;
     retryCount?: number;
     responseHeaders?: any;
@@ -217,7 +252,7 @@ export class AIRequestLoggerService {
       
       localStorage.setItem('ai-request-logs', JSON.stringify(compactLogs));
     } catch (error) {
-      console.warn('Failed to save AI request logs to localStorage:', error);
+      console.warn('Failed to save AI request logs to localStorage');
       
       // If storage is full, clear old logs and try again with fewer logs
       if (error instanceof DOMException && error.name === 'QuotaExceededError') {
@@ -254,7 +289,7 @@ export class AIRequestLoggerService {
       }));
       
       localStorage.setItem('ai-request-logs', JSON.stringify(compactLogs));
-    } catch (error) {
+    } catch {
       console.error('Still cannot save logs after reduction. Clearing all logs.');
       // Last resort: clear all logs
       this.clearLogs();
@@ -265,10 +300,34 @@ export class AIRequestLoggerService {
     return 'log-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
   }
 
-  private getNetworkInfo(): any {
+  private getNetworkInfo(): {
+    connectionType: string;
+    effectiveType: string;
+    downlink: number;
+    rtt: number;
+  } {
     // Get network information if available (experimental API)
     try {
-      const nav = navigator as any;
+      const nav = navigator as Navigator & {
+        connection?: {
+          type?: string;
+          effectiveType?: string;
+          downlink?: number;
+          rtt?: number;
+        };
+        mozConnection?: {
+          type?: string;
+          effectiveType?: string;
+          downlink?: number;
+          rtt?: number;
+        };
+        webkitConnection?: {
+          type?: string;
+          effectiveType?: string;
+          downlink?: number;
+          rtt?: number;
+        };
+      };
       const connection = nav.connection || nav.mozConnection || nav.webkitConnection;
       
       if (connection) {
@@ -279,7 +338,7 @@ export class AIRequestLoggerService {
           rtt: connection.rtt || 0
         };
       }
-    } catch (e) {
+    } catch {
       console.debug('Network API not available');
     }
     
@@ -292,7 +351,7 @@ export class AIRequestLoggerService {
   }
 
   // Method to log additional debugging info
-  logDebugInfo(id: string, debugInfo: any): void {
+  logDebugInfo(id: string, debugInfo: Record<string, unknown>): void {
     console.log('🔍 AI Request Logger - Debug Info:', {
       id,
       debugInfo,
@@ -309,7 +368,7 @@ export class AIRequestLoggerService {
         requestDetails: {
           ...existingLog.requestDetails,
           debugInfo: {
-            ...existingLog.requestDetails?.debugInfo,
+            ...(existingLog.requestDetails?.debugInfo || {}),
             ...debugInfo
           }
         }

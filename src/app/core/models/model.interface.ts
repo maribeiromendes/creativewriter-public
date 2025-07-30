@@ -53,7 +53,7 @@ export interface ReplicateModel {
   paper_url?: string;
   license_url?: string;
   cover_image_url?: string;
-  default_example?: any;
+  default_example?: Record<string, unknown>;
   latest_version?: ReplicateVersion;
 }
 
@@ -61,7 +61,7 @@ export interface ReplicateVersion {
   id: string;
   created_at: string;
   cog_version: string;
-  openapi_schema: any;
+  openapi_schema: Record<string, unknown>;
 }
 
 export interface ReplicateModelsResponse {

@@ -399,7 +399,7 @@ import { Subscription } from 'rxjs';
                     </div>
                     <div class="config-item" *ngIf="log.requestDetails?.requestId">
                       <ion-label>Internal Request ID:</ion-label>
-                      <ion-text class="monospace-text">{{ log.requestDetails.requestId }}</ion-text>
+                      <ion-text class="monospace-text">{{ log.requestDetails!.requestId }}</ion-text>
                     </div>
                     <div class="config-item" *ngIf="log.httpStatus">
                       <ion-label>HTTP Status:</ion-label>
@@ -1036,18 +1036,18 @@ export class AILogTabComponent implements OnInit, OnDestroy {
     }
     
     // Check in debug info
-    if (log.requestDetails?.debugInfo?.promptFeedback) {
-      return log.requestDetails.debugInfo.promptFeedback;
+    if (log.requestDetails?.debugInfo?.['promptFeedback']) {
+      return log.requestDetails.debugInfo['promptFeedback'];
     }
     
     // Check in request details
-    if (log.requestDetails?.promptFeedback) {
-      return log.requestDetails.promptFeedback;
+    if (log.requestDetails?.['promptFeedback']) {
+      return log.requestDetails['promptFeedback'];
     }
     
     // Check for streaming prompt feedback
-    if (log.requestDetails?.debugInfo?.streamingPromptFeedback) {
-      return log.requestDetails.debugInfo.streamingPromptFeedback;
+    if (log.requestDetails?.debugInfo?.['streamingPromptFeedback']) {
+      return log.requestDetails.debugInfo['streamingPromptFeedback'];
     }
     
     // For logs that have candidate safety ratings, create a synthetic prompt feedback
@@ -1107,8 +1107,8 @@ export class AILogTabComponent implements OnInit, OnDestroy {
     }
     
     // Check in debug info for candidate safety ratings
-    if (log.requestDetails?.debugInfo?.safetyRatings) {
-      return log.requestDetails.debugInfo.safetyRatings;
+    if (log.requestDetails?.debugInfo?.['safetyRatings']) {
+      return log.requestDetails.debugInfo['safetyRatings'] as any[];
     }
     
     // For successful Gemini requests, provide default safety ratings to show the section
@@ -1132,8 +1132,8 @@ export class AILogTabComponent implements OnInit, OnDestroy {
     }
     
     // Check in debug info for finish reason
-    if (log.requestDetails?.debugInfo?.responseStructure?.finishReason) {
-      return log.requestDetails.debugInfo.responseStructure.finishReason;
+    if (log.requestDetails?.debugInfo?.['responseStructure']?.finishReason) {
+      return log.requestDetails.debugInfo['responseStructure'].finishReason;
     }
     
     // For successful Gemini requests, assume STOP finish reason

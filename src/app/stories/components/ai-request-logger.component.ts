@@ -285,7 +285,7 @@ import { Subscription } from 'rxjs';
                       </div>
                       <div class="config-item" *ngIf="log.requestDetails?.requestId">
                         <ion-label>Internal Request ID:</ion-label>
-                        <ion-text class="monospace-text">{{ log.requestDetails.requestId }}</ion-text>
+                        <ion-text class="monospace-text">{{ log.requestDetails!.requestId }}</ion-text>
                       </div>
                       <div class="config-item" *ngIf="log.httpStatus">
                         <ion-label>HTTP Status:</ion-label>
