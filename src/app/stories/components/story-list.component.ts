@@ -82,7 +82,7 @@ import { VersionService } from '../../core/services/version.service';
           NovelCrafter Import
         </ion-button>
         <ion-button expand="block" size="default" fill="outline" color="secondary" (click)="goToImageGeneration()">
-          <ion-icon name="image" slot="start"></ion-icon>
+          <ion-icon name="images" slot="start"></ion-icon>
           Bildgenerierung
         </ion-button>
       </div>
@@ -136,7 +136,7 @@ import { VersionService } from '../../core/services/version.service';
             <span>Import</span>
           </button>
           <button class="mobile-fab-option" (click)="goToImageGeneration()">
-            <ion-icon name="image"></ion-icon>
+            <ion-icon name="images"></ion-icon>
             <span>Bilder</span>
           </button>
         </div>

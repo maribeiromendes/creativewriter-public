@@ -46,7 +46,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
         <ion-title>Einstellungen</ion-title>
         <ion-buttons slot="end">
           <ion-button fill="clear" color="medium" (click)="goToAILogs()" title="AI Request Logs">
-            <ion-icon name="analytics" slot="start"></ion-icon>
+            <ion-icon name="stats-chart" slot="start"></ion-icon>
             AI Logs
           </ion-button>
           <ion-chip [color]="hasUnsavedChanges ? 'warning' : 'success'">
