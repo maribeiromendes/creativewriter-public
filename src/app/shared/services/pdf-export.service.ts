@@ -49,7 +49,9 @@ export class PDFExportService {
       await this.generatePDFFromContainer(container, config);
       
       // Clean up
-      document.body.removeChild(container);
+      if (document.body.contains(container)) {
+        document.body.removeChild(container);
+      }
       
     } catch (error) {
       console.error('Error exporting story to PDF:', error);
@@ -60,7 +62,7 @@ export class PDFExportService {
   private async createPDFContainer(story: Story, options: Required<PDFExportOptions>): Promise<HTMLElement> {
     const container = document.createElement('div');
     container.style.position = 'absolute';
-    container.style.left = '-9999px';
+    container.style.left = '-9999px'; // Hide off-screen
     container.style.top = '0';
     container.style.width = '210mm'; // A4 width
     container.style.minHeight = '297mm'; // A4 height
@@ -69,6 +71,7 @@ export class PDFExportService {
     container.style.fontSize = '12pt';
     container.style.lineHeight = '1.6';
     container.style.color = '#000000';
+    container.style.zIndex = '10000';
     
     // Apply background if enabled
     await this.applyBackgroundToContainer(container, options);
@@ -89,6 +92,7 @@ export class PDFExportService {
 
     // Add story content to wrapper
     this.addStoryContent(contentWrapper, story);
+    
     container.appendChild(contentWrapper);
 
     // Append to body for rendering
@@ -114,10 +118,11 @@ export class PDFExportService {
     titleElement.style.marginBottom = '30px';
     titleElement.style.fontSize = '24pt';
     titleElement.style.fontWeight = 'bold';
+    titleElement.style.color = '#000000';
     container.appendChild(titleElement);
 
     // Add chapters and scenes
-    story.chapters.forEach((chapter, chapterIndex) => {
+    story.chapters?.forEach((chapter, chapterIndex) => {
       // Add chapter title
       const chapterElement = document.createElement('h2');
       chapterElement.textContent = `${chapter.title}`;
@@ -125,11 +130,12 @@ export class PDFExportService {
       chapterElement.style.marginBottom = '20px';
       chapterElement.style.fontSize = '18pt';
       chapterElement.style.fontWeight = 'bold';
+      chapterElement.style.color = '#000000';
       chapterElement.style.pageBreakBefore = chapterIndex === 0 ? 'auto' : 'always';
       container.appendChild(chapterElement);
 
       // Add scenes
-      chapter.scenes.forEach((scene, sceneIndex) => {
+      chapter.scenes?.forEach((scene, sceneIndex) => {
         // Add scene title
         if (scene.title) {
           const sceneElement = document.createElement('h3');
@@ -138,6 +144,7 @@ export class PDFExportService {
           sceneElement.style.marginBottom = '15px';
           sceneElement.style.fontSize = '14pt';
           sceneElement.style.fontWeight = 'bold';
+          sceneElement.style.color = '#000000';
           container.appendChild(sceneElement);
         }
 
@@ -145,6 +152,7 @@ export class PDFExportService {
         if (scene.content) {
           const contentContainer = document.createElement('div');
           contentContainer.style.marginBottom = '20px';
+          contentContainer.style.color = '#000000';
           
           // Parse HTML content and clean it for PDF
           const cleanContent = this.cleanContentForPDF(scene.content);
@@ -162,16 +170,25 @@ export class PDFExportService {
     tempDiv.innerHTML = htmlContent;
 
     // Remove Beat AI components and other interactive elements
-    const beatAIElements = tempDiv.querySelectorAll('.beat-ai-wrapper, .beat-ai-container');
-    beatAIElements.forEach(element => element.remove());
+    const beatAIElements = tempDiv.querySelectorAll('.beat-ai-wrapper, .beat-ai-container, .beat-ai-node');
+    beatAIElements.forEach(element => {
+      // Extract the paragraph content before removing the Beat AI wrapper
+      const paragraphs = element.querySelectorAll('p');
+      paragraphs.forEach(p => {
+        tempDiv.appendChild(p.cloneNode(true)); // Move paragraphs to parent
+      });
+      element.remove();
+    });
 
-    // Clean up paragraph styling
+    // Clean up paragraph styling and ensure visibility
     const paragraphs = tempDiv.querySelectorAll('p');
     paragraphs.forEach(p => {
       p.style.textIndent = '2em';
       p.style.marginBottom = '1em';
       p.style.lineHeight = '1.6';
-      p.style.color = 'inherit';
+      p.style.color = '#000000'; // Force black color instead of inherit
+      p.style.fontSize = '12pt';
+      p.style.fontFamily = 'Georgia, serif';
     });
 
     // Handle images - ensure they fit within page width
@@ -181,6 +198,15 @@ export class PDFExportService {
       img.style.height = 'auto';
       img.style.display = 'block';
       img.style.margin = '1em auto';
+    });
+
+    // Ensure all text elements have proper styling
+    const allTextElements = tempDiv.querySelectorAll('*');
+    allTextElements.forEach(element => {
+      if (element.textContent && element.textContent.trim()) {
+        (element as HTMLElement).style.color = '#000000';
+        (element as HTMLElement).style.visibility = 'visible';
+      }
     });
 
     return tempDiv.innerHTML;
@@ -231,11 +257,11 @@ export class PDFExportService {
     try {
       // Configure html2canvas options for better quality and background handling
       const canvas = await html2canvas(container, {
-        scale: 2, // Higher resolution
+        scale: 2, // High quality rendering
         useCORS: true,
         allowTaint: true,
         backgroundColor: '#ffffff', // Always use white background to ensure text visibility
-        logging: false,
+        logging: false, // Disable logging for production
         width: container.scrollWidth,
         height: container.scrollHeight,
         scrollX: 0,
