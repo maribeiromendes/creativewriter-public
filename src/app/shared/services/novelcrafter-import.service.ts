@@ -60,7 +60,7 @@ export class NovelCrafterImportService {
       
       // Find novel.md file
       let novelContent: string | null = null;
-      const codexFiles: { [key: string]: { content: string; path: string }[] } = {
+      const codexFiles: Record<string, { content: string; path: string }[]> = {
         characters: [],
         locations: [],
         objects: [],
@@ -171,7 +171,7 @@ export class NovelCrafterImportService {
 
     // Find novel.md file
     let novelFile: File | null = null;
-    const codexFiles: { [key: string]: File[] } = {
+    const codexFiles: Record<string, File[]> = {
       characters: [],
       locations: [],
       objects: [],
@@ -513,7 +513,7 @@ export class NovelCrafterImportService {
     const codex = await this.codexService.getOrCreateCodex(storyId);
     
     // Map categories
-    const categoryMapping: { [key: string]: string } = {};
+    const categoryMapping: Record<string, string> = {};
     
     // Characters -> Charaktere
     if (importResult.codexEntries.characters.length > 0) {

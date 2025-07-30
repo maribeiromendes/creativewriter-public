@@ -1150,7 +1150,7 @@ export class StoryStructureComponent implements OnInit, OnChanges, AfterViewInit
   isGeneratingTitle = new Set<string>();
   isEditingTitle = new Set<string>();
   private originalTitles = new Map<string, string>();
-  selectedModel: string = '';
+  selectedModel = '';
   availableModels: ModelOption[] = [];
   private subscription = new Subscription();
 
@@ -1619,7 +1619,7 @@ Antworte nur mit dem Titel, ohne weitere Erklärungen oder Anführungszeichen.`;
           console.error('Error generating scene title:', error);
           clearTimeout(timeoutId); // Clear timeout on error
           
-          let errorMessage = 'Fehler beim Generieren des Titels.';
+          const errorMessage = 'Fehler beim Generieren des Titels.';
           alert(errorMessage);
           this.isGeneratingTitle.delete(sceneId);
           this.cdr.detectChanges(); // Force change detection

@@ -703,29 +703,29 @@ export class SceneChatComponent implements OnInit, OnDestroy {
   @ViewChild('modelToolbar', { read: TemplateRef }) modelToolbar!: TemplateRef<any>;
 
   story: Story | null = null;
-  activeChapterId: string = '';
-  activeSceneId: string = '';
+  activeChapterId = '';
+  activeSceneId = '';
   messages: ChatMessage[] = [];
-  currentMessage: string = '';
-  isGenerating: boolean = false;
+  currentMessage = '';
+  isGenerating = false;
   
   selectedScenes: SceneContext[] = [];
-  showSceneSelector: boolean = false;
-  sceneSearchTerm: string = '';
+  showSceneSelector = false;
+  sceneSearchTerm = '';
   
-  showPresetPrompts: boolean = false;
+  showPresetPrompts = false;
   presetPrompts: PresetPrompt[] = [];
   
-  includeStoryOutline: boolean = false;
+  includeStoryOutline = false;
   
-  selectedModel: string = '';
+  selectedModel = '';
   availableModels: ModelOption[] = [];
   
   headerActions: HeaderAction[] = [];
   
   private subscriptions = new Subscription();
   private abortController: AbortController | null = null;
-  keyboardVisible: boolean = false;
+  keyboardVisible = false;
 
   constructor(
     private route: ActivatedRoute,

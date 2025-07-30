@@ -71,7 +71,7 @@ export class CodexService {
   }
 
 
-  private async saveToDatabase(codex: Codex, maxRetries: number = 3): Promise<void> {
+  private async saveToDatabase(codex: Codex, maxRetries = 3): Promise<void> {
     try {
       if (!this.isInitialized) {
         await this.waitForInitialization();

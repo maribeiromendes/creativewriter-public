@@ -120,7 +120,7 @@ import { SlashCommand, SlashCommandAction, SlashCommandResult } from '../models/
 })
 export class SlashCommandDropdownComponent implements OnInit, OnDestroy {
   @Input() position: { top: number; left: number } = { top: 0, left: 0 };
-  @Input() cursorPosition: number = 0;
+  @Input() cursorPosition = 0;
   @Output() commandSelected = new EventEmitter<SlashCommandResult>();
   @Output() dismissed = new EventEmitter<void>();
   

@@ -179,18 +179,18 @@ export class StoryStatsService {
    * @param story The story to analyze
    * @returns Array of image data with sizes
    */
-  private extractImageDataFromStory(story: Story): Array<{
+  private extractImageDataFromStory(story: Story): {
     src: string;
     size: number;
     sizeFormatted: string;
     type: string;
-  }> {
-    const images: Array<{
+  }[] {
+    const images: {
       src: string;
       size: number;
       sizeFormatted: string;
       type: string;
-    }> = [];
+    }[] = [];
     
     if (!story.chapters) return images;
     
@@ -259,7 +259,7 @@ export class StoryStatsService {
   getTotalLocalStorageUsage(): number {
     let totalSize = 0;
     
-    for (let key in localStorage) {
+    for (const key in localStorage) {
       if (localStorage.hasOwnProperty(key)) {
         totalSize += localStorage[key].length + key.length;
       }
@@ -276,14 +276,14 @@ export class StoryStatsService {
   getDetailedStorageBreakdown(): {
     totalSize: number;
     totalSizeFormatted: string;
-    items: Array<{
+    items: {
       key: string;
       size: number;
       sizeFormatted: string;
       type: 'story' | 'settings' | 'other';
       description: string;
-    }>;
-    storiesBreakdown: Array<{
+    }[];
+    storiesBreakdown: {
       id: string;
       title: string;
       size: number;
@@ -294,17 +294,17 @@ export class StoryStatsService {
       imageSize: number;
       imageSizeFormatted: string;
       imageCount: number;
-    }>;
+    }[];
   } {
-    const items: Array<{
+    const items: {
       key: string;
       size: number;
       sizeFormatted: string;
       type: 'story' | 'settings' | 'other';
       description: string;
-    }> = [];
+    }[] = [];
 
-    const storiesBreakdown: Array<{
+    const storiesBreakdown: {
       id: string;
       title: string;
       size: number;
@@ -315,12 +315,12 @@ export class StoryStatsService {
       imageSize: number;
       imageSizeFormatted: string;
       imageCount: number;
-    }> = [];
+    }[] = [];
 
     let totalSize = 0;
 
     // Analyze each localStorage item
-    for (let key in localStorage) {
+    for (const key in localStorage) {
       if (localStorage.hasOwnProperty(key)) {
         const value = localStorage[key];
         const itemSize = (key.length + value.length) * 2; // UTF-16 bytes
@@ -421,7 +421,7 @@ export class StoryStatsService {
    */
   getStoryWordCountStats(story: Story): {
     totalWords: number;
-    chapterCounts: Array<{ chapterId: string; chapterTitle: string; wordCount: number; sceneCount: number }>;
+    chapterCounts: { chapterId: string; chapterTitle: string; wordCount: number; sceneCount: number }[];
     totalScenes: number;
     totalChapters: number;
     storageUsage: {
@@ -444,7 +444,7 @@ export class StoryStatsService {
     
     const stats = {
       totalWords: 0,
-      chapterCounts: [] as Array<{ chapterId: string; chapterTitle: string; wordCount: number; sceneCount: number }>,
+      chapterCounts: [] as { chapterId: string; chapterTitle: string; wordCount: number; sceneCount: number }[],
       totalScenes: 0,
       totalChapters: 0,
       storageUsage: {

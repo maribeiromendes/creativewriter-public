@@ -423,20 +423,20 @@ export interface BurgerMenuItem {
 export class AppHeaderComponent implements OnInit {
   @ViewChild('burgerMenuPopover') burgerMenuPopover?: IonPopover;
   
-  @Input() title: string = '';
+  @Input() title = '';
   @Input() titleTemplate?: TemplateRef<any>;
-  @Input() showBackButton: boolean = false;
+  @Input() showBackButton = false;
   @Input() backAction?: () => void;
   @Input() leftActions: HeaderAction[] = [];
   @Input() rightActions: HeaderAction[] = [];
-  @Input() showBurgerMenu: boolean = false;
-  @Input() burgerMenuTitle: string = 'Navigation';
+  @Input() showBurgerMenu = false;
+  @Input() burgerMenuTitle = 'Navigation';
   @Input() burgerMenuItems: BurgerMenuItem[] = [];
   @Input() burgerMenuFooterContent?: TemplateRef<any>;
-  @Input() showSecondaryToolbar: boolean = false;
+  @Input() showSecondaryToolbar = false;
   @Input() secondaryContent?: TemplateRef<any>;
-  @Input() showUserInfo: boolean = false;
-  @Input() userGreeting: string = '';
+  @Input() showUserInfo = false;
+  @Input() userGreeting = '';
 
   @Output() burgerMenuToggle = new EventEmitter<boolean>();
   

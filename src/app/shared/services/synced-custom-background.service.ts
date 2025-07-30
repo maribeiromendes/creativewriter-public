@@ -12,15 +12,13 @@ export interface CustomBackground {
   size: number;
   createdAt: Date;
   createdBy: string; // username
-  _attachments?: {
-    [key: string]: {
+  _attachments?: Record<string, {
       content_type: string;
       digest?: string;
       length?: number;
       stub?: boolean;
       data?: string; // Base64 encoded when creating
-    }
-  };
+    }>;
 }
 
 export interface CustomBackgroundOption {

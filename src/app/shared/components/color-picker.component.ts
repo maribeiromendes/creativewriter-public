@@ -418,11 +418,11 @@ interface ColorPreset {
   `]
 })
 export class ColorPickerComponent implements OnInit {
-  @Input() color: string = '#e0e0e0';
+  @Input() color = '#e0e0e0';
   @Output() colorChange = new EventEmitter<string>();
 
-  currentColor: string = '#e0e0e0';
-  hexInput: string = '#e0e0e0';
+  currentColor = '#e0e0e0';
+  hexInput = '#e0e0e0';
   colorFormat: 'hex' | 'rgb' = 'hex';
   recentColors: string[] = [];
   

@@ -359,7 +359,7 @@ export class BackgroundSelectorComponent implements OnInit, OnChanges {
   private customBackgroundService = inject(SyncedCustomBackgroundService);
 
   // Input/Output for parent component integration
-  @Input() selectedBackgroundImage: string = 'none';
+  @Input() selectedBackgroundImage = 'none';
   @Output() backgroundImageChange = new EventEmitter<string>();
 
   // Available background images (loaded dynamically)

@@ -55,8 +55,8 @@ export class ProseMirrorEditorService {
     chapterId?: string;
     sceneId?: string;
   } = {};
-  private beatNodeViews: Set<BeatAINodeView> = new Set();
-  private beatStreamingPositions: Map<string, number> = new Map();
+  private beatNodeViews = new Set<BeatAINodeView>();
+  private beatStreamingPositions = new Map<string, number>();
   private debugMode = false;
   
   public contentUpdate$ = new Subject<string>();
@@ -475,7 +475,7 @@ export class ProseMirrorEditorService {
     return this.editorView.state.doc.textContent;
   }
 
-  insertContent(content: string, position?: number, replaceSlash: boolean = false): void {
+  insertContent(content: string, position?: number, replaceSlash = false): void {
     if (!this.editorView) return;
     
     const { state } = this.editorView;
@@ -519,7 +519,7 @@ export class ProseMirrorEditorService {
     }
   }
 
-  insertBeatAI(position?: number, replaceSlash: boolean = false, beatType: 'story' | 'scene' = 'story'): void {
+  insertBeatAI(position?: number, replaceSlash = false, beatType: 'story' | 'scene' = 'story'): void {
     if (!this.editorView) return;
     
     try {
@@ -870,7 +870,7 @@ export class ProseMirrorEditorService {
     
   }
 
-  insertImage(imageData: ImageInsertResult, position?: number, replaceSlash: boolean = false): void {
+  insertImage(imageData: ImageInsertResult, position?: number, replaceSlash = false): void {
     if (!this.editorView) return;
     
     try {
@@ -1100,7 +1100,7 @@ export class ProseMirrorEditorService {
     }
   }
 
-  private appendContentAfterBeatNode(beatId: string, newContent: string, isFirstChunk: boolean = false): void {
+  private appendContentAfterBeatNode(beatId: string, newContent: string, isFirstChunk = false): void {
     if (!this.editorView) return;
     
     const beatPos = this.findBeatNodePosition(beatId);
@@ -1294,7 +1294,7 @@ export class ProseMirrorEditorService {
           // Update the stored position - move to the end of the previous paragraph or beat
           // Find the position right before where the empty paragraph was
           const newState = this.editorView.state;
-          let newPos = Math.max(0, currentParagraphPos - 1);
+          const newPos = Math.max(0, currentParagraphPos - 1);
           
           // Make sure we're at a valid position
           if (newPos < newState.doc.content.size) {
@@ -1481,7 +1481,7 @@ export class ProseMirrorEditorService {
   }
 
   private createContextMenuPlugin(): Plugin {
-    let contextMenuElement: HTMLElement | null = null;
+    const contextMenuElement: HTMLElement | null = null;
 
     return new Plugin({
       key: new PluginKey('contextMenu'),

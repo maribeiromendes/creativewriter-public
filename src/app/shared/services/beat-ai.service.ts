@@ -297,10 +297,10 @@ export class BeatAIService {
     );
   }
 
-  private parseStructuredPrompt(prompt: string): Array<{role: 'system' | 'user' | 'assistant', content: string}> {
+  private parseStructuredPrompt(prompt: string): {role: 'system' | 'user' | 'assistant', content: string}[] {
     // Parse XML-like message structure from the template
     const messagePattern = /<message role="(system|user|assistant)">([\s\S]*?)<\/message>/gi;
-    const messages: Array<{role: 'system' | 'user' | 'assistant', content: string}> = [];
+    const messages: {role: 'system' | 'user' | 'assistant', content: string}[] = [];
     
     let match;
     while ((match = messagePattern.exec(prompt)) !== null) {
@@ -608,7 +608,7 @@ export class BeatAIService {
   }
 
   private getCategoryXmlType(category: string): string {
-    const mapping: { [key: string]: string } = {
+    const mapping: Record<string, string> = {
       'Charaktere': 'character',
       'Orte': 'location',
       'Gegenstände': 'item',

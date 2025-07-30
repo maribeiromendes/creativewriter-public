@@ -51,7 +51,7 @@ import { CodexEntry } from '../../stories/models/codex.interface';
 })
 export class CodexDebugComponent implements OnInit {
   @Input() storyId?: string;
-  @Input() showDebug: boolean = false;
+  @Input() showDebug = false;
   
   codexEntries: CodexEntry[] = [];
 

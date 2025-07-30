@@ -9,11 +9,11 @@ import { CodexEntry } from '../../stories/models/codex.interface';
 })
 export class SimpleCodexAwarenessDirective implements OnInit, OnDestroy {
   @Input() storyId?: string;
-  @Input() enableHighlighting: boolean = true;
+  @Input() enableHighlighting = true;
   
   private subscription = new Subscription();
   private allCodexEntries: CodexEntry[] = [];
-  private processedContent: string = '';
+  private processedContent = '';
   
   constructor(
     private el: ElementRef,

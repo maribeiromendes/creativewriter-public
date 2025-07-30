@@ -5,43 +5,43 @@ import { SettingsService } from './settings.service';
 import { AIRequestLoggerService } from './ai-request-logger.service';
 
 export interface GoogleGeminiRequest {
-  contents: Array<{
-    parts: Array<{
+  contents: {
+    parts: {
       text: string;
-    }>;
+    }[];
     role?: 'user' | 'model';
-  }>;
+  }[];
   generationConfig?: {
     temperature?: number;
     topP?: number;
     maxOutputTokens?: number;
   };
-  safetySettings?: Array<{
+  safetySettings?: {
     category: string;
     threshold: string;
-  }>;
+  }[];
 }
 
 export interface GoogleGeminiResponse {
-  candidates: Array<{
+  candidates: {
     content: {
-      parts: Array<{
+      parts: {
         text: string;
-      }>;
+      }[];
       role: string;
     };
     finishReason: string;
     index: number;
-    safetyRatings: Array<{
+    safetyRatings: {
       category: string;
       probability: string;
-    }>;
-  }>;
+    }[];
+  }[];
   promptFeedback?: {
-    safetyRatings: Array<{
+    safetyRatings: {
       category: string;
       probability: string;
-    }>;
+    }[];
     blockReason?: string;
   };
   usageMetadata?: {
@@ -72,7 +72,7 @@ export class GoogleGeminiApiService {
     topP?: number;
     wordCount?: number;
     requestId?: string;
-    messages?: Array<{role: 'system' | 'user' | 'assistant', content: string}>;
+    messages?: {role: 'system' | 'user' | 'assistant', content: string}[];
     stream?: boolean;
   } = {}): Observable<GoogleGeminiResponse> {
     const settings = this.settingsService.getSettings();
@@ -289,9 +289,9 @@ export class GoogleGeminiApiService {
   }
 
   private convertMessagesToContents(
-    messages?: Array<{role: 'system' | 'user' | 'assistant', content: string}>,
+    messages?: {role: 'system' | 'user' | 'assistant', content: string}[],
     fallbackPrompt?: string
-  ): Array<{parts: Array<{text: string}>, role?: 'user' | 'model'}> {
+  ): {parts: {text: string}[], role?: 'user' | 'model'}[] {
     if (!messages || messages.length === 0) {
       return [{
         parts: [{ text: fallbackPrompt || '' }],
@@ -299,7 +299,7 @@ export class GoogleGeminiApiService {
       }];
     }
 
-    const contents: Array<{parts: Array<{text: string}>, role?: 'user' | 'model'}> = [];
+    const contents: {parts: {text: string}[], role?: 'user' | 'model'}[] = [];
     
     for (const message of messages) {
       // Convert system messages to user messages with context
@@ -355,7 +355,7 @@ export class GoogleGeminiApiService {
     topP?: number;
     wordCount?: number;
     requestId?: string;
-    messages?: Array<{role: 'system' | 'user' | 'assistant', content: string}>;
+    messages?: {role: 'system' | 'user' | 'assistant', content: string}[];
   } = {}): Observable<string> {
     const settings = this.settingsService.getSettings();
     const startTime = Date.now();
@@ -849,7 +849,7 @@ export class GoogleGeminiApiService {
 
   private extractContentFilterError(error: any): { message: string; code?: string; status?: number; details?: any } | null {
     let contentFilterMessage: string | null = null;
-    let details: any = {};
+    const details: any = {};
 
     // Check for content filtering in successful responses with SAFETY finish reason
     if (error.candidates?.[0]?.finishReason === 'SAFETY') {

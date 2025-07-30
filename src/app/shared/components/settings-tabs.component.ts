@@ -118,7 +118,7 @@ export interface TabItem {
 })
 export class SettingsTabsComponent {
   @Input() tabs: TabItem[] = [];
-  @Input() selectedTab: string = '';
+  @Input() selectedTab = '';
   @Output() selectedTabChange = new EventEmitter<string>();
 
   onTabChange(value: string): void {

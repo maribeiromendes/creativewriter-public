@@ -7,7 +7,8 @@
     "start:dev": "ng serve --host 0.0.0.0 --port 4200 --open --live-reload",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "lint": "ng lint"
   },
   "private": true,
   "dependencies": {
@@ -54,6 +55,8 @@
     "@semantic-release/github": "^11.0.0",
     "@types/jasmine": "~5.1.0",
     "@types/js-yaml": "^4.0.9",
+    "angular-eslint": "20.1.1",
+    "eslint": "^9.29.0",
     "jasmine-core": "~5.7.0",
     "karma": "~6.4.0",
     "karma-chrome-launcher": "~3.2.0",
@@ -62,6 +65,7 @@
     "karma-jasmine-html-reporter": "~2.1.0",
     "prosemirror-dev-tools": "^4.2.0",
     "semantic-release": "^24.2.0",
-    "typescript": "~5.8.2"
+    "typescript": "~5.8.2",
+    "typescript-eslint": "8.34.1"
   }
 }

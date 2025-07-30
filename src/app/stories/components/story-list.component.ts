@@ -1042,7 +1042,7 @@ export class StoryListComponent implements OnInit {
     if (!html) return '';
     
     // First remove Beat AI nodes completely (they are editor-only components)
-    let cleanHtml = html.replace(/<div[^>]*class="beat-ai-node"[^>]*>.*?<\/div>/gs, '');
+    const cleanHtml = html.replace(/<div[^>]*class="beat-ai-node"[^>]*>.*?<\/div>/gs, '');
     
     // Create a temporary DOM element to safely strip remaining HTML tags
     const div = document.createElement('div');

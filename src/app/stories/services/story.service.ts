@@ -236,7 +236,7 @@ export class StoryService {
   }
 
   // Chapter operations
-  async addChapter(storyId: string, title: string = ''): Promise<Chapter> {
+  async addChapter(storyId: string, title = ''): Promise<Chapter> {
     this.db = await this.databaseService.getDatabase();
     const story = await this.getStory(storyId);
     if (!story) throw new Error('Story not found');
@@ -300,7 +300,7 @@ export class StoryService {
   }
 
   // Scene operations
-  async addScene(storyId: string, chapterId: string, title: string = ''): Promise<Scene> {
+  async addScene(storyId: string, chapterId: string, title = ''): Promise<Scene> {
     this.db = await this.databaseService.getDatabase();
     const story = await this.getStory(storyId);
     if (!story) throw new Error('Story not found');

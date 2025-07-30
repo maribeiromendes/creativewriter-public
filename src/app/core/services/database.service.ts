@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { AuthService } from './auth.service';
 
-declare var PouchDB: any;
+declare let PouchDB: any;
 
 export interface SyncStatus {
   isOnline: boolean;

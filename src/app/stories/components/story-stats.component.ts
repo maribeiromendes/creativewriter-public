@@ -15,13 +15,13 @@ import { StoryStatsService } from '../services/story-stats.service';
 
 export interface StoryStatistics {
   totalWords: number;
-  chapterCounts: Array<{ 
+  chapterCounts: { 
     chapterId: string; 
     chapterTitle: string; 
     wordCount: number; 
     sceneCount: number;
     averageWordsPerScene: number;
-  }>;
+  }[];
   totalScenes: number;
   totalChapters: number;
   averageWordsPerChapter: number;
@@ -697,7 +697,7 @@ export interface StoryStatistics {
   `]
 })
 export class StoryStatsComponent implements OnInit, OnDestroy, OnChanges {
-  @Input() isOpen: boolean = false;
+  @Input() isOpen = false;
   @Input() story: Story | null = null;
   @Output() closed = new EventEmitter<void>();
 

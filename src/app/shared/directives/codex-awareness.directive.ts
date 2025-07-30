@@ -9,9 +9,9 @@ import { CodexEntry } from '../../stories/models/codex.interface';
 })
 export class CodexAwarenessDirective implements OnInit, OnDestroy, OnChanges {
   @Input() storyId?: string;
-  @Input() enableHighlighting: boolean = true;
-  @Input() debounceTime: number = 500;
-  @Input() maxMatches: number = 50; // Performance limit
+  @Input() enableHighlighting = true;
+  @Input() debounceTime = 500;
+  @Input() maxMatches = 50; // Performance limit
   
   private subscription = new Subscription();
   private contentSubject = new BehaviorSubject<string>('');
@@ -20,7 +20,7 @@ export class CodexAwarenessDirective implements OnInit, OnDestroy, OnChanges {
   private isProcessing = false;
   
   // Track the original content to restore if needed
-  private originalContent: string = '';
+  private originalContent = '';
 
   constructor(
     private el: ElementRef,

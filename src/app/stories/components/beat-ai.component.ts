@@ -1110,18 +1110,18 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
   @Input() chapterId?: string;
   @Input() sceneId?: string;
   @Output() promptSubmit = new EventEmitter<BeatAIPromptEvent>();
-  currentTextColor: string = '#e0e0e0';
+  currentTextColor = '#e0e0e0';
   @Output() contentUpdate = new EventEmitter<BeatAI>();
   @Output() delete = new EventEmitter<string>();
   @Output() focus = new EventEmitter<void>();
   
   @ViewChild('promptInput') promptInput!: ElementRef<HTMLDivElement>;
   
-  currentPrompt: string = '';
+  currentPrompt = '';
   selectedWordCount: number | string = 400;
-  customWordCount: number = 400;
-  showCustomWordCount: boolean = false;
-  selectedModel: string = '';
+  customWordCount = 400;
+  showCustomWordCount = false;
+  selectedModel = '';
   availableModels: ModelOption[] = [];
   selectedBeatType: 'story' | 'scene' = 'story';
   beatTypeOptions = [
@@ -1146,8 +1146,8 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
     { value: 12000, label: '~12.000 Wörter' },
     { value: 'custom', label: 'Eigene Anzahl...' }
   ];
-  showPreviewModal: boolean = false;
-  previewContent: string = '';
+  showPreviewModal = false;
+  previewContent = '';
   private subscription = new Subscription();
   private editorView: EditorView | null = null;
   

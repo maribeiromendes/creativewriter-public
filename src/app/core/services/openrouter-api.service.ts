@@ -6,10 +6,10 @@ import { AIRequestLoggerService } from './ai-request-logger.service';
 
 export interface OpenRouterRequest {
   model: string;
-  messages: Array<{
+  messages: {
     role: 'system' | 'user' | 'assistant';
     content: string;
-  }>;
+  }[];
   max_tokens?: number;
   temperature?: number;
   top_p?: number;
@@ -21,14 +21,14 @@ export interface OpenRouterResponse {
   object: string;
   created: number;
   model: string;
-  choices: Array<{
+  choices: {
     index: number;
     message: {
       role: string;
       content: string;
     };
     finish_reason: string;
-  }>;
+  }[];
   usage: {
     prompt_tokens: number;
     completion_tokens: number;

@@ -1093,8 +1093,8 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('editorContainer') editorContainer!: ElementRef<HTMLDivElement>;
   private editorView: EditorView | null = null;
   private mutationObserver: MutationObserver | null = null;
-  wordCount: number = 0;
-  currentTextColor: string = '#e0e0e0';
+  wordCount = 0;
+  currentTextColor = '#e0e0e0';
   
   story: Story = {
     id: '',
@@ -1899,7 +1899,7 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
-  private updateEditorContent(skipScroll: boolean = false): void {
+  private updateEditorContent(skipScroll = false): void {
     if (this.editorView && this.activeScene) {
       this.proseMirrorService.setContent(this.activeScene.content || '');
       this.updateWordCount();

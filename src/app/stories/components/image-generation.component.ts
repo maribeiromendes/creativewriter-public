@@ -541,7 +541,7 @@ import { Subscription } from 'rxjs';
 })
 export class ImageGenerationComponent implements OnInit, OnDestroy {
   availableModels: ImageGenerationModel[] = [];
-  selectedModelId: string = '';
+  selectedModelId = '';
   selectedModel: ImageGenerationModel | null = null;
   parameters: Record<string, any> = {};
   jobs: ImageGenerationJob[] = [];
@@ -635,7 +635,7 @@ export class ImageGenerationComponent implements OnInit, OnDestroy {
             console.error('Generation error:', error);
             
             // Show detailed error message
-            let errorMessage = error.message || 'Unbekannter Fehler';
+            const errorMessage = error.message || 'Unbekannter Fehler';
             this.showToastMessage(`Fehler: ${errorMessage}`);
           }
         })

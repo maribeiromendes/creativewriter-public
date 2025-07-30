@@ -220,7 +220,7 @@ export class PromptManagerService {
   /**
    * Get context up to a specific scene
    */
-  getContextUpTo(targetSceneId: string, useSummaries: boolean = false): string {
+  getContextUpTo(targetSceneId: string, useSummaries = false): string {
     const scenes = this.getScenesUpTo(targetSceneId);
     
     return scenes.map(scene => {

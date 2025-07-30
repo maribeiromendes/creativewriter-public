@@ -31,15 +31,15 @@ export interface AIRequestLog {
   safetyRatings?: {
     promptFeedback?: {
       blockReason?: string;
-      safetyRatings?: Array<{
+      safetyRatings?: {
         category: string;
         probability: string;
-      }>;
+      }[];
     };
-    candidateSafetyRatings?: Array<{
+    candidateSafetyRatings?: {
       category: string;
       probability: string;
-    }>;
+    }[];
     finishReason?: string;
   };
 }

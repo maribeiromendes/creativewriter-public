@@ -48,7 +48,7 @@ export class CodexRelevanceService {
     allEntries: CodexEntry[],
     currentText: string,
     beatPrompt: string,
-    maxTokens: number = 1000
+    maxTokens = 1000
   ): Observable<CodexEntry[]> {
     return of(allEntries).pipe(
       map(entries => {
