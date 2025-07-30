@@ -1,5 +1,5 @@
-import { Injectable, Injector, ApplicationRef, EnvironmentInjector } from '@angular/core';
-import { EditorState, Transaction, Plugin, PluginKey, TextSelection } from 'prosemirror-state';
+import { Injectable, Injector, ApplicationRef, EnvironmentInjector, inject } from '@angular/core';
+import { EditorState, Transaction, Plugin, PluginKey } from 'prosemirror-state';
 import { EditorView, Decoration, DecorationSet } from 'prosemirror-view';
 import { Schema, DOMParser, DOMSerializer, Node as ProseMirrorNode, Fragment, Slice } from 'prosemirror-model';
 import { schema } from 'prosemirror-schema-basic';
@@ -47,6 +47,13 @@ export interface SimpleEditorConfig {
   providedIn: 'root'
 })
 export class ProseMirrorEditorService {
+  private injector = inject(Injector);
+  private appRef = inject(ApplicationRef);
+  private envInjector = inject(EnvironmentInjector);
+  private beatAIService = inject(BeatAIService);
+  private promptManager = inject(PromptManagerService);
+  private codexService = inject(CodexService);
+
   private editorView: EditorView | null = null;
   private simpleEditorView: EditorView | null = null; // Separate view for beat input
   private editorSchema: Schema;
@@ -62,14 +69,7 @@ export class ProseMirrorEditorService {
   public contentUpdate$ = new Subject<string>();
   public slashCommand$ = new Subject<number>();
 
-  constructor(
-    private injector: Injector,
-    private appRef: ApplicationRef,
-    private envInjector: EnvironmentInjector,
-    private beatAIService: BeatAIService,
-    private promptManager: PromptManagerService,
-    private codexService: CodexService
-  ) {
+  constructor() {
     // Create schema with basic nodes, list support, and beat AI node
     const baseNodes = addListNodes(schema.spec.nodes, 'paragraph block*', 'block');
     

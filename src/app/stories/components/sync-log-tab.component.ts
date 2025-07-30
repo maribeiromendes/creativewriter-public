@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   IonList, IonItem, IonLabel, IonChip, IonCard,
@@ -232,11 +232,13 @@ import { Subscription } from 'rxjs';
   `]
 })
 export class SyncLogTabComponent implements OnInit, OnDestroy {
+  private syncLoggerService = inject(SyncLoggerService);
+
   logs: SyncLog[] = [];
   expandedLogs = new Set<string>();
   private subscription = new Subscription();
 
-  constructor(private syncLoggerService: SyncLoggerService) {
+  constructor() {
     addIcons({ 
       trash, chevronForward, chevronDown, cloudUploadOutline,
       cloudDownloadOutline, warningOutline, informationCircleOutline,

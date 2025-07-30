@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Story, Chapter, Scene, DEFAULT_STORY_SETTINGS } from '../models/story.interface';
 import { DatabaseService } from '../../core/services/database.service';
 
@@ -6,11 +6,8 @@ import { DatabaseService } from '../../core/services/database.service';
   providedIn: 'root'
 })
 export class StoryService {
+  private readonly databaseService = inject(DatabaseService);
   private db: any;
-
-  constructor(private databaseService: DatabaseService) {
-    // Note: this.db will be set asynchronously in each method
-  }
 
   async getAllStories(): Promise<Story[]> {
     try {
@@ -23,12 +20,12 @@ export class StoryService {
       console.log('Raw PouchDB result:', result);
       
       const stories = result.rows
-        .map((row: any) => {
+        .map((row: { doc: Story }) => {
           console.log('Processing row:', row);
-          return row.doc as Story;
+          return row.doc;
         })
-        .filter((doc: any) => doc && doc.id && doc.type !== 'codex') // Filter out design docs and codex entries
-        .map((story: any) => this.migrateStory(story));
+        .filter((doc: Story) => doc && doc.id && (doc as unknown as { type?: string }).type !== 'codex') // Filter out design docs and codex entries
+        .map((story: Story) => this.migrateStory(story));
         
       return stories;
     } catch (error) {
@@ -47,7 +44,7 @@ export class StoryService {
         doc = await this.db.get(id);
         console.log('Found story by _id:', doc);
       } catch (error) {
-        if ((error as any).status === 404) {
+        if ((error as { status?: number }).status === 404) {
           console.log('Story not found by _id, trying id field...');
           // Try to find by id field
           const result = await this.db.find({
@@ -136,7 +133,7 @@ export class StoryService {
       try {
         doc = await this.db.get(id);
       } catch (error) {
-        if ((error as any).status === 404) {
+        if ((error as { status?: number }).status === 404) {
           // Try to find by id field
           const result = await this.db.find({
             selector: { id: id }
@@ -158,11 +155,14 @@ export class StoryService {
   }
 
   // Migration helper for old stories
-  private migrateStory(story: any): Story {
+  private migrateStory(story: Partial<Story>): Story {
     const migrated: Story = {
+      id: story.id || 'story-' + Date.now(),
+      title: story.title || 'Untitled Story',
+      chapters: story.chapters || [],
       ...story,
-      createdAt: new Date(story.createdAt),
-      updatedAt: new Date(story.updatedAt)
+      createdAt: story.createdAt ? new Date(story.createdAt) : new Date(),
+      updatedAt: story.updatedAt ? new Date(story.updatedAt) : new Date()
     };
 
     // Ensure _id is set
@@ -202,11 +202,11 @@ export class StoryService {
           content: story.content,
           order: 1,
           sceneNumber: 1,
-          createdAt: new Date(story.createdAt),
-          updatedAt: new Date(story.updatedAt)
+          createdAt: story.createdAt ? new Date(story.createdAt) : new Date(),
+          updatedAt: story.updatedAt ? new Date(story.updatedAt) : new Date()
         }],
-        createdAt: new Date(story.createdAt),
-        updatedAt: new Date(story.updatedAt)
+        createdAt: story.createdAt ? new Date(story.createdAt) : new Date(),
+        updatedAt: story.updatedAt ? new Date(story.updatedAt) : new Date()
       };
       
       migrated.chapters = [firstChapter];

@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, AfterViewInit, OnInit, OnChanges, OnDestroy, SimpleChanges, ChangeDetectorRef, ViewChildren, QueryList, ElementRef } from '@angular/core';
+import { Component, Input, Output, EventEmitter, AfterViewInit, OnInit, OnChanges, OnDestroy, SimpleChanges, ChangeDetectorRef, ViewChildren, QueryList, ElementRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -1138,6 +1138,15 @@ import { Subscription } from 'rxjs';
   `]
 })
 export class StoryStructureComponent implements OnInit, OnChanges, AfterViewInit, OnDestroy {
+  private storyService = inject(StoryService);
+  private openRouterApiService = inject(OpenRouterApiService);
+  private googleGeminiApiService = inject(GoogleGeminiApiService);
+  private modelService = inject(ModelService);
+  private settingsService = inject(SettingsService);
+  private cdr = inject(ChangeDetectorRef);
+  private promptManager = inject(PromptManagerService);
+  private router = inject(Router);
+
   @Input() story!: Story;
   @Input() activeChapterId: string | null = null;
   @Input() activeSceneId: string | null = null;
@@ -1154,16 +1163,7 @@ export class StoryStructureComponent implements OnInit, OnChanges, AfterViewInit
   availableModels: ModelOption[] = [];
   private subscription = new Subscription();
 
-  constructor(
-    private storyService: StoryService,
-    private openRouterApiService: OpenRouterApiService,
-    private googleGeminiApiService: GoogleGeminiApiService,
-    private modelService: ModelService,
-    private settingsService: SettingsService,
-    private cdr: ChangeDetectorRef,
-    private promptManager: PromptManagerService,
-    private router: Router
-  ) {
+  constructor() {
     addIcons({ 
       chevronForward, chevronDown, add, trash, createOutline,
       flashOutline, documentTextOutline, timeOutline, sparklesOutline, close,

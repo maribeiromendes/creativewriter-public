@@ -1,4 +1,4 @@
-import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { Component, OnInit, TemplateRef, ViewChild, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { 
@@ -879,6 +879,12 @@ import { VersionService } from '../../core/services/version.service';
   `]
 })
 export class StoryListComponent implements OnInit {
+  private storyService = inject(StoryService);
+  private router = inject(Router);
+  private authService = inject(AuthService);
+  private headerNavService = inject(HeaderNavigationService);
+  versionService = inject(VersionService);
+
   @ViewChild('burgerMenuFooter', { static: true }) burgerMenuFooter!: TemplateRef<any>;
   stories: Story[] = [];
   currentUser: User | null = null;
@@ -886,13 +892,7 @@ export class StoryListComponent implements OnInit {
   burgerMenuItems: BurgerMenuItem[] = [];
   rightActions: HeaderAction[] = [];
 
-  constructor(
-    private storyService: StoryService,
-    private router: Router,
-    private authService: AuthService,
-    private headerNavService: HeaderNavigationService,
-    public versionService: VersionService
-  ) {
+  constructor() {
     // Register Ionic icons
     addIcons({ add, download, settings, statsChart, trash, create, images, menu, close });
   }

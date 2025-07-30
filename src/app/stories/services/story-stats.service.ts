@@ -6,7 +6,6 @@ import { Story, Scene } from '../models/story.interface';
 })
 export class StoryStatsService {
 
-  constructor() { }
 
   /**
    * Calculate total word count for an entire story (all chapters and scenes)
@@ -235,10 +234,10 @@ export class StoryStatsService {
     
     if (!storyClone.chapters) return storyClone;
     
-    storyClone.chapters.forEach((chapter: any) => {
+    storyClone.chapters.forEach((chapter: { scenes?: { content?: string }[] }) => {
       if (!chapter.scenes) return;
       
-      chapter.scenes.forEach((scene: any) => {
+      chapter.scenes.forEach((scene: { content?: string }) => {
         if (!scene.content) return;
         
         // Replace base64 images with placeholder
@@ -260,7 +259,7 @@ export class StoryStatsService {
     let totalSize = 0;
     
     for (const key in localStorage) {
-      if (localStorage.hasOwnProperty(key)) {
+      if (Object.prototype.hasOwnProperty.call(localStorage, key)) {
         totalSize += localStorage[key].length + key.length;
       }
     }
@@ -321,7 +320,7 @@ export class StoryStatsService {
 
     // Analyze each localStorage item
     for (const key in localStorage) {
-      if (localStorage.hasOwnProperty(key)) {
+      if (Object.prototype.hasOwnProperty.call(localStorage, key)) {
         const value = localStorage[key];
         const itemSize = (key.length + value.length) * 2; // UTF-16 bytes
         totalSize += itemSize;

@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import {
@@ -682,14 +682,14 @@ import { Subscription } from 'rxjs';
   `]
 })
 export class AIRequestLoggerComponent implements OnInit, OnDestroy {
+  private loggerService = inject(AIRequestLoggerService);
+  private router = inject(Router);
+
   logs: AIRequestLog[] = [];
   expandedLogs = new Set<string>();
   private subscription = new Subscription();
 
-  constructor(
-    private loggerService: AIRequestLoggerService,
-    private router: Router
-  ) {
+  constructor() {
     addIcons({ 
       arrowBack, trash, chevronForward, chevronDown, checkmarkCircle,
       closeCircle, timeOutline, pauseCircle, documentTextOutline,

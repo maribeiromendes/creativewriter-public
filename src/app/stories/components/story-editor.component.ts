@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit, ChangeDetectorRef, TemplateRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit, ChangeDetectorRef, TemplateRef, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -1088,6 +1088,20 @@ import { PDFExportService } from '../../shared/services/pdf-export.service';
   `]
 })
 export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private storyService = inject(StoryService);
+  private proseMirrorService = inject(ProseMirrorEditorService);
+  private beatAIService = inject(BeatAIService);
+  private cdr = inject(ChangeDetectorRef);
+  private promptManager = inject(PromptManagerService);
+  private headerNavService = inject(HeaderNavigationService);
+  private settingsService = inject(SettingsService);
+  private storyStatsService = inject(StoryStatsService);
+  versionService = inject(VersionService);
+  private menuController = inject(MenuController);
+  private pdfExportService = inject(PDFExportService);
+
   @ViewChild('headerTitle', { static: true }) headerTitle!: TemplateRef<any>;
   @ViewChild('burgerMenuFooter', { static: true }) burgerMenuFooter!: TemplateRef<any>;
   @ViewChild('editorContainer') editorContainer!: ElementRef<HTMLDivElement>;
@@ -1145,21 +1159,7 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
   private originalViewportHeight = 0;
   private keyboardVisible = false;
 
-  constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private storyService: StoryService,
-    private proseMirrorService: ProseMirrorEditorService,
-    private beatAIService: BeatAIService,
-    private cdr: ChangeDetectorRef,
-    private promptManager: PromptManagerService,
-    private headerNavService: HeaderNavigationService,
-    private settingsService: SettingsService,
-    private storyStatsService: StoryStatsService,
-    public versionService: VersionService,
-    private menuController: MenuController,
-    private pdfExportService: PDFExportService
-  ) {
+  constructor() {
     addIcons({ 
       arrowBack, bookOutline, book, settingsOutline, statsChartOutline, statsChart,
       saveOutline, checkmarkCircleOutline, menuOutline, chevronBack, chevronForward,

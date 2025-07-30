@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
@@ -7,9 +7,8 @@ import { map, catchError } from 'rxjs/operators';
   providedIn: 'root'
 })
 export class TemplateService {
+  private readonly http = inject(HttpClient);
   private templateCache = new Map<string, string>();
-
-  constructor(private http: HttpClient) {}
 
   /**
    * Load a template from assets

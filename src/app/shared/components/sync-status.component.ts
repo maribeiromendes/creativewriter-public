@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, Input } from '@angular/core';
+import { Component, OnInit, OnDestroy, Input, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Subject, takeUntil } from 'rxjs';
 import { DatabaseService, SyncStatus } from '../../core/services/database.service';
@@ -140,7 +140,7 @@ export class SyncStatusComponent implements OnInit, OnDestroy {
     isSync: false
   };
 
-  constructor(private databaseService: DatabaseService) {}
+  private readonly databaseService = inject(DatabaseService);
 
   ngOnInit() {
     this.databaseService.syncStatus$

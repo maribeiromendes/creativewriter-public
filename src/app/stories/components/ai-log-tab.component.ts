@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   IonList, IonItem, IonLabel, IonBadge, IonChip, IonCard,
@@ -900,11 +900,13 @@ import { Subscription } from 'rxjs';
   `]
 })
 export class AILogTabComponent implements OnInit, OnDestroy {
+  private loggerService = inject(AIRequestLoggerService);
+
   logs: AIRequestLog[] = [];
   expandedLogs = new Set<string>();
   private subscription = new Subscription();
 
-  constructor(private loggerService: AIRequestLoggerService) {
+  constructor() {
     addIcons({ 
       trash, chevronForward, chevronDown, checkmarkCircle,
       closeCircle, timeOutline, pauseCircle, documentTextOutline,

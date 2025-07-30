@@ -219,7 +219,7 @@ export class SyncedCustomBackgroundService {
                   createdBy: doc.createdBy
                 });
               }
-            } catch (attachmentError) {
+            } catch {
               // Skip this background if attachment loading fails
               continue;
             }

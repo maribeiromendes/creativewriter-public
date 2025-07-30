@@ -39,8 +39,6 @@ export class CodexRelevanceService {
   private readonly ALIAS_WEIGHT = 0.9;
   private readonly SEMANTIC_WEIGHT = 0.7;
 
-  constructor() {}
-
   /**
    * Identifies relevant codex entries for the current beat based on context
    */

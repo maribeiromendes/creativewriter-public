@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CodexService } from '../../stories/services/codex.service';
 import { CodexEntry } from '../../stories/models/codex.interface';
@@ -55,7 +55,7 @@ export class CodexDebugComponent implements OnInit {
   
   codexEntries: CodexEntry[] = [];
 
-  constructor(private codexService: CodexService) {}
+  private readonly codexService = inject(CodexService);
 
   ngOnInit(): void {
     if (this.storyId) {

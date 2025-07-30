@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CodexRelevanceService, CodexEntry, RelevanceScore } from '../../core/services/codex-relevance.service';
@@ -357,7 +357,7 @@ export class CodexRelevanceDemoComponent {
   selectedEntries: CodexEntry[] | null = null;
   estimatedTokens = 0;
   
-  constructor(private relevanceService: CodexRelevanceService) {}
+  private readonly relevanceService = inject(CodexRelevanceService);
   
   async analyzeRelevance() {
     // Calculate relevance scores for all entries

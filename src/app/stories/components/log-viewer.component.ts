@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -73,7 +73,9 @@ import { SyncLogTabComponent } from './sync-log-tab.component';
 export class LogViewerComponent implements OnInit {
   selectedTab = 'ai';
 
-  constructor(private router: Router) {
+  private readonly router = inject(Router);
+
+  constructor() {
     addIcons({ arrowBack });
   }
 

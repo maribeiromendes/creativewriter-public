@@ -355,6 +355,8 @@ interface BackgroundOption {
   `]
 })
 export class BackgroundSelectorComponent implements OnInit, OnChanges {
+  private http = inject(HttpClient);
+
   private settingsService = inject(SettingsService);
   private customBackgroundService = inject(SyncedCustomBackgroundService);
 
@@ -386,7 +388,7 @@ export class BackgroundSelectorComponent implements OnInit, OnChanges {
     { text: 'Löschen', role: 'destructive', handler: () => this.deleteCustomBackground() }
   ];
 
-  constructor(private http: HttpClient) {
+  constructor() {
     addIcons({ checkmarkCircle, trashOutline });
   }
 

@@ -193,8 +193,21 @@ export class AIRequestLoggerService {
     errorDetails?: Record<string, unknown>;
     httpStatus?: number;
     retryCount?: number;
-    responseHeaders?: any;
-    safetyRatings?: any;
+    responseHeaders?: Record<string, unknown>;
+    safetyRatings?: {
+      promptFeedback?: {
+        blockReason?: string;
+        safetyRatings?: {
+          category: string;
+          probability: string;
+        }[];
+      };
+      candidateSafetyRatings?: {
+        category: string;
+        probability: string;
+      }[];
+      finishReason?: string;
+    };
   }): void {
     console.error('❌ AI Request Logger - Error:', {
       id,

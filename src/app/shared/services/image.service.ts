@@ -20,8 +20,6 @@ export class ImageService {
   private readonly MAX_IMAGES = 20; // Max number of images to keep
   private databaseService = inject(DatabaseService);
 
-  constructor() {}
-
   /**
    * Upload an image file and store it locally
    */

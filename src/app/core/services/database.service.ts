@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { AuthService } from './auth.service';
 
@@ -15,9 +15,11 @@ export interface SyncStatus {
   providedIn: 'root'
 })
 export class DatabaseService {
-  private db: any;
-  private remoteDb: any;
-  private syncHandler: any;
+  private readonly authService = inject(AuthService);
+  
+  private db: any = null;
+  private remoteDb: any = null;
+  private syncHandler: any = null;
   private initializationPromise: Promise<void> | null = null;
   private syncStatusSubject = new BehaviorSubject<SyncStatus>({
     isOnline: navigator.onLine,
@@ -26,7 +28,7 @@ export class DatabaseService {
 
   public syncStatus$: Observable<SyncStatus> = this.syncStatusSubject.asObservable();
 
-  constructor(private authService: AuthService) {
+  constructor() {
     // PouchDB is loaded globally from CDN
     if (typeof PouchDB === 'undefined') {
       throw new Error('PouchDB is not loaded. Please check index.html');
@@ -70,7 +72,7 @@ export class DatabaseService {
       await this.db.createIndex({
         index: { fields: ['createdAt'] }
       });
-    } catch (err: any) {
+    } catch (err) {
       console.warn('Could not create createdAt index:', err);
     }
     
@@ -78,7 +80,7 @@ export class DatabaseService {
       await this.db.createIndex({
         index: { fields: ['id'] }
       });
-    } catch (err: any) {
+    } catch (err) {
       console.warn('Could not create id index:', err);
     }
 
@@ -200,14 +202,14 @@ export class DatabaseService {
       console.log('Sync active');
       this.updateSyncStatus({ isSync: true, error: undefined });
     })
-    .on('paused', (err: any) => {
+    .on('paused', (err?: Error) => {
       console.log('Sync paused:', err);
       this.updateSyncStatus({ 
         isSync: false, 
         error: err ? `Sync paused: ${err}` : undefined 
       });
     })
-    .on('error', (err: any) => {
+    .on('error', (err: Error) => {
       console.error('Sync error:', err);
       this.updateSyncStatus({ 
         isSync: false, 

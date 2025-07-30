@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonPopover, IonContent } from '@ionic/angular/standalone';
 import { VersionService, VersionInfo } from '../../core/services/version.service';
@@ -195,12 +195,12 @@ import { VersionService, VersionInfo } from '../../core/services/version.service
   `]
 })
 export class VersionTooltipComponent implements OnInit {
+  private versionService = inject(VersionService);
+
   @ViewChild('popover') popover!: IonPopover;
   
   versionInfo: VersionInfo | null = null;
   isOpen = false;
-
-  constructor(private versionService: VersionService) {}
 
   ngOnInit() {
     this.versionService.version$.subscribe(version => {

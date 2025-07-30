@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, BehaviorSubject, of, forkJoin } from 'rxjs';
 import { map, catchError, tap } from 'rxjs/operators';
@@ -17,6 +17,9 @@ import { SettingsService } from './settings.service';
   providedIn: 'root'
 })
 export class ModelService {
+  private http = inject(HttpClient);
+  private settingsService = inject(SettingsService);
+
   private readonly OPENROUTER_API_URL = 'https://openrouter.ai/api/v1';
   private readonly REPLICATE_API_URL = 'https://api.replicate.com/v1';
   private readonly USD_TO_EUR_RATE = 0.92; // Approximate rate, you might want to fetch this dynamically
@@ -30,11 +33,6 @@ export class ModelService {
   public replicateModels$ = this.replicateModelsSubject.asObservable();
   public geminiModels$ = this.geminiModelsSubject.asObservable();
   public loading$ = this.loadingSubject.asObservable();
-
-  constructor(
-    private http: HttpClient,
-    private settingsService: SettingsService
-  ) {}
 
   loadOpenRouterModels(): Observable<ModelOption[]> {
     const settings = this.settingsService.getSettings();

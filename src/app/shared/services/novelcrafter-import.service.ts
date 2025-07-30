@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { StoryService } from '../../stories/services/story.service';
 import { CodexService } from '../../stories/services/codex.service';
 import { Story, Chapter, Scene } from '../../stories/models/story.interface';
@@ -18,7 +18,7 @@ export interface NovelCrafterCharacter {
     };
   };
   content: string;
-  fields: Record<string, any>;
+  fields: Record<string, unknown>;
 }
 
 export interface NovelCrafterImportResult {
@@ -36,10 +36,8 @@ export interface NovelCrafterImportResult {
   providedIn: 'root'
 })
 export class NovelCrafterImportService {
-  constructor(
-    private storyService: StoryService,
-    private codexService: CodexService
-  ) {}
+  private readonly storyService = inject(StoryService);
+  private readonly codexService = inject(CodexService);
 
   async importFromZip(zipFile: File): Promise<NovelCrafterImportResult> {
     const result: NovelCrafterImportResult = {
@@ -74,7 +72,7 @@ export class NovelCrafterImportService {
       const entryFiles: string[] = [];
       
       for (const [relativePath, zipObject] of Object.entries(zipContent.files)) {
-        const fileObj = zipObject as any;
+        const fileObj = zipObject as JSZip.JSZipObject;
         if (fileObj.dir) {
           console.log(`Directory: ${relativePath}`);
           continue; // Skip directories
@@ -143,7 +141,7 @@ export class NovelCrafterImportService {
           try {
             const entry = this.parseCodexEntry(fileData.content, fileData.path, category);
             if (entry) {
-              (result.codexEntries as any)[category].push(entry);
+              (result.codexEntries as Record<string, CodexEntry[]>)[category].push(entry);
             }
           } catch (error) {
             result.warnings.push(`Failed to parse ${fileData.path}: ${error}`);
@@ -429,30 +427,30 @@ export class NovelCrafterImportService {
       const markdownContent = content.substring(yamlMatch[0].length).trim();
 
       // Parse YAML using js-yaml library
-      const parsedYaml = yaml.load(yamlContent) as any;
+      const parsedYaml = yaml.load(yamlContent) as Record<string, unknown>;
       if (!parsedYaml) {
         console.warn(`Failed to parse YAML in ${filePath}`);
         return null;
       }
 
       // Extract fields (if they exist)
-      const fields = parsedYaml.fields || {};
+      const fields = (parsedYaml as any)['fields'] || {};
       
       // Map to our codex entry format
       const codexEntry: CodexEntry = {
         id: this.generateId(),
         categoryId: '', // Will be set when creating categories
-        title: parsedYaml.name || 'Unnamed Entry',
+        title: (parsedYaml as any)['name'] || 'Unnamed Entry',
         content: markdownContent,
-        tags: Array.isArray(parsedYaml.tags) ? parsedYaml.tags : [],
+        tags: Array.isArray((parsedYaml as any)['tags']) ? (parsedYaml as any)['tags'] : [],
         metadata: {
-          originalType: parsedYaml.type,
+          originalType: (parsedYaml as any)['type'],
           originalId: this.extractIdFromPath(filePath),
-          color: parsedYaml.color,
-          aliases: Array.isArray(parsedYaml.aliases) ? parsedYaml.aliases : [],
-          alwaysIncludeInContext: parsedYaml.alwaysIncludeInContext,
-          doNotTrack: parsedYaml.doNotTrack,
-          noAutoInclude: parsedYaml.noAutoInclude
+          color: (parsedYaml as any)['color'],
+          aliases: Array.isArray((parsedYaml as any)['aliases']) ? (parsedYaml as any)['aliases'] : [],
+          alwaysIncludeInContext: (parsedYaml as any)['alwaysIncludeInContext'],
+          doNotTrack: (parsedYaml as any)['doNotTrack'],
+          noAutoInclude: (parsedYaml as any)['noAutoInclude']
         },
         order: 0,
         createdAt: new Date(),
@@ -460,15 +458,15 @@ export class NovelCrafterImportService {
       };
 
       // Handle Story Role field
-      if (fields['Story Role']) {
-        const storyRole = Array.isArray(fields['Story Role']) 
-          ? fields['Story Role'][0] 
-          : fields['Story Role'];
+      if ((fields as any)['Story Role']) {
+        const storyRole = Array.isArray((fields as any)['Story Role']) 
+          ? (fields as any)['Story Role'][0] 
+          : (fields as any)['Story Role'];
         codexEntry.metadata!['storyRole'] = storyRole;
       }
 
       // Convert other fields to custom fields
-      const customFields: any[] = [];
+      const customFields: { id: string; name: string; value: string }[] = [];
       Object.entries(fields).forEach(([key, value]) => {
         if (key !== 'Story Role') {
           customFields.push({

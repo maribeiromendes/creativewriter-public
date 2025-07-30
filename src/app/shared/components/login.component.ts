@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -231,16 +231,14 @@ import { AuthService, User } from '../../core/services/auth.service';
   `]
 })
 export class LoginComponent implements OnInit {
+  private authService = inject(AuthService);
+  private router = inject(Router);
+
   username = '';
   displayName = '';
   isLoading = false;
   errorMessage = '';
   isLoggedIn = false;
-
-  constructor(
-    private authService: AuthService,
-    private router: Router
-  ) {}
 
   ngOnInit() {
     this.authService.currentUser$.subscribe(user => {

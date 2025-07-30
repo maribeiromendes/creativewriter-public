@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject, from } from 'rxjs';
 import { map, distinctUntilChanged, switchMap } from 'rxjs/operators';
 import { Story, Scene } from '../../stories/models/story.interface';
@@ -21,13 +21,15 @@ export interface FlatScene {
   providedIn: 'root'
 })
 export class PromptManagerService {
+  private readonly storyService = inject(StoryService);
+  
   private flatScenesSubject = new BehaviorSubject<FlatScene[]>([]);
   private currentStoryIdSubject = new BehaviorSubject<string | null>(null);
   
   public flatScenes$ = this.flatScenesSubject.asObservable();
   public currentStoryId$ = this.currentStoryIdSubject.asObservable();
 
-  constructor(private storyService: StoryService) {
+  constructor() {
     this.initializeStoryWatching();
   }
 

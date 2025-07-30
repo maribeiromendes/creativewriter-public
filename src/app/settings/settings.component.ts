@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -1323,6 +1323,11 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
   `]
 })
 export class SettingsComponent implements OnInit, OnDestroy {
+  private router = inject(Router);
+  private settingsService = inject(SettingsService);
+  private modelService = inject(ModelService);
+  private backgroundService = inject(BackgroundService);
+
   settings: Settings;
   hasUnsavedChanges = false;
   private originalSettings!: Settings;
@@ -1344,12 +1349,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
     { value: 'scene-title', icon: 'document-text-outline', label: 'Szenentitel' }
   ];
 
-  constructor(
-    private router: Router,
-    private settingsService: SettingsService,
-    private modelService: ModelService,
-    private backgroundService: BackgroundService
-  ) {
+  constructor() {
     this.settings = this.settingsService.getSettings();
     // Register Ionic icons
     addIcons({ arrowBack, statsChart, warning, checkmarkCircle, globeOutline, logoGoogle, colorPaletteOutline, documentTextOutline, cloudOutline });

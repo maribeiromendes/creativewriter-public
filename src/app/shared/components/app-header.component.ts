@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, TemplateRef, OnInit, ViewChild } from '@angular/core';
+import { Component, Input, Output, EventEmitter, TemplateRef, OnInit, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule, IonPopover } from '@ionic/angular';
 import { VersionService } from '../../core/services/version.service';
@@ -421,6 +421,8 @@ export interface BurgerMenuItem {
   `]
 })
 export class AppHeaderComponent implements OnInit {
+  versionService = inject(VersionService);
+
   @ViewChild('burgerMenuPopover') burgerMenuPopover?: IonPopover;
   
   @Input() title = '';
@@ -441,8 +443,6 @@ export class AppHeaderComponent implements OnInit {
   @Output() burgerMenuToggle = new EventEmitter<boolean>();
   
   public isBurgerMenuOpen = false;
-
-  constructor(public versionService: VersionService) {}
 
   ngOnInit() {
     // Version service loads automatically on initialization

@@ -1,5 +1,5 @@
-import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { Injectable, inject } from '@angular/core';
+import { BehaviorSubject } from 'rxjs';
 import { v4 as uuidv4 } from 'uuid';
 import { Codex, CodexCategory, CodexEntry, DEFAULT_CODEX_CATEGORIES } from '../models/codex.interface';
 import { DatabaseService } from '../../core/services/database.service';
@@ -8,6 +8,8 @@ import { DatabaseService } from '../../core/services/database.service';
   providedIn: 'root'
 })
 export class CodexService {
+  private databaseService = inject(DatabaseService);
+
   private codexMap = new Map<string, Codex>();
   private codexSubject = new BehaviorSubject<Map<string, Codex>>(new Map());
   private db: any;
@@ -15,7 +17,7 @@ export class CodexService {
   
   codex$ = this.codexSubject.asObservable();
 
-  constructor(private databaseService: DatabaseService) {
+  constructor() {
     this.initializeService();
   }
 

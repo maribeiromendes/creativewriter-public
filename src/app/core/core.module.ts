@@ -1,4 +1,4 @@
-import { NgModule, Optional, SkipSelf, ErrorHandler } from '@angular/core';
+import { NgModule, ErrorHandler, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
 import { GlobalErrorHandlerService } from './services/global-error-handler.service';
@@ -20,7 +20,9 @@ import { GlobalErrorHandlerService } from './services/global-error-handler.servi
   ]
 })
 export class CoreModule {
-  constructor(@Optional() @SkipSelf() parentModule: CoreModule) {
+  constructor() {
+    const parentModule = inject(CoreModule, { optional: true, skipSelf: true });
+
     if (parentModule) {
       throw new Error('CoreModule ist bereits geladen. Importiere es nur im AppModule.');
     }

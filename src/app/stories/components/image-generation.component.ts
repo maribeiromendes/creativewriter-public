@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -540,6 +540,9 @@ import { Subscription } from 'rxjs';
   `]
 })
 export class ImageGenerationComponent implements OnInit, OnDestroy {
+  private router = inject(Router);
+  private imageGenService = inject(ImageGenerationService);
+
   availableModels: ImageGenerationModel[] = [];
   selectedModelId = '';
   selectedModel: ImageGenerationModel | null = null;
@@ -551,10 +554,7 @@ export class ImageGenerationComponent implements OnInit, OnDestroy {
   
   private subscription: Subscription = new Subscription();
 
-  constructor(
-    private router: Router,
-    private imageGenService: ImageGenerationService
-  ) {
+  constructor() {
     addIcons({ 
       arrowBack, imageOutline, downloadOutline, refreshOutline,
       settingsOutline, checkmarkCircle, closeCircle, timeOutline

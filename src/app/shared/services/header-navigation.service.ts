@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { BurgerMenuItem } from '../components/app-header.component';
 
@@ -6,8 +6,7 @@ import { BurgerMenuItem } from '../components/app-header.component';
   providedIn: 'root'
 })
 export class HeaderNavigationService {
-
-  constructor(private router: Router) {}
+  private readonly router = inject(Router);
 
   // Common navigation actions
   goToStoryList(): void {

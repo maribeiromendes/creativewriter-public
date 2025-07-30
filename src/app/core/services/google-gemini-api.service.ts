@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, tap, takeUntil, Subject, map, catchError } from 'rxjs';
 import { SettingsService } from './settings.service';
@@ -55,15 +55,13 @@ export interface GoogleGeminiResponse {
   providedIn: 'root'
 })
 export class GoogleGeminiApiService {
+  private http = inject(HttpClient);
+  private settingsService = inject(SettingsService);
+  private aiLogger = inject(AIRequestLoggerService);
+
   private readonly API_BASE_URL = '/api/gemini/models';
   private abortSubjects = new Map<string, Subject<void>>();
   private requestMetadata = new Map<string, { logId: string; startTime: number }>();
-
-  constructor(
-    private http: HttpClient,
-    private settingsService: SettingsService,
-    private aiLogger: AIRequestLoggerService
-  ) {}
 
   generateText(prompt: string, options: {
     model?: string;

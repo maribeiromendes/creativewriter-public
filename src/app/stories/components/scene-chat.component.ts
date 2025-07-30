@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ElementRef, OnDestroy, TemplateRef } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, OnDestroy, TemplateRef, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -698,6 +698,16 @@ interface PresetPrompt {
   `]
 })
 export class SceneChatComponent implements OnInit, OnDestroy {
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private storyService = inject(StoryService);
+  private settingsService = inject(SettingsService);
+  private beatAIService = inject(BeatAIService);
+  private promptManager = inject(PromptManagerService);
+  private codexService = inject(CodexService);
+  private aiLogger = inject(AIRequestLoggerService);
+  private modelService = inject(ModelService);
+
   @ViewChild('scrollContainer') scrollContainer!: ElementRef;
   @ViewChild('messageInput') messageInput!: ElementRef;
   @ViewChild('modelToolbar', { read: TemplateRef }) modelToolbar!: TemplateRef<any>;
@@ -727,17 +737,7 @@ export class SceneChatComponent implements OnInit, OnDestroy {
   private abortController: AbortController | null = null;
   keyboardVisible = false;
 
-  constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private storyService: StoryService,
-    private settingsService: SettingsService,
-    private beatAIService: BeatAIService,
-    private promptManager: PromptManagerService,
-    private codexService: CodexService,
-    private aiLogger: AIRequestLoggerService,
-    private modelService: ModelService
-  ) {
+  constructor() {
     addIcons({ 
       arrowBack, sendOutline, peopleOutline, documentTextOutline, 
       addOutline, checkmarkOutline, closeOutline, sparklesOutline,

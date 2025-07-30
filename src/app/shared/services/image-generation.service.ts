@@ -1,6 +1,6 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, BehaviorSubject, interval, switchMap, takeWhile, map, catchError, of } from 'rxjs';
+import { Observable, BehaviorSubject, interval, switchMap, takeWhile, map, catchError } from 'rxjs';
 import { 
   ImageGenerationModel, 
   ImageGenerationRequest, 
@@ -12,6 +12,8 @@ import {
   providedIn: 'root'
 })
 export class ImageGenerationService {
+  private http = inject(HttpClient);
+
   private readonly apiUrl = '/api/replicate';
   private readonly storageKey = 'creative-writer-image-jobs';
   private readonly lastPromptKey = 'creative-writer-last-prompt';
@@ -225,7 +227,7 @@ export class ImageGenerationService {
     }
   ];
 
-  constructor(private http: HttpClient) {
+  constructor() {
     this.loadJobsFromStorage();
   }
 

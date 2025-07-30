@@ -1,4 +1,4 @@
-import { Directive, ElementRef, Input, OnDestroy, OnInit, Renderer2, OnChanges, SimpleChanges } from '@angular/core';
+import { Directive, ElementRef, Input, OnDestroy, OnInit, Renderer2, OnChanges, SimpleChanges, inject } from '@angular/core';
 import { Subscription, BehaviorSubject, combineLatest, debounceTime, distinctUntilChanged } from 'rxjs';
 import { CodexService } from '../../stories/services/codex.service';
 import { CodexEntry } from '../../stories/models/codex.interface';
@@ -8,6 +8,10 @@ import { CodexEntry } from '../../stories/models/codex.interface';
   standalone: true
 })
 export class CodexAwarenessDirective implements OnInit, OnDestroy, OnChanges {
+  private el = inject(ElementRef);
+  private renderer = inject(Renderer2);
+  private codexService = inject(CodexService);
+
   @Input() storyId?: string;
   @Input() enableHighlighting = true;
   @Input() debounceTime = 500;
@@ -21,12 +25,6 @@ export class CodexAwarenessDirective implements OnInit, OnDestroy, OnChanges {
   
   // Track the original content to restore if needed
   private originalContent = '';
-
-  constructor(
-    private el: ElementRef,
-    private renderer: Renderer2,
-    private codexService: CodexService
-  ) {}
 
   ngOnInit(): void {
     if (!this.storyId) {

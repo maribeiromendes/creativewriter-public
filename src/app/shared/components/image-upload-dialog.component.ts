@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output, OnInit } from '@angular/core';
+import { Component, EventEmitter, Output, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ImageService } from '../services/image.service';
@@ -345,7 +345,7 @@ export class ImageUploadDialogComponent implements OnInit {
   altText = '';
   titleText = '';
 
-  constructor(private imageService: ImageService) {}
+  private readonly imageService = inject(ImageService);
 
   ngOnInit(): void {
     // Focus on the dialog

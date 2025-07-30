@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, tap, takeUntil, Subject } from 'rxjs';
 import { SettingsService } from './settings.service';
@@ -40,15 +40,13 @@ export interface OpenRouterResponse {
   providedIn: 'root'
 })
 export class OpenRouterApiService {
+  private http = inject(HttpClient);
+  private settingsService = inject(SettingsService);
+  private aiLogger = inject(AIRequestLoggerService);
+
   private readonly API_URL = 'https://openrouter.ai/api/v1/chat/completions';
   private abortSubjects = new Map<string, Subject<void>>();
   private requestMetadata = new Map<string, { logId: string; startTime: number }>();
-
-  constructor(
-    private http: HttpClient,
-    private settingsService: SettingsService,
-    private aiLogger: AIRequestLoggerService
-  ) {}
 
   generateText(prompt: string, options: {
     model?: string;

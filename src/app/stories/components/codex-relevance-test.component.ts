@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CodexService } from '../services/codex.service';
@@ -180,17 +180,15 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
   `]
 })
 export class CodexRelevanceTestComponent implements OnInit {
+  private codexService = inject(CodexService);
+  private codexRelevanceService = inject(CodexRelevanceService);
+  private beatAIService = inject(BeatAIService);
+
   @Input() storyId!: string;
   
   sceneContext = '';
   beatPrompt = '';
   results: any[] | null = null;
-  
-  constructor(
-    private codexService: CodexService,
-    private codexRelevanceService: CodexRelevanceService,
-    private beatAIService: BeatAIService
-  ) {}
   
   ngOnInit() {
     // Set default test values

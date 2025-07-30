@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnDestroy } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CodexService } from '../services/codex.service';
@@ -173,13 +173,13 @@ import { Subscription } from 'rxjs';
   `]
 })
 export class CodexRelevanceSettingsComponent implements OnInit, OnDestroy {
+  private codexService = inject(CodexService);
+
   @Input() storyId!: string;
   
   codex: any = null;
   globalIncludes: Record<string, boolean> = {};
   private subscription = new Subscription();
-  
-  constructor(private codexService: CodexService) {}
   
   ngOnInit() {
     this.loadCodex();

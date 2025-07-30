@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -551,11 +551,11 @@ export class StorySettingsComponent implements OnInit {
     '{writingStyle}'
   ];
 
-  constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private storyService: StoryService
-  ) {
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly storyService = inject(StoryService);
+
+  constructor() {
     addIcons({ 
       arrowBack, saveOutline, refreshOutline, checkmarkCircleOutline,
       warningOutline, informationCircleOutline, codeSlashOutline,

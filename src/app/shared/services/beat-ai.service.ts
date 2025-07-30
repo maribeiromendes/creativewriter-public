@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable, Subject, map, scan, catchError, of, switchMap, from, tap } from 'rxjs';
 import { BeatAI, BeatAIGenerationEvent } from '../../stories/models/beat-ai.interface';
 import { OpenRouterApiService } from '../../core/services/openrouter-api.service';
@@ -13,21 +13,19 @@ import { CodexRelevanceService } from '../../core/services/codex-relevance.servi
   providedIn: 'root'
 })
 export class BeatAIService {
+  private readonly openRouterApi = inject(OpenRouterApiService);
+  private readonly googleGeminiApi = inject(GoogleGeminiApiService);
+  private readonly settingsService = inject(SettingsService);
+  private readonly storyService = inject(StoryService);
+  private readonly codexService = inject(CodexService);
+  private readonly promptManager = inject(PromptManagerService);
+  private readonly codexRelevanceService = inject(CodexRelevanceService);
+  
   private generationSubject = new Subject<BeatAIGenerationEvent>();
   public generation$ = this.generationSubject.asObservable();
   private activeGenerations = new Map<string, string>(); // beatId -> requestId
   private isStreamingSubject = new Subject<boolean>();
   public isStreaming$ = this.isStreamingSubject.asObservable();
-
-  constructor(
-    private openRouterApi: OpenRouterApiService,
-    private googleGeminiApi: GoogleGeminiApiService,
-    private settingsService: SettingsService,
-    private storyService: StoryService,
-    private codexService: CodexService,
-    private promptManager: PromptManagerService,
-    private codexRelevanceService: CodexRelevanceService
-  ) {}
 
   generateBeatContent(prompt: string, beatId: string, options: {
     wordCount?: number;

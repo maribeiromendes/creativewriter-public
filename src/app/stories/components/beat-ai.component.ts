@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, AfterViewInit, ViewChild, ElementRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgSelectModule } from '@ng-select/ng-select';
@@ -1105,6 +1105,12 @@ import { EditorView } from 'prosemirror-view';
   `]
 })
 export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
+  private modelService = inject(ModelService);
+  private settingsService = inject(SettingsService);
+  private beatAIService = inject(BeatAIService);
+  private proseMirrorService = inject(ProseMirrorEditorService);
+  private elementRef = inject(ElementRef);
+
   @Input() beatData!: BeatAI;
   @Input() storyId?: string;
   @Input() chapterId?: string;
@@ -1151,13 +1157,7 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
   private subscription = new Subscription();
   private editorView: EditorView | null = null;
   
-  constructor(
-    private modelService: ModelService,
-    private settingsService: SettingsService,
-    private beatAIService: BeatAIService,
-    private proseMirrorService: ProseMirrorEditorService,
-    private elementRef: ElementRef
-  ) {
+  constructor() {
     // Register icons
     addIcons({ logoGoogle, globeOutline, createOutline, refreshOutline, trashOutline });
   }

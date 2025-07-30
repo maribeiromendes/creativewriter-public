@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, OnChanges, SimpleChanges, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { 
   IonModal, IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonIcon,
@@ -704,7 +704,9 @@ export class StoryStatsComponent implements OnInit, OnDestroy, OnChanges {
   statistics: StoryStatistics | null = null;
   showDetailedBreakdown = true; // Show detailed breakdown button
 
-  constructor(private storyStatsService: StoryStatsService) {
+  private readonly storyStatsService = inject(StoryStatsService);
+
+  constructor() {
     addIcons({ 
       close, statsChartOutline, bookOutline, documentTextOutline, 
       timeOutline, trendingUpOutline, trendingDownOutline, layersOutline, serverOutline, analyticsOutline

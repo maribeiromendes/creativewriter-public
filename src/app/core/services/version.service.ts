@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
@@ -16,10 +16,12 @@ export interface VersionInfo {
   providedIn: 'root'
 })
 export class VersionService {
+  private http = inject(HttpClient);
+
   private versionSubject = new BehaviorSubject<VersionInfo | null>(null);
   public version$ = this.versionSubject.asObservable();
 
-  constructor(private http: HttpClient) {
+  constructor() {
     this.loadVersion();
   }
 
