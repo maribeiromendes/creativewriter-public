@@ -1,6 +1,6 @@
-import { Component, Input, Output, EventEmitter, TemplateRef, OnInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter, TemplateRef, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonicModule } from '@ionic/angular';
+import { IonicModule, IonPopover } from '@ionic/angular';
 import { VersionService } from '../../core/services/version.service';
 import { VersionTooltipComponent } from './version-tooltip.component';
 
@@ -113,7 +113,7 @@ export interface BurgerMenuItem {
             id="burger-menu-trigger"
             aria-label="Open navigation menu"
             aria-haspopup="menu"
-            [attr.aria-expanded]="false">
+            [attr.aria-expanded]="isBurgerMenuOpen">
             <ion-icon name="menu" slot="icon-only" aria-hidden="true"></ion-icon>
           </ion-button>
         </ion-buttons>
@@ -127,6 +127,7 @@ export interface BurgerMenuItem {
 
     <!-- Burger Menu Popover -->
     <ion-popover 
+      #burgerMenuPopover
       *ngIf="showBurgerMenu"
       trigger="burger-menu-trigger" 
       triggerAction="click"
@@ -134,7 +135,9 @@ export interface BurgerMenuItem {
       alignment="end"
       [dismissOnSelect]="false"
       [showBackdrop]="true"
-      [keepContentsMounted]="false">
+      [keepContentsMounted]="false"
+      (ionPopoverWillPresent)="onBurgerMenuWillPresent()"
+      (ionPopoverWillDismiss)="onBurgerMenuWillDismiss()">
       <ng-template>
         <ion-content>
           <div class="popover-header" *ngIf="burgerMenuTitle">
@@ -418,6 +421,8 @@ export interface BurgerMenuItem {
   `]
 })
 export class AppHeaderComponent implements OnInit {
+  @ViewChild('burgerMenuPopover') burgerMenuPopover?: IonPopover;
+  
   @Input() title: string = '';
   @Input() titleTemplate?: TemplateRef<any>;
   @Input() showBackButton: boolean = false;
@@ -434,6 +439,8 @@ export class AppHeaderComponent implements OnInit {
   @Input() userGreeting: string = '';
 
   @Output() burgerMenuToggle = new EventEmitter<boolean>();
+  
+  public isBurgerMenuOpen = false;
 
   constructor(public versionService: VersionService) {}
 
@@ -454,5 +461,13 @@ export class AppHeaderComponent implements OnInit {
     action();
     // Emit that burger menu was used (for any parent components that need to know)
     this.burgerMenuToggle.emit(false);
+  }
+
+  onBurgerMenuWillPresent(): void {
+    this.isBurgerMenuOpen = true;
+  }
+
+  onBurgerMenuWillDismiss(): void {
+    this.isBurgerMenuOpen = false;
   }
 }
