@@ -1,6 +1,5 @@
 import { Injectable, inject } from '@angular/core';
 import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 import { BackgroundService } from './background.service';
 import { SyncedCustomBackgroundService } from './synced-custom-background.service';
 import { Story } from '../../stories/models/story.interface';
@@ -24,6 +23,7 @@ interface PDFExportOptions {
 export class PDFExportService {
   private backgroundService = inject(BackgroundService);
   private customBackgroundService = inject(SyncedCustomBackgroundService);
+  private currentYPosition = 0;
 
   async exportStoryToPDF(story: Story, options: PDFExportOptions = {}): Promise<void> {
     const defaultOptions: Required<PDFExportOptions> = {
@@ -42,16 +42,27 @@ export class PDFExportService {
     const config = { ...defaultOptions, ...options };
 
     try {
-      // Create a temporary container for PDF generation
-      const container = await this.createPDFContainer(story, config);
-      
-      // Generate PDF from the container
-      await this.generatePDFFromContainer(container, config);
-      
-      // Clean up
-      if (document.body.contains(container)) {
-        document.body.removeChild(container);
+      // Create PDF
+      const pdf = new jsPDF({
+        orientation: config.orientation,
+        unit: 'mm',
+        format: config.format
+      });
+
+      // Get page dimensions
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+
+      // Add background if enabled
+      if (config.includeBackground) {
+        await this.addBackgroundToPDF(pdf, pageWidth, pageHeight);
       }
+
+      // Add text content directly to PDF
+      await this.addTextContentToPDF(pdf, story, config);
+
+      // Save the PDF
+      pdf.save(config.filename);
       
     } catch (error) {
       console.error('Error exporting story to PDF:', error);
@@ -59,158 +70,312 @@ export class PDFExportService {
     }
   }
 
-  private async createPDFContainer(story: Story, options: Required<PDFExportOptions>): Promise<HTMLElement> {
-    const container = document.createElement('div');
-    container.style.position = 'absolute';
-    container.style.left = '-9999px'; // Hide off-screen
-    container.style.top = '0';
-    container.style.width = '210mm'; // A4 width
-    container.style.minHeight = '297mm'; // A4 height
-    container.style.boxSizing = 'border-box';
-    container.style.fontFamily = 'Georgia, serif';
-    container.style.fontSize = '12pt';
-    container.style.lineHeight = '1.6';
-    container.style.color = '#000000';
-    container.style.zIndex = '10000';
+  private async addTextContentToPDF(pdf: jsPDF, story: Story, config: Required<PDFExportOptions>): Promise<void> {
+    // Set up text styling
+    let currentY = config.margins.top;
+    const leftMargin = config.margins.left;
+    const rightMargin = config.margins.right;
+    const maxWidth = pdf.internal.pageSize.getWidth() - leftMargin - rightMargin;
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const bottomMargin = pageHeight - config.margins.bottom;
     
-    // Apply background if enabled
-    await this.applyBackgroundToContainer(container, options);
-
-    // Create content wrapper for better visibility over background
-    const contentWrapper = document.createElement('div');
-    if (options.includeBackground) {
-      contentWrapper.style.backgroundColor = 'rgba(255, 255, 255, 0.95)';
-      contentWrapper.style.padding = '30px';
-      contentWrapper.style.margin = '20mm';
-      contentWrapper.style.borderRadius = '10px';
-      contentWrapper.style.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.3)';
-      contentWrapper.style.backdropFilter = 'blur(5px)';
+    // Set font for title
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(24);
+    // Set text color to white if background is enabled, black otherwise
+    if (config.includeBackground) {
+      pdf.setTextColor(255, 255, 255); // White text
     } else {
-      contentWrapper.style.backgroundColor = '#ffffff';
-      contentWrapper.style.padding = `${options.margins.top}mm ${options.margins.right}mm ${options.margins.bottom}mm ${options.margins.left}mm`;
+      pdf.setTextColor(0, 0, 0); // Black text
     }
-
-    // Add story content to wrapper
-    this.addStoryContent(contentWrapper, story);
     
-    container.appendChild(contentWrapper);
-
-    // Append to body for rendering
-    document.body.appendChild(container);
-    
-    // Wait for images to load
-    await this.waitForImages(container);
-    
-    return container;
-  }
-
-  private async applyBackgroundToContainer(container: HTMLElement, options: Required<PDFExportOptions>): Promise<void> {
-    // Set transparent background for container - contentWrapper will handle visibility
-    container.style.backgroundColor = 'transparent';
-    container.style.color = '#000000';
-  }
-
-  private addStoryContent(container: HTMLElement, story: Story): void {
     // Add title
-    const titleElement = document.createElement('h1');
-    titleElement.textContent = story.title;
-    titleElement.style.textAlign = 'center';
-    titleElement.style.marginBottom = '30px';
-    titleElement.style.fontSize = '24pt';
-    titleElement.style.fontWeight = 'bold';
-    titleElement.style.color = '#000000';
-    container.appendChild(titleElement);
-
-    // Add chapters and scenes
-    story.chapters?.forEach((chapter, chapterIndex) => {
-      // Add chapter title
-      const chapterElement = document.createElement('h2');
-      chapterElement.textContent = `${chapter.title}`;
-      chapterElement.style.marginTop = chapterIndex === 0 ? '0' : '40px';
-      chapterElement.style.marginBottom = '20px';
-      chapterElement.style.fontSize = '18pt';
-      chapterElement.style.fontWeight = 'bold';
-      chapterElement.style.color = '#000000';
-      chapterElement.style.pageBreakBefore = chapterIndex === 0 ? 'auto' : 'always';
-      container.appendChild(chapterElement);
-
-      // Add scenes
-      chapter.scenes?.forEach((scene, sceneIndex) => {
-        // Add scene title
-        if (scene.title) {
-          const sceneElement = document.createElement('h3');
-          sceneElement.textContent = scene.title;
-          sceneElement.style.marginTop = sceneIndex === 0 ? '0' : '30px';
-          sceneElement.style.marginBottom = '15px';
-          sceneElement.style.fontSize = '14pt';
-          sceneElement.style.fontWeight = 'bold';
-          sceneElement.style.color = '#000000';
-          container.appendChild(sceneElement);
+    const titleLines = pdf.splitTextToSize(story.title, maxWidth);
+    for (const line of titleLines) {
+      if (currentY > bottomMargin) {
+        pdf.addPage();
+        currentY = config.margins.top;
+        if (config.includeBackground) {
+          await this.addBackgroundToPDF(pdf, pdf.internal.pageSize.getWidth(), pageHeight);
         }
-
+      }
+      pdf.text(line, leftMargin, currentY);
+      currentY += 10;
+    }
+    
+    currentY += 10; // Extra space after title
+    
+    // Process chapters and scenes
+    for (const chapter of story.chapters || []) {
+      // Check if we need a new page for chapter
+      if (currentY > bottomMargin - 20) {
+        pdf.addPage();
+        currentY = config.margins.top;
+        if (config.includeBackground) {
+          await this.addBackgroundToPDF(pdf, pdf.internal.pageSize.getWidth(), pageHeight);
+        }
+      }
+      
+      // Add chapter title
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(18);
+      // Set text color for chapter
+      if (config.includeBackground) {
+        pdf.setTextColor(255, 255, 255); // White text
+      } else {
+        pdf.setTextColor(0, 0, 0); // Black text
+      }
+      const chapterLines = pdf.splitTextToSize(chapter.title, maxWidth);
+      for (const line of chapterLines) {
+        if (currentY > bottomMargin) {
+          pdf.addPage();
+          currentY = config.margins.top;
+          if (config.includeBackground) {
+            await this.addBackgroundToPDF(pdf, pdf.internal.pageSize.getWidth(), pageHeight);
+          }
+        }
+        pdf.text(line, leftMargin, currentY);
+        currentY += 8;
+      }
+      
+      currentY += 5; // Space after chapter title
+      
+      // Process scenes
+      for (const scene of chapter.scenes || []) {
+        // Add scene title if exists
+        if (scene.title) {
+          pdf.setFont('helvetica', 'bold');
+          pdf.setFontSize(14);
+          // Set text color for scene title
+          if (config.includeBackground) {
+            pdf.setTextColor(255, 255, 255); // White text
+          } else {
+            pdf.setTextColor(0, 0, 0); // Black text
+          }
+          const sceneLines = pdf.splitTextToSize(scene.title, maxWidth);
+          for (const line of sceneLines) {
+            if (currentY > bottomMargin) {
+              pdf.addPage();
+              currentY = config.margins.top;
+              if (config.includeBackground) {
+                await this.addBackgroundToPDF(pdf, pdf.internal.pageSize.getWidth(), pageHeight);
+              }
+            }
+            pdf.text(line, leftMargin, currentY);
+            currentY += 6;
+          }
+          currentY += 3;
+        }
+        
         // Add scene content
         if (scene.content) {
-          const contentContainer = document.createElement('div');
-          contentContainer.style.marginBottom = '20px';
-          contentContainer.style.color = '#000000';
+          pdf.setFont('helvetica', 'normal');
+          pdf.setFontSize(12);
+          // Set text color for content
+          if (config.includeBackground) {
+            pdf.setTextColor(255, 255, 255); // White text
+          } else {
+            pdf.setTextColor(0, 0, 0); // Black text
+          }
           
-          // Parse HTML content and clean it for PDF
-          const cleanContent = this.cleanContentForPDF(scene.content);
-          contentContainer.innerHTML = cleanContent;
-          
-          container.appendChild(contentContainer);
+          // Process content with images and text
+          await this.addContentToPDF(pdf, scene.content, config, leftMargin, rightMargin, maxWidth, pageHeight, currentY);
+          currentY = await this.getCurrentY(); // Get updated Y position
         }
-      });
-    });
+      }
+      
+      currentY += 10; // Extra space after chapter
+    }
   }
-
-  private cleanContentForPDF(htmlContent: string): string {
+  
+  private extractPlainText(htmlContent: string): string {
     // Create a temporary element to parse HTML
     const tempDiv = document.createElement('div');
     tempDiv.innerHTML = htmlContent;
-
-    // Remove Beat AI components and other interactive elements
+    
+    // Remove Beat AI components
     const beatAIElements = tempDiv.querySelectorAll('.beat-ai-wrapper, .beat-ai-container, .beat-ai-node');
     beatAIElements.forEach(element => {
-      // Extract the paragraph content before removing the Beat AI wrapper
+      // Extract paragraphs before removing
       const paragraphs = element.querySelectorAll('p');
       paragraphs.forEach(p => {
-        tempDiv.appendChild(p.cloneNode(true)); // Move paragraphs to parent
+        element.parentNode?.insertBefore(p.cloneNode(true), element);
       });
       element.remove();
     });
-
-    // Clean up paragraph styling and ensure visibility
+    
+    // Extract text while preserving paragraph structure
     const paragraphs = tempDiv.querySelectorAll('p');
+    const textParts: string[] = [];
+    
     paragraphs.forEach(p => {
-      p.style.textIndent = '2em';
-      p.style.marginBottom = '1em';
-      p.style.lineHeight = '1.6';
-      p.style.color = '#000000'; // Force black color instead of inherit
-      p.style.fontSize = '12pt';
-      p.style.fontFamily = 'Georgia, serif';
-    });
-
-    // Handle images - ensure they fit within page width
-    const images = tempDiv.querySelectorAll('img');
-    images.forEach(img => {
-      img.style.maxWidth = '100%';
-      img.style.height = 'auto';
-      img.style.display = 'block';
-      img.style.margin = '1em auto';
-    });
-
-    // Ensure all text elements have proper styling
-    const allTextElements = tempDiv.querySelectorAll('*');
-    allTextElements.forEach(element => {
-      if (element.textContent && element.textContent.trim()) {
-        (element as HTMLElement).style.color = '#000000';
-        (element as HTMLElement).style.visibility = 'visible';
+      const text = p.textContent?.trim();
+      if (text) {
+        textParts.push(text);
       }
     });
-
-    return tempDiv.innerHTML;
+    
+    // If no paragraphs found, fall back to plain text content
+    if (textParts.length === 0) {
+      return tempDiv.textContent || '';
+    }
+    
+    return textParts.join('\n\n');
   }
+
+  private async getCurrentY(): Promise<number> {
+    return this.currentYPosition;
+  }
+
+  private async addContentToPDF(
+    pdf: jsPDF, 
+    htmlContent: string, 
+    config: Required<PDFExportOptions>,
+    leftMargin: number,
+    rightMargin: number,
+    maxWidth: number,
+    pageHeight: number,
+    startY: number
+  ): Promise<void> {
+    this.currentYPosition = startY;
+    const bottomMargin = pageHeight - config.margins.bottom;
+    
+    // Create temporary div to parse HTML
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = htmlContent;
+    
+    // Remove Beat AI components first
+    const beatAIElements = tempDiv.querySelectorAll('.beat-ai-wrapper, .beat-ai-container, .beat-ai-node');
+    beatAIElements.forEach(element => {
+      // Extract paragraphs before removing
+      const paragraphs = element.querySelectorAll('p');
+      paragraphs.forEach(p => {
+        element.parentNode?.insertBefore(p.cloneNode(true), element);
+      });
+      element.remove();
+    });
+    
+    // Process all child nodes in order
+    const nodes = Array.from(tempDiv.childNodes);
+    
+    for (const node of nodes) {
+      if (node.nodeType === Node.ELEMENT_NODE) {
+        const element = node as Element;
+        
+        // Handle images
+        if (element.tagName === 'IMG') {
+          await this.addImageToPDF(pdf, element as HTMLImageElement, config, leftMargin, maxWidth, pageHeight);
+        }
+        // Handle paragraphs
+        else if (element.tagName === 'P') {
+          await this.addParagraphToPDF(pdf, element.textContent || '', config, leftMargin, maxWidth, pageHeight);
+        }
+        // Handle other elements with text content
+        else if (element.textContent?.trim()) {
+          await this.addParagraphToPDF(pdf, element.textContent, config, leftMargin, maxWidth, pageHeight);
+        }
+      }
+      // Handle text nodes
+      else if (node.nodeType === Node.TEXT_NODE && node.textContent?.trim()) {
+        await this.addParagraphToPDF(pdf, node.textContent, config, leftMargin, maxWidth, pageHeight);
+      }
+    }
+  }
+
+  private async addImageToPDF(
+    pdf: jsPDF,
+    img: HTMLImageElement,
+    config: Required<PDFExportOptions>,
+    leftMargin: number,
+    maxWidth: number,
+    pageHeight: number
+  ): Promise<void> {
+    try {
+      const bottomMargin = pageHeight - config.margins.bottom;
+      
+      // Load image data
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d')!;
+      
+      // Create a new image element to ensure it's loaded
+      const imageElement = new Image();
+      imageElement.crossOrigin = 'anonymous';
+      
+      await new Promise<void>((resolve, reject) => {
+        imageElement.onload = () => resolve();
+        imageElement.onerror = () => reject(new Error('Failed to load image'));
+        imageElement.src = img.src;
+      });
+      
+      // Calculate image dimensions (max width, maintain aspect ratio)
+      const aspectRatio = imageElement.naturalHeight / imageElement.naturalWidth;
+      const imageWidth = Math.min(maxWidth, imageElement.naturalWidth * 0.264583); // Convert px to mm
+      const imageHeight = imageWidth * aspectRatio;
+      
+      // Check if we need a new page
+      if (this.currentYPosition + imageHeight > bottomMargin) {
+        pdf.addPage();
+        this.currentYPosition = config.margins.top;
+        if (config.includeBackground) {
+          await this.addBackgroundToPDF(pdf, pdf.internal.pageSize.getWidth(), pageHeight);
+        }
+      }
+      
+      // Draw image to canvas
+      canvas.width = imageElement.naturalWidth;
+      canvas.height = imageElement.naturalHeight;
+      ctx.drawImage(imageElement, 0, 0);
+      
+      // Add image to PDF
+      const imageData = canvas.toDataURL('image/jpeg', 0.8);
+      pdf.addImage(imageData, 'JPEG', leftMargin, this.currentYPosition, imageWidth, imageHeight);
+      
+      this.currentYPosition += imageHeight + 5; // Add some spacing after image
+      
+    } catch (error) {
+      console.warn('Failed to add image to PDF:', error);
+      // Continue without the image
+    }
+  }
+
+  private async addParagraphToPDF(
+    pdf: jsPDF,
+    text: string,
+    config: Required<PDFExportOptions>,
+    leftMargin: number,
+    maxWidth: number,
+    pageHeight: number
+  ): Promise<void> {
+    if (!text.trim()) return;
+    
+    const bottomMargin = pageHeight - config.margins.bottom;
+    
+    // Set text styling
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(12);
+    if (config.includeBackground) {
+      pdf.setTextColor(255, 255, 255); // White text
+    } else {
+      pdf.setTextColor(0, 0, 0); // Black text
+    }
+    
+    const lines = pdf.splitTextToSize(text, maxWidth);
+    
+    for (const line of lines) {
+      if (this.currentYPosition > bottomMargin) {
+        pdf.addPage();
+        this.currentYPosition = config.margins.top;
+        if (config.includeBackground) {
+          await this.addBackgroundToPDF(pdf, pdf.internal.pageSize.getWidth(), pageHeight);
+        }
+      }
+      pdf.text(line, leftMargin, this.currentYPosition);
+      this.currentYPosition += 5;
+    }
+    
+    this.currentYPosition += 3; // Paragraph spacing
+  }
+
 
   private async convertBlobToBase64(blobUrl: string): Promise<string> {
     try {
@@ -229,133 +394,6 @@ export class PDFExportService {
     }
   }
 
-  private async waitForImages(container: HTMLElement): Promise<void> {
-    const images = container.querySelectorAll('img');
-    if (images.length === 0) return;
-
-    const imagePromises = Array.from(images).map(img => {
-      return new Promise<void>((resolve) => {
-        if (img.complete) {
-          resolve();
-        } else {
-          img.onload = () => resolve();
-          img.onerror = () => resolve(); // Continue even if image fails to load
-        }
-      });
-    });
-
-    await Promise.all(imagePromises);
-    
-    // Wait a bit more for any async background loading
-    await new Promise(resolve => setTimeout(resolve, 500));
-  }
-
-  private async generatePDFFromContainer(
-    container: HTMLElement, 
-    options: Required<PDFExportOptions>
-  ): Promise<void> {
-    try {
-      // Configure html2canvas options for better quality and background handling
-      const canvas = await html2canvas(container, {
-        scale: 2, // High quality rendering
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: '#ffffff', // Always use white background to ensure text visibility
-        logging: false, // Disable logging for production
-        width: container.scrollWidth,
-        height: container.scrollHeight,
-        scrollX: 0,
-        scrollY: 0,
-        foreignObjectRendering: true, // Better support for complex content
-        imageTimeout: 15000, // Allow more time for images to load
-        removeContainer: true
-      });
-
-      // Create PDF
-      const pdf = new jsPDF({
-        orientation: options.orientation,
-        unit: 'mm',
-        format: options.format
-      });
-
-      // Calculate dimensions
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
-      const canvasWidth = canvas.width;
-      const canvasHeight = canvas.height;
-
-      // Calculate scale to fit content within page
-      const ratio = Math.min(pdfWidth / canvasWidth * 72 / 96, pdfHeight / canvasHeight * 72 / 96);
-      const scaledWidth = canvasWidth * ratio;
-      const scaledHeight = canvasHeight * ratio;
-
-      // Center content on page
-      const xOffset = (pdfWidth - scaledWidth) / 2;
-      const yOffset = (pdfHeight - scaledHeight) / 2;
-
-      // Add background image first if enabled
-      if (options.includeBackground) {
-        await this.addBackgroundToPDF(pdf, pdfWidth, pdfHeight);
-      }
-
-      // Convert canvas to image data
-      const imgData = canvas.toDataURL('image/png', 1.0);
-
-      // Check if content fits on one page
-      if (scaledHeight <= pdfHeight) {
-        // Single page
-        pdf.addImage(imgData, 'PNG', xOffset, yOffset, scaledWidth, scaledHeight);
-      } else {
-        // Multiple pages needed
-        let currentY = 0;
-        let pageNumber = 0;
-
-        while (currentY < canvasHeight) {
-          if (pageNumber > 0) {
-            pdf.addPage();
-            // Add background to each new page
-            if (options.includeBackground) {
-              await this.addBackgroundToPDF(pdf, pdfWidth, pdfHeight);
-            }
-          }
-
-          const remainingHeight = canvasHeight - currentY;
-          const pageCanvasHeight = Math.min(canvasHeight / ratio, pdfHeight);
-          const sourceHeight = Math.min(remainingHeight, pageCanvasHeight / ratio);
-
-          // Create canvas for this page
-          const pageCanvas = document.createElement('canvas');
-          const pageCtx = pageCanvas.getContext('2d')!;
-          pageCanvas.width = canvasWidth;
-          pageCanvas.height = sourceHeight * (canvasWidth / container.scrollWidth);
-
-          // Draw portion of original canvas
-          pageCtx.drawImage(
-            canvas,
-            0, currentY * (canvasWidth / container.scrollWidth),
-            canvasWidth, sourceHeight * (canvasWidth / container.scrollWidth),
-            0, 0,
-            canvasWidth, sourceHeight * (canvasWidth / container.scrollWidth)
-          );
-
-          const pageImgData = pageCanvas.toDataURL('image/png', 1.0);
-          const pageScaledHeight = sourceHeight * ratio;
-
-          pdf.addImage(pageImgData, 'PNG', xOffset, yOffset, scaledWidth, pageScaledHeight);
-
-          currentY += sourceHeight;
-          pageNumber++;
-        }
-      }
-
-      // Save the PDF
-      pdf.save(options.filename);
-      
-    } catch (error) {
-      console.error('Error generating PDF from container:', error);
-      throw error;
-    }
-  }
 
   private async addBackgroundToPDF(pdf: any, pdfWidth: number, pdfHeight: number): Promise<void> {
     const currentBackground = this.backgroundService.getCurrentBackground();
