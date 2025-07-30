@@ -1041,11 +1041,22 @@ export class StoryListComponent implements OnInit {
   private stripHtmlTags(html: string): string {
     if (!html) return '';
     
-    // Create a temporary DOM element to safely strip HTML tags
+    // First remove Beat AI nodes completely (they are editor-only components)
+    let cleanHtml = html.replace(/<div[^>]*class="beat-ai-node"[^>]*>.*?<\/div>/gs, '');
+    
+    // Create a temporary DOM element to safely strip remaining HTML tags
     const div = document.createElement('div');
-    div.innerHTML = html;
+    div.innerHTML = cleanHtml;
     
     // Get text content and normalize whitespace
-    return div.textContent || div.innerText || '';
+    const textContent = div.textContent || div.innerText || '';
+    
+    // Remove any remaining Beat AI artifacts that might appear as plain text
+    return textContent
+      .replace(/🎭\s*Beat\s*AI/gi, '')
+      .replace(/Prompt:\s*/gi, '')
+      .replace(/BeatAIPrompt/gi, '')
+      .trim()
+      .replace(/\s+/g, ' '); // Normalize whitespace
   }
 }
