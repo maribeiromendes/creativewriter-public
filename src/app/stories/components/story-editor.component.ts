@@ -1497,7 +1497,7 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
         action: () => this.headerNavService.goToAILogger()
       },
       {
-        icon: 'image',
+        icon: 'images',
         label: 'Bildgenerierung',
         action: () => this.headerNavService.goToImageGeneration()
       }

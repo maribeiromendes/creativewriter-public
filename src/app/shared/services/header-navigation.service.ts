@@ -62,7 +62,7 @@ export class HeaderNavigationService {
         action: () => this.goToSettings()
       },
       {
-        icon: 'image',
+        icon: 'images',
         label: 'Bildgenerierung',
         action: () => this.goToImageGeneration()
       },
