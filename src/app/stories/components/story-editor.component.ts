@@ -10,7 +10,7 @@ import { addIcons } from 'ionicons';
 import { 
   arrowBack, bookOutline, book, settingsOutline, statsChartOutline, statsChart,
   saveOutline, checkmarkCircleOutline, menuOutline, chevronBack, chevronForward,
-  chatbubblesOutline, bugOutline, menu, close, images
+  chatbubblesOutline, bugOutline, menu, close, images, documentTextOutline
 } from 'ionicons/icons';
 import { StoryService } from '../services/story.service';
 import { Story, Scene } from '../models/story.interface';
@@ -32,6 +32,7 @@ import { HeaderNavigationService } from '../../shared/services/header-navigation
 import { SettingsService } from '../../core/services/settings.service';
 import { StoryStatsService } from '../services/story-stats.service';
 import { VersionService } from '../../core/services/version.service';
+import { PDFExportService } from '../../shared/services/pdf-export.service';
 
 @Component({
   selector: 'app-story-editor',
@@ -1156,12 +1157,13 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     private settingsService: SettingsService,
     private storyStatsService: StoryStatsService,
     public versionService: VersionService,
-    private menuController: MenuController
+    private menuController: MenuController,
+    private pdfExportService: PDFExportService
   ) {
     addIcons({ 
       arrowBack, bookOutline, book, settingsOutline, statsChartOutline, statsChart,
       saveOutline, checkmarkCircleOutline, menuOutline, chevronBack, chevronForward,
-      chatbubblesOutline, bugOutline, menu, close, images
+      chatbubblesOutline, bugOutline, menu, close, images, documentTextOutline
     });
   }
 
@@ -1470,6 +1472,12 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     
     // Burger menu items with custom actions for this component
     this.burgerMenuItems = [
+      {
+        icon: 'document-text-outline',
+        label: 'PDF Export',
+        action: () => this.exportToPDF(),
+        color: 'primary'
+      },
       {
         icon: 'bug-outline',
         label: 'Debug Modus',
@@ -2246,6 +2254,30 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
 
   hideStoryStats(): void {
     this.showStoryStats = false;
+  }
+
+  async exportToPDF(): Promise<void> {
+    try {
+      // Save any unsaved changes first
+      if (this.hasUnsavedChanges) {
+        await this.saveStory();
+      }
+
+      // Show loading indicator (you can enhance this with a proper loading dialog)
+      console.log('Generating PDF...');
+
+      // Export the story to PDF with background
+      await this.pdfExportService.exportStoryToPDF(this.story, {
+        includeBackground: true,
+        format: 'a4',
+        orientation: 'portrait'
+      });
+
+      console.log('PDF export completed successfully');
+    } catch (error) {
+      console.error('PDF export failed:', error);
+      // You can add proper error handling/notification here
+    }
   }
 
 
