@@ -11,7 +11,14 @@ import { VersionService, VersionInfo } from '../../core/services/version.service
     <div #triggerElement 
          id="version-tooltip-trigger"
          (click)="togglePopover()"
-         style="cursor: pointer;">
+         style="cursor: pointer;"
+         role="button"
+         aria-label="Show version information"
+         [attr.aria-expanded]="isOpen"
+         aria-haspopup="dialog"
+         tabindex="0"
+         (keydown.enter)="togglePopover()"
+         (keydown.space)="togglePopover()">
       <ng-content></ng-content>
     </div>
     
@@ -22,12 +29,13 @@ import { VersionService, VersionInfo } from '../../core/services/version.service
       alignment="center" 
       reference="trigger"
       [showBackdrop]="true"
+      [keepContentsMounted]="false"
       size="auto"
       class="version-popover"
       (ionPopoverWillDismiss)="onPopoverDismiss()">
       
       <ng-template>
-        <ion-content class="version-tooltip-content">
+        <ion-content class="version-tooltip-content" role="dialog" aria-label="Version information">
           <div class="tooltip-content" *ngIf="versionInfo">
             <div class="tooltip-header">
               <strong>Version Info</strong>
@@ -190,7 +198,7 @@ export class VersionTooltipComponent implements OnInit {
   @ViewChild('popover') popover!: IonPopover;
   
   versionInfo: VersionInfo | null = null;
-  private isOpen = false;
+  isOpen = false;
 
   constructor(private versionService: VersionService) {}
 
@@ -200,7 +208,10 @@ export class VersionTooltipComponent implements OnInit {
     });
   }
 
-  togglePopover() {
+  togglePopover(event?: KeyboardEvent) {
+    if (event && (event.key !== 'Enter' && event.key !== ' ')) return;
+    if (event) event.preventDefault();
+    
     if (!this.versionInfo || !this.popover) return;
     
     if (this.isOpen) {
