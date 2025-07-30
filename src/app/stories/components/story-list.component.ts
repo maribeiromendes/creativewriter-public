@@ -999,14 +999,16 @@ export class StoryListComponent implements OnInit {
   getStoryPreview(story: Story): string {
     // For legacy stories with content
     if (story.content) {
-      return story.content.length > 150 ? story.content.substring(0, 150) + '...' : story.content;
+      const cleanContent = this.stripHtmlTags(story.content);
+      return cleanContent.length > 150 ? cleanContent.substring(0, 150) + '...' : cleanContent;
     }
     
     // For new chapter/scene structure
     if (story.chapters && story.chapters.length > 0 && story.chapters[0].scenes && story.chapters[0].scenes.length > 0) {
       const firstScene = story.chapters[0].scenes[0];
       const content = firstScene.content || '';
-      return content.length > 150 ? content.substring(0, 150) + '...' : content;
+      const cleanContent = this.stripHtmlTags(content);
+      return cleanContent.length > 150 ? cleanContent.substring(0, 150) + '...' : cleanContent;
     }
     
     return 'Noch kein Inhalt...';
@@ -1015,7 +1017,8 @@ export class StoryListComponent implements OnInit {
   getWordCount(story: Story): number {
     // For legacy stories with content
     if (story.content) {
-      return story.content.trim().split(/\s+/).filter(word => word.length > 0).length;
+      const cleanContent = this.stripHtmlTags(story.content);
+      return cleanContent.trim().split(/\s+/).filter(word => word.length > 0).length;
     }
     
     // For new chapter/scene structure - count all scenes
@@ -1025,12 +1028,24 @@ export class StoryListComponent implements OnInit {
         if (chapter.scenes) {
           chapter.scenes.forEach(scene => {
             const content = scene.content || '';
-            totalWords += content.trim().split(/\s+/).filter(word => word.length > 0).length;
+            const cleanContent = this.stripHtmlTags(content);
+            totalWords += cleanContent.trim().split(/\s+/).filter(word => word.length > 0).length;
           });
         }
       });
     }
     
     return totalWords;
+  }
+
+  private stripHtmlTags(html: string): string {
+    if (!html) return '';
+    
+    // Create a temporary DOM element to safely strip HTML tags
+    const div = document.createElement('div');
+    div.innerHTML = html;
+    
+    // Get text content and normalize whitespace
+    return div.textContent || div.innerText || '';
   }
 }
