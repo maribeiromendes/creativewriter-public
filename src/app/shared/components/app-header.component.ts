@@ -108,8 +108,8 @@ export interface BurgerMenuItem {
           </ng-container>
 
           <!-- Burger Menu Button -->
-          <ion-button *ngIf="showBurgerMenu" (click)="toggleBurgerMenu()">
-            <ion-icon [name]="burgerMenuOpen ? 'close' : 'menu'" slot="icon-only"></ion-icon>
+          <ion-button *ngIf="showBurgerMenu" id="burger-menu-trigger">
+            <ion-icon name="menu" slot="icon-only"></ion-icon>
           </ion-button>
         </ion-buttons>
       </ion-toolbar>
@@ -120,36 +120,37 @@ export interface BurgerMenuItem {
       </ion-toolbar>
     </ion-header>
 
-    <!-- Burger Menu -->
-    <div class="burger-menu-overlay" *ngIf="burgerMenuOpen && showBurgerMenu" (click)="closeBurgerMenu()"></div>
-    
-    <div class="burger-menu" [class.open]="burgerMenuOpen" *ngIf="showBurgerMenu">
-      <div class="burger-menu-content">
-        <div class="burger-menu-header">
-          <h3>{{ burgerMenuTitle || 'Navigation' }}</h3>
-          <ion-button fill="clear" color="medium" (click)="toggleBurgerMenu()">
-            <ion-icon name="close" slot="icon-only"></ion-icon>
-          </ion-button>
-        </div>
-        
-        <div class="burger-menu-items">
-          <ion-button 
-            fill="clear" 
-            expand="block" 
-            *ngFor="let item of burgerMenuItems"
-            [color]="item.color || 'medium'"
-            (click)="item.action(); closeBurgerMenu()">
-            <ion-icon [name]="item.icon" slot="start"></ion-icon>
-            {{ item.label }}
-          </ion-button>
-        </div>
-        
-        <!-- Burger Menu Footer Content -->
-        <div class="burger-menu-footer" *ngIf="burgerMenuFooterContent">
-          <ng-container *ngTemplateOutlet="burgerMenuFooterContent"></ng-container>
-        </div>
-      </div>
-    </div>
+    <!-- Burger Menu Popover -->
+    <ion-popover 
+      *ngIf="showBurgerMenu"
+      trigger="burger-menu-trigger" 
+      triggerAction="click"
+      side="bottom"
+      alignment="end"
+      [dismissOnSelect]="false">
+      <ng-template>
+        <ion-content>
+          <div class="popover-header" *ngIf="burgerMenuTitle">
+            <h3>{{ burgerMenuTitle || 'Navigation' }}</h3>
+          </div>
+          
+          <ion-list lines="none">
+            <ion-item 
+              button 
+              *ngFor="let item of burgerMenuItems"
+              (click)="handleBurgerMenuAction(item.action)">
+              <ion-icon [name]="item.icon" slot="start" [color]="item.color || 'medium'"></ion-icon>
+              <ion-label>{{ item.label }}</ion-label>
+            </ion-item>
+          </ion-list>
+          
+          <!-- Burger Menu Footer Content -->
+          <div class="popover-footer" *ngIf="burgerMenuFooterContent">
+            <ng-container *ngTemplateOutlet="burgerMenuFooterContent"></ng-container>
+          </div>
+        </ion-content>
+      </ng-template>
+    </ion-popover>
   `,
   styles: [`
     /* Base Header Styling */
@@ -245,181 +246,25 @@ export interface BurgerMenuItem {
       }
     }
 
-    /* Burger Menu Styles */
-    .burger-menu-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.5);
-      z-index: 9998;
-      backdrop-filter: blur(2px);
+    /* Popover Styles */
+    .popover-header {
+      padding: 0.75rem 1rem 0.5rem 1rem;
+      border-bottom: 1px solid var(--ion-color-step-200);
     }
     
-    .burger-menu {
-      position: fixed;
-      top: 0;
-      right: -260px;
-      width: 260px;
-      height: 100%;
-      background: 
-        /* Enhanced dark overlay with gradient for depth */
-        linear-gradient(135deg, rgba(15, 15, 25, 0.98) 0%, rgba(10, 10, 20, 0.98) 50%, rgba(20, 20, 35, 0.98) 100%),
-        /* Fallback dark background */
-        #1a1a2e;
-      background-size: cover, cover, auto;
-      background-position: center, center, center;
-      background-repeat: no-repeat, no-repeat, repeat;
-      border-left: 1px solid rgba(139, 180, 248, 0.3);
-      z-index: 9999;
-      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-      box-shadow: -4px 0 20px rgba(0, 0, 0, 0.7);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-    }
-    
-    .burger-menu.open {
-      right: 0;
-    }
-    
-    .burger-menu-content {
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-      padding: 0;
-      overflow: hidden;
-    }
-    
-    .burger-menu-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0.5rem 0.75rem;
-      border-bottom: 1px solid rgba(139, 180, 248, 0.15);
-      background: linear-gradient(135deg, rgba(15, 15, 25, 0.9) 0%, rgba(10, 10, 20, 0.9) 100%);
-      backdrop-filter: blur(25px);
-      -webkit-backdrop-filter: blur(25px);
-      position: relative;
-    }
-    
-    .burger-menu-header::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: linear-gradient(135deg, rgba(139, 180, 248, 0.05) 0%, rgba(71, 118, 230, 0.05) 100%);
-      z-index: -1;
-    }
-    
-    .burger-menu-header h3 {
+    .popover-header h3 {
       margin: 0;
-      color: rgba(255, 255, 255, 0.9);
-      font-size: 0.95rem;
+      font-size: 1rem;
       font-weight: 600;
-      letter-spacing: 0.3px;
+      color: var(--ion-text-color);
     }
     
-    .burger-menu-header ion-button {
-      --color: rgba(255, 255, 255, 0.7);
-      --background: transparent;
-      --background-hover: rgba(255, 255, 255, 0.1);
-      --border-radius: 6px;
-      --padding-start: 4px;
-      --padding-end: 4px;
-      --min-height: 28px;
-      --min-width: 28px;
-      transition: all 0.2s ease;
-    }
     
-    .burger-menu-header ion-button:hover {
-      transform: scale(1.1) rotate(90deg);
-      --background: rgba(255, 107, 107, 0.2);
-      --color: #ff6b6b;
-    }
     
-    .burger-menu-items {
-      flex: 1 1 auto;
-      padding: 0.5rem 0;
-      display: flex;
-      flex-direction: column;
-      gap: 0.25rem;
-      overflow-y: auto;
-      min-height: 0;
-    }
-    
-    .burger-menu-items ion-button {
-      --color: rgba(255, 255, 255, 0.95);
-      --background: rgba(255, 255, 255, 0.04);
-      --background-hover: rgba(139, 180, 248, 0.15);
-      --background-focused: rgba(139, 180, 248, 0.2);
-      --ripple-color: rgba(139, 180, 248, 0.3);
-      margin: 0 0.5rem;
-      height: 32px;
-      font-size: 0.8rem;
-      font-weight: 500;
-      justify-content: flex-start;
-      text-align: left;
-      border: 1px solid rgba(139, 180, 248, 0.2);
-      border-radius: 6px;
-      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-      position: relative;
-      overflow: hidden;
-      --padding-top: 0;
-      --padding-bottom: 0;
-      --padding-start: 0.75rem;
-      --padding-end: 0.75rem;
-    }
-    
-    .burger-menu-items ion-button::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(139, 180, 248, 0.1), transparent);
-      transition: left 0.5s ease;
-      z-index: 1;
-    }
-    
-    .burger-menu-items ion-button:hover {
-      --background: rgba(139, 180, 248, 0.15);
-      border-color: rgba(139, 180, 248, 0.4);
-      transform: translateX(4px) scale(1.02);
-      box-shadow: 0 2px 8px rgba(139, 180, 248, 0.2);
-    }
-    
-    .burger-menu-items ion-button:hover::before {
-      left: 100%;
-    }
-    
-    .burger-menu-items ion-button ion-icon {
-      margin-right: 8px;
-      font-size: 0.9rem;
-      min-width: 0.9rem;
-    }
-    
-    .burger-menu-footer {
-      border-top: 1px solid rgba(139, 180, 248, 0.15);
-      padding: 0.25rem 0.5rem 0.2rem 0.5rem;
-      margin-top: auto;
-      background: rgba(15, 15, 25, 0.95);
-      position: relative;
-      flex-shrink: 0;
-    }
-    
-    .burger-menu-footer::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: linear-gradient(135deg, rgba(139, 180, 248, 0.05) 0%, rgba(71, 118, 230, 0.05) 100%);
-      z-index: -1;
+    .popover-footer {
+      border-top: 1px solid var(--ion-color-step-200);
+      padding: 0.5rem 1rem;
+      background: var(--ion-color-step-50);
     }
 
     /* Clickable chips */
@@ -434,96 +279,17 @@ export interface BurgerMenuItem {
       --background: rgba(255, 255, 255, 0.15);
     }
 
-    /* Desktop optimizations */
-    /* Kompakte Status-Chips im Footer */
-    .burger-menu-footer ion-chip {
-      --background: rgba(255, 255, 255, 0.08);
-      height: 22px;
-      font-size: 0.7rem;
-      margin: 0.15rem;
-      --padding-start: 6px;
-      --padding-end: 6px;
-    }
-    
-    .burger-menu-footer ion-chip ion-icon {
-      font-size: 0.75rem;
-      margin-right: 4px;
-    }
-    
-    .burger-menu-footer ion-chip ion-label {
-      margin: 0;
-      padding: 0;
-    }
-    
-    .burger-menu-footer ion-button {
-      height: 26px;
-      font-size: 0.7rem;
-      margin: 0.15rem 0;
-      --padding-start: 0.4rem;
-      --padding-end: 0.4rem;
-      border: 1px solid rgba(139, 180, 248, 0.2);
-      border-radius: 6px;
-      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-      position: relative;
-      overflow: hidden;
-    }
-    
-    .burger-menu-footer ion-button::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(139, 180, 248, 0.1), transparent);
-      transition: left 0.5s ease;
-      z-index: 1;
-    }
-    
-    .burger-menu-footer ion-button:hover {
-      border-color: rgba(139, 180, 248, 0.4);
-      transform: scale(1.02);
-      box-shadow: 0 2px 6px rgba(139, 180, 248, 0.15);
-    }
-    
-    .burger-menu-footer ion-button:hover::before {
-      left: 100%;
-    }
-    
-    .burger-menu-footer ion-button ion-icon {
+    /* Popover Footer Styles */
+    .popover-footer ion-chip {
       font-size: 0.8rem;
-      margin-right: 4px;
-      position: relative;
-      z-index: 2;
+      margin: 0.25rem 0;
     }
     
-    .burger-menu-status {
+    .popover-footer .status-detail {
       display: flex;
-      flex-direction: column;
-      gap: 0.1rem;
-    }
-    
-    .status-detail {
-      display: flex;
-      gap: 0.15rem;
+      gap: 0.5rem;
       flex-wrap: wrap;
-    }
-    
-    .logout-button {
-      --background: rgba(255, 107, 107, 0.15);
-      --color: #ff8a8a;
-      border: 1px solid rgba(255, 107, 107, 0.3) !important;
-      border-radius: 6px;
-    }
-    
-    .logout-button:hover {
-      border-color: rgba(255, 107, 107, 0.5) !important;
-      --background: rgba(255, 107, 107, 0.25);
-      box-shadow: 0 2px 6px rgba(255, 107, 107, 0.2);
-    }
-    
-    .logout-button::before {
-      background: linear-gradient(90deg, transparent, rgba(255, 107, 107, 0.1), transparent) !important;
+      align-items: center;
     }
     
     @media (min-width: 768px) {
@@ -557,8 +323,6 @@ export class AppHeaderComponent implements OnInit {
 
   @Output() burgerMenuToggle = new EventEmitter<boolean>();
 
-  burgerMenuOpen = false;
-
   constructor(public versionService: VersionService) {}
 
   ngOnInit() {
@@ -574,13 +338,9 @@ export class AppHeaderComponent implements OnInit {
     }
   }
 
-  toggleBurgerMenu(): void {
-    this.burgerMenuOpen = !this.burgerMenuOpen;
-    this.burgerMenuToggle.emit(this.burgerMenuOpen);
-  }
-
-  closeBurgerMenu(): void {
-    this.burgerMenuOpen = false;
+  handleBurgerMenuAction(action: () => void): void {
+    action();
+    // Emit that burger menu was used (for any parent components that need to know)
     this.burgerMenuToggle.emit(false);
   }
 }
