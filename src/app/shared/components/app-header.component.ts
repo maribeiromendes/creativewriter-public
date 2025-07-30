@@ -247,24 +247,133 @@ export interface BurgerMenuItem {
     }
 
     /* Popover Styles */
+    ion-popover {
+      --background: linear-gradient(135deg, rgba(15, 15, 25, 0.98) 0%, rgba(10, 10, 20, 0.98) 50%, rgba(20, 20, 35, 0.98) 100%);
+      --backdrop-opacity: 0.4;
+      --box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
+      --width: 280px;
+      --max-width: 90vw;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(139, 180, 248, 0.3);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    
+    ion-popover::part(content) {
+      background: linear-gradient(135deg, rgba(15, 15, 25, 0.98) 0%, rgba(10, 10, 20, 0.98) 50%, rgba(20, 20, 35, 0.98) 100%);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(139, 180, 248, 0.3);
+      border-radius: 12px;
+    }
+    
+    ion-popover ion-content {
+      --background: transparent;
+      --color: #f8f9fa;
+    }
+    
+    ion-popover ion-list {
+      background: transparent;
+      padding: 0.5rem 0;
+    }
+    
+    ion-popover ion-item {
+      --background: rgba(255, 255, 255, 0.04);
+      --background-hover: rgba(139, 180, 248, 0.15);
+      --background-activated: rgba(139, 180, 248, 0.2);
+      --color: rgba(255, 255, 255, 0.95);
+      --ripple-color: rgba(139, 180, 248, 0.3);
+      margin: 0 0.75rem 0.5rem 0.75rem;
+      --border-radius: 8px;
+      border: 1px solid rgba(139, 180, 248, 0.2);
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    ion-popover ion-item::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(139, 180, 248, 0.1), transparent);
+      transition: left 0.5s ease;
+      z-index: 1;
+    }
+    
+    ion-popover ion-item:hover {
+      --background: rgba(139, 180, 248, 0.15);
+      border-color: rgba(139, 180, 248, 0.4);
+      transform: translateX(4px) scale(1.02);
+      box-shadow: 0 4px 12px rgba(139, 180, 248, 0.2);
+    }
+    
+    ion-popover ion-item:hover::before {
+      left: 100%;
+    }
+    
+    ion-popover ion-item ion-icon {
+      position: relative;
+      z-index: 2;
+    }
+    
+    ion-popover ion-item ion-label {
+      position: relative;
+      z-index: 2;
+      font-weight: 500;
+    }
+    
     .popover-header {
-      padding: 0.75rem 1rem 0.5rem 1rem;
-      border-bottom: 1px solid var(--ion-color-step-200);
+      padding: 1rem 1.25rem 0.75rem 1.25rem;
+      border-bottom: 1px solid rgba(139, 180, 248, 0.2);
+      background: linear-gradient(135deg, rgba(15, 15, 25, 0.9) 0%, rgba(10, 10, 20, 0.9) 100%);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      position: relative;
+    }
+    
+    .popover-header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(135deg, rgba(139, 180, 248, 0.05) 0%, rgba(71, 118, 230, 0.05) 100%);
+      z-index: -1;
     }
     
     .popover-header h3 {
       margin: 0;
+      color: rgba(255, 255, 255, 0.95);
       font-size: 1rem;
       font-weight: 600;
-      color: var(--ion-text-color);
+      letter-spacing: 0.3px;
+      background: linear-gradient(135deg, #ffffff 0%, #8bb4f8 50%, #4776e6 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
     
-    
-    
     .popover-footer {
-      border-top: 1px solid var(--ion-color-step-200);
-      padding: 0.5rem 1rem;
-      background: var(--ion-color-step-50);
+      border-top: 1px solid rgba(139, 180, 248, 0.2);
+      padding: 0.75rem 1.25rem;
+      background: linear-gradient(135deg, rgba(15, 15, 25, 0.95) 0%, rgba(10, 10, 20, 0.95) 100%);
+      position: relative;
+    }
+    
+    .popover-footer::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(135deg, rgba(139, 180, 248, 0.05) 0%, rgba(71, 118, 230, 0.05) 100%);
+      z-index: -1;
     }
 
     /* Clickable chips */
