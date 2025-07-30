@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { 
   IonHeader, IonToolbar, IonButtons, IonButton, IonIcon, IonTitle, 
-  IonContent, IonChip, IonLabel
+  IonContent, IonChip, IonLabel, IonMenu, IonSplitPane, MenuController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { 
@@ -39,61 +39,65 @@ import { VersionService } from '../../core/services/version.service';
   imports: [
     CommonModule, FormsModule, 
     IonContent, IonChip, IonLabel, IonButton, IonIcon,
+    IonMenu, IonSplitPane,
     StoryStructureComponent, SlashCommandDropdownComponent, ImageUploadDialogComponent,
     AppHeaderComponent, StoryStatsComponent, VersionTooltipComponent
   ],
   template: `
-    <div class="ion-page">
-      <app-header
-        [titleTemplate]="headerTitle"
-        [leftActions]="leftActions"
-        [rightActions]="rightActions"
-        [showBurgerMenu]="true"
-        [burgerMenuItems]="burgerMenuItems"
-        [burgerMenuFooterContent]="burgerMenuFooter"
-        (burgerMenuToggle)="onBurgerMenuToggle($event)">
-      </app-header>
+    <ion-split-pane contentId="main-content" when="lg">
+      <!-- Side Menu -->
+      <ion-menu contentId="main-content" menuId="story-menu" side="start" type="push">
+        <app-story-structure 
+          [story]="story" 
+          [activeChapterId]="activeChapterId"
+          [activeSceneId]="activeSceneId"
+          (sceneSelected)="onSceneSelected($event)"
+          (closeSidebar)="onCloseSidebar()">
+        </app-story-structure>
+      </ion-menu>
       
-      <ng-template #headerTitle>
-        <div *ngIf="activeScene" class="app-title">
-          <div class="title-line">{{ getCurrentChapterTitle() }}</div>
-          <div class="title-line">{{ getCurrentSceneTitle() }}</div>
-        </div>
-      </ng-template>
-      
-      <ng-template #burgerMenuFooter>
-        <div class="burger-menu-status">
-          <div class="status-detail">
-            <ion-chip [color]="hasUnsavedChanges ? 'warning' : 'success'" class="full-status">
-              <ion-icon [name]="hasUnsavedChanges ? 'save-outline' : 'checkmark-circle-outline'"></ion-icon>
-              <ion-label>{{ hasUnsavedChanges ? 'Nicht gespeichert' : 'Gespeichert' }}</ion-label>
-            </ion-chip>
-            <ion-chip color="medium" class="full-status">
-              <ion-icon name="stats-chart-outline"></ion-icon>
-              <ion-label>{{ wordCount }} Wörter</ion-label>
-            </ion-chip>
-            <app-version-tooltip *ngIf="versionService.getVersionSync()">
-              <ion-chip color="medium" class="full-status">
-                <ion-label>{{ versionService.getShortVersion() }}</ion-label>
+      <!-- Main Content -->
+      <div class="ion-page" id="main-content">
+        <app-header
+          [titleTemplate]="headerTitle"
+          [leftActions]="leftActions"
+          [rightActions]="rightActions"
+          [showBurgerMenu]="true"
+          [burgerMenuItems]="burgerMenuItems"
+          [burgerMenuFooterContent]="burgerMenuFooter"
+          (burgerMenuToggle)="onBurgerMenuToggle($event)">
+        </app-header>
+        
+        <ng-template #headerTitle>
+          <div *ngIf="activeScene" class="app-title">
+            <div class="title-line">{{ getCurrentChapterTitle() }}</div>
+            <div class="title-line">{{ getCurrentSceneTitle() }}</div>
+          </div>
+        </ng-template>
+        
+        <ng-template #burgerMenuFooter>
+          <div class="burger-menu-status">
+            <div class="status-detail">
+              <ion-chip [color]="hasUnsavedChanges ? 'warning' : 'success'" class="full-status">
+                <ion-icon [name]="hasUnsavedChanges ? 'save-outline' : 'checkmark-circle-outline'"></ion-icon>
+                <ion-label>{{ hasUnsavedChanges ? 'Nicht gespeichert' : 'Gespeichert' }}</ion-label>
               </ion-chip>
-            </app-version-tooltip>
+              <ion-chip color="medium" class="full-status">
+                <ion-icon name="stats-chart-outline"></ion-icon>
+                <ion-label>{{ wordCount }} Wörter</ion-label>
+              </ion-chip>
+              <app-version-tooltip *ngIf="versionService.getVersionSync()">
+                <ion-chip color="medium" class="full-status">
+                  <ion-label>{{ versionService.getShortVersion() }}</ion-label>
+                </ion-chip>
+              </app-version-tooltip>
+            </div>
           </div>
-        </div>
-      </ng-template>
-      
-      <ion-content>
-        <div class="editor-container" [class.sidebar-visible]="showSidebar">
-          <div class="sidebar-overlay" *ngIf="showSidebar" (click)="onSidebarOverlayClick($event)">
-            <app-story-structure 
-              [story]="story" 
-              [activeChapterId]="activeChapterId"
-              [activeSceneId]="activeSceneId"
-              (sceneSelected)="onSceneSelected($event)"
-              (closeSidebar)="onCloseSidebar()">
-            </app-story-structure>
-          </div>
-          
-          <div class="editor-main">
+        </ng-template>
+        
+        <ion-content>
+          <div class="editor-container">
+            <div class="editor-main">
             <div class="editor-content" [style.--editor-text-color]="currentTextColor">
               <div class="editor-inner">
                 <input 
@@ -206,7 +210,8 @@ import { VersionService } from '../../core/services/version.service';
         [story]="story"
         (closed)="hideStoryStats()">
       </app-story-stats>
-    </div>
+      </div>
+    </ion-split-pane>
   `,
   styles: [`
     :host {
@@ -548,21 +553,9 @@ import { VersionService } from '../../core/services/version.service';
       flex: 1;
       display: flex;
       flex-direction: column;
-      margin-left: 280px; /* Make space for fixed sidebar */
       background: transparent;
     }
     
-    /* Hide sidebar space when sidebar is hidden */
-    .editor-container:not(.sidebar-visible) .editor-main {
-      margin-left: 0;
-    }
-    
-    /* Mobile: Remove margin and use overlay */
-    @media (max-width: 768px) {
-      .editor-main {
-        margin-left: 0 !important;
-      }
-    }
     
     .editor-content {
       padding: 0.5rem 0.75rem;
@@ -986,72 +979,8 @@ import { VersionService } from '../../core/services/version.service';
       }
     }
 
-    /* Sidebar Overlay */
-    .sidebar-overlay {
-      display: contents; /* Allows sticky positioning to work */
-    }
 
-    /* Tablet Sidebar - reduced width */
-    @media (max-width: 1024px) and (min-width: 769px) {
-      .editor-main {
-        margin-left: 240px; /* Match reduced sidebar width */
-      }
-      
-      .editor-container:not(.sidebar-visible) .editor-main {
-        margin-left: 0;
-      }
-    }
     
-    /* Mobile Sidebar Overlay */
-    @media (max-width: 768px) {
-      .sidebar-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        z-index: 1000;
-        background: rgba(0, 0, 0, 0.5);
-        display: flex;
-        align-items: flex-start;
-        backdrop-filter: blur(2px);
-      }
-
-      .sidebar-overlay :global(app-story-structure .story-structure) {
-        width: 100vw;
-        height: 100vh;
-        margin: 0;
-        box-shadow: none;
-        border-radius: 0;
-        border: none;
-        top: 0;
-        left: 0;
-        position: fixed;
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-      }
-    }
-    
-    /* All mobile devices - full screen sidebar */
-    @media (max-width: 768px) {
-      .sidebar-overlay {
-        padding: 0;
-        background: none;
-      }
-      
-      .sidebar-overlay :global(app-story-structure .story-structure) {
-        width: 100vw;
-        height: 100vh;
-        margin: 0;
-        box-shadow: none;
-        border-radius: 0;
-        border: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-      }
-    }
     
     /* Mobile keyboard handling */
     @media (max-width: 768px) {
@@ -1112,6 +1041,49 @@ import { VersionService } from '../../core/services/version.service';
         line-height: 1.0;
       }
     }
+    
+    /* Ion-menu styling */
+    ion-menu {
+      --width: 280px;
+      --max-width: 100%;
+      --background: transparent;
+    }
+    
+    /* Desktop: ion-menu width controlled by split-pane */
+    @media (min-width: 1024px) {
+      ion-menu {
+        --width: 280px;
+      }
+    }
+    
+    /* Tablet: slightly narrower menu */
+    @media (max-width: 1023px) and (min-width: 768px) {
+      ion-menu {
+        --width: 240px;
+      }
+    }
+    
+    /* Mobile: full width menu */
+    @media (max-width: 767px) {
+      ion-menu {
+        --width: 100vw;
+      }
+    }
+    
+    /* Ion-split-pane styling */
+    ion-split-pane {
+      --side-width: 280px;
+      --side-min-width: 280px;
+      --side-max-width: 280px;
+    }
+    
+    @media (max-width: 1023px) and (min-width: 768px) {
+      ion-split-pane {
+        --side-width: 240px;
+        --side-min-width: 240px;
+        --side-max-width: 240px;
+      }
+    }
   `]
 })
 export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
@@ -1134,7 +1106,6 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
   activeChapterId: string | null = null;
   activeSceneId: string | null = null;
   activeScene: Scene | null = null;
-  showSidebar: boolean = true;
   leftActions: HeaderAction[] = [];
   rightActions: HeaderAction[] = [];
   burgerMenuItems: BurgerMenuItem[] = [];
@@ -1184,7 +1155,8 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     private headerNavService: HeaderNavigationService,
     private settingsService: SettingsService,
     private storyStatsService: StoryStatsService,
-    public versionService: VersionService
+    public versionService: VersionService,
+    private menuController: MenuController
   ) {
     addIcons({ 
       arrowBack, bookOutline, book, settingsOutline, statsChartOutline,
@@ -1196,9 +1168,6 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
   async ngOnInit(): Promise<void> {
     // Setup header actions first
     this.setupHeaderActions();
-    
-    // Check if we're on mobile and start with sidebar hidden
-    this.checkMobileAndHideSidebar();
     
     // Subscribe to settings changes for text color
     this.subscription.add(
@@ -1291,10 +1260,6 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
       })
     );
 
-    // Listen for window resize to handle sidebar visibility
-    window.addEventListener('resize', () => {
-      this.checkMobileAndHideSidebar();
-    });
     
     // Add touch gesture listeners for mobile
     this.setupTouchGestures();
@@ -1342,9 +1307,9 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
       sceneId: this.activeSceneId
     });
 
-    // Hide sidebar on mobile after scene selection
-    if (window.innerWidth <= 768) {
-      this.showSidebar = false;
+    // Close menu on mobile after scene selection
+    if (window.innerWidth <= 1024) {
+      await this.menuController.close('story-menu');
     }
   }
 
@@ -1476,7 +1441,7 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
         showOnDesktop: true
       },
       {
-        icon: this.showSidebar ? 'book' : 'book-outline',
+        icon: 'book-outline',
         action: () => this.toggleSidebar(),
         showOnMobile: true,
         showOnDesktop: true
@@ -1590,48 +1555,18 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     return `C${chapterNum}S${sceneNum}`;
   }
 
-  toggleSidebar(): void {
-    this.showSidebar = !this.showSidebar;
+  async toggleSidebar(): Promise<void> {
+    await this.menuController.toggle('story-menu');
     // Update the sidebar icon in left actions
+    const isOpen = await this.menuController.isOpen('story-menu');
     if (this.leftActions.length > 1) {
-      this.leftActions[1].icon = this.showSidebar ? 'book' : 'book-outline';
+      this.leftActions[1].icon = isOpen ? 'book' : 'book-outline';
     }
   }
 
-  private checkMobileAndHideSidebar(): void {
-    const isMobile = window.innerWidth <= 768;
-    const isTablet = window.innerWidth <= 1024 && window.innerWidth > 768;
-    
-    // Hide sidebar by default on mobile devices
-    if (isMobile) {
-      this.showSidebar = false;
-    }
-    // Only auto-show sidebar on desktop
-    else if (!isMobile && !this.showSidebar) {
-      this.showSidebar = true;
-    }
-    
-    // On tablets, allow toggling but start with sidebar visible
-    if (isTablet && !this.showSidebar) {
-      this.showSidebar = true;
-    }
-  }
 
-  onCloseSidebar(): void {
-    this.showSidebar = false;
-  }
-
-  onSidebarOverlayClick(event: Event): void {
-    // Only close sidebar if clicking on the actual overlay (not the sidebar content)
-    const target = event.target as HTMLElement;
-    
-    // Check if the click was on the sidebar overlay itself (not its children)
-    if (target && target.classList.contains('sidebar-overlay')) {
-      // Only close on mobile/tablet - on desktop the overlay should not close the sidebar
-      if (window.innerWidth <= 1024) {
-        this.showSidebar = false;
-      }
-    }
+  async onCloseSidebar(): Promise<void> {
+    await this.menuController.close('story-menu');
   }
   
   private setupTouchGestures(): void {
@@ -1739,20 +1674,7 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     // Check if swipe distance is sufficient for this screen size
     if (Math.abs(deltaX) < minSwipeDistance) return;
     
-    // Swipe from left edge to open sidebar
-    if (deltaX > 0 && this.touchStartX < edgeThreshold && !this.showSidebar) {
-      this.showSidebar = true;
-      this.cdr.detectChanges();
-    }
-    // Swipe right to left to close sidebar - only if swipe started from within sidebar area
-    else if (deltaX < 0 && this.showSidebar) {
-      // On mobile, sidebar takes full width, so only close if swipe starts from left portion
-      const sidebarWidth = window.innerWidth <= 480 ? 320 : 280;
-      if (this.touchStartX < sidebarWidth) {
-        this.showSidebar = false;
-        this.cdr.detectChanges();
-      }
-    }
+    // Ion-menu handles swipe gestures automatically
   }
   
   private setupMobileKeyboardHandling(): void {

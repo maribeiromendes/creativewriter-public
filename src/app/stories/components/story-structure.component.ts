@@ -31,10 +31,7 @@ import { Subscription } from 'rxjs';
     IonChip, IonTextarea, IonSelect, IonSelectOption, IonBadge
   ],
   template: `
-    <div class="story-structure" role="navigation" aria-label="Story structure"
-         (click)="$event.stopPropagation()"
-         (touchstart)="$event.stopPropagation()"
-         (touchend)="$event.stopPropagation()">
+    <div class="story-structure" role="navigation" aria-label="Story structure">
       <ion-content class="structure-content" [scrollEvents]="true">
         <div id="add-chapter-help" class="sr-only">
           Fügt ein neues Kapitel zur Geschichte hinzu
@@ -209,14 +206,8 @@ import { Subscription } from 'rxjs';
                     </div>
                   </ion-item>
                   
-                  <div class="scene-details" *ngIf="expandedScenes.has(scene.id)" 
-                       (click)="$event.stopPropagation()"
-                       (touchstart)="$event.stopPropagation()"
-                       (touchend)="$event.stopPropagation()">
-                    <div class="scene-summary-section"
-                         (click)="$event.stopPropagation()"
-                         (touchstart)="$event.stopPropagation()"
-                         (touchend)="$event.stopPropagation()">
+                  <div class="scene-details" *ngIf="expandedScenes.has(scene.id)">
+                    <div class="scene-summary-section">
                       <div class="summary-header">
                         <span>Zusammenfassung</span>
                         <div class="summary-buttons">
@@ -259,9 +250,7 @@ import { Subscription } from 'rxjs';
                         interface="popover"
                         class="model-select"
                         aria-label="AI-Modell für Zusammenfassung auswählen"
-                        (click)="$event.stopPropagation()"
-                        (touchstart)="$event.stopPropagation()"
-                        (touchend)="$event.stopPropagation()">
+>
                         <ion-select-option *ngFor="let model of availableModels" [value]="model.id">
                           {{ model.label }}
                         </ion-select-option>
@@ -272,9 +261,6 @@ import { Subscription } from 'rxjs';
                         [value]="scene.summary || ''"
                         (ionBlur)="updateSceneSummary(chapter.id, scene.id, scene.summary || '')"
                         (ionInput)="autoResizeTextarea($event)"
-                        (click)="$event.stopPropagation()"
-                        (touchstart)="$event.stopPropagation()"
-                        (touchend)="$event.stopPropagation()"
                         [attr.data-scene-id]="scene.id"
                         placeholder="Hier wird die AI-generierte Zusammenfassung der Szene angezeigt..."
                         class="summary-textarea"
@@ -310,6 +296,14 @@ import { Subscription } from 'rxjs';
   `,
   styles: [`
     :host {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+    
+    .story-structure {
+      width: 100%;
+      height: 100%;
       background: 
         /* Dark overlay for text readability */
         linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)),
@@ -322,62 +316,15 @@ import { Subscription } from 'rxjs';
       background-position: center, center, center;
       background-repeat: no-repeat, no-repeat, repeat;
       background-attachment: fixed, fixed, scroll;
-    }
-    
-    .story-structure {
-      width: 280px;
-      background: transparent;
+      
       border-right: 1px solid rgba(255, 255, 255, 0.2);
       display: flex;
       flex-direction: column;
-      position: fixed;
-      top: 0;
-      left: 0;
-      height: 100vh;
-      z-index: 100;
       overflow: hidden; /* Prevent container overflow */
     }
 
-    /* Tablet and small desktop */
-    @media (max-width: 1024px) and (min-width: 769px) {
-      .story-structure {
-        width: 240px; /* Slightly narrower on tablets */
-      }
-    }
     
-    /* Mobile and tablet portrait */
-    @media (max-width: 768px) {
-      .story-structure {
-        position: fixed;
-        top: 0;
-        left: 0;
-        height: 100vh;
-        width: 100vw;
-        z-index: 1000;
-        background: 
-          /* Enhanced dark overlay for better readability on mobile */
-          linear-gradient(rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.9)),
-          /* Main anime image */
-          url('/assets/cyberpunk-anime-girl.png'),
-          /* Fallback dark background */
-          #1a1a1a;
-        background-size: cover, cover, auto;
-        background-position: center, center, center;
-        background-repeat: no-repeat, no-repeat, repeat;
-        background-attachment: fixed, fixed, scroll;
-        display: flex;
-        flex-direction: column;
-        overflow: hidden; /* Container doesn't scroll */
-      }
-      
-    }
     
-    /* Small mobile devices */
-    @media (max-width: 480px) {
-      .story-structure {
-        max-width: 100vw;
-      }
-    }
     
     
     .structure-content {
