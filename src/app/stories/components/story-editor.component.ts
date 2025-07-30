@@ -8,9 +8,9 @@ import {
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { 
-  arrowBack, bookOutline, book, settingsOutline, statsChartOutline,
+  arrowBack, bookOutline, book, settingsOutline, statsChartOutline, statsChart,
   saveOutline, checkmarkCircleOutline, menuOutline, chevronBack, chevronForward,
-  chatbubblesOutline, bugOutline, menu, close
+  chatbubblesOutline, bugOutline, menu, close, images
 } from 'ionicons/icons';
 import { StoryService } from '../services/story.service';
 import { Story, Scene } from '../models/story.interface';
@@ -1159,9 +1159,9 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     private menuController: MenuController
   ) {
     addIcons({ 
-      arrowBack, bookOutline, book, settingsOutline, statsChartOutline,
+      arrowBack, bookOutline, book, settingsOutline, statsChartOutline, statsChart,
       saveOutline, checkmarkCircleOutline, menuOutline, chevronBack, chevronForward,
-      chatbubblesOutline, bugOutline, menu, close
+      chatbubblesOutline, bugOutline, menu, close, images
     });
   }
 
