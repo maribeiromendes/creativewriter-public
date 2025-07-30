@@ -248,23 +248,23 @@ export interface BurgerMenuItem {
 
     /* Popover Styles */
     ion-popover {
-      --background: linear-gradient(135deg, rgba(15, 15, 25, 0.98) 0%, rgba(10, 10, 20, 0.98) 50%, rgba(20, 20, 35, 0.98) 100%);
-      --backdrop-opacity: 0.4;
-      --box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
+      --background: linear-gradient(135deg, rgba(15, 15, 25, 0.75) 0%, rgba(10, 10, 20, 0.75) 50%, rgba(20, 20, 35, 0.75) 100%);
+      --backdrop-opacity: 0.3;
+      --box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
       --width: 280px;
       --max-width: 90vw;
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
-      border: 1px solid rgba(139, 180, 248, 0.3);
+      border: 1px solid rgba(139, 180, 248, 0.25);
       border-radius: 12px;
       overflow: hidden;
     }
     
     ion-popover::part(content) {
-      background: linear-gradient(135deg, rgba(15, 15, 25, 0.98) 0%, rgba(10, 10, 20, 0.98) 50%, rgba(20, 20, 35, 0.98) 100%);
+      background: linear-gradient(135deg, rgba(15, 15, 25, 0.75) 0%, rgba(10, 10, 20, 0.75) 50%, rgba(20, 20, 35, 0.75) 100%);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
-      border: 1px solid rgba(139, 180, 248, 0.3);
+      border: 1px solid rgba(139, 180, 248, 0.25);
       border-radius: 12px;
     }
     
@@ -329,7 +329,7 @@ export interface BurgerMenuItem {
     .popover-header {
       padding: 1rem 1.25rem 0.75rem 1.25rem;
       border-bottom: 1px solid rgba(139, 180, 248, 0.2);
-      background: linear-gradient(135deg, rgba(15, 15, 25, 0.9) 0%, rgba(10, 10, 20, 0.9) 100%);
+      background: linear-gradient(135deg, rgba(15, 15, 25, 0.6) 0%, rgba(10, 10, 20, 0.6) 100%);
       backdrop-filter: blur(25px);
       -webkit-backdrop-filter: blur(25px);
       position: relative;
@@ -361,7 +361,7 @@ export interface BurgerMenuItem {
     .popover-footer {
       border-top: 1px solid rgba(139, 180, 248, 0.2);
       padding: 0.75rem 1.25rem;
-      background: linear-gradient(135deg, rgba(15, 15, 25, 0.95) 0%, rgba(10, 10, 20, 0.95) 100%);
+      background: linear-gradient(135deg, rgba(15, 15, 25, 0.6) 0%, rgba(10, 10, 20, 0.6) 100%);
       position: relative;
     }
     
