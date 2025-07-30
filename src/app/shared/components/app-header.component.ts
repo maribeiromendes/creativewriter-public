@@ -248,23 +248,23 @@ export interface BurgerMenuItem {
 
     /* Popover Styles */
     ion-popover {
-      --background: linear-gradient(135deg, rgba(15, 15, 25, 0.75) 0%, rgba(10, 10, 20, 0.75) 50%, rgba(20, 20, 35, 0.75) 100%);
-      --backdrop-opacity: 0.3;
+      --background: linear-gradient(135deg, rgba(15, 15, 25, 0.6) 0%, rgba(10, 10, 20, 0.6) 50%, rgba(20, 20, 35, 0.6) 100%);
+      --backdrop-opacity: 0.4;
       --box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
       --width: 280px;
       --max-width: 90vw;
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
-      border: 1px solid rgba(139, 180, 248, 0.25);
+      border: 1px solid rgba(139, 180, 248, 0.2);
       border-radius: 12px;
       overflow: hidden;
     }
     
     ion-popover::part(content) {
-      background: linear-gradient(135deg, rgba(15, 15, 25, 0.75) 0%, rgba(10, 10, 20, 0.75) 50%, rgba(20, 20, 35, 0.75) 100%);
+      background: linear-gradient(135deg, rgba(15, 15, 25, 0.6) 0%, rgba(10, 10, 20, 0.6) 50%, rgba(20, 20, 35, 0.6) 100%);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
-      border: 1px solid rgba(139, 180, 248, 0.25);
+      border: 1px solid rgba(139, 180, 248, 0.2);
       border-radius: 12px;
     }
     
@@ -279,14 +279,14 @@ export interface BurgerMenuItem {
     }
     
     ion-popover ion-item {
-      --background: rgba(255, 255, 255, 0.04);
-      --background-hover: rgba(139, 180, 248, 0.15);
-      --background-activated: rgba(139, 180, 248, 0.2);
+      --background: rgba(255, 255, 255, 0.02);
+      --background-hover: rgba(139, 180, 248, 0.1);
+      --background-activated: rgba(139, 180, 248, 0.15);
       --color: rgba(255, 255, 255, 0.95);
       --ripple-color: rgba(139, 180, 248, 0.3);
       margin: 0 0.75rem 0.5rem 0.75rem;
       --border-radius: 8px;
-      border: 1px solid rgba(139, 180, 248, 0.2);
+      border: 1px solid rgba(139, 180, 248, 0.15);
       transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
       position: relative;
       overflow: hidden;
@@ -305,8 +305,8 @@ export interface BurgerMenuItem {
     }
     
     ion-popover ion-item:hover {
-      --background: rgba(139, 180, 248, 0.15);
-      border-color: rgba(139, 180, 248, 0.4);
+      --background: rgba(139, 180, 248, 0.1);
+      border-color: rgba(139, 180, 248, 0.3);
       transform: translateX(4px) scale(1.02);
       box-shadow: 0 4px 12px rgba(139, 180, 248, 0.2);
     }
@@ -328,8 +328,8 @@ export interface BurgerMenuItem {
     
     .popover-header {
       padding: 1rem 1.25rem 0.75rem 1.25rem;
-      border-bottom: 1px solid rgba(139, 180, 248, 0.2);
-      background: linear-gradient(135deg, rgba(15, 15, 25, 0.6) 0%, rgba(10, 10, 20, 0.6) 100%);
+      border-bottom: 1px solid rgba(139, 180, 248, 0.15);
+      background: linear-gradient(135deg, rgba(15, 15, 25, 0.4) 0%, rgba(10, 10, 20, 0.4) 100%);
       backdrop-filter: blur(25px);
       -webkit-backdrop-filter: blur(25px);
       position: relative;
@@ -359,9 +359,9 @@ export interface BurgerMenuItem {
     }
     
     .popover-footer {
-      border-top: 1px solid rgba(139, 180, 248, 0.2);
+      border-top: 1px solid rgba(139, 180, 248, 0.15);
       padding: 0.75rem 1.25rem;
-      background: linear-gradient(135deg, rgba(15, 15, 25, 0.6) 0%, rgba(10, 10, 20, 0.6) 100%);
+      background: linear-gradient(135deg, rgba(15, 15, 25, 0.4) 0%, rgba(10, 10, 20, 0.4) 100%);
       position: relative;
     }
     
