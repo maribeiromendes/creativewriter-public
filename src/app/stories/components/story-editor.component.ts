@@ -83,7 +83,7 @@ import { VersionService } from '../../core/services/version.service';
       
       <ion-content>
         <div class="editor-container" [class.sidebar-visible]="showSidebar">
-          <div class="sidebar-overlay" *ngIf="showSidebar">
+          <div class="sidebar-overlay" *ngIf="showSidebar" (click)="onSidebarOverlayClick($event)">
             <app-story-structure 
               [story]="story" 
               [activeChapterId]="activeChapterId"
@@ -1619,6 +1619,19 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
 
   onCloseSidebar(): void {
     this.showSidebar = false;
+  }
+
+  onSidebarOverlayClick(event: Event): void {
+    // Only close sidebar if clicking on the actual overlay (not the sidebar content)
+    const target = event.target as HTMLElement;
+    
+    // Check if the click was on the sidebar overlay itself (not its children)
+    if (target && target.classList.contains('sidebar-overlay')) {
+      // Only close on mobile/tablet - on desktop the overlay should not close the sidebar
+      if (window.innerWidth <= 1024) {
+        this.showSidebar = false;
+      }
+    }
   }
   
   private setupTouchGestures(): void {

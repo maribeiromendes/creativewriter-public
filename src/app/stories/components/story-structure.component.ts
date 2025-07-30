@@ -31,7 +31,10 @@ import { Subscription } from 'rxjs';
     IonChip, IonTextarea, IonSelect, IonSelectOption, IonBadge
   ],
   template: `
-    <div class="story-structure" role="navigation" aria-label="Story structure">
+    <div class="story-structure" role="navigation" aria-label="Story structure"
+         (click)="$event.stopPropagation()"
+         (touchstart)="$event.stopPropagation()"
+         (touchend)="$event.stopPropagation()">
       <ion-content class="structure-content" [scrollEvents]="true">
         <div id="add-chapter-help" class="sr-only">
           Fügt ein neues Kapitel zur Geschichte hinzu
@@ -206,8 +209,14 @@ import { Subscription } from 'rxjs';
                     </div>
                   </ion-item>
                   
-                  <div class="scene-details" *ngIf="expandedScenes.has(scene.id)">
-                    <div class="scene-summary-section">
+                  <div class="scene-details" *ngIf="expandedScenes.has(scene.id)" 
+                       (click)="$event.stopPropagation()"
+                       (touchstart)="$event.stopPropagation()"
+                       (touchend)="$event.stopPropagation()">
+                    <div class="scene-summary-section"
+                         (click)="$event.stopPropagation()"
+                         (touchstart)="$event.stopPropagation()"
+                         (touchend)="$event.stopPropagation()">
                       <div class="summary-header">
                         <span>Zusammenfassung</span>
                         <div class="summary-buttons">
@@ -249,7 +258,10 @@ import { Subscription } from 'rxjs';
                         placeholder="AI-Modell wählen..."
                         interface="popover"
                         class="model-select"
-                        aria-label="AI-Modell für Zusammenfassung auswählen">
+                        aria-label="AI-Modell für Zusammenfassung auswählen"
+                        (click)="$event.stopPropagation()"
+                        (touchstart)="$event.stopPropagation()"
+                        (touchend)="$event.stopPropagation()">
                         <ion-select-option *ngFor="let model of availableModels" [value]="model.id">
                           {{ model.label }}
                         </ion-select-option>
@@ -260,6 +272,9 @@ import { Subscription } from 'rxjs';
                         [value]="scene.summary || ''"
                         (ionBlur)="updateSceneSummary(chapter.id, scene.id, scene.summary || '')"
                         (ionInput)="autoResizeTextarea($event)"
+                        (click)="$event.stopPropagation()"
+                        (touchstart)="$event.stopPropagation()"
+                        (touchend)="$event.stopPropagation()"
                         [attr.data-scene-id]="scene.id"
                         placeholder="Hier wird die AI-generierte Zusammenfassung der Szene angezeigt..."
                         class="summary-textarea"
