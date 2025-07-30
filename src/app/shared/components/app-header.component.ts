@@ -108,8 +108,13 @@ export interface BurgerMenuItem {
           </ng-container>
 
           <!-- Burger Menu Button -->
-          <ion-button *ngIf="showBurgerMenu" id="burger-menu-trigger">
-            <ion-icon name="menu" slot="icon-only"></ion-icon>
+          <ion-button 
+            *ngIf="showBurgerMenu" 
+            id="burger-menu-trigger"
+            aria-label="Open navigation menu"
+            aria-haspopup="menu"
+            [attr.aria-expanded]="false">
+            <ion-icon name="menu" slot="icon-only" aria-hidden="true"></ion-icon>
           </ion-button>
         </ion-buttons>
       </ion-toolbar>
@@ -127,19 +132,23 @@ export interface BurgerMenuItem {
       triggerAction="click"
       side="bottom"
       alignment="end"
-      [dismissOnSelect]="false">
+      [dismissOnSelect]="false"
+      [showBackdrop]="true"
+      [keepContentsMounted]="false">
       <ng-template>
         <ion-content>
           <div class="popover-header" *ngIf="burgerMenuTitle">
             <h3>{{ burgerMenuTitle || 'Navigation' }}</h3>
           </div>
           
-          <ion-list lines="none">
+          <ion-list lines="none" role="menu" aria-label="Navigation menu">
             <ion-item 
               button 
               *ngFor="let item of burgerMenuItems"
-              (click)="handleBurgerMenuAction(item.action)">
-              <ion-icon [name]="item.icon" slot="start" [color]="item.color || 'medium'"></ion-icon>
+              (click)="handleBurgerMenuAction(item.action)"
+              role="menuitem"
+              [attr.aria-label]="item.label">
+              <ion-icon [name]="item.icon" slot="start" [color]="item.color || 'medium'" aria-hidden="true"></ion-icon>
               <ion-label>{{ item.label }}</ion-label>
             </ion-item>
           </ion-list>
