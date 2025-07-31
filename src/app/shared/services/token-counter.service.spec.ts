@@ -15,20 +15,20 @@ describe('TokenCounterService', () => {
 
   describe('countTokens', () => {
     it('should return token count for simple text', () => {
-      const result = service.countTokens('Hello world', 'claude-3-sonnet');
+      const result = service.countTokens('Hello world', 'claude-3.7-sonnet');
       expect(result.tokens).toBeGreaterThan(0);
-      expect(result.model).toBe('claude-3-sonnet');
+      expect(result.model).toBe('claude-3.7-sonnet');
       expect(result.method).toBe('estimation');
     });
 
     it('should handle empty string', () => {
-      const result = service.countTokens('', 'claude-3-sonnet');
+      const result = service.countTokens('', 'claude-3.7-sonnet');
       expect(result.tokens).toBe(0);
     });
 
     it('should handle long text', () => {
       const longText = 'Lorem ipsum '.repeat(100);
-      const result = service.countTokens(longText, 'claude-3-sonnet');
+      const result = service.countTokens(longText, 'gemini-2.5-pro');
       expect(result.tokens).toBeGreaterThan(100);
     });
 
@@ -36,32 +36,32 @@ describe('TokenCounterService', () => {
       const textWithSpecial = 'Hello <world> {test} [array]';
       const textWithout = 'Hello world test array';
       
-      const resultWith = service.countTokens(textWithSpecial, 'claude-3-sonnet');
-      const resultWithout = service.countTokens(textWithout, 'claude-3-sonnet');
+      const resultWith = service.countTokens(textWithSpecial, 'claude-3.7-sonnet');
+      const resultWithout = service.countTokens(textWithout, 'claude-3.7-sonnet');
       
       expect(resultWith.tokens).toBeGreaterThan(resultWithout.tokens);
     });
 
     it('should handle code blocks', () => {
       const textWithCode = '```\nfunction test() {\n  return true;\n}\n```';
-      const result = service.countTokens(textWithCode, 'claude-3-sonnet');
+      const result = service.countTokens(textWithCode, 'grok-3');
       expect(result.tokens).toBeGreaterThan(10);
     });
 
     it('should use different ratios for different models', () => {
       const text = 'This is a test prompt for token counting';
-      const claudeResult = service.countTokens(text, 'claude-3-opus');
-      const gptResult = service.countTokens(text, 'gpt-4');
+      const claudeResult = service.countTokens(text, 'claude-3.7-sonnet');
+      const geminiResult = service.countTokens(text, 'gemini-2.5-pro');
       
       // Different models should produce different token counts
-      expect(claudeResult.tokens).not.toBe(gptResult.tokens);
+      expect(claudeResult.tokens).not.toBe(geminiResult.tokens);
     });
   });
 
   describe('estimateTokensAdvanced', () => {
     it('should provide advanced estimation', () => {
       const text = 'The quick brown fox jumps over the lazy dog';
-      const result = service.estimateTokensAdvanced(text, 'claude-3-sonnet');
+      const result = service.estimateTokensAdvanced(text, 'claude-3.7-sonnet');
       
       expect(result.tokens).toBeGreaterThan(0);
       expect(result.method).toBe('estimation');
@@ -79,43 +79,78 @@ describe('TokenCounterService', () => {
 
   describe('getModelTokenLimit', () => {
     it('should return correct limits for Claude models', () => {
-      expect(service.getModelTokenLimit('claude-3-opus')).toBe(200000);
-      expect(service.getModelTokenLimit('claude-3-sonnet')).toBe(200000);
-      expect(service.getModelTokenLimit('claude-2.0')).toBe(100000);
+      expect(service.getModelTokenLimit('claude-3.5-sonnet')).toBe(200000);
+      expect(service.getModelTokenLimit('claude-3.7-sonnet')).toBe(200000);
     });
 
-    it('should return correct limits for GPT models', () => {
-      expect(service.getModelTokenLimit('gpt-4')).toBe(8192);
-      expect(service.getModelTokenLimit('gpt-4-turbo')).toBe(128000);
-      expect(service.getModelTokenLimit('gpt-3.5-turbo')).toBe(4096);
+    it('should return correct limits for Gemini models', () => {
+      expect(service.getModelTokenLimit('gemini-1.5-pro')).toBe(2000000);
+      expect(service.getModelTokenLimit('gemini-2.5-pro')).toBe(1000000);
+    });
+
+    it('should return correct limit for Grok-3', () => {
+      expect(service.getModelTokenLimit('grok-3')).toBe(131072);
     });
   });
 
   describe('isWithinLimit', () => {
     it('should return true for small prompts', () => {
       const smallPrompt = 'This is a small prompt';
-      expect(service.isWithinLimit(smallPrompt, 'gpt-3.5-turbo')).toBe(true);
+      expect(service.isWithinLimit(smallPrompt, 'grok-3')).toBe(true);
     });
 
     it('should handle model limits correctly', () => {
-      const text = 'a'.repeat(40000); // ~10k tokens for GPT-4
-      expect(service.isWithinLimit(text, 'gpt-4')).toBe(false);
-      expect(service.isWithinLimit(text, 'claude-3-sonnet')).toBe(true);
+      const text = 'a'.repeat(600000); // ~150k tokens
+      expect(service.isWithinLimit(text, 'grok-3')).toBe(false);
+      expect(service.isWithinLimit(text, 'claude-3.7-sonnet')).toBe(true);
+      expect(service.isWithinLimit(text, 'gemini-2.5-pro')).toBe(true);
     });
   });
 
   describe('getUsagePercentage', () => {
     it('should calculate usage percentage correctly', () => {
       const text = 'Short text';
-      const percentage = service.getUsagePercentage(text, 'gpt-3.5-turbo');
+      const percentage = service.getUsagePercentage(text, 'claude-3.7-sonnet');
       
       expect(percentage).toBeGreaterThan(0);
-      expect(percentage).toBeLessThan(1); // Should be less than 1% for short text
+      expect(percentage).toBeLessThan(0.01); // Should be less than 0.01% for short text with large context window
     });
 
     it('should return 0 for empty text', () => {
-      const percentage = service.getUsagePercentage('', 'claude-3-sonnet');
+      const percentage = service.getUsagePercentage('', 'claude-3.7-sonnet');
       expect(percentage).toBe(0);
+    });
+  });
+
+  describe('getModelOutputLimit', () => {
+    it('should return correct output limits for all models', () => {
+      expect(service.getModelOutputLimit('claude-3.5-sonnet')).toBe(4096);
+      expect(service.getModelOutputLimit('claude-3.7-sonnet')).toBe(128000);
+      expect(service.getModelOutputLimit('gemini-1.5-pro')).toBe(8192);
+      expect(service.getModelOutputLimit('gemini-2.5-pro')).toBe(64000);
+      expect(service.getModelOutputLimit('grok-3')).toBe(8192);
+    });
+  });
+
+  describe('getModelInfo', () => {
+    it('should return complete model information', () => {
+      const info = service.getModelInfo('claude-3.7-sonnet');
+      expect(info.name).toBe('Claude 3.7 Sonnet');
+      expect(info.provider).toBe('Anthropic');
+      expect(info.contextWindow).toBe(200000);
+      expect(info.outputLimit).toBe(128000);
+      expect(info.releaseDate).toBe('February 2025');
+    });
+
+    it('should return info for all supported models', () => {
+      const models: SupportedModel[] = ['claude-3.5-sonnet', 'claude-3.7-sonnet', 'gemini-1.5-pro', 'gemini-2.5-pro', 'grok-3'];
+      models.forEach(model => {
+        const info = service.getModelInfo(model);
+        expect(info.name).toBeTruthy();
+        expect(info.provider).toBeTruthy();
+        expect(info.contextWindow).toBeGreaterThan(0);
+        expect(info.outputLimit).toBeGreaterThan(0);
+      });
     });
   });
 });

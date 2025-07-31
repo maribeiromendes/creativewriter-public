@@ -7,15 +7,11 @@ export interface TokenCountResult {
 }
 
 export type SupportedModel = 
-  | 'claude-3-opus'
-  | 'claude-3-sonnet'
-  | 'claude-3-haiku'
-  | 'claude-2.1'
-  | 'claude-2.0'
-  | 'claude-instant'
-  | 'gpt-4'
-  | 'gpt-4-turbo'
-  | 'gpt-3.5-turbo'
+  | 'claude-3.5-sonnet'
+  | 'claude-3.7-sonnet'
+  | 'gemini-1.5-pro'
+  | 'gemini-2.5-pro'
+  | 'grok-3'
   | 'custom';
 
 @Injectable({
@@ -24,19 +20,15 @@ export type SupportedModel =
 export class TokenCounterService {
   
   private readonly CHARS_PER_TOKEN_ESTIMATES: Record<SupportedModel, number> = {
-    'claude-3-opus': 3.5,
-    'claude-3-sonnet': 3.5,
-    'claude-3-haiku': 3.5,
-    'claude-2.1': 3.8,
-    'claude-2.0': 3.8,
-    'claude-instant': 4.0,
-    'gpt-4': 4.0,
-    'gpt-4-turbo': 4.0,
-    'gpt-3.5-turbo': 4.0,
+    'claude-3.5-sonnet': 3.5,
+    'claude-3.7-sonnet': 3.5,
+    'gemini-1.5-pro': 4.0,
+    'gemini-2.5-pro': 4.0,
+    'grok-3': 3.8,
     'custom': 4.0
   };
 
-  countTokens(prompt: string, model: SupportedModel = 'claude-3-sonnet'): TokenCountResult {
+  countTokens(prompt: string, model: SupportedModel = 'claude-3.7-sonnet'): TokenCountResult {
     const cleanedPrompt = this.preprocessText(prompt);
     
     // For now, we use character-based estimation
@@ -87,9 +79,9 @@ export class TokenCounterService {
   }
 
   // Advanced estimation with word-based approach
-  estimateTokensAdvanced(prompt: string, model: SupportedModel = 'claude-3-sonnet'): TokenCountResult {
+  estimateTokensAdvanced(prompt: string, model: SupportedModel = 'claude-3.7-sonnet'): TokenCountResult {
     const words = prompt.split(/\s+/).filter(word => word.length > 0);
-    const avgTokensPerWord = model.startsWith('claude') ? 1.3 : 1.4;
+    const avgTokensPerWord = model.startsWith('claude') ? 1.3 : model.startsWith('gemini') ? 1.2 : 1.4;
     
     const wordBasedTokens = Math.ceil(words.length * avgTokensPerWord);
     const charBasedTokens = this.estimateTokens(prompt, model);
@@ -107,15 +99,11 @@ export class TokenCounterService {
   // Get token limit for a model
   getModelTokenLimit(model: SupportedModel): number {
     const tokenLimits: Record<SupportedModel, number> = {
-      'claude-3-opus': 200000,
-      'claude-3-sonnet': 200000,
-      'claude-3-haiku': 200000,
-      'claude-2.1': 200000,
-      'claude-2.0': 100000,
-      'claude-instant': 100000,
-      'gpt-4': 8192,
-      'gpt-4-turbo': 128000,
-      'gpt-3.5-turbo': 4096,
+      'claude-3.5-sonnet': 200000,
+      'claude-3.7-sonnet': 200000,
+      'gemini-1.5-pro': 2000000,
+      'gemini-2.5-pro': 1000000,
+      'grok-3': 131072,
       'custom': 4096
     };
     
@@ -123,16 +111,54 @@ export class TokenCounterService {
   }
 
   // Check if prompt exceeds model limit
-  isWithinLimit(prompt: string, model: SupportedModel = 'claude-3-sonnet'): boolean {
+  isWithinLimit(prompt: string, model: SupportedModel = 'claude-3.7-sonnet'): boolean {
     const result = this.countTokens(prompt, model);
     const limit = this.getModelTokenLimit(model);
     return result.tokens <= limit;
   }
 
   // Get percentage of limit used
-  getUsagePercentage(prompt: string, model: SupportedModel = 'claude-3-sonnet'): number {
+  getUsagePercentage(prompt: string, model: SupportedModel = 'claude-3.7-sonnet'): number {
     const result = this.countTokens(prompt, model);
     const limit = this.getModelTokenLimit(model);
     return (result.tokens / limit) * 100;
+  }
+
+  // Get output token limit for a model
+  getModelOutputLimit(model: SupportedModel): number {
+    const outputLimits: Record<SupportedModel, number> = {
+      'claude-3.5-sonnet': 4096,
+      'claude-3.7-sonnet': 128000, // With extended output API header
+      'gemini-1.5-pro': 8192,
+      'gemini-2.5-pro': 64000,
+      'grok-3': 8192,
+      'custom': 4096
+    };
+    
+    return outputLimits[model];
+  }
+
+  // Get model information
+  getModelInfo(model: SupportedModel): {
+    name: string;
+    contextWindow: number;
+    outputLimit: number;
+    provider: string;
+    releaseDate: string;
+  } {
+    const modelInfo: Record<SupportedModel, { name: string; provider: string; releaseDate: string }> = {
+      'claude-3.5-sonnet': { name: 'Claude 3.5 Sonnet', provider: 'Anthropic', releaseDate: '2024' },
+      'claude-3.7-sonnet': { name: 'Claude 3.7 Sonnet', provider: 'Anthropic', releaseDate: 'February 2025' },
+      'gemini-1.5-pro': { name: 'Gemini 1.5 Pro', provider: 'Google', releaseDate: '2024' },
+      'gemini-2.5-pro': { name: 'Gemini 2.5 Pro', provider: 'Google', releaseDate: '2025' },
+      'grok-3': { name: 'Grok-3', provider: 'xAI', releaseDate: '2025' },
+      'custom': { name: 'Custom Model', provider: 'Unknown', releaseDate: 'Unknown' }
+    };
+    
+    return {
+      ...modelInfo[model],
+      contextWindow: this.getModelTokenLimit(model),
+      outputLimit: this.getModelOutputLimit(model)
+    };
   }
 }
