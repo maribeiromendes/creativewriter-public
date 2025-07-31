@@ -21,11 +21,15 @@ import { NovelCrafterImportService, NovelCrafterImportResult } from '../../share
           <div class="import-options">
             <!-- ZIP File Option -->
             <div class="drop-zone zip-option" 
+                 role="button"
+                 tabindex="0"
                  [class.drag-over]="isDragOver()"
                  (dragover)="onDragOver($event)"
                  (dragleave)="onDragLeave($event)"
                  (drop)="onDrop($event)"
-                 (click)="zipFileInput.click()">
+                 (click)="zipFileInput.click()"
+                 (keyup.enter)="zipFileInput.click()"
+                 (keyup.space)="zipFileInput.click()">
               <div class="drop-zone-content">
                 <div class="upload-icon">📦</div>
                 <h3>ZIP File Import</h3>
@@ -40,11 +44,15 @@ import { NovelCrafterImportService, NovelCrafterImportResult } from '../../share
             
             <!-- Folder Option -->
             <div class="drop-zone folder-option" 
+                 role="button"
+                 tabindex="0"
                  [class.drag-over]="isFolderDragOver()"
                  (dragover)="onFolderDragOver($event)"
                  (dragleave)="onFolderDragLeave($event)"
                  (drop)="onFolderDrop($event)"
-                 (click)="folderInput.click()">
+                 (click)="folderInput.click()"
+                 (keyup.enter)="folderInput.click()"
+                 (keyup.space)="folderInput.click()">
               <div class="drop-zone-content">
                 <div class="upload-icon">📁</div>
                 <h3>Folder Import</h3>

@@ -79,7 +79,7 @@ export class ImageService {
         sort: [{ createdAt: 'desc' }]
       });
       
-      return result.docs.map((doc: any) => ({
+      return result.docs.map((doc: StoredImage & { _id: string; _rev: string }) => ({
         ...doc,
         createdAt: new Date(doc.createdAt)
       })) as StoredImage[];

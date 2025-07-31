@@ -726,7 +726,7 @@ export class StoryStatsComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   ngOnDestroy(): void {
-    // Cleanup if needed
+    // Component cleanup - no subscriptions to destroy in this component
   }
 
   onClose(): void {

@@ -239,7 +239,7 @@ export class ImageGenerationService {
     return this.models.find(model => model.id === modelId);
   }
 
-  generateImage(modelId: string, input: Record<string, any>): Observable<ImageGenerationJob> {
+  generateImage(modelId: string, input: Record<string, unknown>): Observable<ImageGenerationJob> {
     const model = this.getModel(modelId);
     if (!model) {
       throw new Error(`Model ${modelId} not found`);

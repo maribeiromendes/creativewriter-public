@@ -1271,8 +1271,8 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    // Editor will be initialized after story data is loaded in ngOnInit
-    // This ensures proper timing
+    // Editor initialization happens in ngOnInit after story data is loaded
+    // This lifecycle hook ensures proper view timing
   }
 
   ngOnDestroy(): void {

@@ -79,7 +79,9 @@ export class LogViewerComponent implements OnInit {
     addIcons({ arrowBack });
   }
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    // Component initialization - logs are loaded via signal
+  }
 
   goBack(): void {
     this.router.navigate(['/']);

@@ -20,8 +20,12 @@ import { SlashCommand, SlashCommandAction, SlashCommandResult } from '../models/
         <div class="slash-commands">
           <div *ngFor="let command of commands; trackBy: trackCommand" 
                class="slash-command-item"
+               role="button"
+               tabindex="0"
                [class.active]="selectedIndex === getCommandIndex(command)"
                (click)="selectCommand(command)"
+               (keyup.enter)="selectCommand(command)"
+               (keyup.space)="selectCommand(command)"
                (mouseenter)="selectedIndex = getCommandIndex(command)">
             <span class="command-icon">{{ command.icon }}</span>
             <div class="command-content">
