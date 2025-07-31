@@ -98,7 +98,7 @@ export class ImageService {
   async getImage(id: string): Promise<StoredImage | null> {
     try {
       const db = await this.databaseService.getDatabase();
-      const doc = await db.get(`image_${id}`) as any;
+      const doc = await db.get(`image_${id}`) as StoredImage & { _id: string; _rev: string };
       return {
         ...doc,
         createdAt: new Date(doc['createdAt'])

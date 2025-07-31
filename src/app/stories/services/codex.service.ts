@@ -60,7 +60,7 @@ export class CodexService {
       this.codexMap.clear();
       
       for (const row of result.rows) {
-        if (row.doc && (row.doc as any).type === 'codex') {
+        if (row.doc && (row.doc as { type?: string }).type === 'codex') {
           const codex = this.deserializeCodex(row.doc);
           this.codexMap.set(codex.storyId, codex);
         }
@@ -84,7 +84,7 @@ export class CodexService {
       for (let attempt = 0; attempt < maxRetries; attempt++) {
         try {
           // Always get the latest version before updating
-          let docToUpdate: any;
+          let docToUpdate: { _id: string; _rev?: string; [key: string]: unknown };
           try {
             docToUpdate = await this.db!.get(docId);
           } catch (error: unknown) {
@@ -135,16 +135,17 @@ export class CodexService {
   }
 
 
-  private deserializeCodex(codex: any): Codex {
+  private deserializeCodex(codex: unknown): Codex {
+    const typedCodex = codex as Codex & { createdAt: string | Date; updatedAt: string | Date };
     return {
-      ...codex,
-      createdAt: new Date(codex.createdAt),
-      updatedAt: new Date(codex.updatedAt),
-      categories: codex.categories.map((cat: CodexCategory) => ({
+      ...typedCodex,
+      createdAt: new Date(typedCodex.createdAt),
+      updatedAt: new Date(typedCodex.updatedAt),
+      categories: typedCodex.categories.map((cat: CodexCategory & { createdAt: string | Date; updatedAt: string | Date }) => ({
         ...cat,
         createdAt: new Date(cat.createdAt),
         updatedAt: new Date(cat.updatedAt),
-        entries: cat.entries.map((entry: CodexEntry) => ({
+        entries: cat.entries.map((entry: CodexEntry & { createdAt: string | Date; updatedAt: string | Date }) => ({
           ...entry,
           createdAt: new Date(entry.createdAt),
           updatedAt: new Date(entry.updatedAt)
