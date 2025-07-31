@@ -1571,15 +1571,32 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
     }).toPromise();
 
     // Map the selected model to SupportedModel type
+    // Handle formats like "gemini:gemini-1.5-pro" or "openrouter:anthropic/claude-3-haiku"
+    let modelToMap = this.selectedModel;
+    if (modelToMap.includes(':')) {
+      const parts = modelToMap.split(':');
+      modelToMap = parts[1] || modelToMap;
+    }
+    if (modelToMap.includes('/')) {
+      modelToMap = modelToMap.split('/').pop() || modelToMap;
+    }
+
     const modelMapping: Record<string, SupportedModel> = {
       'claude-3-5-sonnet-20241022': 'claude-3.5-sonnet',
+      'claude-3-5-sonnet': 'claude-3.5-sonnet',
+      'claude-3.5-sonnet': 'claude-3.5-sonnet',
       'claude-3-5-sonnet-v2': 'claude-3.7-sonnet',
+      'claude-3.7-sonnet': 'claude-3.7-sonnet',
+      'claude-3-haiku': 'claude-3.5-sonnet', // Map haiku to closest available
       'gemini-1.5-pro': 'gemini-1.5-pro',
+      'gemini-1.5-pro-latest': 'gemini-1.5-pro',
       'gemini-2.0-flash-thinking-exp': 'gemini-2.5-pro',
-      'grok-beta': 'grok-3'
+      'gemini-2.5-pro': 'gemini-2.5-pro',
+      'grok-beta': 'grok-3',
+      'grok-3': 'grok-3'
     };
 
-    const mappedModel = modelMapping[this.selectedModel] || 'custom';
+    const mappedModel = modelMapping[modelToMap] || 'custom';
 
     const popover = await this.popoverController.create({
       component: TokenInfoPopoverComponent,
