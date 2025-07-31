@@ -128,7 +128,7 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
                                   <ion-icon name="person"></ion-icon>
                                   <ion-label>{{ entry.metadata?.['storyRole'] }}</ion-label>
                                 </ion-chip>
-                                <ion-chip *ngFor="let field of entry.metadata?.['customFields']" color="secondary">
+                                <ion-chip *ngFor="let field of getCustomFields(entry)" color="secondary">
                                   <ion-label>{{ field.name }}: {{ getFieldValuePreview(field.value) }}</ion-label>
                                 </ion-chip>
                                 <ion-chip *ngFor="let tag of entry.tags" color="medium">
@@ -187,7 +187,7 @@ import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField }
                                     <ion-icon name="person"></ion-icon>
                                     <ion-label>{{ entry.metadata?.['storyRole'] }}</ion-label>
                                   </ion-chip>
-                                  <ion-chip *ngFor="let field of entry.metadata?.['customFields']" color="secondary">
+                                  <ion-chip *ngFor="let field of getCustomFields(entry)" color="secondary">
                                     <ion-label>{{ field.name }}: {{ getFieldValuePreview(field.value) }}</ion-label>
                                   </ion-chip>
                                   <ion-chip *ngFor="let tag of entry.tags" color="medium">
@@ -1208,7 +1208,7 @@ export class CodexComponent implements OnInit, OnDestroy {
       ...entry,
       tags: entry.tags ? [...entry.tags] : [],
       storyRole: entry.metadata?.['storyRole'] || null,
-      customFields: entry.metadata?.['customFields'] ? [...entry.metadata['customFields']] : [],
+      customFields: entry.metadata?.['customFields'] ? [...(entry.metadata['customFields'] as any[])] : [],
       alwaysInclude: entry.alwaysInclude || false
     };
     this.tagInput = '';
@@ -1425,6 +1425,11 @@ export class CodexComponent implements OnInit, OnDestroy {
     // Replace line breaks with spaces and limit length
     const singleLine = value.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
     return singleLine.length > 30 ? singleLine.substring(0, 30) + '...' : singleLine;
+  }
+
+  getCustomFields(entry: CodexEntry): CustomField[] {
+    const fields = entry.metadata?.['customFields'];
+    return Array.isArray(fields) ? fields : [];
   }
 
   goBack() {

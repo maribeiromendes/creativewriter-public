@@ -156,10 +156,10 @@ export class GlobalErrorHandlerService implements ErrorHandler {
     );
 
     const googleApiError = error as GoogleApiError;
-    const hasApiContext = googleApiError?.url || 
+    const hasApiContext = !!(googleApiError?.url || 
                          googleApiError?.status || 
                          googleApiError?.error?.error || // Google API error structure
-                         ((error as ErrorWithStack)?.stack && (error as ErrorWithStack).stack?.includes('HttpClient'));
+                         ((error as ErrorWithStack)?.stack && (error as ErrorWithStack).stack?.includes('HttpClient')));
 
     // Check for content filter specific errors
     const isContentFilterError = this.isContentFilterError(error, errorMessage);
@@ -187,14 +187,14 @@ export class GlobalErrorHandlerService implements ErrorHandler {
 
     // Check Google API response structure for safety-related blocking
     const googleError = error as GoogleApiError;
-    const hasSafetyBlock = googleError?.error?.error?.message?.includes('blocked') ||
+    const hasSafetyBlock = !!(googleError?.error?.error?.message?.includes('blocked') ||
                           googleError?.candidates?.[0]?.finishReason === 'SAFETY' ||
                           googleError?.candidates?.[0]?.finishReason === 'OTHER' ||
-                          googleError?.promptFeedback?.blockReason;
+                          googleError?.promptFeedback?.blockReason);
 
     // Check for safety ratings that might indicate content filtering
-    const hasSafetyRatings = googleError?.candidates?.[0]?.safetyRatings ||
-                            googleError?.promptFeedback?.safetyRatings;
+    const hasSafetyRatings = !!(googleError?.candidates?.[0]?.safetyRatings ||
+                               googleError?.promptFeedback?.safetyRatings);
 
     return messageContainsFilter || hasSafetyBlock || hasSafetyRatings;
   }

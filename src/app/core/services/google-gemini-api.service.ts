@@ -754,8 +754,8 @@ export class GoogleGeminiApiService {
     const url = '/api/gemini/test';
     console.log('🔍 Testing Gemini proxy connection at:', url);
     
-    return this.http.get(url).pipe(
-      tap(response => {
+    return this.http.get<Record<string, unknown>>(url).pipe(
+      tap((response: Record<string, unknown>) => {
         console.log('✅ Gemini proxy test successful:', response);
       }),
       catchError(error => {
@@ -770,7 +770,7 @@ export class GoogleGeminiApiService {
     let message = 'Unknown error';
     let code: string | undefined;
     let status: number | undefined;
-    let details: Record<string, unknown>;
+    let details: Record<string, unknown> | undefined;
 
     // Check for content filter errors first
     const contentFilterError = this.extractContentFilterError(error);
@@ -779,30 +779,30 @@ export class GoogleGeminiApiService {
     }
 
     // HTTP error response from Angular HttpClient
-    if (error.error) {
-      status = error.status;
+    if (error['error']) {
+      status = error['status'] as number;
       
       // Google API error structure: error.error.error.message
-      if (error.error.error) {
-        const apiError = error.error.error;
+      if (error['error'] && error['error']['error']) {
+        const apiError = error['error']['error'] as any;
         message = apiError.message || message;
         code = apiError.code || apiError.status;
         details = apiError.details;
       }
       // Direct error object: error.error.message
-      else if (error.error.message) {
-        message = error.error.message;
-        code = error.error.code;
+      else if (error['error'] && error['error']['message']) {
+        message = error['error']['message'] as string;
+        code = error['error']['code'] as string;
       }
       // String error response
-      else if (typeof error.error === 'string') {
-        message = error.error;
+      else if (typeof error['error'] === 'string') {
+        message = error['error'];
       }
     }
     // Network or other errors
-    else if (error.message) {
-      message = error.message;
-      code = error.code || error.name;
+    else if (error['message']) {
+      message = error['message'] as string;
+      code = (error['code'] || error['name']) as string;
     }
 
     // Add HTTP status context

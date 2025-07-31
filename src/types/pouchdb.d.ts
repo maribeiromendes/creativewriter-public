@@ -15,6 +15,10 @@ declare namespace PouchDB {
       to(target: Database): Promise<any>;
       from(target: Database): Promise<any>;
     };
+    bulkDocs(docs: any[]): Promise<any>;
+    getAttachment(docId: string, attachmentId: string): Promise<Blob>;
+    putAttachment(docId: string, attachmentId: string, attachment: Blob, type: string): Promise<any>;
+    removeAttachment(docId: string, attachmentId: string, rev: string): Promise<any>;
     name?: string;
   }
 

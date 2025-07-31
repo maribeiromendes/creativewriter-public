@@ -197,7 +197,7 @@ export class CodexRelevanceSettingsComponent implements OnInit, OnDestroy {
       // Initialize global includes from metadata
       for (const category of codex.categories) {
         for (const entry of category.entries) {
-          this.globalIncludes[entry.id] = entry.metadata?.['globalInclude'] || false;
+          this.globalIncludes[entry.id] = !!(entry.metadata?.['globalInclude']) || false;
         }
       }
     }

@@ -144,7 +144,7 @@ import { NovelCrafterImportService, NovelCrafterImportResult } from '../../share
                     <span *ngIf="char.metadata?.['storyRole']" class="story-role-badge">
                       {{ char.metadata?.['storyRole'] }}
                     </span>
-                    <span *ngFor="let field of char.metadata?.['customFields']?.slice(0, 2)" class="custom-field-badge">
+                    <span *ngFor="let field of getCustomFieldsSlice(char)" class="custom-field-badge">
                       {{ field.name }}
                     </span>
                   </div>
@@ -855,6 +855,11 @@ export class NovelCrafterImportComponent {
 
   getContentPreview(content: string): string {
     return content.length > 100 ? content.substring(0, 100) + '...' : content;
+  }
+
+  getCustomFieldsSlice(entry: any): any[] {
+    const fields = entry.metadata?.['customFields'];
+    return Array.isArray(fields) ? fields.slice(0, 2) : [];
   }
 
   goToStory() {
