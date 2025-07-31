@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable, Subject, map, scan, catchError, of, switchMap, from, tap } from 'rxjs';
 import { BeatAI, BeatAIGenerationEvent } from '../../stories/models/beat-ai.interface';
+import { Story } from '../../stories/models/story.interface';
 import { OpenRouterApiService } from '../../core/services/openrouter-api.service';
 import { GoogleGeminiApiService } from '../../core/services/google-gemini-api.service';
 import { SettingsService } from '../../core/services/settings.service';
@@ -135,7 +136,7 @@ export class BeatAIService {
     );
   }
 
-  private callGoogleGeminiStreamingAPI(prompt: string, options: any, maxTokens: number, wordCount: number, requestId: string, beatId: string): Observable<string> {
+  private callGoogleGeminiStreamingAPI(prompt: string, options: { model?: string; temperature?: number; topP?: number }, maxTokens: number, wordCount: number, requestId: string, beatId: string): Observable<string> {
     // Parse the structured prompt to extract messages
     const messages = this.parseStructuredPrompt(prompt);
     
@@ -251,7 +252,7 @@ export class BeatAIService {
     );
   }
 
-  private callOpenRouterStreamingAPI(prompt: string, options: any, maxTokens: number, wordCount: number, requestId: string, beatId: string): Observable<string> {
+  private callOpenRouterStreamingAPI(prompt: string, options: { model?: string; temperature?: number; topP?: number }, maxTokens: number, wordCount: number, requestId: string, beatId: string): Observable<string> {
     let accumulatedContent = '';
     
     return this.openRouterApi.generateTextStream(prompt, {
@@ -329,7 +330,7 @@ export class BeatAIService {
     }
 
     return from(this.storyService.getStory(options.storyId)).pipe(
-      switchMap((story: any) => {
+      switchMap((story: Story | string) => {
         if (!story || typeof story === 'string' || !story.settings) {
           return of(userPrompt);
         }

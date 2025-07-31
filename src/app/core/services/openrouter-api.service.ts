@@ -306,7 +306,7 @@ export class OpenRouterApiService {
                     accumulatedContent += newText;
                     observer.next(newText);
                   }
-                } catch (e) {
+                } catch {
                   // Ignore parsing errors for incomplete JSON
                 }
               }

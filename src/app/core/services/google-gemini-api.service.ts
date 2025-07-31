@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, tap, takeUntil, Subject, map, catchError } from 'rxjs';
+import { Observable, tap, takeUntil, Subject, catchError } from 'rxjs';
 import { SettingsService } from './settings.service';
 import { AIRequestLoggerService } from './ai-request-logger.service';
 
@@ -370,13 +370,6 @@ export class GoogleGeminiApiService {
     const maxTokens = options.maxTokens || 500;
     const wordCount = options.wordCount || Math.floor(maxTokens / 1.3);
 
-    const headers = new HttpHeaders({
-      'Content-Type': 'application/json',
-      'User-Agent': 'NovelCrafter/1.0',
-      'X-Client-Name': 'NovelCrafter',
-      'X-Client-Version': '1.0'
-    });
-
     // Convert messages format to Gemini format
     const contents = this.convertMessagesToContents(options.messages, prompt);
 
@@ -472,7 +465,7 @@ export class GoogleGeminiApiService {
       let accumulatedContent = '';
       let buffer = ''; // Buffer for incomplete JSON chunks
       let aborted = false;
-      let timeoutId: any;
+      let timeoutId: NodeJS.Timeout | number;
       
       // Create AbortController for cancellation
       const abortController = new AbortController();
@@ -757,7 +750,7 @@ export class GoogleGeminiApiService {
     return 'gemini_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
   }
 
-  testConnection(): Observable<any> {
+  testConnection(): Observable<Record<string, unknown>> {
     const url = '/api/gemini/test';
     console.log('🔍 Testing Gemini proxy connection at:', url);
     
@@ -772,12 +765,12 @@ export class GoogleGeminiApiService {
     );
   }
 
-  private extractErrorDetails(error: any): { message: string; code?: string; status?: number; details?: any } {
+  private extractErrorDetails(error: Record<string, unknown>): { message: string; code?: string; status?: number; details?: Record<string, unknown> } {
     // Handle different error structures from Google API
     let message = 'Unknown error';
     let code: string | undefined;
     let status: number | undefined;
-    let details: any;
+    let details: Record<string, unknown>;
 
     // Check for content filter errors first
     const contentFilterError = this.extractContentFilterError(error);
@@ -845,9 +838,9 @@ export class GoogleGeminiApiService {
     return { message, code, status, details };
   }
 
-  private extractContentFilterError(error: any): { message: string; code?: string; status?: number; details?: any } | null {
+  private extractContentFilterError(error: Record<string, unknown>): { message: string; code?: string; status?: number; details?: Record<string, unknown> } | null {
     let contentFilterMessage: string | null = null;
-    const details: any = {};
+    const details: Record<string, unknown> = {};
 
     // Check for content filtering in successful responses with SAFETY finish reason
     if (error.candidates?.[0]?.finishReason === 'SAFETY') {
@@ -874,12 +867,13 @@ export class GoogleGeminiApiService {
     }
     // Check for safety ratings that might indicate high-risk content
     else if (error.candidates?.[0]?.safetyRatings) {
-      const highRiskRatings = error.candidates[0].safetyRatings.filter((rating: any) => 
+      const candidates = error.candidates as { safetyRatings: { category: string; probability: string }[] }[];
+      const highRiskRatings = candidates[0].safetyRatings.filter((rating) => 
         rating.probability === 'HIGH' || rating.probability === 'MEDIUM'
       );
       
       if (highRiskRatings.length > 0) {
-        const categories = highRiskRatings.map((r: any) => r.category).join(', ');
+        const categories = highRiskRatings.map((r) => r.category).join(', ');
         contentFilterMessage = `Content flagged for safety categories: ${categories}`;
         details.safetyRatings = error.candidates[0].safetyRatings;
         details.highRiskCategories = categories;

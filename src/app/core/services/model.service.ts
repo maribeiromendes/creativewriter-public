@@ -5,11 +5,9 @@ import { map, catchError, tap } from 'rxjs/operators';
 import { 
   OpenRouterModelsResponse, 
   ReplicateModelsResponse, 
-  GeminiModelsResponse,
   ModelOption,
   OpenRouterModel,
-  ReplicateModel,
-  GeminiModel 
+  ReplicateModel
 } from '../models/model.interface';
 import { SettingsService } from './settings.service';
 

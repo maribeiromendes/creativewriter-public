@@ -1,5 +1,6 @@
 import { Plugin, PluginKey } from 'prosemirror-state';
-import { Decoration, DecorationSet } from 'prosemirror-view';
+import { Decoration, DecorationSet, EditorView } from 'prosemirror-view';
+import { Node } from 'prosemirror-model';
 import { CodexEntry } from '../../stories/models/codex.interface';
 
 export interface CodexHighlightingOptions {
@@ -32,7 +33,7 @@ export function createCodexHighlightingPlugin(options: CodexHighlightingOptions)
   });
 }
 
-function findCodexMatches(doc: any, codexEntries: CodexEntry[]): DecorationSet {
+function findCodexMatches(doc: Node, codexEntries: CodexEntry[]): DecorationSet {
   const decorations: Decoration[] = [];
   
   if (!codexEntries || codexEntries.length === 0) {
@@ -40,7 +41,7 @@ function findCodexMatches(doc: any, codexEntries: CodexEntry[]): DecorationSet {
   }
 
   // Walk through the document to find text nodes
-  doc.descendants((node: any, pos: number) => {
+  doc.descendants((node: Node, pos: number) => {
     if (node.isText) {
       const text = node.text.toLowerCase();
       
@@ -109,7 +110,7 @@ function escapeRegex(str: string): string {
 }
 
 // Function to update plugin with new codex entries
-export function updateCodexHighlightingPlugin(view: any, newCodexEntries: CodexEntry[]): void {
+export function updateCodexHighlightingPlugin(view: EditorView, newCodexEntries: CodexEntry[]): void {
   const plugin = codexHighlightingKey.get(view.state);
   if (plugin) {
     const newDecorations = findCodexMatches(view.state.doc, newCodexEntries);

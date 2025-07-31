@@ -1,6 +1,54 @@
 import { ErrorHandler, Injectable, inject } from '@angular/core';
 import { AIRequestLoggerService } from './ai-request-logger.service';
 
+interface PromiseRejectionError {
+  rejection?: {
+    message?: string;
+    stack?: string;
+  };
+  reason?: unknown;
+  promise?: Promise<unknown>;
+}
+
+interface HttpError {
+  error?: {
+    message?: string;
+    error?: {
+      message?: string;
+    };
+  };
+  status?: number;
+  statusText?: string;
+  url?: string;
+  message?: string;
+}
+
+interface ExtendedError extends Error {
+  fileName?: string;
+  lineNumber?: number;
+  columnNumber?: number;
+}
+
+interface GoogleApiError {
+  error?: {
+    error?: {
+      message?: string;
+    };
+  };
+  candidates?: {
+    finishReason?: string;
+    safetyRatings?: unknown[];
+  }[];
+  promptFeedback?: {
+    blockReason?: string;
+    safetyRatings?: unknown[];
+  };
+  url?: string;
+  status?: number;
+}
+
+type ErrorWithStack = Error & { stack?: string };
+
 @Injectable()
 export class GlobalErrorHandlerService implements ErrorHandler {
   private readonly aiLogger = inject(AIRequestLoggerService);
@@ -17,14 +65,15 @@ export class GlobalErrorHandlerService implements ErrorHandler {
 
     try {
       // Extract error details based on error type
-      if ((error as any)?.rejection) {
+      if ((error as PromiseRejectionError)?.rejection) {
         // Promise rejection
-        errorMessage = `Unhandled Promise Rejection: ${(error as any).rejection?.message || (error as any).rejection}`;
+        const rejectionError = error as PromiseRejectionError;
+        errorMessage = `Unhandled Promise Rejection: ${rejectionError.rejection?.message || rejectionError.rejection}`;
         errorContext = {
           type: 'promise_rejection',
-          reason: (error as any).reason,
-          promise: (error as any).promise,
-          stack: (error as any).rejection?.stack
+          reason: rejectionError.reason,
+          promise: rejectionError.promise,
+          stack: rejectionError.rejection?.stack
         };
       } else if (error instanceof Error) {
         // Standard JavaScript Error
@@ -34,19 +83,20 @@ export class GlobalErrorHandlerService implements ErrorHandler {
           name: error.name,
           message: error.message,
           stack: error.stack,
-          fileName: (error as Error & { fileName?: string }).fileName,
-          lineNumber: (error as Error & { lineNumber?: number }).lineNumber,
-          columnNumber: (error as Error & { columnNumber?: number }).columnNumber
+          fileName: (error as ExtendedError).fileName,
+          lineNumber: (error as ExtendedError).lineNumber,
+          columnNumber: (error as ExtendedError).columnNumber
         };
-      } else if ((error as any)?.error) {
+      } else if ((error as HttpError)?.error) {
         // HTTP Error or wrapped error
-        errorMessage = `HTTP/API Error: ${(error as any).error?.message || (error as any).message || 'Unknown'}`;
+        const httpError = error as HttpError;
+        errorMessage = `HTTP/API Error: ${httpError.error?.message || httpError.message || 'Unknown'}`;
         errorContext = {
           type: 'http_error',
-          status: (error as any).status,
-          statusText: (error as any).statusText,
-          url: (error as any).url,
-          error: (error as any).error
+          status: httpError.status,
+          statusText: httpError.statusText,
+          url: httpError.url,
+          error: httpError.error
         };
       } else if (typeof error === 'string') {
         errorMessage = `String Error: ${error}`;
@@ -105,10 +155,11 @@ export class GlobalErrorHandlerService implements ErrorHandler {
       errorMessage.toLowerCase().includes(keyword)
     );
 
-    const hasApiContext = (error as any)?.url || 
-                         (error as any)?.status || 
-                         (error as any)?.error?.error || // Google API error structure
-                         ((error as Error)?.stack && (error as Error).stack?.includes('HttpClient'));
+    const googleApiError = error as GoogleApiError;
+    const hasApiContext = googleApiError?.url || 
+                         googleApiError?.status || 
+                         googleApiError?.error?.error || // Google API error structure
+                         ((error as ErrorWithStack)?.stack && (error as ErrorWithStack).stack?.includes('HttpClient'));
 
     // Check for content filter specific errors
     const isContentFilterError = this.isContentFilterError(error, errorMessage);
@@ -135,14 +186,15 @@ export class GlobalErrorHandlerService implements ErrorHandler {
     );
 
     // Check Google API response structure for safety-related blocking
-    const hasSafetyBlock = (error as any)?.error?.error?.message?.includes('blocked') ||
-                          (error as any)?.candidates?.[0]?.finishReason === 'SAFETY' ||
-                          (error as any)?.candidates?.[0]?.finishReason === 'OTHER' ||
-                          (error as any)?.promptFeedback?.blockReason;
+    const googleError = error as GoogleApiError;
+    const hasSafetyBlock = googleError?.error?.error?.message?.includes('blocked') ||
+                          googleError?.candidates?.[0]?.finishReason === 'SAFETY' ||
+                          googleError?.candidates?.[0]?.finishReason === 'OTHER' ||
+                          googleError?.promptFeedback?.blockReason;
 
     // Check for safety ratings that might indicate content filtering
-    const hasSafetyRatings = (error as any)?.candidates?.[0]?.safetyRatings ||
-                            (error as any)?.promptFeedback?.safetyRatings;
+    const hasSafetyRatings = googleError?.candidates?.[0]?.safetyRatings ||
+                            googleError?.promptFeedback?.safetyRatings;
 
     return messageContainsFilter || hasSafetyBlock || hasSafetyRatings;
   }

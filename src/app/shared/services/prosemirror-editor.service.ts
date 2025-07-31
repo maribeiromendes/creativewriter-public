@@ -1,6 +1,6 @@
 import { Injectable, Injector, ApplicationRef, EnvironmentInjector, inject } from '@angular/core';
 import { EditorState, Transaction, Plugin, PluginKey } from 'prosemirror-state';
-import { EditorView, Decoration, DecorationSet } from 'prosemirror-view';
+import { EditorView } from 'prosemirror-view';
 import { Schema, DOMParser, DOMSerializer, Node as ProseMirrorNode, Fragment, Slice } from 'prosemirror-model';
 import { schema } from 'prosemirror-schema-basic';
 import { addListNodes } from 'prosemirror-schema-list';
@@ -9,7 +9,7 @@ import { baseKeymap, splitBlock, chainCommands, newlineInCode, createParagraphNe
 import { history, undo, redo } from 'prosemirror-history';
 import { Subject } from 'rxjs';
 import { BeatAINodeView } from './beat-ai-nodeview';
-import { BeatAI, BeatAIPromptEvent, BeatContentInsertEvent } from '../../stories/models/beat-ai.interface';
+import { BeatAI, BeatAIPromptEvent } from '../../stories/models/beat-ai.interface';
 import { BeatAIService } from './beat-ai.service';
 import { ImageInsertResult } from '../components/image-upload-dialog.component';
 import { PromptManagerService } from './prompt-manager.service';

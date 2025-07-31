@@ -69,7 +69,7 @@ export class BeatAINodeView implements NodeView {
       this.onContentUpdate(beatData);
     });
     
-    this.componentRef.instance.delete.subscribe((beatId: string) => {
+    this.componentRef.instance.delete.subscribe(() => {
       this.deleteNode();
     });
     
