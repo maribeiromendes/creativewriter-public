@@ -453,7 +453,7 @@ export class BeatAIService {
 
         // Build template placeholders
         const placeholders = {
-          systemMessage: story.settings.systemMessage,
+          systemMessage: story.settings!.systemMessage,
           codexEntries: codexText,
           storySoFar: storySoFar,
           storyTitle: story.title || 'Story',
@@ -461,7 +461,7 @@ export class BeatAIService {
           wordCount: (options.wordCount || 200).toString(),
           prompt: userPrompt,
           pointOfView: pointOfView,
-          writingStyle: story.settings.beatInstruction === 'continue' 
+          writingStyle: story.settings!.beatInstruction === 'continue' 
             ? 'Setze die Geschichte fort' 
             : 'Bleibe im Moment'
         };
@@ -469,7 +469,7 @@ export class BeatAIService {
         // Log the final codex text to debug
         
         // Use template from story settings and replace placeholders
-        let processedTemplate = story.settings.beatGenerationTemplate;
+        let processedTemplate = story.settings!.beatGenerationTemplate;
         
         Object.entries(placeholders).forEach(([key, value]) => {
           const placeholder = `{${key}}`;
@@ -477,7 +477,9 @@ export class BeatAIService {
           processedTemplate = processedTemplate.replace(regex, value || '');
         });
 
-        return processedTemplate;
+            return processedTemplate;
+          })
+        );
       }),
       map(result => result)
     );
