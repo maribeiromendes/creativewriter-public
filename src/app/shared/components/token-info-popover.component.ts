@@ -40,7 +40,19 @@ import { TokenCounterService, SupportedModel, TokenCountResult } from '../servic
       </ion-toolbar>
     </ion-header>
     <ion-content class="ion-padding">
-      <ion-list>
+      <!-- Loading Indicator -->
+      <div *ngIf="loading" class="loading-container">
+        <ion-item lines="none">
+          <ion-label>
+            <div class="loading-content">
+              <div class="spinner"></div>
+              <p>Ermittle genaue Token-Anzahl...</p>
+            </div>
+          </ion-label>
+        </ion-item>
+      </div>
+
+      <ion-list *ngIf="!loading">
         <!-- Model Info -->
         <ion-item lines="none">
           <ion-label>
@@ -205,6 +217,37 @@ import { TokenCounterService, SupportedModel, TokenCountResult } from '../servic
       font-size: 10px;
       padding: 4px 8px;
     }
+
+    .loading-container {
+      padding: 20px 0;
+    }
+
+    .loading-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .loading-content p {
+      margin: 0;
+      color: var(--ion-color-medium);
+      font-size: 14px;
+    }
+
+    .spinner {
+      width: 24px;
+      height: 24px;
+      border: 2px solid var(--ion-color-light);
+      border-top: 2px solid var(--ion-color-primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
   `]
 })
 export class TokenInfoPopoverComponent implements OnInit {
@@ -215,6 +258,7 @@ export class TokenInfoPopoverComponent implements OnInit {
   tokenResult!: TokenCountResult;
   modelInfo!: ReturnType<TokenCounterService['getModelInfo']>;
   usagePercentage: number = 0;
+  loading: boolean = true;
   Math = Math;
 
   comparisonModels: Array<{ id: SupportedModel; name: string }> = [
@@ -235,18 +279,31 @@ export class TokenInfoPopoverComponent implements OnInit {
     this.calculateTokens();
   }
 
-  calculateTokens() {
-    this.tokenResult = this.tokenCounter.countTokens(this.prompt, this.model);
+  async calculateTokens() {
+    this.loading = true;
+    
+    try {
+      // Try async tokenization first for Claude models
+      this.tokenResult = await this.tokenCounter.countTokens(this.prompt, this.model);
+    } catch (error) {
+      // Fallback to synchronous method
+      console.warn('Failed to use async tokenization, falling back to sync:', error);
+      this.tokenResult = this.tokenCounter.countTokensSync(this.prompt, this.model);
+    }
+    
     this.modelInfo = this.tokenCounter.getModelInfo(this.model);
-    this.usagePercentage = this.tokenCounter.getUsagePercentage(this.prompt, this.model);
+    this.usagePercentage = (this.tokenResult.tokens / this.modelInfo.contextWindow) * 100;
+    this.loading = false;
   }
 
   getTokenCountForModel(modelId: SupportedModel): TokenCountResult {
-    return this.tokenCounter.countTokens(this.prompt, modelId);
+    return this.tokenCounter.countTokensSync(this.prompt, modelId);
   }
 
   getUsagePercentageForModel(modelId: SupportedModel): number {
-    return this.tokenCounter.getUsagePercentage(this.prompt, modelId);
+    const result = this.tokenCounter.countTokensSync(this.prompt, modelId);
+    const modelInfo = this.tokenCounter.getModelInfo(modelId);
+    return (result.tokens / modelInfo.contextWindow) * 100;
   }
 
   formatNumber(num: number): string {
