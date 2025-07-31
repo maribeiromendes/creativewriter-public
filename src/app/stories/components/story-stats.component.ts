@@ -719,6 +719,10 @@ export class StoryStatsComponent implements OnInit, OnDestroy, OnChanges {
     }
   }
 
+  ngOnDestroy(): void {
+    // Cleanup if needed
+  }
+
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['isOpen']?.currentValue && this.story) {
       this.calculateStatistics();

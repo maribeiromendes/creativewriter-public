@@ -347,6 +347,9 @@ export class ImageUploadDialogComponent implements OnInit {
 
   private readonly imageService = inject(ImageService);
 
+  ngOnInit(): void {
+    // Implementation can be added if needed
+  }
 
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;

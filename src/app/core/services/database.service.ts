@@ -193,7 +193,7 @@ export class DatabaseService {
       retry: true,
       timeout: 30000
     })
-    .on('change', (info: PouchDB.Replication.SyncResult<Record<string, unknown>>) => {
+    .on('change', (info: unknown) => {
       console.log('Sync change:', info);
       this.updateSyncStatus({ 
         isSync: false, 
@@ -205,18 +205,18 @@ export class DatabaseService {
       console.log('Sync active');
       this.updateSyncStatus({ isSync: true, error: undefined });
     })
-    .on('paused', (err?: Error) => {
-      console.log('Sync paused:', err);
+    .on('paused', (info: unknown) => {
+      console.log('Sync paused:', info);
       this.updateSyncStatus({ 
         isSync: false, 
-        error: err ? `Sync paused: ${err}` : undefined 
+        error: info ? `Sync paused: ${info}` : undefined 
       });
     })
-    .on('error', (err: Error) => {
-      console.error('Sync error:', err);
+    .on('error', (info: unknown) => {
+      console.error('Sync error:', info);
       this.updateSyncStatus({ 
         isSync: false, 
-        error: `Sync error: ${err}` 
+        error: `Sync error: ${info}` 
       });
     });
   }

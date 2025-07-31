@@ -20,7 +20,7 @@ export class StoryService {
       console.log('Raw PouchDB result:', result);
       
       const stories = result.rows
-        .map((row: { doc: Story }) => {
+        .map((row: any) => {
           console.log('Processing row:', row);
           return row.doc;
         })
@@ -116,7 +116,7 @@ export class StoryService {
       this.db = await this.databaseService.getDatabase();
       // Ensure we have the latest revision
       const currentDoc = await this.db.get(updatedStory._id || updatedStory.id);
-      updatedStory._rev = currentDoc._rev;
+      updatedStory._rev = (currentDoc as any)._rev;
       updatedStory._id = updatedStory._id || updatedStory.id;
       
       await this.db.put(updatedStory);

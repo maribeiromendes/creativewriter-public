@@ -60,7 +60,7 @@ export class CodexService {
       this.codexMap.clear();
       
       for (const row of result.rows) {
-        if (row.doc && row.doc.type === 'codex') {
+        if (row.doc && (row.doc as any).type === 'codex') {
           const codex = this.deserializeCodex(row.doc);
           this.codexMap.set(codex.storyId, codex);
         }
@@ -84,7 +84,7 @@ export class CodexService {
       for (let attempt = 0; attempt < maxRetries; attempt++) {
         try {
           // Always get the latest version before updating
-          let docToUpdate: PouchDB.Core.Document<Codex>;
+          let docToUpdate: any;
           try {
             docToUpdate = await this.db!.get(docId);
           } catch (error: unknown) {

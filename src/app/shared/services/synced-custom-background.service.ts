@@ -121,7 +121,8 @@ export class SyncedCustomBackgroundService {
       
       // Check if user can delete this background
       const currentUser = this.authService.getCurrentUser();
-      if (!currentUser || doc.createdBy !== currentUser.username) {
+      const typedDoc = doc as any;
+      if (!currentUser || typedDoc.createdBy !== currentUser.username) {
         throw new Error('Sie können nur eigene Hintergründe löschen.');
       }
       
