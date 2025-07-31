@@ -249,7 +249,7 @@ export class ImageGenerationService {
     const job: ImageGenerationJob = {
       id: this.generateJobId(),
       model: modelId,
-      prompt: input['prompt'] || '',
+      prompt: (input['prompt'] as string) || '',
       parameters: input,
       status: 'pending',
       createdAt: new Date()

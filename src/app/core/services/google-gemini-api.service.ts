@@ -779,30 +779,31 @@ export class GoogleGeminiApiService {
     }
 
     // HTTP error response from Angular HttpClient
-    if (error['error']) {
-      status = error['status'] as number;
+    const errorAny = error as any;
+    if (errorAny['error']) {
+      status = errorAny['status'] as number;
       
       // Google API error structure: error.error.error.message
-      if (error['error'] && error['error']['error']) {
-        const apiError = error['error']['error'] as any;
+      if (errorAny['error'] && errorAny['error']['error']) {
+        const apiError = errorAny['error']['error'] as any;
         message = apiError.message || message;
         code = apiError.code || apiError.status;
         details = apiError.details;
       }
       // Direct error object: error.error.message
-      else if (error['error'] && error['error']['message']) {
-        message = error['error']['message'] as string;
-        code = error['error']['code'] as string;
+      else if (errorAny['error'] && errorAny['error']['message']) {
+        message = errorAny['error']['message'] as string;
+        code = errorAny['error']['code'] as string;
       }
       // String error response
-      else if (typeof error['error'] === 'string') {
-        message = error['error'];
+      else if (typeof errorAny['error'] === 'string') {
+        message = errorAny['error'];
       }
     }
     // Network or other errors
-    else if (error['message']) {
-      message = error['message'] as string;
-      code = (error['code'] || error['name']) as string;
+    else if (errorAny['message']) {
+      message = errorAny['message'] as string;
+      code = (errorAny['code'] || errorAny['name']) as string;
     }
 
     // Add HTTP status context
@@ -841,33 +842,34 @@ export class GoogleGeminiApiService {
   private extractContentFilterError(error: Record<string, unknown>): { message: string; code?: string; status?: number; details?: Record<string, unknown> } | null {
     let contentFilterMessage: string | null = null;
     const details: Record<string, unknown> = {};
+    const errorAny = error as any;
 
     // Check for content filtering in successful responses with SAFETY finish reason
-    if (error.candidates?.[0]?.finishReason === 'SAFETY') {
+    if (errorAny.candidates?.[0]?.finishReason === 'SAFETY') {
       contentFilterMessage = 'Content blocked by safety filters';
-      details.finishReason = 'SAFETY';
-      details.safetyRatings = error.candidates[0].safetyRatings;
+      details['finishReason'] = 'SAFETY';
+      details['safetyRatings'] = errorAny.candidates[0].safetyRatings;
     }
     // Check for OTHER finish reason which can indicate content filtering
-    else if (error.candidates?.[0]?.finishReason === 'OTHER') {
+    else if (errorAny.candidates?.[0]?.finishReason === 'OTHER') {
       contentFilterMessage = 'Content generation stopped due to safety or other constraints';
-      details.finishReason = 'OTHER';
-      details.safetyRatings = error.candidates[0].safetyRatings;
+      details['finishReason'] = 'OTHER';
+      details['safetyRatings'] = errorAny.candidates[0].safetyRatings;
     }
     // Check prompt feedback for blocking
-    else if (error.promptFeedback?.blockReason) {
-      contentFilterMessage = `Prompt blocked: ${error.promptFeedback.blockReason}`;
-      details.blockReason = error.promptFeedback.blockReason;
-      details.safetyRatings = error.promptFeedback.safetyRatings;
+    else if (errorAny.promptFeedback?.blockReason) {
+      contentFilterMessage = `Prompt blocked: ${errorAny.promptFeedback.blockReason}`;
+      details['blockReason'] = errorAny.promptFeedback.blockReason;
+      details['safetyRatings'] = errorAny.promptFeedback.safetyRatings;
     }
     // Check for safety-related error messages
-    else if (error.error?.error?.message?.toLowerCase().includes('blocked')) {
-      contentFilterMessage = `Content blocked: ${error.error.error.message}`;
-      details.originalError = error.error.error;
+    else if (errorAny.error?.error?.message?.toLowerCase().includes('blocked')) {
+      contentFilterMessage = `Content blocked: ${errorAny.error.error.message}`;
+      details['originalError'] = errorAny.error.error;
     }
     // Check for safety ratings that might indicate high-risk content
-    else if (error.candidates?.[0]?.safetyRatings) {
-      const candidates = error.candidates as { safetyRatings: { category: string; probability: string }[] }[];
+    else if (errorAny.candidates?.[0]?.safetyRatings) {
+      const candidates = errorAny.candidates as { safetyRatings: { category: string; probability: string }[] }[];
       const highRiskRatings = candidates[0].safetyRatings.filter((rating) => 
         rating.probability === 'HIGH' || rating.probability === 'MEDIUM'
       );
@@ -875,8 +877,8 @@ export class GoogleGeminiApiService {
       if (highRiskRatings.length > 0) {
         const categories = highRiskRatings.map((r) => r.category).join(', ');
         contentFilterMessage = `Content flagged for safety categories: ${categories}`;
-        details.safetyRatings = error.candidates[0].safetyRatings;
-        details.highRiskCategories = categories;
+        details['safetyRatings'] = errorAny.candidates[0].safetyRatings;
+        details['highRiskCategories'] = categories;
       }
     }
 
@@ -884,7 +886,7 @@ export class GoogleGeminiApiService {
       return {
         message: contentFilterMessage,
         code: 'CONTENT_FILTER',
-        status: error.status || 200, // Content filtering can happen with 200 status
+        status: errorAny.status || 200, // Content filtering can happen with 200 status
         details
       };
     }

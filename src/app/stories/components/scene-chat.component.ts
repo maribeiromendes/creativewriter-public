@@ -1152,7 +1152,7 @@ Strukturiere die Antwort klar nach Gegenständen getrennt.`
           title: entry.name,
           content: entry.description,
           tags: entry.tags || [],
-          storyRole: message.extractionType === 'characters' ? entry.role : undefined
+          storyRole: message.extractionType === 'characters' ? (entry.role as any) : undefined
         });
       }
 

@@ -96,7 +96,7 @@ export class BeatAIService {
         this.activeGenerations.set(beatId, requestId);
 
         // Update options with the actual model ID
-        const updatedOptions = { ...options, model: actualModelId };
+        const updatedOptions = { ...options, model: actualModelId || undefined };
         
         // Choose API based on configuration (prefer Google Gemini if available)
         const apiCall = useGoogleGemini 
@@ -331,72 +331,65 @@ export class BeatAIService {
     }
 
     return from(this.storyService.getStory(options.storyId)).pipe(
-      switchMap((story: Story | string) => {
-        if (!story || typeof story === 'string' || !story.settings) {
+      switchMap((story: Story | null) => {
+        if (!story || !story.settings) {
           return of(userPrompt);
         }
 
         // Set current story in prompt manager
         return from(this.promptManager.setCurrentStory(story.id)).pipe(
-          map(() => story)
-        );
-      }),
-      switchMap(async (story: Story) => {
-        if (!story || typeof story === 'string' || !story.settings) {
-          return userPrompt;
-        }
-
-        // Get codex entries in XML format
-        const allCodexEntries = this.codexService.getAllCodexEntries(options.storyId!);
+          switchMap(async () => {
+            // Get codex entries in XML format
+            const allCodexEntries = this.codexService.getAllCodexEntries(options.storyId!);
+            
+            // Get current scene text first
+            const sceneText = options.sceneId 
+              ? await this.promptManager.getCurrentOrPreviousSceneText(options.sceneId, beatId)
+              : '';
+            
+            // Convert to relevance service format and filter
+            const convertedEntries = this.convertCodexEntriesToRelevanceFormat(allCodexEntries);
+            const sceneContext = sceneText || '';
+            const relevantEntries = await this.codexRelevanceService.getRelevantEntries(
+              convertedEntries,
+              sceneContext,
+              userPrompt,
+              1000 // Max tokens for codex
+            ).toPromise() || [];
+            
+            // Convert back to original format for XML generation
+            const filteredCodexEntries = this.filterCodexEntriesByRelevance(
+              allCodexEntries,
+              relevantEntries
+            );
+            
+            // Always include all Notizen entries (check multiple possible names)
+            const notizenKeywords = ['notizen', 'notes', 'note'];
+            const notizenCategory = allCodexEntries.find(cat => 
+              notizenKeywords.some(keyword => 
+                cat.category.toLowerCase().includes(keyword)
+              )
+            );
+            
+            if (notizenCategory && notizenCategory.entries.length > 0) {
+              // Check if this category already exists in filtered entries
+              const existingNotizenIndex = filteredCodexEntries.findIndex(cat => 
+                cat.category === notizenCategory.category
+              );
+              if (existingNotizenIndex >= 0) {
+                // Replace with full Notizen category (ensure all entries are included)
+                filteredCodexEntries[existingNotizenIndex] = notizenCategory;
+              } else {
+                // Add full Notizen category
+                filteredCodexEntries.push(notizenCategory);
+              }
+            }
         
-        // Get current scene text first
-        const sceneText = options.sceneId 
-          ? await this.promptManager.getCurrentOrPreviousSceneText(options.sceneId, beatId)
-          : '';
-        
-        // Convert to relevance service format and filter
-        const convertedEntries = this.convertCodexEntriesToRelevanceFormat(allCodexEntries);
-        const sceneContext = sceneText || '';
-        const relevantEntries = await this.codexRelevanceService.getRelevantEntries(
-          convertedEntries,
-          sceneContext,
-          userPrompt,
-          1000 // Max tokens for codex
-        ).toPromise() || [];
-        
-        // Convert back to original format for XML generation
-        const filteredCodexEntries = this.filterCodexEntriesByRelevance(
-          allCodexEntries,
-          relevantEntries
-        );
-        
-        // Always include all Notizen entries (check multiple possible names)
-        const notizenKeywords = ['notizen', 'notes', 'note'];
-        const notizenCategory = allCodexEntries.find(cat => 
-          notizenKeywords.some(keyword => 
-            cat.category.toLowerCase().includes(keyword)
-          )
-        );
-        
-        if (notizenCategory && notizenCategory.entries.length > 0) {
-          // Check if this category already exists in filtered entries
-          const existingNotizenIndex = filteredCodexEntries.findIndex(cat => 
-            cat.category === notizenCategory.category
-          );
-          if (existingNotizenIndex >= 0) {
-            // Replace with full Notizen category (ensure all entries are included)
-            filteredCodexEntries[existingNotizenIndex] = notizenCategory;
-          } else {
-            // Add full Notizen category
-            filteredCodexEntries.push(notizenCategory);
-          }
-        }
-        
-        // Find protagonist for point of view
-        const protagonist = this.findProtagonist(filteredCodexEntries);
-        const pointOfView = protagonist 
-          ? `<pointOfView type="first person" character="${this.escapeXml(protagonist)}"/>`
-          : '';
+            // Find protagonist for point of view
+            const protagonist = this.findProtagonist(filteredCodexEntries);
+            const pointOfView = protagonist 
+              ? `<pointOfView type="first person" character="${this.escapeXml(protagonist)}"/>`
+              : '';
         
         
         const codexText = filteredCodexEntries.length > 0 
@@ -425,10 +418,12 @@ export class BeatAIService {
                 
                 // Custom fields
                 const customFields = entry.metadata?.['customFields'] || [];
-                customFields.forEach((field: CustomField) => {
-                  const fieldName = this.sanitizeXmlTagName(field.name);
-                  entryXml += `  <${fieldName}>${this.escapeXml(field.value)}</${fieldName}>\n`;
-                });
+                if (Array.isArray(customFields)) {
+                  customFields.forEach((field: CustomField) => {
+                    const fieldName = this.sanitizeXmlTagName(field.name);
+                    entryXml += `  <${fieldName}>${this.escapeXml(field.value)}</${fieldName}>\n`;
+                  });
+                }
                 
                 // Additional metadata fields
                 if (entry.metadata) {
@@ -637,7 +632,7 @@ export class BeatAIService {
       .replace(/[^a-zA-Z0-9]/g, '');
   }
 
-  private findProtagonist(codexEntries: CodexCategory[]): string | null {
+  private findProtagonist(codexEntries: { category: string; entries: CodexEntry[]; icon?: string }[]): string | null {
     // Look for character entries with storyRole "Protagonist"
     for (const categoryData of codexEntries) {
       if (categoryData.category === 'Charaktere') {
@@ -652,7 +647,7 @@ export class BeatAIService {
     return null;
   }
 
-  private convertCodexEntriesToRelevanceFormat(codexEntries: CodexCategory[]): CodexRelevanceEntry[] {
+  private convertCodexEntriesToRelevanceFormat(codexEntries: { category: string; entries: CodexEntry[]; icon?: string }[]): CodexRelevanceEntry[] {
     const converted: CodexRelevanceEntry[] = [];
     
     for (const categoryData of codexEntries) {
@@ -698,9 +693,9 @@ export class BeatAIService {
           aliases: aliases,
           keywords: keywords,
           importance: importance,
-          globalInclude: entry.metadata?.['globalInclude'] || entry.alwaysInclude || false,
-          lastMentioned: entry.metadata?.['lastMentioned'],
-          mentionCount: entry.metadata?.['mentionCount']
+          globalInclude: !!(entry.metadata?.['globalInclude']) || entry.alwaysInclude || false,
+          lastMentioned: entry.metadata?.['lastMentioned'] as number | undefined,
+          mentionCount: entry.metadata?.['mentionCount'] as number | undefined
         });
       }
     }
@@ -709,9 +704,9 @@ export class BeatAIService {
   }
 
   private filterCodexEntriesByRelevance(
-    allCodexEntries: CodexCategory[], 
+    allCodexEntries: { category: string; entries: CodexEntry[]; icon?: string }[], 
     relevantEntries: CodexRelevanceEntry[]
-  ): CodexCategory[] {
+  ): { category: string; entries: CodexEntry[]; icon?: string }[] {
     const relevantIds = new Set(relevantEntries.map(e => e.id));
     
     return allCodexEntries.map(categoryData => {

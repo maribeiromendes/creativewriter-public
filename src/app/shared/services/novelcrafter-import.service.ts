@@ -459,9 +459,10 @@ export class NovelCrafterImportService {
 
       // Handle Story Role field
       if ((fields as Record<string, unknown>)['Story Role']) {
-        const storyRole = Array.isArray((fields as Record<string, unknown>)['Story Role']) 
-          ? (fields as Record<string, unknown>)['Story Role'][0] 
-          : (fields as Record<string, unknown>)['Story Role'];
+        const storyRoleField = (fields as Record<string, unknown>)['Story Role'];
+        const storyRole = Array.isArray(storyRoleField) 
+          ? (storyRoleField[0] as string) 
+          : (storyRoleField as string);
         codexEntry.metadata!['storyRole'] = storyRole;
       }
 

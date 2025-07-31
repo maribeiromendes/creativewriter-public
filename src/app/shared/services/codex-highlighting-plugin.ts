@@ -42,7 +42,7 @@ function findCodexMatches(doc: Node, codexEntries: CodexEntry[]): DecorationSet 
 
   // Walk through the document to find text nodes
   doc.descendants((node: Node, pos: number) => {
-    if (node.isText) {
+    if (node.isText && node.text) {
       const text = node.text.toLowerCase();
       
       // Check each codex entry

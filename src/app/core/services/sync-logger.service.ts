@@ -33,7 +33,7 @@ export class SyncLoggerService {
       if (storedLogs) {
         const logs = JSON.parse(storedLogs);
         // Convert date strings back to Date objects
-        logs.forEach((log: SyncLog & { timestamp: string }) => {
+        logs.forEach((log: any) => {
           log.timestamp = new Date(log.timestamp);
         });
         this.logsSubject.next(logs);

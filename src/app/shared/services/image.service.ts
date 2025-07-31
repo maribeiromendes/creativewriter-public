@@ -95,10 +95,10 @@ export class ImageService {
   async getImage(id: string): Promise<StoredImage | null> {
     try {
       const db = await this.databaseService.getDatabase();
-      const doc = await db.get(`image_${id}`) as PouchDB.Core.ExistingDocument<StoredImage>;
+      const doc = await db.get(`image_${id}`) as any;
       return {
         ...doc,
-        createdAt: new Date(doc.createdAt)
+        createdAt: new Date(doc['createdAt'])
       } as StoredImage;
     } catch (error) {
       if ((error as PouchDB.Core.Error).status === 404) {
