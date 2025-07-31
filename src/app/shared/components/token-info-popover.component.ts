@@ -138,54 +138,136 @@ import { TokenCounterService, SupportedModel, TokenCountResult } from '../servic
     </ion-content>
   `,
   styles: [`
+    :host {
+      --backdrop-opacity: 0.6;
+      --box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+      --width: 350px;
+      --max-width: 90vw;
+    }
+
     ion-content {
-      --background: #1a1a1a;
+      --background: transparent;
       --color: #f8f9fa;
     }
 
     ion-header {
-      --background: #2d2d2d;
-      --color: #f8f9fa;
+      padding: 1rem 1.25rem 0.75rem 1.25rem;
+      border-bottom: 1px solid rgba(139, 180, 248, 0.15);
+      background: linear-gradient(135deg, rgba(15, 15, 25, 0.4) 0%, rgba(10, 10, 20, 0.4) 100%);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      position: relative;
+    }
+
+    ion-header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(135deg, rgba(139, 180, 248, 0.05) 0%, rgba(71, 118, 230, 0.05) 100%);
+      z-index: -1;
     }
 
     ion-toolbar {
-      --background: #2d2d2d;
+      --background: transparent;
       --color: #f8f9fa;
+      --border-width: 0;
+      --padding-start: 0;
+      --padding-end: 0;
     }
 
     ion-title {
-      --color: #f8f9fa;
+      --color: rgba(255, 255, 255, 0.95);
+      font-size: 1rem;
       font-weight: 600;
+      letter-spacing: 0.3px;
+      background: linear-gradient(135deg, #ffffff 0%, #8bb4f8 50%, #4776e6 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
 
     ion-list {
       background: transparent;
+      padding: 0.5rem 0;
     }
 
     ion-item {
-      --background: #2a2a2a;
-      --color: #f8f9fa;
+      --background: rgba(255, 255, 255, 0.02);
+      --background-hover: rgba(139, 180, 248, 0.1);
+      --background-activated: rgba(139, 180, 248, 0.15);
+      --color: rgba(255, 255, 255, 0.95);
+      --ripple-color: rgba(139, 180, 248, 0.3);
+      margin: 0 0.75rem 0.5rem 0.75rem;
       --border-radius: 8px;
-      margin-bottom: 8px;
-      border: 1px solid #404040;
+      border: 1px solid rgba(139, 180, 248, 0.15);
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    ion-item::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(139, 180, 248, 0.1), transparent);
+      transition: left 0.5s ease;
+      z-index: 1;
+    }
+
+    ion-item:hover {
+      --background: rgba(139, 180, 248, 0.1);
+      border-color: rgba(139, 180, 248, 0.3);
+      transform: translateX(4px) scale(1.02);
+      box-shadow: 0 4px 12px rgba(139, 180, 248, 0.2);
+    }
+
+    ion-item:hover::before {
+      left: 100%;
     }
 
     ion-item h2, ion-item h3 {
       color: #8bb4f8;
       margin: 0 0 4px 0;
+      position: relative;
+      z-index: 2;
+      font-weight: 600;
     }
 
     ion-item p {
-      color: #e0e0e0;
+      color: rgba(255, 255, 255, 0.8);
       margin: 0;
+      position: relative;
+      z-index: 2;
     }
 
     ion-note {
-      --color: #999;
+      --color: rgba(255, 255, 255, 0.6);
+      position: relative;
+      z-index: 2;
+    }
+
+    ion-icon {
+      position: relative;
+      z-index: 2;
+      color: #f8f9fa;
+    }
+
+    ion-button {
+      --color: #f8f9fa;
+      position: relative;
+      z-index: 2;
     }
 
     .usage-container {
       width: 100%;
+      position: relative;
+      z-index: 2;
     }
 
     .usage-text {
@@ -193,37 +275,64 @@ import { TokenCounterService, SupportedModel, TokenCountResult } from '../servic
       justify-content: space-between;
       margin-top: 8px;
       font-size: 12px;
-      color: #ccc;
+      color: rgba(255, 255, 255, 0.7);
     }
 
     ion-progress-bar {
       height: 8px;
       border-radius: 4px;
-      --background: #404040;
+      --background: rgba(255, 255, 255, 0.1);
+      margin: 8px 0;
     }
 
     .info-text {
       font-size: 12px;
-      color: #999;
+      color: rgba(255, 255, 255, 0.6);
       margin: 0;
     }
 
     .comparison-grid {
       padding: 0;
+      margin: 0 0.75rem;
     }
 
     .model-card {
-      background: #2a2a2a;
+      background: rgba(255, 255, 255, 0.02);
       border-radius: 8px;
       padding: 12px;
       text-align: center;
-      border: 1px solid #404040;
-      transition: all 0.3s ease;
+      border: 1px solid rgba(139, 180, 248, 0.15);
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .model-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(139, 180, 248, 0.1), transparent);
+      transition: left 0.5s ease;
+      z-index: 1;
+    }
+
+    .model-card:hover::before {
+      left: 100%;
+    }
+
+    .model-card:hover {
+      border-color: rgba(139, 180, 248, 0.3);
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 4px 12px rgba(139, 180, 248, 0.2);
     }
 
     .model-card.current {
-      border-color: #0d6efd;
-      background: rgba(13, 110, 253, 0.1);
+      border-color: rgba(139, 180, 248, 0.4);
+      background: rgba(139, 180, 248, 0.1);
+      box-shadow: 0 4px 12px rgba(139, 180, 248, 0.15);
     }
 
     .model-card h4 {
@@ -231,40 +340,39 @@ import { TokenCounterService, SupportedModel, TokenCountResult } from '../servic
       margin: 0 0 4px 0;
       font-weight: 600;
       color: #8bb4f8;
+      position: relative;
+      z-index: 2;
     }
 
     .model-card p {
       margin: 2px 0;
       font-size: 11px;
-      color: #e0e0e0;
+      color: rgba(255, 255, 255, 0.8);
+      position: relative;
+      z-index: 2;
     }
 
     .model-card .tokens {
-      color: #f8f9fa;
+      color: rgba(255, 255, 255, 0.95);
       font-weight: 500;
     }
 
     .model-card .percentage {
-      color: #999;
+      color: rgba(255, 255, 255, 0.6);
     }
 
     ion-badge {
       font-size: 10px;
       padding: 4px 8px;
-      --background: #0d6efd;
+      --background: linear-gradient(135deg, #4776e6 0%, #8bb4f8 100%);
       --color: #ffffff;
-    }
-
-    ion-button {
-      --color: #f8f9fa;
-    }
-
-    ion-icon {
-      color: #f8f9fa;
+      position: relative;
+      z-index: 2;
     }
 
     .loading-container {
       padding: 20px 0;
+      text-align: center;
     }
 
     .loading-content {
@@ -276,15 +384,15 @@ import { TokenCounterService, SupportedModel, TokenCountResult } from '../servic
 
     .loading-content p {
       margin: 0;
-      color: #ccc;
+      color: rgba(255, 255, 255, 0.7);
       font-size: 14px;
     }
 
     .spinner {
       width: 24px;
       height: 24px;
-      border: 2px solid #404040;
-      border-top: 2px solid #0d6efd;
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      border-top: 2px solid #8bb4f8;
       border-radius: 50%;
       animation: spin 1s linear infinite;
     }

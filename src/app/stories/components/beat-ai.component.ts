@@ -1607,7 +1607,9 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
       },
       cssClass: 'token-info-popover',
       translucent: true,
-      mode: 'ios'
+      mode: 'ios',
+      showBackdrop: true,
+      backdropDismiss: true
     });
 
     await popover.present();
