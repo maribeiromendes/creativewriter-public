@@ -176,8 +176,8 @@ import { EditorView } from 'prosemirror-view';
     </div>
 
     <!-- Prompt Preview Modal -->
-    <div class="preview-modal" *ngIf="showPreviewModal" (click)="hidePromptPreview()">
-      <div class="preview-content" (click)="$event.stopPropagation()">
+    <div class="preview-modal" *ngIf="showPreviewModal" (click)="hidePromptPreview()" (keydown.escape)="hidePromptPreview()" tabindex="0">
+      <div class="preview-content" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()" tabindex="0">
         <div class="preview-header">
           <h3>Prompt-Vorschau</h3>
           <button class="close-btn" (click)="hidePromptPreview(); $event.stopPropagation()">×</button>
@@ -1119,7 +1119,7 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
   currentTextColor = '#e0e0e0';
   @Output() contentUpdate = new EventEmitter<BeatAI>();
   @Output() delete = new EventEmitter<string>();
-  @Output() focus = new EventEmitter<void>();
+  @Output() beatFocus = new EventEmitter<void>();
   
   @ViewChild('promptInput') promptInput!: ElementRef<HTMLDivElement>;
   
@@ -1339,7 +1339,7 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
       chapterId: this.chapterId,
       sceneId: this.sceneId,
       beatType: this.beatData.beatType
-    } as any);
+    });
     
     this.contentUpdate.emit(this.beatData);
   }
