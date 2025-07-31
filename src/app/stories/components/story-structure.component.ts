@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, AfterViewInit, OnInit, OnChanges, OnDestroy, SimpleChanges, ChangeDetectorRef, ViewChildren, QueryList, ElementRef, inject } from '@angular/core';
+import { Component, Input, Output, EventEmitter, AfterViewInit, OnInit, OnChanges, OnDestroy, SimpleChanges, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -1846,7 +1846,7 @@ Antworte nur mit dem Titel, ohne weitere Erklärungen oder Anführungszeichen.`;
     // Focus the input after Angular renders it
     setTimeout(() => {
       const inputs = document.querySelectorAll('.scene-title-input-edit');
-      inputs.forEach((input: any) => {
+      inputs.forEach((input: Element) => {
         if (input && input.setFocus) {
           input.setFocus();
         }

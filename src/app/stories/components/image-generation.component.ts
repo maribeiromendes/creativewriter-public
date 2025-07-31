@@ -546,7 +546,7 @@ export class ImageGenerationComponent implements OnInit, OnDestroy {
   availableModels: ImageGenerationModel[] = [];
   selectedModelId = '';
   selectedModel: ImageGenerationModel | null = null;
-  parameters: Record<string, any> = {};
+  parameters: Record<string, unknown> = {};
   jobs: ImageGenerationJob[] = [];
   isGenerating = false;
   showToast = false;

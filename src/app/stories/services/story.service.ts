@@ -7,7 +7,7 @@ import { DatabaseService } from '../../core/services/database.service';
 })
 export class StoryService {
   private readonly databaseService = inject(DatabaseService);
-  private db: any;
+  private db: PouchDB.Database | null = null;
 
   async getAllStories(): Promise<Story[]> {
     try {
@@ -181,12 +181,13 @@ export class StoryService {
       };
       
       // Migrate old beatTemplate to beatGenerationTemplate if needed
-      if ((migrated.settings as any).beatTemplate && !migrated.settings.beatGenerationTemplate) {
+      const settingsAny = migrated.settings as any;
+      if (settingsAny.beatTemplate && !migrated.settings.beatGenerationTemplate) {
         migrated.settings.beatGenerationTemplate = DEFAULT_STORY_SETTINGS.beatGenerationTemplate;
       }
       
       // Remove old beatTemplate field
-      delete (migrated.settings as any).beatTemplate;
+      delete settingsAny.beatTemplate;
     }
 
     // If old story format with content field, migrate to chapter/scene structure

@@ -12,7 +12,7 @@ export class CodexService {
 
   private codexMap = new Map<string, Codex>();
   private codexSubject = new BehaviorSubject<Map<string, Codex>>(new Map());
-  private db: any;
+  private db: PouchDB.Database | null = null;
   private isInitialized = false;
   
   codex$ = this.codexSubject.asObservable();
@@ -51,7 +51,7 @@ export class CodexService {
 
   private async loadFromDatabase(): Promise<void> {
     try {
-      const result = await this.db.allDocs({
+      const result = await this.db!.allDocs({
         include_docs: true,
         startkey: 'codex_',
         endkey: 'codex_\ufff0'
@@ -84,11 +84,11 @@ export class CodexService {
       for (let attempt = 0; attempt < maxRetries; attempt++) {
         try {
           // Always get the latest version before updating
-          let docToUpdate: any;
+          let docToUpdate: PouchDB.Core.Document<Codex>;
           try {
-            docToUpdate = await this.db.get(docId);
-          } catch (error: any) {
-            if (error.status === 404) {
+            docToUpdate = await this.db!.get(docId);
+          } catch (error: unknown) {
+            if (error && typeof error === 'object' && 'status' in error && (error as {status: number}).status === 404) {
               // Document doesn't exist, create new one
               docToUpdate = {
                 _id: docId,
@@ -108,7 +108,7 @@ export class CodexService {
             _rev: docToUpdate._rev // Preserve revision
           };
           
-          await this.db.put(updatedDoc);
+          await this.db!.put(updatedDoc);
           
           // Update local map and notify subscribers
           this.codexMap.set(codex.storyId, codex);
@@ -116,8 +116,8 @@ export class CodexService {
           
           break; // Success, exit retry loop
           
-        } catch (error: any) {
-          if (error.status === 409 && attempt < maxRetries - 1) {
+        } catch (error: unknown) {
+          if ((error as PouchDB.Core.Error).status === 409 && attempt < maxRetries - 1) {
             // Conflict error, retry after a short delay
             console.warn(`Document conflict on attempt ${attempt + 1}, retrying...`);
             await new Promise(resolve => setTimeout(resolve, 100 * Math.pow(2, attempt))); // Exponential backoff
@@ -140,11 +140,11 @@ export class CodexService {
       ...codex,
       createdAt: new Date(codex.createdAt),
       updatedAt: new Date(codex.updatedAt),
-      categories: codex.categories.map((cat: any) => ({
+      categories: codex.categories.map((cat: CodexCategory) => ({
         ...cat,
         createdAt: new Date(cat.createdAt),
         updatedAt: new Date(cat.updatedAt),
-        entries: cat.entries.map((entry: any) => ({
+        entries: cat.entries.map((entry: CodexEntry) => ({
           ...entry,
           createdAt: new Date(entry.createdAt),
           updatedAt: new Date(entry.updatedAt)
@@ -268,7 +268,7 @@ export class CodexService {
       }
       
       const docId = `codex_${storyId}`;
-      const latestDoc = await this.db.get(docId);
+      const latestDoc = await this.db!.get(docId);
       const latestCodex = this.deserializeCodex(latestDoc);
       
       const category = latestCodex.categories.find((c: CodexCategory) => c.id === categoryId);
@@ -309,8 +309,8 @@ export class CodexService {
       await this.saveToDatabase(updatedCodex);
       return newEntry;
       
-    } catch (error: any) {
-      if (error.status === 404) {
+    } catch (error: unknown) {
+      if ((error as PouchDB.Core.Error).status === 404) {
         // Fallback to original logic if document doesn't exist
         const category = codex.categories.find((c: CodexCategory) => c.id === categoryId);
         
@@ -362,7 +362,7 @@ export class CodexService {
       }
       
       const docId = `codex_${storyId}`;
-      const latestDoc = await this.db.get(docId);
+      const latestDoc = await this.db!.get(docId);
       const codex = this.deserializeCodex(latestDoc);
 
       const category = codex.categories.find((c: CodexCategory) => c.id === categoryId);
@@ -410,7 +410,7 @@ export class CodexService {
       }
       
       const docId = `codex_${storyId}`;
-      const latestDoc = await this.db.get(docId);
+      const latestDoc = await this.db!.get(docId);
       const codex = this.deserializeCodex(latestDoc);
 
       const category = codex.categories.find((c: CodexCategory) => c.id === categoryId);
@@ -495,10 +495,10 @@ export class CodexService {
       const docId = `codex_${storyId}`;
       
       try {
-        const doc = await this.db.get(docId);
-        await this.db.remove(doc);
-      } catch (error: any) {
-        if (error.status !== 404) {
+        const doc = await this.db!.get(docId);
+        await this.db!.remove(doc);
+      } catch (error: unknown) {
+        if ((error as PouchDB.Core.Error).status !== 404) {
           throw error;
         }
       }

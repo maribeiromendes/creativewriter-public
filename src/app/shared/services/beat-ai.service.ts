@@ -8,7 +8,8 @@ import { SettingsService } from '../../core/services/settings.service';
 import { StoryService } from '../../stories/services/story.service';
 import { CodexService } from '../../stories/services/codex.service';
 import { PromptManagerService } from './prompt-manager.service';
-import { CodexRelevanceService } from '../../core/services/codex-relevance.service';
+import { CodexRelevanceService, CodexEntry as CodexRelevanceEntry } from '../../core/services/codex-relevance.service';
+import { CodexEntry, CodexCategory, CustomField } from '../../stories/models/codex.interface';
 
 @Injectable({
   providedIn: 'root'
@@ -340,7 +341,7 @@ export class BeatAIService {
           map(() => story)
         );
       }),
-      switchMap(async (story: any) => {
+      switchMap(async (story: Story) => {
         if (!story || typeof story === 'string' || !story.settings) {
           return userPrompt;
         }
@@ -402,7 +403,7 @@ export class BeatAIService {
           ? '<codex>\n' + filteredCodexEntries.map(categoryData => {
               const categoryType = this.getCategoryXmlType(categoryData.category);
               
-              return categoryData.entries.map((entry: any) => {
+              return categoryData.entries.map((entry: CodexEntry) => {
                 let entryXml = `<${categoryType} name="${this.escapeXml(entry.title)}"`;
                 
                 // Add aliases if present
@@ -424,7 +425,7 @@ export class BeatAIService {
                 
                 // Custom fields
                 const customFields = entry.metadata?.['customFields'] || [];
-                customFields.forEach((field: any) => {
+                customFields.forEach((field: CustomField) => {
                   const fieldName = this.sanitizeXmlTagName(field.name);
                   entryXml += `  <${fieldName}>${this.escapeXml(field.value)}</${fieldName}>\n`;
                 });
@@ -433,7 +434,7 @@ export class BeatAIService {
                 if (entry.metadata) {
                   Object.entries(entry.metadata)
                     .filter(([key]) => key !== 'storyRole' && key !== 'customFields' && key !== 'aliases')
-                    .filter(([_, value]) => value !== null && value !== undefined && value !== '')
+                    .filter(([, value]) => value !== null && value !== undefined && value !== '')
                     .forEach(([key, value]) => {
                       const tagName = this.sanitizeXmlTagName(key);
                       entryXml += `  <${tagName}>${this.escapeXml(String(value))}</${tagName}>\n`;
@@ -616,7 +617,7 @@ export class BeatAIService {
     return mapping[category] || 'other';
   }
 
-  private escapeXml(text: string | any): string {
+  private escapeXml(text: string | unknown): string {
     // Ensure the input is a string
     const str = String(text || '');
     return str
@@ -627,7 +628,7 @@ export class BeatAIService {
       .replace(/'/g, '&apos;');
   }
 
-  private sanitizeXmlTagName(name: string | any): string {
+  private sanitizeXmlTagName(name: string | unknown): string {
     // Convert to camelCase and remove invalid characters
     const str = String(name || '');
     return str
@@ -636,7 +637,7 @@ export class BeatAIService {
       .replace(/[^a-zA-Z0-9]/g, '');
   }
 
-  private findProtagonist(codexEntries: any[]): string | null {
+  private findProtagonist(codexEntries: CodexCategory[]): string | null {
     // Look for character entries with storyRole "Protagonist"
     for (const categoryData of codexEntries) {
       if (categoryData.category === 'Charaktere') {
@@ -651,11 +652,11 @@ export class BeatAIService {
     return null;
   }
 
-  private convertCodexEntriesToRelevanceFormat(codexEntries: any[]): any[] {
-    const converted: any[] = [];
+  private convertCodexEntriesToRelevanceFormat(codexEntries: CodexCategory[]): CodexRelevanceEntry[] {
+    const converted: CodexRelevanceEntry[] = [];
     
     for (const categoryData of codexEntries) {
-      const categoryMap: Record<string, any> = {
+      const categoryMap: Record<string, 'character' | 'location' | 'object' | 'lore' | 'other'> = {
         'Charaktere': 'character',
         'Orte': 'location',
         'Gegenstände': 'object',
@@ -708,15 +709,15 @@ export class BeatAIService {
   }
 
   private filterCodexEntriesByRelevance(
-    allCodexEntries: any[], 
-    relevantEntries: any[]
-  ): any[] {
+    allCodexEntries: CodexCategory[], 
+    relevantEntries: CodexRelevanceEntry[]
+  ): CodexCategory[] {
     const relevantIds = new Set(relevantEntries.map(e => e.id));
     
     return allCodexEntries.map(categoryData => {
       return {
         ...categoryData,
-        entries: categoryData.entries.filter((entry: any) => relevantIds.has(entry.id))
+        entries: categoryData.entries.filter((entry: CodexEntry) => relevantIds.has(entry.id))
       };
     }).filter(categoryData => categoryData.entries.length > 0);
   }

@@ -349,6 +349,7 @@ export class ImageUploadDialogComponent implements OnInit {
 
   ngOnInit(): void {
     // Component initialization - focus handling happens in template
+    // This lifecycle method is required by Angular even if empty
   }
 
   onFileSelected(event: Event): void {

@@ -95,13 +95,13 @@ export class ImageService {
   async getImage(id: string): Promise<StoredImage | null> {
     try {
       const db = await this.databaseService.getDatabase();
-      const doc = await db.get(`image_${id}`) as any;
+      const doc = await db.get(`image_${id}`) as PouchDB.Core.ExistingDocument<StoredImage>;
       return {
         ...doc,
         createdAt: new Date(doc.createdAt)
       } as StoredImage;
     } catch (error) {
-      if ((error as any).status === 404) {
+      if ((error as PouchDB.Core.Error).status === 404) {
         return null;
       }
       console.error('Fehler beim Laden des Bildes:', error);
@@ -195,7 +195,7 @@ export class ImageService {
         try {
           const db = await this.databaseService.getDatabase();
           await db.put(image);
-        } catch (retryError) {
+        } catch {
           throw new Error('Nicht genügend Speicherplatz verfügbar. Versuchen Sie, alte Bilder zu löschen.');
         }
       } else {

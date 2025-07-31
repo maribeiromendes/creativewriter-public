@@ -15,5 +15,5 @@ export enum SlashCommandAction {
 export interface SlashCommandResult {
   action: SlashCommandAction;
   position: number;
-  data?: any;
+  data?: unknown;
 }

@@ -42,8 +42,9 @@ import { CodexRelevanceService, CodexEntry, RelevanceScore } from '../../core/se
         <div class="right-panel">
           <h4>Test-Kontext</h4>
           <div class="form-group">
-            <label>Szenen-Text:</label>
+            <label for="scene-text">Szenen-Text:</label>
             <textarea 
+              id="scene-text"
               [(ngModel)]="testContext"
               rows="6"
               placeholder="Gib hier den aktuellen Szenen-Text ein..."
@@ -51,8 +52,9 @@ import { CodexRelevanceService, CodexEntry, RelevanceScore } from '../../core/se
           </div>
           
           <div class="form-group">
-            <label>Beat Prompt:</label>
+            <label for="beat-prompt">Beat Prompt:</label>
             <textarea 
+              id="beat-prompt"
               [(ngModel)]="testPrompt"
               rows="3"
               placeholder="Gib hier den Beat-Prompt ein..."

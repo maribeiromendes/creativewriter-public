@@ -223,7 +223,7 @@ export class NovelCrafterImportService {
           const entryContent = await this.readFileAsText(file);
           const entry = this.parseCodexEntry(entryContent, file.webkitRelativePath, category);
           if (entry) {
-            (result.codexEntries as any)[category].push(entry);
+            (result.codexEntries as Record<string, CodexEntry[]>)[category].push(entry);
           }
         } catch (error) {
           result.warnings.push(`Failed to parse ${file.name}: ${error}`);
@@ -434,23 +434,23 @@ export class NovelCrafterImportService {
       }
 
       // Extract fields (if they exist)
-      const fields = (parsedYaml as any)['fields'] || {};
+      const fields = (parsedYaml as Record<string, unknown>)['fields'] || {};
       
       // Map to our codex entry format
       const codexEntry: CodexEntry = {
         id: this.generateId(),
         categoryId: '', // Will be set when creating categories
-        title: (parsedYaml as any)['name'] || 'Unnamed Entry',
+        title: (parsedYaml as Record<string, unknown>)['name'] as string || 'Unnamed Entry',
         content: markdownContent,
-        tags: Array.isArray((parsedYaml as any)['tags']) ? (parsedYaml as any)['tags'] : [],
+        tags: Array.isArray((parsedYaml as Record<string, unknown>)['tags']) ? (parsedYaml as Record<string, unknown>)['tags'] as string[] : [],
         metadata: {
-          originalType: (parsedYaml as any)['type'],
+          originalType: (parsedYaml as Record<string, unknown>)['type'],
           originalId: this.extractIdFromPath(filePath),
-          color: (parsedYaml as any)['color'],
-          aliases: Array.isArray((parsedYaml as any)['aliases']) ? (parsedYaml as any)['aliases'] : [],
-          alwaysIncludeInContext: (parsedYaml as any)['alwaysIncludeInContext'],
-          doNotTrack: (parsedYaml as any)['doNotTrack'],
-          noAutoInclude: (parsedYaml as any)['noAutoInclude']
+          color: (parsedYaml as Record<string, unknown>)['color'],
+          aliases: Array.isArray((parsedYaml as Record<string, unknown>)['aliases']) ? (parsedYaml as Record<string, unknown>)['aliases'] : [],
+          alwaysIncludeInContext: (parsedYaml as Record<string, unknown>)['alwaysIncludeInContext'],
+          doNotTrack: (parsedYaml as Record<string, unknown>)['doNotTrack'],
+          noAutoInclude: (parsedYaml as Record<string, unknown>)['noAutoInclude']
         },
         order: 0,
         createdAt: new Date(),
@@ -458,10 +458,10 @@ export class NovelCrafterImportService {
       };
 
       // Handle Story Role field
-      if ((fields as any)['Story Role']) {
-        const storyRole = Array.isArray((fields as any)['Story Role']) 
-          ? (fields as any)['Story Role'][0] 
-          : (fields as any)['Story Role'];
+      if ((fields as Record<string, unknown>)['Story Role']) {
+        const storyRole = Array.isArray((fields as Record<string, unknown>)['Story Role']) 
+          ? (fields as Record<string, unknown>)['Story Role'][0] 
+          : (fields as Record<string, unknown>)['Story Role'];
         codexEntry.metadata!['storyRole'] = storyRole;
       }
 
@@ -623,7 +623,7 @@ export class NovelCrafterImportService {
     const pathMatches = patterns.some(pattern => pathLower.includes(pattern));
     
     // Also check if it's specifically an 'entry.md' file (preferred)
-    const isEntryFile = fileName === 'entry.md';
+    // const isEntryFile = fileName === 'entry.md'; // Unused variable
     
     // Accept any .md file in matching paths
     return pathMatches;

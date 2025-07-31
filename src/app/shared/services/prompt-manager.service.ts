@@ -136,7 +136,7 @@ export class PromptManagerService {
     const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT);
     const textNodes: Text[] = [];
     let node;
-    while (node = walker.nextNode()) {
+    while ((node = walker.nextNode())) {
       textNodes.push(node as Text);
     }
     
@@ -305,6 +305,8 @@ export class PromptManagerService {
   async getStoryXmlFormatWithoutSummaries(targetSceneId: string): Promise<string> {
     // For SceneBeat, we provide minimal context by returning empty story context
     // This focuses the AI on the current scene without prior story information
+    // The targetSceneId parameter is included for API consistency but not used in this implementation
+    void targetSceneId; // Mark as intentionally unused
     return '';
   }
 
@@ -359,7 +361,7 @@ export class PromptManagerService {
     return xml;
   }
 
-  private escapeXml(text: string | any): string {
+  private escapeXml(text: string | unknown): string {
     // Ensure the input is a string
     const str = String(text || '');
     return str
@@ -451,7 +453,7 @@ export class PromptManagerService {
     const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT);
     const textNodes: Text[] = [];
     let node;
-    while (node = walker.nextNode()) {
+    while ((node = walker.nextNode())) {
       textNodes.push(node as Text);
     }
     

@@ -1102,8 +1102,8 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
   private menuController = inject(MenuController);
   private pdfExportService = inject(PDFExportService);
 
-  @ViewChild('headerTitle', { static: true }) headerTitle!: TemplateRef<any>;
-  @ViewChild('burgerMenuFooter', { static: true }) burgerMenuFooter!: TemplateRef<any>;
+  @ViewChild('headerTitle', { static: true }) headerTitle!: TemplateRef<unknown>;
+  @ViewChild('burgerMenuFooter', { static: true }) burgerMenuFooter!: TemplateRef<unknown>;
   @ViewChild('editorContainer') editorContainer!: ElementRef<HTMLDivElement>;
   private editorView: EditorView | null = null;
   private mutationObserver: MutationObserver | null = null;
@@ -1273,6 +1273,7 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
   ngAfterViewInit(): void {
     // Editor initialization happens in ngOnInit after story data is loaded
     // This lifecycle hook ensures proper view timing
+    // This lifecycle method is required by Angular even if empty
   }
 
   ngOnDestroy(): void {
@@ -1429,7 +1430,7 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     this.router.navigate(['/ai-logs']);
   }
 
-  onBurgerMenuToggle(isOpen: boolean): void {
+  onBurgerMenuToggle(_isOpen: boolean): void {
     // Handle burger menu state changes if needed
   }
   
@@ -1456,7 +1457,7 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
         icon: this.hasUnsavedChanges ? 'save-outline' : 'checkmark-circle-outline',
         chipContent: this.hasUnsavedChanges ? 'Nicht gespeichert' : 'Gespeichert',
         chipColor: this.hasUnsavedChanges ? 'warning' : 'success',
-        action: () => {},
+        action: () => { /* No action needed for save status indicator */ },
         showOnMobile: false,
         showOnDesktop: true
       },
@@ -1676,7 +1677,7 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     if (this.touchStartX === undefined || this.touchStartY === undefined) return;
     
     // Adjust swipe sensitivity based on screen size
-    const edgeThreshold = window.innerWidth <= 480 ? 30 : 50;
+    // const edgeThreshold = window.innerWidth <= 480 ? 30 : 50; // Unused variable
     const minSwipeDistance = window.innerWidth <= 480 ? 40 : this.minSwipeDistance;
     
     // Check if swipe distance is sufficient for this screen size
@@ -1963,7 +1964,7 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
             editorElement.scrollTop = editorElement.scrollHeight;
             
             // Force a reflow to ensure scrollHeight is calculated
-            editorElement.offsetHeight;
+            void editorElement.offsetHeight; // Force reflow
             editorElement.scrollTop = editorElement.scrollHeight;
           }
           
@@ -1979,7 +1980,7 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
             contentEditor.scrollTop = contentEditor.scrollHeight;
             
             // Force a reflow here too
-            contentEditor.offsetHeight;
+            void contentEditor.offsetHeight; // Force reflow
             contentEditor.scrollTop = contentEditor.scrollHeight;
           }
         }

@@ -384,7 +384,7 @@ export class ImageGenerationService {
     this.saveJobsToStorage();
   }
 
-  saveLastPrompt(modelId: string, parameters: Record<string, any>): void {
+  saveLastPrompt(modelId: string, parameters: Record<string, unknown>): void {
     try {
       localStorage.setItem(this.lastPromptKey, JSON.stringify({ modelId, parameters }));
     } catch (error) {
@@ -392,7 +392,7 @@ export class ImageGenerationService {
     }
   }
 
-  getLastPrompt(): { modelId: string; parameters: Record<string, any> } | null {
+  getLastPrompt(): { modelId: string; parameters: Record<string, unknown> } | null {
     try {
       const saved = localStorage.getItem(this.lastPromptKey);
       if (saved) {

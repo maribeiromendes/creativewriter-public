@@ -885,7 +885,7 @@ export class StoryListComponent implements OnInit {
   private headerNavService = inject(HeaderNavigationService);
   versionService = inject(VersionService);
 
-  @ViewChild('burgerMenuFooter', { static: true }) burgerMenuFooter!: TemplateRef<any>;
+  @ViewChild('burgerMenuFooter', { static: true }) burgerMenuFooter!: TemplateRef<unknown>;
   stories: Story[] = [];
   currentUser: User | null = null;
   fabMenuOpen = false;
@@ -923,7 +923,7 @@ export class StoryListComponent implements OnInit {
         icon: '',
         chipContent: this.versionService.getShortVersion(),
         chipColor: 'medium',
-        action: () => {}, // No action needed for version chip
+        action: () => { /* No action needed for version chip */ },
         showOnMobile: true,
         showOnDesktop: true,
         showVersionTooltip: true
@@ -945,7 +945,7 @@ export class StoryListComponent implements OnInit {
     this.fabMenuOpen = !this.fabMenuOpen;
   }
 
-  onBurgerMenuToggle(isOpen: boolean): void {
+  onBurgerMenuToggle(_isOpen: boolean): void {
     // Handle burger menu state changes if needed
   }
   

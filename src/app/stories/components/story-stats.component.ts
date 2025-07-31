@@ -727,6 +727,7 @@ export class StoryStatsComponent implements OnInit, OnDestroy, OnChanges {
 
   ngOnDestroy(): void {
     // Component cleanup - no subscriptions to destroy in this component
+    // This lifecycle method is required by Angular even if empty
   }
 
   onClose(): void {
@@ -781,7 +782,7 @@ export class StoryStatsComponent implements OnInit, OnDestroy, OnChanges {
     return 'primary';
   }
 
-  trackChapter(index: number, chapter: any): string {
+  trackChapter(index: number, chapter: {chapterId: string}): string {
     return chapter.chapterId;
   }
 

@@ -1,9 +1,8 @@
 import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { AuthService } from './auth.service';
-import { User } from '../../shared/models/user.interface';
+import { AuthService, User } from './auth.service';
 
-declare let PouchDB: any;
+declare const PouchDB: new(name: string, options?: PouchDB.Configuration.DatabaseConfiguration) => PouchDB.Database;
 
 export interface SyncStatus {
   isOnline: boolean;
@@ -114,6 +113,9 @@ export class DatabaseService {
     if (this.initializationPromise) {
       await this.initializationPromise;
     }
+    if (!this.db) {
+      throw new Error('Database not initialized');
+    }
     return this.db;
   }
 
@@ -184,7 +186,7 @@ export class DatabaseService {
   }
 
   private startSync(): void {
-    if (!this.remoteDb) return;
+    if (!this.remoteDb || !this.db) return;
 
     this.syncHandler = this.db.sync(this.remoteDb, {
       live: true,
@@ -241,7 +243,7 @@ export class DatabaseService {
   }
 
   async forcePush(): Promise<void> {
-    if (!this.remoteDb) return;
+    if (!this.remoteDb || !this.db) return;
     
     try {
       await this.db.replicate.to(this.remoteDb);
@@ -253,7 +255,7 @@ export class DatabaseService {
   }
 
   async forcePull(): Promise<void> {
-    if (!this.remoteDb) return;
+    if (!this.remoteDb || !this.db) return;
     
     try {
       await this.db.replicate.from(this.remoteDb);
@@ -265,11 +267,13 @@ export class DatabaseService {
   }
 
   async compact(): Promise<void> {
+    if (!this.db) return;
     await this.db.compact();
   }
 
   async destroy(): Promise<void> {
     await this.stopSync();
+    if (!this.db) return;
     await this.db.destroy();
   }
 }

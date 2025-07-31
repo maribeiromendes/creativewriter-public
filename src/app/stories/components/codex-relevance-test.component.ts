@@ -15,8 +15,9 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
       
       <div class="test-controls">
         <div class="form-group">
-          <label>Scene Context:</label>
+          <label for="scene-context">Scene Context:</label>
           <textarea 
+            id="scene-context"
             [(ngModel)]="sceneContext" 
             placeholder="Enter scene context..."
             rows="4"
@@ -24,8 +25,9 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
         </div>
         
         <div class="form-group">
-          <label>Beat Prompt:</label>
+          <label for="beat-prompt-test">Beat Prompt:</label>
           <textarea 
+            id="beat-prompt-test"
             [(ngModel)]="beatPrompt" 
             placeholder="Enter beat prompt..."
             rows="2"

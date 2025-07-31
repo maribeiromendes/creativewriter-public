@@ -81,6 +81,7 @@ export class LogViewerComponent implements OnInit {
 
   ngOnInit(): void {
     // Component initialization - logs are loaded via signal
+    // This lifecycle method is required by Angular even if empty
   }
 
   goBack(): void {

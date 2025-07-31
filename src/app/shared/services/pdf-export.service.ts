@@ -238,7 +238,7 @@ export class PDFExportService {
     startY: number
   ): Promise<void> {
     this.currentYPosition = startY;
-    const bottomMargin = pageHeight - config.margins.bottom;
+    // const bottomMargin = pageHeight - config.margins.bottom; // Unused in this function
     
     // Create temporary div to parse HTML
     const tempDiv = document.createElement('div');
@@ -395,7 +395,7 @@ export class PDFExportService {
   }
 
 
-  private async addBackgroundToPDF(pdf: any, pdfWidth: number, pdfHeight: number): Promise<void> {
+  private async addBackgroundToPDF(pdf: jsPDF, pdfWidth: number, pdfHeight: number): Promise<void> {
     const currentBackground = this.backgroundService.getCurrentBackground();
     
     if (currentBackground === 'none' || !currentBackground) {

@@ -7,7 +7,7 @@ import {
   IonChip, IonAvatar, IonSearchbar, IonModal, IonCheckbox, IonItemDivider,
   IonButton, IonIcon, IonButtons, IonToolbar, IonTitle, IonHeader
 } from '@ionic/angular/standalone';
-import { AppHeaderComponent, HeaderAction, BurgerMenuItem } from '../../shared/components/app-header.component';
+import { AppHeaderComponent, HeaderAction } from '../../shared/components/app-header.component';
 import { addIcons } from 'ionicons';
 import { 
   arrowBack, sendOutline, peopleOutline, documentTextOutline, 
@@ -838,7 +838,7 @@ export class SceneChatComponent implements OnInit, OnDestroy {
         storyOutline = this.buildStoryOutline();
       }
 
-      const settings = this.settingsService.getSettings();
+      // const settings = this.settingsService.getSettings(); // Unused variable
       // Generate a unique beat ID for this chat message
       const beatId = 'chat-' + Date.now();
       
@@ -1019,7 +1019,7 @@ export class SceneChatComponent implements OnInit, OnDestroy {
     const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT);
     const textNodes: Text[] = [];
     let node;
-    while (node = walker.nextNode()) {
+    while ((node = walker.nextNode())) {
       textNodes.push(node as Text);
     }
     
@@ -1294,7 +1294,7 @@ Strukturiere die Antwort klar nach Gegenständen getrennt.`
     });
   }
   
-  private callGeminiAPI(prompt: string, options: { wordCount: number; model?: string | null }, beatId: string): Observable<string> {
+  private callGeminiAPI(prompt: string, options: { wordCount: number; model?: string | null }, _beatId: string): Observable<string> {
     const settings = this.settingsService.getSettings();
     const apiKey = settings.googleGemini.apiKey;
     const model = options.model || settings.googleGemini.model || 'gemini-1.5-flash';
@@ -1328,7 +1328,7 @@ Strukturiere die Antwort klar nach Gegenständen getrennt.`
     );
   }
   
-  private callOpenRouterAPI(prompt: string, options: { wordCount: number; model?: string | null }, beatId: string): Observable<string> {
+  private callOpenRouterAPI(prompt: string, options: { wordCount: number; model?: string | null }, _beatId: string): Observable<string> {
     const settings = this.settingsService.getSettings();
     const apiKey = settings.openRouter.apiKey;
     const model = options.model || settings.openRouter.model || 'anthropic/claude-3-haiku';
@@ -1367,7 +1367,7 @@ Strukturiere die Antwort klar nach Gegenständen getrennt.`
     return new Observable<string>(observer => {
       const reader = response.body?.getReader();
       const decoder = new TextDecoder();
-      let accumulatedText = '';
+      // let accumulatedText = ''; // Unused variable
       
       const processChunk = async () => {
         try {
@@ -1403,7 +1403,7 @@ Strukturiere die Antwort klar nach Gegenständen getrennt.`
                   accumulatedText += text;
                   observer.next(text);
                 }
-              } catch (e) {
+              } catch {
                 // Ignore JSON parse errors
               }
             }
@@ -1461,8 +1461,8 @@ Strukturiere die Antwort klar nach Gegenständen getrennt.`
     });
   }
 
-  private parseExtractionResponse(content: string, type: 'characters' | 'locations' | 'objects'): any[] {
-    const entries: any[] = [];
+  private parseExtractionResponse(content: string, type: 'characters' | 'locations' | 'objects'): Array<{name: string; description?: string}> {
+    const entries: Array<{name: string; description?: string}> = [];
     
     // Simple parsing - look for **Name:** patterns
     const nameRegex = /\*\*Name:\*\*\s*([^\n]+)/g;
