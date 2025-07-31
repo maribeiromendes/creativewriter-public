@@ -139,7 +139,23 @@ import { TokenCounterService, SupportedModel, TokenCountResult } from '../servic
   `,
   styles: [`
     ion-content {
-      --background: var(--ion-color-light);
+      --background: #1a1a1a;
+      --color: #f8f9fa;
+    }
+
+    ion-header {
+      --background: #2d2d2d;
+      --color: #f8f9fa;
+    }
+
+    ion-toolbar {
+      --background: #2d2d2d;
+      --color: #f8f9fa;
+    }
+
+    ion-title {
+      --color: #f8f9fa;
+      font-weight: 600;
     }
 
     ion-list {
@@ -147,9 +163,25 @@ import { TokenCounterService, SupportedModel, TokenCountResult } from '../servic
     }
 
     ion-item {
-      --background: rgba(255, 255, 255, 0.9);
+      --background: #2a2a2a;
+      --color: #f8f9fa;
       --border-radius: 8px;
       margin-bottom: 8px;
+      border: 1px solid #404040;
+    }
+
+    ion-item h2, ion-item h3 {
+      color: #8bb4f8;
+      margin: 0 0 4px 0;
+    }
+
+    ion-item p {
+      color: #e0e0e0;
+      margin: 0;
+    }
+
+    ion-note {
+      --color: #999;
     }
 
     .usage-container {
@@ -161,17 +193,18 @@ import { TokenCounterService, SupportedModel, TokenCountResult } from '../servic
       justify-content: space-between;
       margin-top: 8px;
       font-size: 12px;
-      color: var(--ion-color-medium);
+      color: #ccc;
     }
 
     ion-progress-bar {
       height: 8px;
       border-radius: 4px;
+      --background: #404040;
     }
 
     .info-text {
       font-size: 12px;
-      color: var(--ion-color-medium);
+      color: #999;
       margin: 0;
     }
 
@@ -180,42 +213,54 @@ import { TokenCounterService, SupportedModel, TokenCountResult } from '../servic
     }
 
     .model-card {
-      background: rgba(255, 255, 255, 0.9);
+      background: #2a2a2a;
       border-radius: 8px;
       padding: 12px;
       text-align: center;
-      border: 1px solid var(--ion-color-light);
+      border: 1px solid #404040;
       transition: all 0.3s ease;
     }
 
     .model-card.current {
-      border-color: var(--ion-color-primary);
-      background: rgba(var(--ion-color-primary-rgb), 0.1);
+      border-color: #0d6efd;
+      background: rgba(13, 110, 253, 0.1);
     }
 
     .model-card h4 {
       font-size: 12px;
       margin: 0 0 4px 0;
       font-weight: 600;
+      color: #8bb4f8;
     }
 
     .model-card p {
       margin: 2px 0;
       font-size: 11px;
+      color: #e0e0e0;
     }
 
     .model-card .tokens {
-      color: var(--ion-color-dark);
+      color: #f8f9fa;
       font-weight: 500;
     }
 
     .model-card .percentage {
-      color: var(--ion-color-medium);
+      color: #999;
     }
 
     ion-badge {
       font-size: 10px;
       padding: 4px 8px;
+      --background: #0d6efd;
+      --color: #ffffff;
+    }
+
+    ion-button {
+      --color: #f8f9fa;
+    }
+
+    ion-icon {
+      color: #f8f9fa;
     }
 
     .loading-container {
@@ -231,15 +276,15 @@ import { TokenCounterService, SupportedModel, TokenCountResult } from '../servic
 
     .loading-content p {
       margin: 0;
-      color: var(--ion-color-medium);
+      color: #ccc;
       font-size: 14px;
     }
 
     .spinner {
       width: 24px;
       height: 24px;
-      border: 2px solid var(--ion-color-light);
-      border-top: 2px solid var(--ion-color-primary);
+      border: 2px solid #404040;
+      border-top: 2px solid #0d6efd;
       border-radius: 50%;
       animation: spin 1s linear infinite;
     }
