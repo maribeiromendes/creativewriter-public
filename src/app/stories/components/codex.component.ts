@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, signal, computed, effect, ChangeDetectorRef, TemplateRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal, computed, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgSelectModule } from '@ng-select/ng-select';
@@ -10,14 +10,14 @@ import {
   IonModal, IonGrid, IonRow, IonCol, IonText, IonNote, IonButtons, IonToolbar, IonTitle, IonHeader,
   IonSelect, IonSelectOption, IonToggle
 } from '@ionic/angular/standalone';
-import { AppHeaderComponent, HeaderAction, BurgerMenuItem } from '../../shared/components/app-header.component';
+import { AppHeaderComponent, HeaderAction } from '../../shared/components/app-header.component';
 import { addIcons } from 'ionicons';
 import {
   arrowBack, add, ellipsisVertical, create, trash, save, close,
   search, person, bookmark, pricetag, star
 } from 'ionicons/icons';
 import { CodexService } from '../services/codex.service';
-import { Codex, CodexCategory, CodexEntry, StoryRole, STORY_ROLES, CustomField } from '../models/codex.interface';
+import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField } from '../models/codex.interface';
 
 @Component({
   selector: 'app-codex',

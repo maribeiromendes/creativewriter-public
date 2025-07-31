@@ -347,10 +347,6 @@ export class ImageUploadDialogComponent implements OnInit {
 
   private readonly imageService = inject(ImageService);
 
-  ngOnInit(): void {
-    // Component initialization - focus handling happens in template
-    // This lifecycle method is required by Angular even if empty
-  }
 
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;

@@ -9,7 +9,7 @@ import { StoryService } from '../../stories/services/story.service';
 import { CodexService } from '../../stories/services/codex.service';
 import { PromptManagerService } from './prompt-manager.service';
 import { CodexRelevanceService, CodexEntry as CodexRelevanceEntry } from '../../core/services/codex-relevance.service';
-import { CodexEntry, CodexCategory, CustomField } from '../../stories/models/codex.interface';
+import { CodexEntry, CustomField } from '../../stories/models/codex.interface';
 
 @Injectable({
   providedIn: 'root'
