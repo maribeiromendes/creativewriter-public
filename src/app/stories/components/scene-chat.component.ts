@@ -1367,6 +1367,7 @@ Strukturiere die Antwort klar nach Gegenständen getrennt.`
     return new Observable<string>(observer => {
       const reader = response.body?.getReader();
       const decoder = new TextDecoder();
+      let accumulatedText = '';
       
       const processChunk = async () => {
         try {

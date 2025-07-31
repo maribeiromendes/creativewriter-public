@@ -20,11 +20,11 @@ export class StoryService {
       console.log('Raw PouchDB result:', result);
       
       const stories = result.rows
-        .map((row: { doc: unknown }) => {
+        .map((row: any) => {
           console.log('Processing row:', row);
           return row.doc;
         })
-        .filter((doc: Story) => doc && doc.id && (doc as unknown as { type?: string }).type !== 'codex') // Filter out design docs and codex entries
+        .filter((doc: any) => doc && doc.id && (doc as unknown as { type?: string }).type !== 'codex') // Filter out design docs and codex entries
         .map((story: Story) => this.migrateStory(story));
         
       return stories;

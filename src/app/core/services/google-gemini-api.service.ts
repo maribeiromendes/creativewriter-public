@@ -502,7 +502,7 @@ export class GoogleGeminiApiService {
       }).then(response => {
         console.log('🔍 Gemini Streaming Response:', {
           status: response.status,
-          headers: Object.fromEntries(response.headers.entries()),
+          headers: Object.fromEntries(Array.from(response.headers.entries())),
           url: url,
           ok: response.ok,
           statusText: response.statusText
@@ -779,7 +779,9 @@ export class GoogleGeminiApiService {
     }
 
     // HTTP error response from Angular HttpClient
-    const errorObj = error as { error?: { error?: { message?: string } }; status?: number };
+    const errorObj = error as { error?: { error?: { message?: string; code?: string; status?: string; details?: Record<string, unknown> } }; status?: number };
+    const errorAny = error as any;
+    
     if (errorObj.error) {
       status = errorObj.status || status;
       
@@ -787,7 +789,7 @@ export class GoogleGeminiApiService {
       if (errorObj.error && errorObj.error.error) {
         const apiError = errorObj.error.error;
         message = apiError.message || message;
-        code = apiError.code || apiError.status;
+        code = (apiError.code || apiError.status) as string;
         details = apiError.details;
       }
       // Direct error object: error.error.message
@@ -843,6 +845,7 @@ export class GoogleGeminiApiService {
     let contentFilterMessage: string | null = null;
     const details: Record<string, unknown> = {};
     const errorObj = error as { candidates?: Array<{ finishReason?: string }> };
+    const errorAny = error as any;
 
     // Check for content filtering in successful responses with SAFETY finish reason
     if (errorObj.candidates?.[0]?.finishReason === 'SAFETY') {

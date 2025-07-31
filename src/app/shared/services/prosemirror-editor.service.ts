@@ -92,7 +92,7 @@ export class ProseMirrorEditorService {
             title: dom.getAttribute('title') || null
           })
         }],
-        toDOM: (node: { attrs: { src: string; alt: string; title?: string } }) => [
+        toDOM: (node: any) => [
           'img',
           {
             src: node.attrs.src,
@@ -849,7 +849,7 @@ export class ProseMirrorEditorService {
     // Update all registered BeatAI node views with new context
     
     
-    for (const nodeView of this.beatNodeViews) {
+    for (const nodeView of Array.from(this.beatNodeViews)) {
       if (nodeView && nodeView.componentRef) {
         
         // Update the nodeView's context

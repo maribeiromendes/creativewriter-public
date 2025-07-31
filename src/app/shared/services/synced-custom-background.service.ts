@@ -302,7 +302,7 @@ export class SyncedCustomBackgroundService {
         }
       });
 
-      const docsToDelete = result.docs.map((doc: CustomBackground) => ({
+      const docsToDelete = result.docs.map((doc: any) => ({
         _id: doc._id,
         _rev: doc._rev,
         _deleted: true

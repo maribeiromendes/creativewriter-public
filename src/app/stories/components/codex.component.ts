@@ -17,7 +17,7 @@ import {
   search, person, bookmark, pricetag, star
 } from 'ionicons/icons';
 import { CodexService } from '../services/codex.service';
-import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField } from '../models/codex.interface';
+import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole } from '../models/codex.interface';
 
 @Component({
   selector: 'app-codex',
@@ -1207,7 +1207,7 @@ export class CodexComponent implements OnInit, OnDestroy {
     this.editingEntry = {
       ...entry,
       tags: entry.tags ? [...entry.tags] : [],
-      storyRole: entry.metadata?.['storyRole'] || null,
+      storyRole: (entry.metadata?.['storyRole'] as StoryRole) || '',
       customFields: entry.metadata?.['customFields'] && Array.isArray(entry.metadata['customFields']) ? [...entry.metadata['customFields']] : [],
       alwaysInclude: entry.alwaysInclude || false
     };

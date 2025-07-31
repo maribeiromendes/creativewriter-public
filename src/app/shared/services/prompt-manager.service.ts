@@ -158,7 +158,7 @@ export class PromptManagerService {
     let cleanText = '';
     const paragraphs = doc.querySelectorAll('p');
     
-    for (const p of paragraphs) {
+    for (const p of Array.from(paragraphs)) {
       const text = p.textContent?.trim() || '';
       if (text) {
         cleanText += text + '\n\n';
@@ -475,7 +475,7 @@ export class PromptManagerService {
     let cleanText = '';
     const paragraphs = doc.querySelectorAll('p');
     
-    for (const p of paragraphs) {
+    for (const p of Array.from(paragraphs)) {
       const text = p.textContent?.trim() || '';
       if (text) {
         cleanText += text + '\n\n';

@@ -1137,7 +1137,7 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
   currentTextColor = '#e0e0e0';
   @Output() contentUpdate = new EventEmitter<BeatAI>();
   @Output() delete = new EventEmitter<string>();
-  @Output() beatFocus = new EventEmitter<void>();
+  @Output() focus = new EventEmitter<void>();
   
   @ViewChild('promptInput') promptInput!: ElementRef<HTMLDivElement>;
   
@@ -1298,6 +1298,7 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
   startEditing(): void {
     this.beatData.isEditing = true;
     this.currentPrompt = this.beatData.prompt;
+    this.focus.emit();
     
     // Restore all persisted settings when switching back to edit mode
     this.restorePersistedSettings();
