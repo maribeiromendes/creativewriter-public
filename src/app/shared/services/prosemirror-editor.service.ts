@@ -1479,7 +1479,6 @@ export class ProseMirrorEditorService {
   }
 
   private createContextMenuPlugin(): Plugin {
-    const contextMenuElement: HTMLElement | null = null;
 
     return new Plugin({
       key: new PluginKey('contextMenu'),
@@ -1490,7 +1489,7 @@ export class ProseMirrorEditorService {
             this.showContextMenu(view, event);
             return true;
           },
-          click: (view, event) => {
+          click: () => {
             // Hide context menu on any click
             this.hideContextMenu();
             return false;

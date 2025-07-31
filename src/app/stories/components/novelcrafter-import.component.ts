@@ -857,7 +857,7 @@ export class NovelCrafterImportComponent {
     return content.length > 100 ? content.substring(0, 100) + '...' : content;
   }
 
-  getCustomFieldsSlice(entry: any): any[] {
+  getCustomFieldsSlice(entry: { metadata?: { customFields?: unknown } }): unknown[] {
     const fields = entry.metadata?.['customFields'];
     return Array.isArray(fields) ? fields.slice(0, 2) : [];
   }

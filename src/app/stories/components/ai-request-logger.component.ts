@@ -788,10 +788,10 @@ export class AIRequestLoggerComponent implements OnInit, OnDestroy {
     return text.trim().split(/\s+/).length;
   }
 
-  formatJson(obj: any): string {
+  formatJson(obj: unknown): string {
     try {
       return JSON.stringify(obj, null, 2);
-    } catch (e) {
+    } catch {
       return String(obj);
     }
   }

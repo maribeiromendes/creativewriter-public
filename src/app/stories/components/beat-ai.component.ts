@@ -1361,7 +1361,7 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
       chapterId: this.chapterId,
       sceneId: this.sceneId,
       beatType: this.beatData.beatType
-    } as any);
+    });
     
     this.contentUpdate.emit(this.beatData);
   }
@@ -1375,11 +1375,11 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
         chapterId: this.chapterId,
         sceneId: this.sceneId,
         beatType: this.beatData.beatType
-      } as any);
+      });
     }
   }
   
-  onPromptKeydown(event: any): void {
+  onPromptKeydown(event: KeyboardEvent): void {
     if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
       event.preventDefault();
       this.generateContent();
