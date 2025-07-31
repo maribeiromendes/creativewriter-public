@@ -7,7 +7,7 @@ import { DatabaseService } from '../../core/services/database.service';
 })
 export class StoryService {
   private readonly databaseService = inject(DatabaseService);
-  private db: PouchDB.Database | null = null;
+  private db: any;
 
   async getAllStories(): Promise<Story[]> {
     try {

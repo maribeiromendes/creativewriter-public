@@ -2,19 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { AuthService } from './auth.service';
 
-declare const PouchDB: PouchDB.Static;
-
-interface PouchDBInstance extends PouchDB.Database {
-  name?: string;
-}
-
-interface PouchDBReplication {
-  cancel(): void;
-  on(event: 'change', handler: (info: PouchDB.Replication.SyncResult<object>) => void): this;
-  on(event: 'active', handler: () => void): this;
-  on(event: 'paused', handler: (err?: Error) => void): this;
-  on(event: 'error', handler: (err: Error) => void): this;
-}
+declare let PouchDB: any;
 
 export interface SyncStatus {
   isOnline: boolean;
@@ -29,9 +17,9 @@ export interface SyncStatus {
 export class DatabaseService {
   private readonly authService = inject(AuthService);
   
-  private db: PouchDBInstance | null = null;
-  private remoteDb: PouchDBInstance | null = null;
-  private syncHandler: PouchDBReplication | null = null;
+  private db: any = null;
+  private remoteDb: any = null;
+  private syncHandler: any = null;
   private initializationPromise: Promise<void> | null = null;
   private syncStatusSubject = new BehaviorSubject<SyncStatus>({
     isOnline: navigator.onLine,
@@ -100,7 +88,7 @@ export class DatabaseService {
     await this.setupSync();
   }
 
-  private handleUserChange(user: Record<string, unknown> | null): void {
+  private handleUserChange(user: any): void {
     // Use setTimeout to avoid immediate database switching during constructor
     setTimeout(async () => {
       if (user) {
@@ -120,7 +108,7 @@ export class DatabaseService {
     }, 100);
   }
 
-  async getDatabase(): Promise<PouchDBInstance> {
+  async getDatabase(): Promise<any> {
     // Wait for initialization to complete
     if (this.initializationPromise) {
       await this.initializationPromise;
@@ -129,7 +117,7 @@ export class DatabaseService {
   }
 
   // Synchronous getter for backwards compatibility (use with caution)
-  getDatabaseSync(): PouchDBInstance | null {
+  getDatabaseSync(): any {
     return this.db;
   }
 
@@ -202,7 +190,7 @@ export class DatabaseService {
       retry: true,
       timeout: 30000
     })
-    .on('change', (info: PouchDB.Replication.SyncResult<object>) => {
+    .on('change', (info: any) => {
       console.log('Sync change:', info);
       this.updateSyncStatus({ 
         isSync: false, 
