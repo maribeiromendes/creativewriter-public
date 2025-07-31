@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -70,18 +70,13 @@ import { SyncLogTabComponent } from './sync-log-tab.component';
     }
   `]
 })
-export class LogViewerComponent implements OnInit {
+export class LogViewerComponent {
   selectedTab = 'ai';
 
   private readonly router = inject(Router);
 
   constructor() {
     addIcons({ arrowBack });
-  }
-
-  ngOnInit(): void {
-    // Component initialization - logs are loaded via signal
-    // This lifecycle method is required by Angular even if empty
   }
 
   goBack(): void {

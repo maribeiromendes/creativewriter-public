@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit, ChangeDetectorRef, TemplateRef, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, ChangeDetectorRef, TemplateRef, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -1087,7 +1087,7 @@ import { PDFExportService } from '../../shared/services/pdf-export.service';
     }
   `]
 })
-export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
+export class StoryEditorComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private storyService = inject(StoryService);
@@ -1270,11 +1270,6 @@ export class StoryEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     this.setupMobileKeyboardHandling();
   }
 
-  ngAfterViewInit(): void {
-    // Editor initialization happens in ngOnInit after story data is loaded
-    // This lifecycle hook ensures proper view timing
-    // This lifecycle method is required by Angular even if empty
-  }
 
   ngOnDestroy(): void {
     // Beim Verlassen der Komponente noch einmal speichern

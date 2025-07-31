@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, OnChanges, SimpleChanges, inject } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { 
   IonModal, IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonIcon,
@@ -696,7 +696,7 @@ export interface StoryStatistics {
     }
   `]
 })
-export class StoryStatsComponent implements OnInit, OnDestroy, OnChanges {
+export class StoryStatsComponent implements OnInit, OnChanges {
   @Input() isOpen = false;
   @Input() story: Story | null = null;
   @Output() closed = new EventEmitter<void>();
@@ -717,10 +717,6 @@ export class StoryStatsComponent implements OnInit, OnDestroy, OnChanges {
     if (this.story && this.isOpen) {
       this.calculateStatistics();
     }
-  }
-
-  ngOnDestroy(): void {
-    // Cleanup if needed
   }
 
   ngOnChanges(changes: SimpleChanges): void {

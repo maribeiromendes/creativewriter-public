@@ -1367,7 +1367,6 @@ Strukturiere die Antwort klar nach Gegenständen getrennt.`
     return new Observable<string>(observer => {
       const reader = response.body?.getReader();
       const decoder = new TextDecoder();
-      let accumulatedText = '';
       
       const processChunk = async () => {
         try {
@@ -1461,8 +1460,8 @@ Strukturiere die Antwort klar nach Gegenständen getrennt.`
     });
   }
 
-  private parseExtractionResponse(content: string, type: 'characters' | 'locations' | 'objects'): Array<{name: string; description?: string; role?: string; tags?: string[]}> {
-    const entries: Array<{name: string; description?: string; role?: string; tags?: string[]}> = [];
+  private parseExtractionResponse(content: string, type: 'characters' | 'locations' | 'objects'): {name: string; description?: string; role?: string; tags?: string[]}[] {
+    const entries: {name: string; description?: string; role?: string; tags?: string[]}[] = [];
     
     // Simple parsing - look for **Name:** patterns
     const nameRegex = /\*\*Name:\*\*\s*([^\n]+)/g;

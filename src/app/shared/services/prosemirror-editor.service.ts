@@ -633,7 +633,7 @@ export class ProseMirrorEditorService {
     this.editorView.updateState(state);
   }
 
-  private createBeatAIPlugin(config: EditorConfig): Plugin {
+  private createBeatAIPlugin(_config: EditorConfig): Plugin {
     return new Plugin({
       key: new PluginKey('beatAI'),
       state: {
@@ -813,7 +813,7 @@ export class ProseMirrorEditorService {
   }
 
 
-  private isGeneratedContent(node: ProseMirrorNode, beatId: string): boolean {
+  private isGeneratedContent(node: ProseMirrorNode, _beatId: string): boolean {
     // For streaming, we consider all paragraphs after a beat node as generated content
     // until we hit another beat node or other special content
     return node.type.name === 'paragraph';
@@ -847,7 +847,6 @@ export class ProseMirrorEditorService {
     if (!this.editorView) return;
 
     // Update all registered BeatAI node views with new context
-    let nodeViewsUpdated = 0;
     
     
     for (const nodeView of this.beatNodeViews) {
@@ -864,7 +863,6 @@ export class ProseMirrorEditorService {
         // Force Angular to detect the changes
         nodeView.componentRef.changeDetectorRef?.markForCheck();
         nodeView.componentRef.changeDetectorRef?.detectChanges();
-        nodeViewsUpdated++;
       }
     }
     
@@ -1153,7 +1151,7 @@ export class ProseMirrorEditorService {
             endPosition = pos;
             break;
           }
-        } catch (e) {
+        } catch {
           // Position might be invalid, continue searching
         }
       }

@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output, OnInit, inject } from '@angular/core';
+import { Component, EventEmitter, Output, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ImageService } from '../services/image.service';
@@ -326,7 +326,7 @@ export interface ImageInsertResult {
     }
   `]
 })
-export class ImageUploadDialogComponent implements OnInit {
+export class ImageUploadDialogComponent {
   @Output() imageInserted = new EventEmitter<ImageInsertResult>();
   @Output() cancelled = new EventEmitter<void>();
 
@@ -346,10 +346,6 @@ export class ImageUploadDialogComponent implements OnInit {
   titleText = '';
 
   private readonly imageService = inject(ImageService);
-
-  ngOnInit(): void {
-    // Implementation can be added if needed
-  }
 
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
