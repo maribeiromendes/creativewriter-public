@@ -1847,8 +1847,8 @@ Antworte nur mit dem Titel, ohne weitere Erklärungen oder Anführungszeichen.`;
     setTimeout(() => {
       const inputs = document.querySelectorAll('.scene-title-input-edit');
       inputs.forEach((input: Element) => {
-        if (input && (input as any).setFocus) {
-          (input as any).setFocus();
+        if (input && 'setFocus' in input && typeof (input as { setFocus: () => void }).setFocus === 'function') {
+          (input as { setFocus: () => void }).setFocus();
         }
       });
     }, 50);

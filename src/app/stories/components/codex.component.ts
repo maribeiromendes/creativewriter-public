@@ -1106,7 +1106,7 @@ export class CodexComponent implements OnInit, OnDestroy {
 
   // Form data
   newCategory = { title: '', icon: '', description: '' };
-  editingEntry: any = {};
+  editingEntry: Partial<CodexEntry> = {};
   tagInput = '';
   
   // Story roles
@@ -1208,7 +1208,7 @@ export class CodexComponent implements OnInit, OnDestroy {
       ...entry,
       tags: entry.tags ? [...entry.tags] : [],
       storyRole: entry.metadata?.['storyRole'] || null,
-      customFields: entry.metadata?.['customFields'] ? [...(entry.metadata['customFields'] as any[])] : [],
+      customFields: entry.metadata?.['customFields'] && Array.isArray(entry.metadata['customFields']) ? [...entry.metadata['customFields']] : [],
       alwaysInclude: entry.alwaysInclude || false
     };
     this.tagInput = '';
@@ -1234,7 +1234,7 @@ export class CodexComponent implements OnInit, OnDestroy {
     }
   }
 
-  editCategory(category: CodexCategory) {
+  editCategory(_category: CodexCategory) {
     // TODO: Implement category editing
     this.categoryMenuId.set(null);
   }

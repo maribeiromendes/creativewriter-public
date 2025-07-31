@@ -86,13 +86,13 @@ export class ProseMirrorEditorService {
         draggable: true,
         parseDOM: [{
           tag: 'img[src]',
-          getAttrs: (dom: any) => ({
+          getAttrs: (dom: Element) => ({
             src: dom.getAttribute('src'),
             alt: dom.getAttribute('alt') || '',
             title: dom.getAttribute('title') || null
           })
         }],
-        toDOM: (node: any) => [
+        toDOM: (node: { attrs: { src: string; alt: string; title?: string } }) => [
           'img',
           {
             src: node.attrs.src,
