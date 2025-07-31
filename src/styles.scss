@@ -10,6 +10,9 @@
 /* ng-select CSS */
 @import '@ng-select/ng-select/themes/default.theme.css';
 
+/* Token Info Popover */
+@use 'app/shared/styles/token-info-popover.scss';
+
 /* Force Ionic Dark Mode Variables */
 :root {
   --ion-background-color: #1a1a1a;

@@ -2,9 +2,11 @@ import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, AfterViewIni
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgSelectModule } from '@ng-select/ng-select';
-import { IonIcon } from '@ionic/angular/standalone';
+import { IonIcon, PopoverController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { logoGoogle, globeOutline, createOutline, refreshOutline, trashOutline } from 'ionicons/icons';
+import { logoGoogle, globeOutline, createOutline, refreshOutline, trashOutline, analyticsOutline } from 'ionicons/icons';
+import { TokenInfoPopoverComponent } from '../../shared/components/token-info-popover.component';
+import { TokenCounterService, SupportedModel } from '../../shared/services/token-counter.service';
 import { BeatAI, BeatAIPromptEvent } from '../models/beat-ai.interface';
 import { Subscription } from 'rxjs';
 import { ModelOption } from '../../core/models/model.interface';
@@ -135,6 +137,13 @@ import { EditorView } from 'prosemirror-view';
               [disabled]="!currentPrompt.trim()"
               title="Prompt-Vorschau anzeigen">
               👁️ Vorschau
+            </button>
+            <button 
+              class="generate-btn secondary"
+              (click)="showTokenInfo(); $event.stopPropagation()"
+              [disabled]="!currentPrompt.trim() || !selectedModel"
+              title="Token-Analyse anzeigen">
+              <ion-icon name="analytics-outline"></ion-icon>
             </button>
             <button 
               *ngIf="beatData.prompt && beatData.isEditing"
@@ -684,6 +693,13 @@ import { EditorView } from 'prosemirror-view';
       color: white;
     }
     
+    .generate-btn.secondary {
+      background: #6c757d;
+      color: white;
+      padding: 0.2rem 0.4rem;
+      min-width: auto;
+    }
+    
     .generate-btn.primary:hover:not(:disabled) {
       background: #0b5ed7;
     }
@@ -1110,6 +1126,8 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
   private beatAIService = inject(BeatAIService);
   private proseMirrorService = inject(ProseMirrorEditorService);
   private elementRef = inject(ElementRef);
+  private popoverController = inject(PopoverController);
+  private tokenCounter = inject(TokenCounterService);
 
   @Input() beatData!: BeatAI;
   @Input() storyId?: string;
@@ -1159,7 +1177,7 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
   
   constructor() {
     // Register icons
-    addIcons({ logoGoogle, globeOutline, createOutline, refreshOutline, trashOutline });
+    addIcons({ logoGoogle, globeOutline, createOutline, refreshOutline, trashOutline, analyticsOutline });
   }
   
   ngOnInit(): void {
@@ -1535,6 +1553,46 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
   hidePromptPreview(): void {
     this.showPreviewModal = false;
     this.previewContent = '';
+  }
+
+  async showTokenInfo(): Promise<void> {
+    if (!this.currentPrompt.trim() || !this.selectedModel) {
+      return;
+    }
+
+    // Get the full prompt that would be sent to the model
+    const fullPrompt = await this.beatAIService.previewPrompt(this.currentPrompt, this.beatData.id, {
+      storyId: this.storyId,
+      chapterId: this.chapterId,
+      sceneId: this.sceneId,
+      wordCount: this.getActualWordCount(),
+      beatType: this.beatData.beatType
+    }).toPromise();
+
+    // Map the selected model to SupportedModel type
+    const modelMapping: Record<string, SupportedModel> = {
+      'claude-3-5-sonnet-20241022': 'claude-3.5-sonnet',
+      'claude-3-5-sonnet-v2': 'claude-3.7-sonnet',
+      'gemini-1.5-pro': 'gemini-1.5-pro',
+      'gemini-2.0-flash-thinking-exp': 'gemini-2.5-pro',
+      'grok-beta': 'grok-3'
+    };
+
+    const mappedModel = modelMapping[this.selectedModel] || 'custom';
+
+    const popover = await this.popoverController.create({
+      component: TokenInfoPopoverComponent,
+      componentProps: {
+        prompt: fullPrompt || this.currentPrompt,
+        model: mappedModel,
+        showComparison: true
+      },
+      cssClass: 'token-info-popover',
+      translucent: true,
+      mode: 'ios'
+    });
+
+    await popover.present();
   }
 
   stopGeneration(): void {
