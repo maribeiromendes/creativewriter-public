@@ -779,13 +779,13 @@ export class GoogleGeminiApiService {
     }
 
     // HTTP error response from Angular HttpClient
-    const errorAny = error as any;
-    if (errorAny['error']) {
-      status = errorAny['status'] as number;
+    const errorObj = error as { error?: { error?: { message?: string } }; status?: number };
+    if (errorObj.error) {
+      status = errorObj.status || status;
       
       // Google API error structure: error.error.error.message
-      if (errorAny['error'] && errorAny['error']['error']) {
-        const apiError = errorAny['error']['error'] as any;
+      if (errorObj.error && errorObj.error.error) {
+        const apiError = errorObj.error.error;
         message = apiError.message || message;
         code = apiError.code || apiError.status;
         details = apiError.details;
@@ -842,19 +842,19 @@ export class GoogleGeminiApiService {
   private extractContentFilterError(error: Record<string, unknown>): { message: string; code?: string; status?: number; details?: Record<string, unknown> } | null {
     let contentFilterMessage: string | null = null;
     const details: Record<string, unknown> = {};
-    const errorAny = error as any;
+    const errorObj = error as { candidates?: Array<{ finishReason?: string }> };
 
     // Check for content filtering in successful responses with SAFETY finish reason
-    if (errorAny.candidates?.[0]?.finishReason === 'SAFETY') {
+    if (errorObj.candidates?.[0]?.finishReason === 'SAFETY') {
       contentFilterMessage = 'Content blocked by safety filters';
       details['finishReason'] = 'SAFETY';
-      details['safetyRatings'] = errorAny.candidates[0].safetyRatings;
+      details['safetyRatings'] = (errorObj.candidates?.[0] as { safetyRatings?: unknown })?.safetyRatings;
     }
     // Check for OTHER finish reason which can indicate content filtering
-    else if (errorAny.candidates?.[0]?.finishReason === 'OTHER') {
+    else if (errorObj.candidates?.[0]?.finishReason === 'OTHER') {
       contentFilterMessage = 'Content generation stopped due to safety or other constraints';
       details['finishReason'] = 'OTHER';
-      details['safetyRatings'] = errorAny.candidates[0].safetyRatings;
+      details['safetyRatings'] = (errorObj.candidates?.[0] as { safetyRatings?: unknown })?.safetyRatings;
     }
     // Check prompt feedback for blocking
     else if (errorAny.promptFeedback?.blockReason) {
