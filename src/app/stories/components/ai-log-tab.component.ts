@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   IonList, IonItem, IonLabel, IonBadge, IonChip, IonCard,
-  IonCardContent, IonText, IonNote, IonButton, IonIcon,
+  IonCardContent, IonText, IonButton, IonIcon,
   IonButtons, IonToolbar, IonAccordion, IonAccordionGroup
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';

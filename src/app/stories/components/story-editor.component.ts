@@ -3,7 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { 
-  IonHeader, IonToolbar, IonButtons, IonButton, IonIcon, IonTitle, 
+  IonButton, IonIcon, 
   IonContent, IonChip, IonLabel, IonMenu, IonSplitPane, MenuController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -21,7 +21,7 @@ import { SlashCommandResult, SlashCommandAction } from '../models/slash-command.
 import { Subscription, debounceTime, Subject, throttleTime } from 'rxjs';
 import { ProseMirrorEditorService } from '../../shared/services/prosemirror-editor.service';
 import { EditorView } from 'prosemirror-view';
-import { Selection, TextSelection } from 'prosemirror-state';
+import { TextSelection } from 'prosemirror-state';
 import { BeatAI, BeatAIPromptEvent } from '../models/beat-ai.interface';
 import { BeatAIService } from '../../shared/services/beat-ai.service';
 import { PromptManagerService } from '../../shared/services/prompt-manager.service';

@@ -6,8 +6,7 @@ import { Subscription } from 'rxjs';
 import { 
   IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
   IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonInput, IonToggle,
-  IonChip, IonItem, IonLabel, IonSelect, IonSelectOption, IonRange, IonTextarea,
-  IonSegment, IonSegmentButton
+  IonChip, IonItem, IonLabel, IonSelect, IonSelectOption, IonRange, IonTextarea
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { arrowBack, statsChart, warning, checkmarkCircle, globeOutline, logoGoogle, colorPaletteOutline, documentTextOutline, cloudOutline } from 'ionicons/icons';

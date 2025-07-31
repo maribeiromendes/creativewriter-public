@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import {
   IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
   IonList, IonItem, IonLabel, IonBadge, IonChip, IonCard,
-  IonCardContent, IonText, IonNote, IonAccordion, IonAccordionGroup
+  IonCardContent, IonText, IonAccordion, IonAccordionGroup
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { 
