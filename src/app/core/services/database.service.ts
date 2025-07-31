@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { AuthService } from './auth.service';
+import { User } from '../../shared/models/user.interface';
 
 declare let PouchDB: any;
 
@@ -17,9 +18,9 @@ export interface SyncStatus {
 export class DatabaseService {
   private readonly authService = inject(AuthService);
   
-  private db: any = null;
-  private remoteDb: any = null;
-  private syncHandler: any = null;
+  private db: PouchDB.Database | null = null;
+  private remoteDb: PouchDB.Database | null = null;
+  private syncHandler: PouchDB.Replication.Sync<Record<string, unknown>> | null = null;
   private initializationPromise: Promise<void> | null = null;
   private syncStatusSubject = new BehaviorSubject<SyncStatus>({
     isOnline: navigator.onLine,
@@ -88,7 +89,7 @@ export class DatabaseService {
     await this.setupSync();
   }
 
-  private handleUserChange(user: any): void {
+  private handleUserChange(user: User | null): void {
     // Use setTimeout to avoid immediate database switching during constructor
     setTimeout(async () => {
       if (user) {
@@ -108,7 +109,7 @@ export class DatabaseService {
     }, 100);
   }
 
-  async getDatabase(): Promise<any> {
+  async getDatabase(): Promise<PouchDB.Database> {
     // Wait for initialization to complete
     if (this.initializationPromise) {
       await this.initializationPromise;
@@ -117,7 +118,7 @@ export class DatabaseService {
   }
 
   // Synchronous getter for backwards compatibility (use with caution)
-  getDatabaseSync(): any {
+  getDatabaseSync(): PouchDB.Database | null {
     return this.db;
   }
 
@@ -190,7 +191,7 @@ export class DatabaseService {
       retry: true,
       timeout: 30000
     })
-    .on('change', (info: any) => {
+    .on('change', (info: PouchDB.Replication.SyncResult<Record<string, unknown>>) => {
       console.log('Sync change:', info);
       this.updateSyncStatus({ 
         isSync: false, 

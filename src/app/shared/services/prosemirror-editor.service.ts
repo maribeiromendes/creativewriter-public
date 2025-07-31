@@ -329,17 +329,17 @@ export class ProseMirrorEditorService {
         spellcheck: 'false'
       },
       handleDOMEvents: {
-        mousedown: (view, event) => {
+        mousedown: (view: EditorView, event: MouseEvent) => {
           // Stop event propagation to prevent main editor from handling it
           event.stopPropagation();
           return false;
         },
-        touchstart: (view, event) => {
+        touchstart: (view: EditorView, event: TouchEvent) => {
           // Stop event propagation to prevent main editor from handling it
           event.stopPropagation();
           return false;
         },
-        focus: (view, event) => {
+        focus: (view: EditorView, event: FocusEvent) => {
           // Stop event propagation to prevent main editor from handling it
           event.stopPropagation();
           return false;

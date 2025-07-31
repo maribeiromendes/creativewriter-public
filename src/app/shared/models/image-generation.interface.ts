@@ -12,7 +12,7 @@ export interface ModelInput {
   name: string;
   type: 'string' | 'number' | 'boolean' | 'integer' | 'file' | 'array';
   description: string;
-  default?: any;
+  default?: unknown;
   minimum?: number;
   maximum?: number;
   options?: string[];
@@ -21,7 +21,7 @@ export interface ModelInput {
 
 export interface ImageGenerationRequest {
   version: string;
-  input: Record<string, any>;
+  input: Record<string, unknown>;
 }
 
 export interface ImageGenerationResponse {
@@ -39,7 +39,7 @@ export interface ImageGenerationJob {
   id: string;
   model: string;
   prompt: string;
-  parameters: Record<string, any>;
+  parameters: Record<string, unknown>;
   status: 'pending' | 'processing' | 'completed' | 'failed';
   createdAt: Date;
   completedAt?: Date;

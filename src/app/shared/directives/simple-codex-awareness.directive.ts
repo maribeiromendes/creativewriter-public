@@ -1,7 +1,11 @@
 import { Directive, ElementRef, Input, OnDestroy, OnInit, Renderer2, inject } from '@angular/core';
 import { Subscription, debounceTime, distinctUntilChanged, fromEvent } from 'rxjs';
 import { CodexService } from '../../stories/services/codex.service';
-import { CodexEntry } from '../../stories/models/codex.interface';
+import { CodexEntry, Codex } from '../../stories/models/codex.interface';
+
+interface HTMLTextAreaElementWithOverlay extends HTMLTextAreaElement {
+  __codexOverlay?: HTMLElement;
+}
 
 @Directive({
   selector: '[appSimpleCodexAwareness]',
@@ -58,7 +62,7 @@ export class SimpleCodexAwarenessDirective implements OnInit, OnDestroy {
     );
   }
 
-  private extractAllEntries(codex: any): CodexEntry[] {
+  private extractAllEntries(codex: Codex): CodexEntry[] {
     const entries: CodexEntry[] = [];
     
     if (codex.categories) {
@@ -258,14 +262,14 @@ export class SimpleCodexAwarenessDirective implements OnInit, OnDestroy {
     this.renderer.insertBefore(container, overlay, textarea);
     
     // Store reference for cleanup
-    (textarea as any).__codexOverlay = overlay;
+    (textarea as HTMLTextAreaElementWithOverlay).__codexOverlay = overlay;
   }
 
   private removeTextareaOverlay(textarea: HTMLTextAreaElement): void {
-    const overlay = (textarea as any).__codexOverlay;
+    const overlay = (textarea as HTMLTextAreaElementWithOverlay).__codexOverlay;
     if (overlay && overlay.parentNode) {
       this.renderer.removeChild(overlay.parentNode, overlay);
-      delete (textarea as any).__codexOverlay;
+      delete (textarea as HTMLTextAreaElementWithOverlay).__codexOverlay;
     }
   }
 

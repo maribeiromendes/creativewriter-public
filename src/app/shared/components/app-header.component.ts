@@ -426,7 +426,7 @@ export class AppHeaderComponent implements OnInit {
   @ViewChild('burgerMenuPopover') burgerMenuPopover?: IonPopover;
   
   @Input() title = '';
-  @Input() titleTemplate?: TemplateRef<any>;
+  @Input() titleTemplate?: TemplateRef<unknown>;
   @Input() showBackButton = false;
   @Input() backAction?: () => void;
   @Input() leftActions: HeaderAction[] = [];
@@ -434,9 +434,9 @@ export class AppHeaderComponent implements OnInit {
   @Input() showBurgerMenu = false;
   @Input() burgerMenuTitle = 'Navigation';
   @Input() burgerMenuItems: BurgerMenuItem[] = [];
-  @Input() burgerMenuFooterContent?: TemplateRef<any>;
+  @Input() burgerMenuFooterContent?: TemplateRef<unknown>;
   @Input() showSecondaryToolbar = false;
-  @Input() secondaryContent?: TemplateRef<any>;
+  @Input() secondaryContent?: TemplateRef<unknown>;
   @Input() showUserInfo = false;
   @Input() userGreeting = '';
 
@@ -444,8 +444,9 @@ export class AppHeaderComponent implements OnInit {
   
   public isBurgerMenuOpen = false;
 
-  ngOnInit() {
-    // Version service loads automatically on initialization
+  ngOnInit(): void {
+    // Initialize header component - version service loads automatically
+    this.isBurgerMenuOpen = false;
   }
 
   handleBackAction(): void {

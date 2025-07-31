@@ -1,6 +1,6 @@
 import { Component, OnInit, OnChanges, SimpleChanges, Input, Output, EventEmitter, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HttpClient, provideHttpClient } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { IonIcon, IonGrid, IonRow, IonCol, IonText, IonCard, IonCardContent, IonButton, IonAlert } from '@ionic/angular/standalone';
 import { checkmarkCircle, trashOutline } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
@@ -489,7 +489,7 @@ export class BackgroundSelectorComponent implements OnInit, OnChanges {
           previewPath: imagePath
         });
         
-      } catch (error) {
+      } catch {
         // Image doesn't exist or failed to load, skip it
         console.debug(`Background image ${filename} not found or failed to load`);
       }

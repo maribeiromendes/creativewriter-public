@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ElementRef, inject } from '@angular/core';
+import { Component, OnInit, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonPopover, IonContent } from '@ionic/angular/standalone';
 import { VersionService, VersionInfo } from '../../core/services/version.service';
@@ -248,7 +248,7 @@ export class VersionTooltipComponent implements OnInit {
           minute: '2-digit'
         });
       }
-    } catch (error) {
+    } catch {
       return dateString;
     }
   }

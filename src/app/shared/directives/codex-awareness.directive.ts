@@ -1,7 +1,7 @@
 import { Directive, ElementRef, Input, OnDestroy, OnInit, Renderer2, OnChanges, SimpleChanges, inject } from '@angular/core';
-import { Subscription, BehaviorSubject, combineLatest, debounceTime, distinctUntilChanged } from 'rxjs';
+import { Subscription, BehaviorSubject, debounceTime, distinctUntilChanged } from 'rxjs';
 import { CodexService } from '../../stories/services/codex.service';
-import { CodexEntry } from '../../stories/models/codex.interface';
+import { CodexEntry, Codex } from '../../stories/models/codex.interface';
 
 @Directive({
   selector: '[appCodexAwareness]',
@@ -147,7 +147,7 @@ export class CodexAwarenessDirective implements OnInit, OnDestroy, OnChanges {
     }
   }
 
-  private extractAllEntries(codex: any): CodexEntry[] {
+  private extractAllEntries(codex: Codex): CodexEntry[] {
     const entries: CodexEntry[] = [];
     
     if (codex.categories) {
@@ -235,7 +235,7 @@ export class CodexAwarenessDirective implements OnInit, OnDestroy, OnChanges {
     const textNodes: Text[] = [];
     let node;
     
-    while (node = walker.nextNode()) {
+    while ((node = walker.nextNode()) !== null) {
       textNodes.push(node as Text);
     }
     

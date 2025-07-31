@@ -35,8 +35,12 @@ import { SyncedCustomBackgroundService, CustomBackground } from '../services/syn
         <ion-card-content>
           <!-- File Input -->
           <div class="upload-area" 
+               role="button"
+               tabindex="0"
                [class.dragover]="isDragOver()"
                (click)="triggerFileInput()"
+               (keyup.enter)="triggerFileInput()"
+               (keyup.space)="triggerFileInput()"
                (dragover)="onDragOver($event)"
                (dragleave)="onDragLeave($event)"
                (drop)="onDrop($event)">
@@ -475,7 +479,7 @@ export class BackgroundUploadComponent {
       await this.customBackgroundService.clearAllBackgrounds();
       this.showSuccessToast('Alle Hintergründe gelöscht');
       this.clearSelection();
-    } catch (error) {
+    } catch {
       this.showErrorToast('Fehler beim Löschen');
     }
   }

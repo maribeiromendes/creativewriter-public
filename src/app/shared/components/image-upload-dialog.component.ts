@@ -14,8 +14,8 @@ export interface ImageInsertResult {
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
-    <div class="dialog-overlay" (click)="cancel()">
-      <div class="dialog-content" (click)="$event.stopPropagation()">
+    <div class="dialog-overlay" role="button" tabindex="0" (click)="cancel()" (keyup.escape)="cancel()">
+      <div class="dialog-content" role="button" tabindex="0" (click)="$event.stopPropagation()" (keyup.enter)="$event.stopPropagation()">
         <h3>Bild einfügen</h3>
         
         <div class="upload-tabs">
@@ -348,7 +348,7 @@ export class ImageUploadDialogComponent implements OnInit {
   private readonly imageService = inject(ImageService);
 
   ngOnInit(): void {
-    // Focus on the dialog
+    // Component initialization - focus handling happens in template
   }
 
   onFileSelected(event: Event): void {

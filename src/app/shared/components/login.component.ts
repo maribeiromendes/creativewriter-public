@@ -2,7 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { AuthService, User } from '../../core/services/auth.service';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -255,8 +255,8 @@ export class LoginComponent implements OnInit {
     try {
       await this.authService.login(this.username, this.displayName || undefined);
       // Login successful - component will hide automatically
-    } catch (error: any) {
-      this.errorMessage = error.message || 'Anmeldung fehlgeschlagen';
+    } catch (error: unknown) {
+      this.errorMessage = error instanceof Error ? error.message : 'Anmeldung fehlgeschlagen';
     } finally {
       this.isLoading = false;
     }
