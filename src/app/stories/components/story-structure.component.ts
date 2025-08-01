@@ -1334,6 +1334,16 @@ export class StoryStructureComponent implements OnInit, OnChanges, AfterViewInit
       return;
     }
     
+    // Get settings to check API availability
+    const settings = this.settingsService.getSettings();
+    const openRouterAvailable = settings.openRouter.enabled && settings.openRouter.apiKey;
+    const googleGeminiAvailable = settings.googleGemini.enabled && settings.googleGemini.apiKey;
+    
+    if (!openRouterAvailable && !googleGeminiAvailable) {
+      alert('Kein AI API konfiguriert. Bitte konfigurieren Sie OpenRouter oder Google Gemini in den Einstellungen.');
+      return;
+    }
+    
     this.isGeneratingSummary.add(sceneId);
     this.cdr.detectChanges(); // Force change detection for mobile
     
@@ -1368,11 +1378,102 @@ ${sceneContent}${contentTruncated ? '\n\n[Hinweis: Der Inhalt wurde gekürzt, da
 
 Die Zusammenfassung soll die wichtigsten Handlungspunkte und Charakterentwicklungen erfassen. Schreibe eine vollständige und umfassende Zusammenfassung mit mindestens 3-5 Sätzen.`;
 
-    this.openRouterApiService.generateText(prompt, {
-      model: this.selectedModel,
-      maxTokens: 3000,
-      temperature: 0.3
-    }).subscribe({
+    // Extract provider from model if available
+    let provider: string | null = null;
+    let actualModelId: string | null = null;
+    
+    if (this.selectedModel) {
+      const [modelProvider, ...modelIdParts] = this.selectedModel.split(':');
+      provider = modelProvider;
+      actualModelId = modelIdParts.join(':'); // Rejoin in case model ID contains colons
+    }
+    
+    // Determine which API to use
+    const useGoogleGemini = (provider === 'gemini' && googleGeminiAvailable) || 
+                           (provider !== 'gemini' && provider !== 'openrouter' && googleGeminiAvailable && !openRouterAvailable);
+    const useOpenRouter = (provider === 'openrouter' && openRouterAvailable) || 
+                         (provider !== 'gemini' && provider !== 'openrouter' && openRouterAvailable);
+    
+    // Set the actual model ID for fallback cases
+    if (provider !== 'gemini' && provider !== 'openrouter') {
+      actualModelId = this.selectedModel; // Use the full model string for fallback
+    }
+
+    // Use the appropriate API
+    if (useGoogleGemini) {
+      this.googleGeminiApiService.generateText(prompt, {
+        model: actualModelId!,
+        maxTokens: 3000,
+        temperature: 0.3
+      }).subscribe({
+        next: async (response) => {
+          let summary = '';
+          
+          // Google Gemini response format
+          if (response.candidates && response.candidates.length > 0) {
+            const candidate = response.candidates[0];
+            if (candidate.content && candidate.content.parts && candidate.content.parts.length > 0) {
+              summary = candidate.content.parts[0].text.trim();
+            }
+          }
+          
+          if (summary) {
+            // Check if summary seems incomplete (ends abruptly without proper punctuation)
+            if (summary && !summary.match(/[.!?]$/)) {
+              summary += '.'; // Add period if missing
+            }
+            
+            // Update the scene summary in the local object first
+            if (scene) {
+              scene.summary = summary;
+              scene.summaryGeneratedAt = new Date();
+            }
+            
+            // Force change detection before service update
+            this.cdr.detectChanges();
+            
+            // Update in service
+            await this.updateSceneSummary(chapterId, sceneId, summary);
+            await this.storyService.updateScene(this.story.id, chapterId, sceneId, {
+              summary: summary,
+              summaryGeneratedAt: scene?.summaryGeneratedAt || new Date()
+            });
+            
+            // Refresh the story data to ensure consistency
+            const updatedStory = await this.storyService.getStory(this.story.id);
+            if (updatedStory) {
+              this.story = updatedStory;
+            }
+          }
+          clearTimeout(timeoutId); // Clear timeout on success
+          this.isGeneratingSummary.delete(sceneId);
+          this.cdr.detectChanges(); // Force change detection
+          
+          // Ensure textarea is properly resized and updated after content update
+          setTimeout(() => {
+            if (scene && scene.summary) {
+              this.updateTextareaValue(sceneId, scene.summary);
+            }
+            this.resizeTextareaForScene(sceneId);
+            this.cdr.detectChanges();
+          }, 150);
+        },
+        error: (error) => {
+          console.error('Error generating scene summary:', error);
+          clearTimeout(timeoutId); // Clear timeout on error
+          
+          const errorMessage = 'Fehler beim Generieren der Zusammenfassung.';
+          alert(errorMessage);
+          this.isGeneratingSummary.delete(sceneId);
+          this.cdr.detectChanges(); // Force change detection
+        }
+      });
+    } else if (useOpenRouter) {
+      this.openRouterApiService.generateText(prompt, {
+        model: actualModelId!,
+        maxTokens: 3000,
+        temperature: 0.3
+      }).subscribe({
       next: async (response) => {
         if (response.choices && response.choices.length > 0) {
           let summary = response.choices[0].message.content.trim();
@@ -1447,8 +1548,9 @@ Die Zusammenfassung soll die wichtigsten Handlungspunkte und Charakterentwicklun
         alert(errorMessage);
         this.isGeneratingSummary.delete(sceneId);
         this.cdr.detectChanges(); // Force change detection
-      }
-    });
+        }
+      });
+    }
   }
   
   generateSceneTitle(chapterId: string, sceneId: string, event: Event): void {
@@ -1468,6 +1570,15 @@ Die Zusammenfassung soll die wichtigsten Handlungspunkte und Charakterentwicklun
       return;
     }
     
+    // Check which APIs are available and configured
+    const openRouterAvailable = settings.openRouter.enabled && settings.openRouter.apiKey;
+    const googleGeminiAvailable = settings.googleGemini.enabled && settings.googleGemini.apiKey;
+    
+    if (!openRouterAvailable && !googleGeminiAvailable) {
+      alert('Kein AI API konfiguriert. Bitte konfigurieren Sie OpenRouter oder Google Gemini in den Einstellungen.');
+      return;
+    }
+    
     // Extract provider and actual model ID from the combined format
     let provider: string | null = null;
     let actualModelId: string | null = null;
@@ -1478,13 +1589,15 @@ Die Zusammenfassung soll die wichtigsten Handlungspunkte und Charakterentwicklun
       actualModelId = modelIdParts.join(':'); // Rejoin in case model ID contains colons
     }
     
-    // Check which API to use based on the model's provider
-    const useGoogleGemini = provider === 'gemini' && settings.googleGemini.enabled && settings.googleGemini.apiKey;
-    const useOpenRouter = provider === 'openrouter' && settings.openRouter.enabled && settings.openRouter.apiKey;
+    // Determine which API to use based on the model's provider and availability
+    const useGoogleGemini = (provider === 'gemini' && googleGeminiAvailable) || 
+                           (provider !== 'gemini' && provider !== 'openrouter' && googleGeminiAvailable && !openRouterAvailable);
+    const useOpenRouter = (provider === 'openrouter' && openRouterAvailable) || 
+                         (provider !== 'gemini' && provider !== 'openrouter' && openRouterAvailable);
     
-    if (!useGoogleGemini && !useOpenRouter) {
-      alert('Kein AI API konfiguriert. Bitte konfigurieren Sie OpenRouter oder Google Gemini in den Einstellungen.');
-      return;
+    // Set the actual model ID for fallback cases
+    if (provider !== 'gemini' && provider !== 'openrouter') {
+      actualModelId = modelToUse; // Use the full model string for fallback
     }
     
     this.isGeneratingTitle.add(sceneId);
@@ -1608,7 +1721,7 @@ Antworte nur mit dem Titel, ohne weitere Erklärungen oder Anführungszeichen.`;
           this.cdr.detectChanges(); // Force change detection
         }
       });
-    } else {
+    } else if (useOpenRouter) {
       this.openRouterApiService.generateText(prompt, {
         model: actualModelId!,
         maxTokens: Math.max(50, titleSettings.maxWords * 6), // Allow more tokens for longer titles (up to 20 words)
