@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon, IonList, IonItem, IonLabel, IonNote, IonProgressBar, IonBadge, IonGrid, IonRow, IonCol } from '@ionic/angular/standalone';
 import { PopoverController } from '@ionic/angular/standalone';
@@ -404,27 +404,27 @@ import { TokenCounterService, SupportedModel, TokenCountResult } from '../servic
   `]
 })
 export class TokenInfoPopoverComponent implements OnInit {
-  @Input() prompt: string = '';
+  @Input() prompt = '';
   @Input() model: SupportedModel = 'claude-3.7-sonnet';
-  @Input() showComparison: boolean = false;
+  @Input() showComparison = false;
 
   tokenResult!: TokenCountResult;
   modelInfo!: ReturnType<TokenCounterService['getModelInfo']>;
-  usagePercentage: number = 0;
-  loading: boolean = true;
+  usagePercentage = 0;
+  loading = true;
   Math = Math;
 
-  comparisonModels: Array<{ id: SupportedModel; name: string }> = [
+  comparisonModels: { id: SupportedModel; name: string }[] = [
     { id: 'claude-3.5-sonnet', name: 'Claude 3.5' },
     { id: 'claude-3.7-sonnet', name: 'Claude 3.7' },
     { id: 'gemini-2.5-pro', name: 'Gemini 2.5' },
     { id: 'grok-3', name: 'Grok-3' }
   ];
 
-  constructor(
-    private popoverController: PopoverController,
-    private tokenCounter: TokenCounterService
-  ) {
+  private popoverController = inject(PopoverController);
+  private tokenCounter = inject(TokenCounterService);
+
+  constructor() {
     addIcons({ closeOutline, informationCircleOutline });
   }
 

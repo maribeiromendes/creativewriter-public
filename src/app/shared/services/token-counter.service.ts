@@ -1,6 +1,5 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { firstValueFrom } from 'rxjs';
 
 export interface TokenCountResult {
   tokens: number;
@@ -30,7 +29,7 @@ export class TokenCounterService {
     'custom': 4.0
   };
 
-  constructor(private http: HttpClient) {}
+  private http = inject(HttpClient);
 
   async countTokens(prompt: string, model: SupportedModel = 'claude-3.7-sonnet'): Promise<TokenCountResult> {
     const cleanedPrompt = this.preprocessText(prompt);
@@ -38,7 +37,7 @@ export class TokenCounterService {
     // Try to use improved estimation for Claude models
     if (this.isClaudeModel(model)) {
       try {
-        const tokens = await this.countTokensWithImprovedEstimation(cleanedPrompt, model);
+        const tokens = await this.countTokensWithImprovedEstimation(cleanedPrompt);
         return {
           tokens,
           model,
@@ -107,7 +106,7 @@ export class TokenCounterService {
     return Math.ceil(count);
   }
 
-  private async countTokensWithImprovedEstimation(prompt: string, model: SupportedModel): Promise<number> {
+  private async countTokensWithImprovedEstimation(prompt: string): Promise<number> {
     // Improved estimation algorithm based on Claude tokenization patterns
     const tokens = this.getImprovedClaudeTokenCount(prompt);
     return tokens;
@@ -142,20 +141,19 @@ export class TokenCounterService {
     return Math.max(1, tokenCount); // Minimum 1 token
   }
 
-  private segmentTextForTokenization(text: string): Array<{type: string, content: string}> {
-    const segments: Array<{type: string, content: string}> = [];
+  private segmentTextForTokenization(text: string): {type: string, content: string}[] {
+    const segments: {type: string, content: string}[] = [];
     let currentSegment = '';
     let currentType = '';
     
-    for (let i = 0; i < text.length; i++) {
-      const char = text[i];
+    for (const char of text) {
       let charType = '';
       
       if (/\s/.test(char)) {
         charType = 'whitespace';
       } else if (/[a-zA-Z0-9]/.test(char)) {
         charType = 'word';
-      } else if (/[.!?,:;"'()\[\]{}]/.test(char)) {
+      } else if (/[.!?,:;"'()[\]{}]/.test(char)) {
         charType = 'punctuation';
       } else {
         charType = 'special';

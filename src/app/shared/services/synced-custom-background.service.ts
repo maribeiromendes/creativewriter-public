@@ -302,11 +302,14 @@ export class SyncedCustomBackgroundService {
         }
       });
 
-      const docsToDelete = result.docs.map((doc: any) => ({
-        _id: doc._id,
-        _rev: doc._rev,
-        _deleted: true
-      }));
+      const docsToDelete = result.docs.map((doc: unknown) => {
+        const existingDoc = doc as PouchDB.Core.ExistingDocument & CustomBackground;
+        return {
+          _id: existingDoc._id,
+          _rev: existingDoc._rev,
+          _deleted: true
+        };
+      });
 
       if (docsToDelete.length > 0) {
         await db.bulkDocs(docsToDelete);

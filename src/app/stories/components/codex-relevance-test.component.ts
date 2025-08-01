@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { CodexService } from '../services/codex.service';
 import { CodexRelevanceService } from '../../core/services/codex-relevance.service';
 import { BeatAIService } from '../../shared/services/beat-ai.service';
+import { CodexEntry } from '../models/codex.interface';
 
 @Component({
   selector: 'app-codex-relevance-test',
@@ -45,11 +46,10 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
           <div class="entry-header">
             <strong>{{ entry.title }}</strong>
             <span class="category">{{ entry.category }}</span>
-            <span class="importance">{{ entry.importance }}</span>
           </div>
           <div class="entry-content">{{ entry.content }}</div>
-          <div class="entry-meta" *ngIf="entry.aliases?.length">
-            Aliases: {{ entry.aliases.join(', ') }}
+          <div class="entry-meta" *ngIf="entry.keywords?.length">
+            Keywords: {{ entry.keywords.join(', ') }}
           </div>
         </div>
       </div>
@@ -190,7 +190,7 @@ export class CodexRelevanceTestComponent implements OnInit {
   
   sceneContext = '';
   beatPrompt = '';
-  results: any[] | null = null;
+  results: import('../../core/services/codex-relevance.service').CodexEntry[] | null = null;
   
   ngOnInit() {
     // Set default test values
@@ -201,7 +201,33 @@ export class CodexRelevanceTestComponent implements OnInit {
   async testRelevance() {
     // Get all codex entries and convert them
     const allCodexEntries = this.codexService.getAllCodexEntries(this.storyId);
-    const convertedEntries = (this.beatAIService as any).convertCodexEntriesToRelevanceFormat(allCodexEntries);
+    // Convert entries to the format expected by codex relevance service
+    const convertedEntries: import('../../core/services/codex-relevance.service').CodexEntry[] = [];
+    
+    for (const categoryData of allCodexEntries) {
+      const categoryMap: Record<string, 'character' | 'location' | 'object' | 'lore' | 'other'> = {
+        'Charaktere': 'character',
+        'Orte': 'location', 
+        'Gegenstände': 'object',
+        'Notizen': 'other',
+        'Lore': 'lore'
+      };
+      
+      const category = categoryMap[categoryData.category] || 'other';
+      
+      for (const entry of categoryData.entries) {
+        convertedEntries.push({
+          id: entry.id,
+          title: entry.title,
+          category,
+          content: entry.content,
+          aliases: [], // Would need to extract from metadata
+          keywords: entry.tags || [],
+          importance: 'minor' as const,
+          globalInclude: entry.alwaysInclude
+        });
+      }
+    }
     
     // Get relevant entries
     this.results = await this.codexRelevanceService.getRelevantEntries(

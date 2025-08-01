@@ -82,7 +82,7 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
                       
                       <!-- Category menu -->
                       <ion-list *ngIf="categoryMenuId() === category.id" class="category-menu">
-                        <ion-item button (click)="editCategory(category)">
+                        <ion-item button (click)="editCategory()">
                           <ion-icon name="create" slot="start"></ion-icon>
                           <ion-label>Bearbeiten</ion-label>
                         </ion-item>
@@ -1234,7 +1234,7 @@ export class CodexComponent implements OnInit, OnDestroy {
     }
   }
 
-  editCategory(_category: CodexCategory) {
+  editCategory() {
     // TODO: Implement category editing
     this.categoryMenuId.set(null);
   }

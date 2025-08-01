@@ -863,7 +863,7 @@ export class NovelCrafterImportComponent {
   }
 
   getFieldName(field: unknown): string {
-    return (field as any)?.name || '';
+    return (field as { name?: string })?.name || '';
   }
 
   goToStory() {

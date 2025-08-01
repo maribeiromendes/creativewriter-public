@@ -73,7 +73,7 @@ export class BeatAINodeView implements NodeView {
       this.deleteNode();
     });
     
-    this.componentRef.instance.focus.subscribe(() => {
+    this.componentRef.instance.beatFocus.subscribe(() => {
       // When beat AI gets focus, hide any open slash dropdown
       if (this.onBeatFocus) {
         this.onBeatFocus();

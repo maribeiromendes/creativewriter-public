@@ -34,7 +34,7 @@ import { VersionService } from '../../core/services/version.service';
       [rightActions]="rightActions"
       [showUserInfo]="!!currentUser"
       [userGreeting]="currentUser ? '👋 ' + (currentUser.displayName || currentUser.username) : ''"
-      (burgerMenuToggle)="onBurgerMenuToggle($event)">
+      (burgerMenuToggle)="onBurgerMenuToggle()">
       
       <app-sync-status 
         slot="user-status" 
@@ -945,7 +945,7 @@ export class StoryListComponent implements OnInit {
     this.fabMenuOpen = !this.fabMenuOpen;
   }
 
-  onBurgerMenuToggle(_isOpen: boolean): void {
+  onBurgerMenuToggle(): void {
     // Handle burger menu state changes if needed
   }
   

@@ -24,6 +24,7 @@ import { AIRequestLoggerService } from '../../core/services/ai-request-logger.se
 import { ModelService } from '../../core/services/model.service';
 import { Story, Scene, Chapter } from '../models/story.interface';
 import { ModelOption } from '../../core/models/model.interface';
+import { StoryRole } from '../models/codex.interface';
 import { Subscription, Observable, of, from } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 import { NgSelectModule } from '@ng-select/ng-select';
@@ -710,7 +711,7 @@ export class SceneChatComponent implements OnInit, OnDestroy {
 
   @ViewChild('scrollContainer') scrollContainer!: ElementRef;
   @ViewChild('messageInput') messageInput!: ElementRef;
-  @ViewChild('modelToolbar', { read: TemplateRef }) modelToolbar!: TemplateRef<any>;
+  @ViewChild('modelToolbar', { read: TemplateRef }) modelToolbar!: TemplateRef<unknown>;
 
   story: Story | null = null;
   activeChapterId = '';
@@ -1152,7 +1153,7 @@ Strukturiere die Antwort klar nach Gegenständen getrennt.`
           title: entry.name,
           content: entry.description,
           tags: entry.tags || [],
-          storyRole: message.extractionType === 'characters' ? (entry.role as any) : undefined
+          storyRole: message.extractionType === 'characters' ? (entry.role as StoryRole) : undefined
         });
       }
 
@@ -1252,8 +1253,8 @@ Strukturiere die Antwort klar nach Gegenständen getrennt.`
       
       // Create a simple API call based on configuration
       const apiCall = useGoogleGemini 
-        ? this.callGeminiAPI(prompt, { ...options, model: actualModelId }, beatId)
-        : this.callOpenRouterAPI(prompt, { ...options, model: actualModelId }, beatId);
+        ? this.callGeminiAPI(prompt, { ...options, model: actualModelId })
+        : this.callOpenRouterAPI(prompt, { ...options, model: actualModelId });
         
       apiCall.subscribe({
         next: (chunk) => {
@@ -1294,7 +1295,7 @@ Strukturiere die Antwort klar nach Gegenständen getrennt.`
     });
   }
   
-  private callGeminiAPI(prompt: string, options: { wordCount: number; model?: string | null }, _beatId: string): Observable<string> {
+  private callGeminiAPI(prompt: string, options: { wordCount: number; model?: string | null }): Observable<string> {
     const settings = this.settingsService.getSettings();
     const apiKey = settings.googleGemini.apiKey;
     const model = options.model || settings.googleGemini.model || 'gemini-1.5-flash';
@@ -1328,7 +1329,7 @@ Strukturiere die Antwort klar nach Gegenständen getrennt.`
     );
   }
   
-  private callOpenRouterAPI(prompt: string, options: { wordCount: number; model?: string | null }, _beatId: string): Observable<string> {
+  private callOpenRouterAPI(prompt: string, options: { wordCount: number; model?: string | null }): Observable<string> {
     const settings = this.settingsService.getSettings();
     const apiKey = settings.openRouter.apiKey;
     const model = options.model || settings.openRouter.model || 'anthropic/claude-3-haiku';

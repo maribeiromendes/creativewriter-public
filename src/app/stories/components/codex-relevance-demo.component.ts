@@ -366,12 +366,16 @@ export class CodexRelevanceDemoComponent {
     this.relevanceScores = {};
     
     for (const entry of this.sampleEntries) {
-      const score = (this.relevanceService as any).calculateRelevanceScore(
+      const score = (this.relevanceService as unknown as { calculateRelevanceScore: (entry: CodexEntry, context: string, settings: unknown) => number }).calculateRelevanceScore(
         entry,
         this.testContext,
         this.testPrompt
       );
-      this.relevanceScores[entry.id] = score;
+      this.relevanceScores[entry.id] = {
+        entryId: entry.id,
+        score: score,
+        reasons: [] // The service doesn't provide reasons in this demo
+      };
     }
     
     // Get selected entries

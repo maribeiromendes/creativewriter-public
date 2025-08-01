@@ -2,6 +2,7 @@ import { Component, Input, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CodexService } from '../services/codex.service';
+import { Codex, CodexEntry } from '../models/codex.interface';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -32,14 +33,15 @@ import { Subscription } from 'rxjs';
                 />
                 <span class="entry-title">{{ entry.title }}</span>
                 <span class="entry-type" *ngIf="entry.metadata?.['storyRole']">
-                  ({{ entry.metadata['storyRole'] }})
+                  ({{ entry.metadata?.['storyRole'] }})
                 </span>
               </label>
               
               <div class="aliases" *ngIf="entry.metadata?.['aliases']">
                 <input 
                   type="text" 
-                  [(ngModel)]="entry.metadata['aliases']"
+                  [ngModel]="entry.metadata?.['aliases'] || ''"
+                  (ngModelChange)="updateEntryAliases(entry.id, $event)"
                   (blur)="updateAliases(entry.id, $event)"
                   placeholder="Aliase (kommagetrennt)"
                   class="alias-input"
@@ -177,7 +179,7 @@ export class CodexRelevanceSettingsComponent implements OnInit, OnDestroy {
 
   @Input() storyId!: string;
   
-  codex: any = null;
+  codex: Codex | null = null;
   globalIncludes: Record<string, boolean> = {};
   private subscription = new Subscription();
   
@@ -208,8 +210,8 @@ export class CodexRelevanceSettingsComponent implements OnInit, OnDestroy {
     const isGlobal = checkbox.checked;
     
     // Find the entry and update its metadata
-    for (const category of this.codex.categories) {
-      const entry = category.entries.find((e: any) => e.id === entryId);
+    for (const category of this.codex?.categories || []) {
+      const entry = category.entries.find((e: CodexEntry) => e.id === entryId);
       if (entry) {
         if (!entry.metadata) {
           entry.metadata = {};
@@ -223,13 +225,21 @@ export class CodexRelevanceSettingsComponent implements OnInit, OnDestroy {
     }
   }
   
+  updateEntryAliases(entryId: string, aliases: string) {
+    this.updateAliasesInternal(entryId, aliases);
+  }
+
   async updateAliases(entryId: string, event: Event) {
     const input = event.target as HTMLInputElement;
     const aliases = input.value;
+    this.updateAliasesInternal(entryId, aliases);
+  }
+
+  private async updateAliasesInternal(entryId: string, aliases: string) {
     
     // Find the entry and update its metadata
-    for (const category of this.codex.categories) {
-      const entry = category.entries.find((e: any) => e.id === entryId);
+    for (const category of this.codex?.categories || []) {
+      const entry = category.entries.find((e: CodexEntry) => e.id === entryId);
       if (entry) {
         if (!entry.metadata) {
           entry.metadata = {};

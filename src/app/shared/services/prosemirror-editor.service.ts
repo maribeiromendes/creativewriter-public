@@ -92,12 +92,12 @@ export class ProseMirrorEditorService {
             title: dom.getAttribute('title') || null
           })
         }],
-        toDOM: (node: any) => [
+        toDOM: (node: ProseMirrorNode) => [
           'img',
           {
-            src: node.attrs.src,
-            alt: node.attrs.alt,
-            title: node.attrs.title,
+            src: node.attrs['src'],
+            alt: node.attrs['alt'],
+            title: node.attrs['title'],
             style: 'max-width: 100%; height: auto; display: block; margin: 1rem auto;'
           }
         ]
@@ -117,27 +117,27 @@ export class ProseMirrorEditorService {
         },
         group: 'block',
         atom: true,
-        toDOM: (node: any) => {
+        toDOM: (node: ProseMirrorNode) => {
           const attrs = {
             class: 'beat-ai-node',
-            'data-id': node.attrs.id || '',
-            'data-prompt': node.attrs.prompt || '',
-            'data-content': node.attrs.generatedContent || '',
-            'data-generating': node.attrs.isGenerating ? 'true' : 'false',
-            'data-editing': node.attrs.isEditing ? 'true' : 'false',
-            'data-created': node.attrs.createdAt || '',
-            'data-updated': node.attrs.updatedAt || '',
-            'data-word-count': node.attrs.wordCount || 400,
-            'data-beat-type': node.attrs.beatType || 'story',
-            'data-model': node.attrs.model || ''
+            'data-id': node.attrs['id'] || '',
+            'data-prompt': node.attrs['prompt'] || '',
+            'data-content': node.attrs['generatedContent'] || '',
+            'data-generating': node.attrs['isGenerating'] ? 'true' : 'false',
+            'data-editing': node.attrs['isEditing'] ? 'true' : 'false',
+            'data-created': node.attrs['createdAt'] || '',
+            'data-updated': node.attrs['updatedAt'] || '',
+            'data-word-count': node.attrs['wordCount'] || 400,
+            'data-beat-type': node.attrs['beatType'] || 'story',
+            'data-model': node.attrs['model'] || ''
           };
           
           // Create content to make the beat visible in saved HTML
           const content = [];
-          if (node.attrs.prompt) {
+          if (node.attrs['prompt']) {
             content.push(['div', { style: 'border: 1px solid #404040; padding: 0.5rem; margin: 0.5rem 0; background: #3a3a3a; border-radius: 4px;' }, 
               ['strong', '🎭 Beat AI'],
-              ['div', { style: 'color: #adb5bd; font-style: italic; margin-top: 0.25rem;' }, 'Prompt: ' + node.attrs.prompt]
+              ['div', { style: 'color: #adb5bd; font-style: italic; margin-top: 0.25rem;' }, 'Prompt: ' + node.attrs['prompt']]
             ]);
           }
           
@@ -145,7 +145,7 @@ export class ProseMirrorEditorService {
         },
         parseDOM: [{
           tag: 'div.beat-ai-node',
-          getAttrs: (dom: any) => {
+          getAttrs: (dom: HTMLElement) => {
             const attrs = {
               id: dom.getAttribute('data-id') || '',
               prompt: dom.getAttribute('data-prompt') || '',
@@ -189,7 +189,7 @@ export class ProseMirrorEditorService {
         'Enter': chainCommands(newlineInCode, createParagraphNear, liftEmptyBlock, splitBlock)
       }),
       keymap(baseKeymap),
-      this.createBeatAIPlugin(config),
+      this.createBeatAIPlugin(),
       this.createCodexHighlightingPlugin(config),
       this.createContextMenuPlugin()
     ];
@@ -626,14 +626,14 @@ export class ProseMirrorEditorService {
           'Enter': chainCommands(newlineInCode, createParagraphNear, liftEmptyBlock, splitBlock)
         }),
         keymap(baseKeymap),
-        this.createBeatAIPlugin({})
+        this.createBeatAIPlugin()
       ]
     });
     
     this.editorView.updateState(state);
   }
 
-  private createBeatAIPlugin(_config: EditorConfig): Plugin {
+  private createBeatAIPlugin(): Plugin {
     return new Plugin({
       key: new PluginKey('beatAI'),
       state: {
@@ -752,7 +752,7 @@ export class ProseMirrorEditorService {
     
     if (nodePos !== null && targetNode) {
       const newAttrs = {
-        ...(targetNode as any).attrs,
+        ...(targetNode as ProseMirrorNode).attrs,
         ...updates,
         updatedAt: new Date().toISOString()
       };
@@ -813,7 +813,7 @@ export class ProseMirrorEditorService {
   }
 
 
-  private isGeneratedContent(node: ProseMirrorNode, _beatId: string): boolean {
+  private isGeneratedContent(node: ProseMirrorNode): boolean {
     // For streaming, we consider all paragraphs after a beat node as generated content
     // until we hit another beat node or other special content
     return node.type.name === 'paragraph';
@@ -1242,7 +1242,7 @@ export class ProseMirrorEditorService {
   }
 
 
-  private findContainingParagraph(pos: number, state: any): number | null {
+  private findContainingParagraph(pos: number, state: EditorState): number | null {
     const $pos = state.doc.resolve(pos);
     
     // Walk up the tree to find the paragraph node
@@ -1329,7 +1329,7 @@ export class ProseMirrorEditorService {
     });
   }
 
-  private extractAllCodexEntries(codex: any): CodexEntry[] {
+  private extractAllCodexEntries(codex: import('../../stories/models/codex.interface').Codex): CodexEntry[] {
     const entries: CodexEntry[] = [];
     
     if (codex.categories) {
@@ -1556,7 +1556,7 @@ export class ProseMirrorEditorService {
     document.body.appendChild(menu);
     
     // Store reference for cleanup
-    (this as any).contextMenuElement = menu;
+    (this as unknown as { contextMenuElement: HTMLElement }).contextMenuElement = menu;
     
     // Position adjustment if menu goes off screen
     const rect = menu.getBoundingClientRect();
@@ -1569,10 +1569,10 @@ export class ProseMirrorEditorService {
   }
 
   private hideContextMenu(): void {
-    const menu = (this as any).contextMenuElement;
+    const menu = (this as unknown as { contextMenuElement: HTMLElement }).contextMenuElement;
     if (menu && menu.parentNode) {
       menu.parentNode.removeChild(menu);
-      (this as any).contextMenuElement = null;
+      (this as unknown as { contextMenuElement: HTMLElement | null }).contextMenuElement = null;
     }
   }
 

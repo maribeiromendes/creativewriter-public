@@ -780,7 +780,18 @@ export class GoogleGeminiApiService {
 
     // HTTP error response from Angular HttpClient
     const errorObj = error as { error?: { error?: { message?: string; code?: string; status?: string; details?: Record<string, unknown> } }; status?: number };
-    const errorAny = error as any;
+    const errorAny = error as unknown as { 
+      error?: { 
+        error?: { message?: string; code?: string; status?: string; details?: Record<string, unknown> };
+        message?: string;
+        code?: string;
+      } | string; 
+      status?: number; 
+      message?: string; 
+      statusText?: string;
+      code?: string;
+      name?: string;
+    };
     
     if (errorObj.error) {
       status = errorObj.status || status;
@@ -793,19 +804,19 @@ export class GoogleGeminiApiService {
         details = apiError.details;
       }
       // Direct error object: error.error.message
-      else if (errorAny['error'] && errorAny['error']['message']) {
-        message = errorAny['error']['message'] as string;
-        code = errorAny['error']['code'] as string;
+      else if (errorAny.error && typeof errorAny.error === 'object' && errorAny.error.message) {
+        message = errorAny.error.message;
+        code = errorAny.error.code || 'UNKNOWN_ERROR';
       }
       // String error response
-      else if (typeof errorAny['error'] === 'string') {
-        message = errorAny['error'];
+      else if (typeof errorAny.error === 'string') {
+        message = errorAny.error;
       }
     }
     // Network or other errors
-    else if (errorAny['message']) {
-      message = errorAny['message'] as string;
-      code = (errorAny['code'] || errorAny['name']) as string;
+    else if (errorAny.message) {
+      message = errorAny.message;
+      code = errorAny.code || errorAny.name || 'UNKNOWN_ERROR';
     }
 
     // Add HTTP status context
@@ -844,8 +855,25 @@ export class GoogleGeminiApiService {
   private extractContentFilterError(error: Record<string, unknown>): { message: string; code?: string; status?: number; details?: Record<string, unknown> } | null {
     let contentFilterMessage: string | null = null;
     const details: Record<string, unknown> = {};
-    const errorObj = error as { candidates?: Array<{ finishReason?: string }> };
-    const errorAny = error as any;
+    const errorObj = error as { candidates?: { finishReason?: string }[] };
+    const errorAny = error as unknown as { 
+      candidates?: { 
+        finishReason?: string;
+        safetyRatings?: Array<{ category: string; probability: string }>;
+      }[]; 
+      message?: string; 
+      statusText?: string;
+      promptFeedback?: {
+        blockReason?: string;
+        safetyRatings?: Array<{ category: string; probability: string }>;
+      };
+      error?: {
+        error?: {
+          message?: string;
+        };
+      };
+      status?: number;
+    };
 
     // Check for content filtering in successful responses with SAFETY finish reason
     if (errorObj.candidates?.[0]?.finishReason === 'SAFETY') {

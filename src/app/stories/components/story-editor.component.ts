@@ -66,7 +66,7 @@ import { PDFExportService } from '../../shared/services/pdf-export.service';
           [showBurgerMenu]="true"
           [burgerMenuItems]="burgerMenuItems"
           [burgerMenuFooterContent]="burgerMenuFooter"
-          (burgerMenuToggle)="onBurgerMenuToggle($event)">
+          (burgerMenuToggle)="onBurgerMenuToggle()">
         </app-header>
         
         <ng-template #headerTitle>
@@ -1425,7 +1425,7 @@ export class StoryEditorComponent implements OnInit, OnDestroy {
     this.router.navigate(['/ai-logs']);
   }
 
-  onBurgerMenuToggle(_isOpen: boolean): void {
+  onBurgerMenuToggle(): void {
     // Handle burger menu state changes if needed
   }
   

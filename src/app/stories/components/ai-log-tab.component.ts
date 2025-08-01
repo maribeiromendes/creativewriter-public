@@ -1031,7 +1031,7 @@ export class AILogTabComponent implements OnInit, OnDestroy {
            !!(log.apiProvider === 'gemini' && log.status === 'success');
   }
 
-  getPromptFeedback(log: AIRequestLog): any {
+  getPromptFeedback(log: AIRequestLog): { blockReason?: string; safetyRatings?: { category: string; probability: string }[]; synthetic?: boolean; note?: string } | undefined {
     // Check in the new safetyRatings field first (highest priority)
     if (log.safetyRatings?.promptFeedback) {
       return log.safetyRatings.promptFeedback;
@@ -1077,7 +1077,7 @@ export class AILogTabComponent implements OnInit, OnDestroy {
       };
     }
     
-    return null;
+    return undefined;
   }
 
   formatSafetyCategory(category: string): string {
@@ -1102,7 +1102,7 @@ export class AILogTabComponent implements OnInit, OnDestroy {
     return !!(this.getCandidateSafetyRatings(log)?.length || this.getCandidateFinishReason(log));
   }
 
-  getCandidateSafetyRatings(log: AIRequestLog): any[] {
+  getCandidateSafetyRatings(log: AIRequestLog): { category: string; probability: string }[] {
     // Check in the new safetyRatings field first
     if (log.safetyRatings?.candidateSafetyRatings) {
       return log.safetyRatings.candidateSafetyRatings;
@@ -1110,7 +1110,7 @@ export class AILogTabComponent implements OnInit, OnDestroy {
     
     // Check in debug info for candidate safety ratings
     if (log.requestDetails?.debugInfo?.['safetyRatings']) {
-      return log.requestDetails.debugInfo['safetyRatings'] as any[];
+      return log.requestDetails.debugInfo['safetyRatings'] as { category: string; probability: string }[];
     }
     
     // For successful Gemini requests, provide default safety ratings to show the section
