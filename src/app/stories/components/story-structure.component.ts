@@ -304,9 +304,7 @@ import { Subscription } from 'rxjs';
     .story-structure {
       width: 100%;
       height: 100%;
-      background: rgba(26, 26, 26, 0.95); /* Semi-transparent dark background */
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
+      background: transparent;
       border-right: 1px solid rgba(255, 255, 255, 0.2);
       display: flex;
       flex-direction: column;
@@ -319,7 +317,7 @@ import { Subscription } from 'rxjs';
       justify-content: space-between;
       padding: 1rem;
       border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-      background: rgba(0, 0, 0, 0.3);
+      background: rgba(0, 0, 0, 0.7);
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
     }
@@ -409,7 +407,7 @@ import { Subscription } from 'rxjs';
     
     .chapter-item {
       margin-bottom: 0.5rem;
-      background: linear-gradient(135deg, rgba(20, 20, 20, 0.3) 0%, rgba(15, 15, 15, 0.3) 100%);
+      background: linear-gradient(135deg, rgba(20, 20, 20, 0.7) 0%, rgba(15, 15, 15, 0.7) 100%);
       border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 12px;
       backdrop-filter: blur(8px) saturate(120%);
@@ -420,7 +418,7 @@ import { Subscription } from 'rxjs';
     }
     
     .chapter-item:hover {
-      background: linear-gradient(135deg, rgba(25, 25, 25, 0.4) 0%, rgba(20, 20, 20, 0.4) 100%);
+      background: linear-gradient(135deg, rgba(25, 25, 25, 0.8) 0%, rgba(20, 20, 20, 0.8) 100%);
       border-color: rgba(71, 118, 230, 0.3);
       box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
       transform: translateY(-2px);
@@ -458,8 +456,8 @@ import { Subscription } from 'rxjs';
     }
     
     .scene-item {
-      --background: rgba(30, 30, 30, 0.4);
-      --background-hover: rgba(71, 118, 230, 0.3);
+      --background: rgba(30, 30, 30, 0.6);
+      --background-hover: rgba(71, 118, 230, 0.5);
       --color: #f8f9fa;
       --border-radius: 8px;
       margin-bottom: 0.25rem;
