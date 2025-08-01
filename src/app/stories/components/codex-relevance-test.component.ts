@@ -4,7 +4,6 @@ import { FormsModule } from '@angular/forms';
 import { CodexService } from '../services/codex.service';
 import { CodexRelevanceService } from '../../core/services/codex-relevance.service';
 import { BeatAIService } from '../../shared/services/beat-ai.service';
-import { CodexEntry } from '../models/codex.interface';
 
 @Component({
   selector: 'app-codex-relevance-test',

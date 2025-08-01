@@ -859,13 +859,13 @@ export class GoogleGeminiApiService {
     const errorAny = error as unknown as { 
       candidates?: { 
         finishReason?: string;
-        safetyRatings?: Array<{ category: string; probability: string }>;
+        safetyRatings?: { category: string; probability: string }[];
       }[]; 
       message?: string; 
       statusText?: string;
       promptFeedback?: {
         blockReason?: string;
-        safetyRatings?: Array<{ category: string; probability: string }>;
+        safetyRatings?: { category: string; probability: string }[];
       };
       error?: {
         error?: {
