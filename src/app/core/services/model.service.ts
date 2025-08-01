@@ -102,16 +102,8 @@ export class ModelService {
     this.loadingSubject.next(true);
 
     // Gemini models are predefined since the API doesn't provide a models list endpoint
+    // Prioritize Gemini 2.5 Pro first as requested
     const predefinedModels: ModelOption[] = [
-      {
-        id: 'gemini-2.5-flash',
-        label: 'Gemini 2.5 Flash',
-        description: 'Google\'s fastest and most cost-effective model with multimodal capabilities',
-        costInputEur: '0.07 €',
-        costOutputEur: '0.21 €',
-        contextLength: 1000000,
-        provider: 'gemini'
-      },
       {
         id: 'gemini-2.5-pro',
         label: 'Gemini 2.5 Pro',
@@ -122,9 +114,9 @@ export class ModelService {
         provider: 'gemini'
       },
       {
-        id: 'gemini-1.5-flash',
-        label: 'Gemini 1.5 Flash',
-        description: 'Fast and efficient model with good performance for most tasks',
+        id: 'gemini-2.5-flash',
+        label: 'Gemini 2.5 Flash',
+        description: 'Google\'s fastest and most cost-effective model with multimodal capabilities',
         costInputEur: '0.07 €',
         costOutputEur: '0.21 €',
         contextLength: 1000000,
@@ -137,6 +129,15 @@ export class ModelService {
         costInputEur: '3.50 €',
         costOutputEur: '10.50 €',
         contextLength: 2000000,
+        provider: 'gemini'
+      },
+      {
+        id: 'gemini-1.5-flash',
+        label: 'Gemini 1.5 Flash',
+        description: 'Fast and efficient model with good performance for most tasks',
+        costInputEur: '0.07 €',
+        costOutputEur: '0.21 €',
+        contextLength: 1000000,
         provider: 'gemini'
       }
     ];
@@ -175,19 +176,29 @@ export class ModelService {
         };
       })
       .sort((a, b) => {
-        // Sort by popularity/brand first, then alphabetically
-        const getPopularityScore = (label: string) => {
+        // Sort by priority models first, then by popularity/brand, then alphabetically
+        const getPriorityScore = (id: string, label: string) => {
           const lowerLabel = label.toLowerCase();
-          if (lowerLabel.includes('claude')) return 1;
-          if (lowerLabel.includes('gpt-4')) return 2;
-          if (lowerLabel.includes('gpt-3.5')) return 3;
-          if (lowerLabel.includes('gemini')) return 4;
-          if (lowerLabel.includes('llama')) return 5;
-          return 10;
+          const lowerId = id.toLowerCase();
+          
+          // Priority models (highest priority = lowest score)
+          if (lowerLabel.includes('claude 3.7 sonnet') || lowerId.includes('claude-3-5-sonnet-v2') || lowerId.includes('claude-3.7-sonnet')) return 1;
+          if (lowerLabel.includes('gemini 2.5 pro') || lowerId.includes('gemini-2.5-pro')) return 2;
+          if (lowerLabel.includes('grok3') || lowerLabel.includes('grok-3') || lowerId.includes('grok-3') || lowerId.includes('grok3')) return 3;
+          if (lowerLabel.includes('claude sonnet 4') || lowerId.includes('claude-sonnet-4') || lowerLabel.includes('sonnet 4')) return 4;
+          
+          // Secondary priority models
+          if (lowerLabel.includes('claude') && !lowerLabel.includes('haiku')) return 10;
+          if (lowerLabel.includes('gpt-4')) return 11;
+          if (lowerLabel.includes('gpt-3.5')) return 12;
+          if (lowerLabel.includes('gemini')) return 13;
+          if (lowerLabel.includes('llama')) return 14;
+          
+          return 100; // Everything else
         };
         
-        const scoreA = getPopularityScore(a.label);
-        const scoreB = getPopularityScore(b.label);
+        const scoreA = getPriorityScore(a.id, a.label);
+        const scoreB = getPriorityScore(b.id, b.label);
         
         if (scoreA !== scoreB) {
           return scoreA - scoreB;
@@ -313,10 +324,42 @@ export class ModelService {
         const allModels = results.flat();
         
         // Add provider prefix to model IDs to ensure uniqueness
-        return allModels.map(model => ({
+        const modelsWithPrefixes = allModels.map(model => ({
           ...model,
           id: `${model.provider}:${model.id}`
         }));
+        
+        // Apply the same priority sorting to combined models
+        return modelsWithPrefixes.sort((a, b) => {
+          const getPriorityScore = (id: string, label: string) => {
+            const lowerLabel = label.toLowerCase();
+            const lowerId = id.toLowerCase();
+            
+            // Priority models (highest priority = lowest score)
+            if (lowerLabel.includes('claude 3.7 sonnet') || lowerId.includes('claude-3-5-sonnet-v2') || lowerId.includes('claude-3.7-sonnet')) return 1;
+            if (lowerLabel.includes('gemini 2.5 pro') || lowerId.includes('gemini-2.5-pro')) return 2;
+            if (lowerLabel.includes('grok3') || lowerLabel.includes('grok-3') || lowerId.includes('grok-3') || lowerId.includes('grok3')) return 3;
+            if (lowerLabel.includes('claude sonnet 4') || lowerId.includes('claude-sonnet-4') || lowerLabel.includes('sonnet 4')) return 4;
+            
+            // Secondary priority models
+            if (lowerLabel.includes('claude') && !lowerLabel.includes('haiku')) return 10;
+            if (lowerLabel.includes('gpt-4')) return 11;
+            if (lowerLabel.includes('gpt-3.5')) return 12;
+            if (lowerLabel.includes('gemini')) return 13;
+            if (lowerLabel.includes('llama')) return 14;
+            
+            return 100; // Everything else
+          };
+          
+          const scoreA = getPriorityScore(a.id, a.label);
+          const scoreB = getPriorityScore(b.id, b.label);
+          
+          if (scoreA !== scoreB) {
+            return scoreA - scoreB;
+          }
+          
+          return a.label.localeCompare(b.label);
+        });
       })
     );
   }
