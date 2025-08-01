@@ -316,10 +316,11 @@ import { Subscription } from 'rxjs';
       align-items: center;
       justify-content: space-between;
       padding: 1rem;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-      background: rgba(0, 0, 0, 0.7);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(45, 45, 45, 0.3);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      box-shadow: 0 2px 20px rgba(0, 0, 0, 0.2);
     }
     
     .structure-header h2 {
@@ -327,6 +328,7 @@ import { Subscription } from 'rxjs';
       font-size: 1.25rem;
       font-weight: 600;
       color: #f8f9fa;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
     }
     
     .close-button {
