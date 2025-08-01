@@ -19,7 +19,6 @@ import { ModelService } from '../../core/services/model.service';
 import { SettingsService } from '../../core/services/settings.service';
 import { PromptManagerService } from '../../shared/services/prompt-manager.service';
 import { ModelOption } from '../../core/models/model.interface';
-import { BackgroundService } from '../../shared/services/background.service';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -31,7 +30,7 @@ import { Subscription } from 'rxjs';
     IonChip, IonTextarea, IonSelect, IonSelectOption, IonBadge
   ],
   template: `
-    <div class="story-structure" [ngStyle]="getBackgroundStyle()" role="navigation" aria-label="Story structure">
+    <div class="story-structure" role="navigation" aria-label="Story structure">
       <div class="structure-header">
         <h2>Struktur</h2>
         <ion-button 
@@ -305,6 +304,9 @@ import { Subscription } from 'rxjs';
     .story-structure {
       width: 100%;
       height: 100%;
+      background: rgba(26, 26, 26, 0.95); /* Semi-transparent dark background */
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
       border-right: 1px solid rgba(255, 255, 255, 0.2);
       display: flex;
       flex-direction: column;
@@ -1122,7 +1124,6 @@ export class StoryStructureComponent implements OnInit, OnChanges, AfterViewInit
   private cdr = inject(ChangeDetectorRef);
   private promptManager = inject(PromptManagerService);
   private router = inject(Router);
-  private backgroundService = inject(BackgroundService);
 
   @Input() story!: Story;
   @Input() activeChapterId: string | null = null;
@@ -2021,19 +2022,5 @@ Antworte nur mit dem Titel, ohne weitere Erklärungen oder Anführungszeichen.`;
 
   getSceneDisplayTitle(chapter: Chapter, scene: Scene): string {
     return this.storyService.formatSceneDisplay(chapter, scene);
-  }
-
-  getBackgroundStyle(): Record<string, string | undefined> {
-    const backgroundStyle = this.backgroundService.backgroundStyle();
-    
-    // Add a darker overlay for better text readability in the sidebar
-    if (backgroundStyle.backgroundImage && backgroundStyle.backgroundImage !== 'none') {
-      return {
-        ...backgroundStyle,
-        backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)), ${backgroundStyle.backgroundImage.replace('linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), ', '')}`
-      };
-    }
-    
-    return backgroundStyle;
   }
 }
