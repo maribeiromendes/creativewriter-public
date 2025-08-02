@@ -1105,6 +1105,7 @@ export class StoryEditorComponent implements OnInit, OnDestroy {
   @ViewChild('headerTitle', { static: true }) headerTitle!: TemplateRef<unknown>;
   @ViewChild('burgerMenuFooter', { static: true }) burgerMenuFooter!: TemplateRef<unknown>;
   @ViewChild('editorContainer') editorContainer!: ElementRef<HTMLDivElement>;
+  @ViewChild(IonContent) ionContent!: IonContent;
   private editorView: EditorView | null = null;
   private mutationObserver: MutationObserver | null = null;
   wordCount = 0;
@@ -1215,8 +1216,8 @@ export class StoryEditorComponent implements OnInit, OnDestroy {
             // Ensure scrolling happens after editor is fully initialized and content is rendered
             // Use requestAnimationFrame to ensure DOM is updated
             requestAnimationFrame(() => {
-              setTimeout(() => {
-                this.scrollToEndOfContent();
+              setTimeout(async () => {
+                await this.scrollToEndOfContent();
               }, 500);
             });
           }
@@ -1901,8 +1902,8 @@ export class StoryEditorComponent implements OnInit, OnDestroy {
       this.updateWordCount();
       // Scroll to end of content after setting content (unless skipped)
       if (!skipScroll) {
-        setTimeout(() => {
-          this.scrollToEndOfContent();
+        setTimeout(async () => {
+          await this.scrollToEndOfContent();
         }, 200);
       }
     } else if (!this.activeScene) {
@@ -1912,7 +1913,7 @@ export class StoryEditorComponent implements OnInit, OnDestroy {
     }
   }
 
-  private scrollToEndOfContent(): void {
+  private async scrollToEndOfContent(): Promise<void> {
     if (!this.editorView) {
       console.log('scrollToEndOfContent: No editor view');
       return;
@@ -1944,39 +1945,37 @@ export class StoryEditorComponent implements OnInit, OnDestroy {
         this.editorView.focus();
       }
       
-      // Scroll the DOM element to the bottom
-      setTimeout(() => {
-        if (this.editorView) {
-          const editorElement = this.editorView.dom as HTMLElement;
-          if (editorElement) {
-            console.log('Scrolling editor element:', {
-              scrollTop: editorElement.scrollTop,
-              scrollHeight: editorElement.scrollHeight,
-              clientHeight: editorElement.clientHeight
+      // Use IonContent's scrollToBottom method
+      setTimeout(async () => {
+        if (this.ionContent) {
+          try {
+            // Get the scroll element from IonContent
+            const scrollElement = await this.ionContent.getScrollElement();
+            console.log('IonContent scroll element:', {
+              scrollTop: scrollElement.scrollTop,
+              scrollHeight: scrollElement.scrollHeight,
+              clientHeight: scrollElement.clientHeight
             });
             
-            // Ensure the element is visible and has height
-            editorElement.scrollTop = editorElement.scrollHeight;
+            // Use IonContent's built-in scrollToBottom method with smooth scrolling
+            await this.ionContent.scrollToBottom(300);
+            console.log('Scrolled to bottom using IonContent.scrollToBottom()');
             
-            // Force a reflow to ensure scrollHeight is calculated
-            void editorElement.offsetHeight; // Force reflow
-            editorElement.scrollTop = editorElement.scrollHeight;
-          }
-          
-          // Also scroll the parent container if needed
-          const contentEditor = editorElement?.closest('.content-editor') as HTMLElement;
-          if (contentEditor) {
-            console.log('Scrolling content editor:', {
-              scrollTop: contentEditor.scrollTop,
-              scrollHeight: contentEditor.scrollHeight,
-              clientHeight: contentEditor.clientHeight
-            });
+            // Ensure cursor is visible after scroll
+            if (this.editorView) {
+              // Force cursor to be visible
+              this.editorView.dispatch(this.editorView.state.tr.scrollIntoView());
+            }
+          } catch (error) {
+            console.warn('Failed to scroll using IonContent:', error);
             
-            contentEditor.scrollTop = contentEditor.scrollHeight;
-            
-            // Force a reflow here too
-            void contentEditor.offsetHeight; // Force reflow
-            contentEditor.scrollTop = contentEditor.scrollHeight;
+            // Fallback to manual scrolling
+            if (this.editorView) {
+              const editorElement = this.editorView.dom as HTMLElement;
+              if (editorElement) {
+                editorElement.scrollIntoView({ behavior: 'smooth', block: 'end' });
+              }
+            }
           }
         }
       }, 100);
