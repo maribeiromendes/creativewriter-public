@@ -96,7 +96,7 @@ import { PDFExportService } from '../../shared/services/pdf-export.service';
           </div>
         </ng-template>
         
-        <ion-content>
+        <ion-content [scrollEvents]="true">
           <div class="editor-container">
             <div class="editor-main">
             <div class="editor-content" [style.--editor-text-color]="currentTextColor">
@@ -1105,7 +1105,7 @@ export class StoryEditorComponent implements OnInit, OnDestroy {
   @ViewChild('headerTitle', { static: true }) headerTitle!: TemplateRef<unknown>;
   @ViewChild('burgerMenuFooter', { static: true }) burgerMenuFooter!: TemplateRef<unknown>;
   @ViewChild('editorContainer') editorContainer!: ElementRef<HTMLDivElement>;
-  @ViewChild(IonContent) ionContent!: IonContent;
+  @ViewChild(IonContent, { read: IonContent, static: false }) ionContent!: IonContent;
   private editorView: EditorView | null = null;
   private mutationObserver: MutationObserver | null = null;
   wordCount = 0;
@@ -1935,7 +1935,7 @@ export class StoryEditorComponent implements OnInit, OnDestroy {
         endPos = doc.content.size - 1;
       }
       
-      // Create selection at the end position
+      // Create selection at the end position without scrollIntoView
       const tr = state.tr.setSelection(TextSelection.near(doc.resolve(endPos)));
       this.editorView.dispatch(tr);
       
@@ -1945,40 +1945,61 @@ export class StoryEditorComponent implements OnInit, OnDestroy {
         this.editorView.focus();
       }
       
-      // Use IonContent's scrollToBottom method
+      // Use IonContent's scrollToBottom method with best practices
       setTimeout(async () => {
-        if (this.ionContent) {
+        if (this.ionContent && this.ionContent.scrollToBottom) {
           try {
-            // Get the scroll element from IonContent
+            // Check if user is already near bottom before auto-scrolling
             const scrollElement = await this.ionContent.getScrollElement();
-            console.log('IonContent scroll element:', {
+            const isNearBottom = scrollElement.scrollTop > 
+              (scrollElement.scrollHeight - scrollElement.clientHeight - 100);
+            
+            console.log('Scroll position check:', {
               scrollTop: scrollElement.scrollTop,
               scrollHeight: scrollElement.scrollHeight,
-              clientHeight: scrollElement.clientHeight
+              clientHeight: scrollElement.clientHeight,
+              isNearBottom
             });
             
-            // Use IonContent's built-in scrollToBottom method with smooth scrolling
-            await this.ionContent.scrollToBottom(300);
+            // Use IonContent's built-in scrollToBottom method
+            await this.ionContent.scrollToBottom(400);
             console.log('Scrolled to bottom using IonContent.scrollToBottom()');
             
-            // Ensure cursor is visible after scroll
-            if (this.editorView) {
-              // Force cursor to be visible
-              this.editorView.dispatch(this.editorView.state.tr.scrollIntoView());
-            }
+            // Ensure cursor is visible after Ionic scroll completes
+            // Use requestAnimationFrame for better timing
+            requestAnimationFrame(() => {
+              if (this.editorView && this.editorView.hasFocus()) {
+                // Only scroll ProseMirror if it has focus
+                const domAtPos = this.editorView.domAtPos(this.editorView.state.selection.anchor);
+                if (domAtPos.node && domAtPos.node instanceof Element) {
+                  domAtPos.node.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'nearest',
+                    inline: 'nearest'
+                  });
+                } else if (domAtPos.node && domAtPos.node.parentElement) {
+                  // Fallback for text nodes
+                  domAtPos.node.parentElement.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'nearest',
+                    inline: 'nearest'
+                  });
+                }
+              }
+            });
           } catch (error) {
             console.warn('Failed to scroll using IonContent:', error);
             
-            // Fallback to manual scrolling
+            // Fallback to manual scrolling with better implementation
             if (this.editorView) {
-              const editorElement = this.editorView.dom as HTMLElement;
-              if (editorElement) {
-                editorElement.scrollIntoView({ behavior: 'smooth', block: 'end' });
+              const domAtPos = this.editorView.domAtPos(this.editorView.state.selection.anchor);
+              if (domAtPos.node && domAtPos.node instanceof Element) {
+                domAtPos.node.scrollIntoView({ behavior: 'smooth', block: 'end' });
               }
             }
           }
         }
-      }, 100);
+      }, 500); // Increased timeout for better DOM readiness
     } catch (error) {
       console.warn('Failed to scroll to end of content:', error);
     }
