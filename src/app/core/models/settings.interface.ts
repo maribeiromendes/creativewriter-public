@@ -4,6 +4,7 @@ export interface Settings {
   googleGemini: GoogleGeminiSettings;
   sceneTitleGeneration: SceneTitleGenerationSettings;
   selectedModel: string; // Global selected model (format: "provider:model_id")
+  favoriteModels: string[]; // List of favorite model IDs for quick access
   appearance: AppearanceSettings;
   updatedAt: Date;
 }
@@ -99,5 +100,6 @@ export const DEFAULT_SETTINGS: Settings = {
     backgroundImage: 'none' // No background image by default
   },
   selectedModel: '',
+  favoriteModels: [],
   updatedAt: new Date()
 };

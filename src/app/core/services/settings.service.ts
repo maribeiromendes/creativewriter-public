@@ -49,6 +49,7 @@ export class SettingsService {
             ...DEFAULT_SETTINGS.appearance,
             ...parsed.appearance
           },
+          favoriteModels: parsed.favoriteModels || DEFAULT_SETTINGS.favoriteModels,
           updatedAt: new Date(parsed.updatedAt || new Date())
         };
       }

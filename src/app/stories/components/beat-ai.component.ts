@@ -102,7 +102,21 @@ import { EditorView } from 'prosemirror-view';
                   max="50000"
                   (blur)="validateCustomWordCount()">
               </div>
-              <div class="option-group">
+              <div class="option-group model-selection-group">
+                <!-- Favorite Models Quick Access -->
+                <div class="favorite-models" *ngIf="favoriteModels.length > 0">
+                  <div class="favorite-label">Favoriten:</div>
+                  <div class="favorite-buttons">
+                    <button *ngFor="let model of favoriteModels"
+                            class="favorite-btn"
+                            [class.active]="selectedModel === model.id"
+                            (click)="selectFavoriteModel(model)"
+                            [title]="model.label">
+                      <ion-icon [name]="getProviderIcon(model.provider)" class="provider-icon-inline" [class.gemini]="model.provider === 'gemini'" [class.openrouter]="model.provider === 'openrouter'"></ion-icon>
+                      <span class="model-short-name">{{ getShortModelName(model.label) }}</span>
+                    </button>
+                  </div>
+                </div>
                 <ng-select [(ngModel)]="selectedModel"
                            [items]="availableModels"
                            bindLabel="label"
@@ -113,10 +127,28 @@ import { EditorView } from 'prosemirror-view';
                            class="model-select"
                            appendTo="body"
                            (change)="onModelChange()">
+                  <ng-template ng-label-tmp let-item="item">
+                    <div class="model-option-inline">
+                      <ion-icon [name]="getProviderIcon(item.provider)" class="provider-icon-inline" [class.gemini]="item.provider === 'gemini'" [class.openrouter]="item.provider === 'openrouter'"></ion-icon>
+                      <span class="model-label">{{ item.label }}</span>
+                      <button class="favorite-toggle"
+                              (click)="toggleFavorite($event, item)"
+                              [class.is-favorite]="isFavorite(item.id)"
+                              title="Als Favorit markieren">
+                        ⭐
+                      </button>
+                    </div>
+                  </ng-template>
                   <ng-template ng-option-tmp let-item="item">
                     <div class="model-option-inline">
                       <ion-icon [name]="getProviderIcon(item.provider)" class="provider-icon-inline" [class.gemini]="item.provider === 'gemini'" [class.openrouter]="item.provider === 'openrouter'"></ion-icon>
                       <span class="model-label">{{ item.label }}</span>
+                      <button class="favorite-toggle"
+                              (click)="toggleFavorite($event, item)"
+                              [class.is-favorite]="isFavorite(item.id)"
+                              title="Als Favorit markieren">
+                        ⭐
+                      </button>
                     </div>
                   </ng-template>
                 </ng-select>
@@ -553,6 +585,88 @@ import { EditorView } from 'prosemirror-view';
       gap: 0.5rem;
     }
     
+    .model-selection-group {
+      gap: 0.75rem;
+    }
+    
+    .favorite-models {
+      background: rgba(30, 30, 30, 0.3);
+      backdrop-filter: blur(3px);
+      padding: 0.5rem;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .favorite-label {
+      font-size: 0.85rem;
+      color: #adb5bd;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+    }
+    
+    .favorite-buttons {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    
+    .favorite-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.4rem 0.8rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 20px;
+      color: #e0e0e0;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    
+    .favorite-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.3);
+      transform: translateY(-1px);
+    }
+    
+    .favorite-btn.active {
+      background: rgba(13, 110, 253, 0.2);
+      border-color: #0d6efd;
+      color: #4dabf7;
+    }
+    
+    .favorite-btn .provider-icon-inline {
+      font-size: 0.9rem;
+    }
+    
+    .model-short-name {
+      font-weight: 500;
+    }
+    
+    .favorite-toggle {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0.2rem;
+      margin-left: auto;
+      font-size: 1rem;
+      opacity: 0.3;
+      transition: all 0.2s;
+      filter: grayscale(1);
+    }
+    
+    .favorite-toggle:hover {
+      opacity: 0.7;
+      transform: scale(1.2);
+    }
+    
+    .favorite-toggle.is-favorite {
+      opacity: 1;
+      filter: grayscale(0);
+    }
+    
     .model-select {
       font-size: 0.9rem;
     }
@@ -983,6 +1097,22 @@ import { EditorView } from 'prosemirror-view';
 
     /* Mobile optimizations for Beat AI */
     @media (max-width: 768px) {
+      .favorite-models {
+        padding: 0.4rem;
+      }
+      
+      .favorite-buttons {
+        gap: 0.3rem;
+      }
+      
+      .favorite-btn {
+        padding: 0.3rem 0.6rem;
+        font-size: 0.8rem;
+      }
+      
+      .model-selection-group {
+        gap: 0.5rem;
+      }
       .beat-ai-container {
         margin: 0.2rem 0;
         border-radius: 6px;
@@ -1147,6 +1277,7 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
   showCustomWordCount = false;
   selectedModel = '';
   availableModels: ModelOption[] = [];
+  favoriteModels: ModelOption[] = [];
   selectedBeatType: 'story' | 'scene' = 'story';
   beatTypeOptions = [
     { value: 'story', label: 'StoryBeat', description: 'Mit vollständigem Story-Kontext' },
@@ -1461,6 +1592,9 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
         
         // Apply the new color to this component
         this.applyTextColorDirectly();
+        
+        // Update favorite models
+        this.updateFavoriteModels();
       })
     );
     
@@ -1476,6 +1610,8 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
         if (models.length > 0 && !this.selectedModel) {
           this.setDefaultModel();
         }
+        // Update favorite models after loading
+        this.updateFavoriteModels();
       })
     );
   }
@@ -1677,6 +1813,69 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
         }
       }
     }, 50);
+  }
+  
+  private updateFavoriteModels(): void {
+    const settings = this.settingsService.getSettings();
+    const favoriteIds = settings.favoriteModels || [];
+    
+    this.favoriteModels = this.availableModels.filter(model => 
+      favoriteIds.includes(model.id)
+    );
+  }
+  
+  selectFavoriteModel(model: ModelOption): void {
+    this.selectedModel = model.id;
+    this.onModelChange();
+  }
+  
+  getShortModelName(label: string): string {
+    // Create short names for favorite buttons
+    if (label.includes('Claude 3.7 Sonnet') || label.includes('Claude 3.5 Sonnet v2')) return 'Claude 3.7';
+    if (label.includes('Claude Sonnet 4')) return 'Sonnet 4';
+    if (label.includes('Gemini 2.5 Pro')) return 'Gemini 2.5';
+    if (label.includes('Grok-3') || label.includes('Grok3')) return 'Grok3';
+    
+    // For other models, try to extract a short name
+    const parts = label.split(' ');
+    if (parts.length > 2) {
+      return `${parts[0]} ${parts[1]}`;
+    }
+    return label;
+  }
+  
+  toggleFavorite(event: Event, model: ModelOption): void {
+    event.stopPropagation();
+    event.preventDefault();
+    
+    const settings = this.settingsService.getSettings();
+    const favoriteIds = settings.favoriteModels || [];
+    
+    const index = favoriteIds.indexOf(model.id);
+    if (index > -1) {
+      // Remove from favorites
+      favoriteIds.splice(index, 1);
+    } else {
+      // Add to favorites (max 6 favorites)
+      if (favoriteIds.length < 6) {
+        favoriteIds.push(model.id);
+      } else {
+        // Replace the oldest favorite
+        favoriteIds.shift();
+        favoriteIds.push(model.id);
+      }
+    }
+    
+    // Save updated favorites
+    this.settingsService.updateSettings({
+      ...settings,
+      favoriteModels: favoriteIds
+    });
+  }
+  
+  isFavorite(modelId: string): boolean {
+    const settings = this.settingsService.getSettings();
+    return (settings.favoriteModels || []).includes(modelId);
   }
   
 }
