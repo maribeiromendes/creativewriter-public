@@ -70,18 +70,6 @@ export class BeatAIService {
     // Create structured prompt using template
     const wordCount = options.wordCount || 400;
     
-    // Log the generation request at the service level
-    console.log('🔍 Beat AI Service - Starting generation:', {
-      beatId: beatId,
-      wordCount: wordCount,
-      model: options.model,
-      storyId: options.storyId,
-      chapterId: options.chapterId,
-      sceneId: options.sceneId,
-      useGoogleGemini: useGoogleGemini,
-      useOpenRouter: useOpenRouter,
-      promptLength: prompt.length
-    });
     
     return this.buildStructuredPromptFromTemplate(prompt, beatId, { ...options, wordCount }).pipe(
       switchMap(enhancedPrompt => {
@@ -104,17 +92,7 @@ export class BeatAIService {
           : this.callOpenRouterStreamingAPI(enhancedPrompt, updatedOptions, maxTokens, wordCount, requestId, beatId);
 
         return apiCall.pipe(
-          catchError(error => {
-            console.error('🔍 Beat AI Service - API error, using fallback:', {
-              beatId: beatId,
-              error: error.message,
-              errorType: error.name,
-              apiProvider: useGoogleGemini ? 'gemini' : 'openrouter',
-              wordCount: wordCount,
-              maxTokens: maxTokens,
-              originalPromptLength: prompt.length,
-              enhancedPromptLength: enhancedPrompt.length
-            });
+          catchError(() => {
             
             // Clean up active generation
             this.activeGenerations.delete(beatId);
@@ -180,14 +158,7 @@ export class BeatAIService {
             this.isStreamingSubject.next(false);
           }
         },
-        error: (error) => {
-          console.error('🔍 Beat AI Service - Gemini streaming error:', {
-            beatId: beatId,
-            error: error.message,
-            errorType: error.name,
-            accumulatedContentLength: accumulatedContent.length,
-            requestId: requestId
-          });
+        error: () => {
           // Clean up on error
           this.activeGenerations.delete(beatId);
           
@@ -198,13 +169,7 @@ export class BeatAIService {
         }
       }),
       map(() => accumulatedContent), // Return full content at the end
-      catchError(error => {
-        console.error('🔍 Beat AI Service - Gemini API streaming failed, trying non-streaming fallback:', {
-          beatId: beatId,
-          error: error.message,
-          errorType: error.name,
-          willFallbackToNonStreaming: true
-        });
+      catchError(() => {
         
         // Try non-streaming API as fallback
         return this.googleGeminiApi.generateText(prompt, {
@@ -488,12 +453,6 @@ export class BeatAIService {
   private generateFallbackContent(prompt: string, beatId: string): Observable<string> {
     const fallbackContent = this.generateSampleContent(prompt);
     
-    console.log('🔍 Beat AI Service - Using fallback content:', {
-      beatId: beatId,
-      promptLength: prompt.length,
-      fallbackContentLength: fallbackContent.length,
-      reason: 'API unavailable or failed'
-    });
     
     // Emit generation complete with fallback
     this.generationSubject.next({

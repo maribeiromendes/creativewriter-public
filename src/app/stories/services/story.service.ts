@@ -17,11 +17,8 @@ export class StoryService {
         descending: true 
       });
       
-      console.log('Raw PouchDB result:', result);
-      
       const stories = result.rows
         .map((row: { doc?: unknown }) => {
-          console.log('Processing row:', row);
           return row.doc;
         })
         .filter((doc: unknown) => doc && (doc as Story).id && (doc as unknown as { type?: string }).type !== 'codex') // Filter out design docs and codex entries
@@ -37,25 +34,19 @@ export class StoryService {
   async getStory(id: string): Promise<Story | null> {
     try {
       this.db = await this.databaseService.getDatabase();
-      console.log('Getting story with id:', id);
       // Try to get by _id first, then by id
       let doc;
       try {
         doc = await this.db.get(id);
-        console.log('Found story by _id:', doc);
       } catch (error) {
         if ((error as { status?: number }).status === 404) {
-          console.log('Story not found by _id, trying id field...');
           // Try to find by id field
           const result = await this.db.find({
             selector: { id: id }
           });
-          console.log('Find result:', result);
           if (result.docs && result.docs.length > 0) {
             doc = result.docs[0];
-            console.log('Found story by id field:', doc);
           } else {
-            console.log('Story not found');
             return null;
           }
         } else {

@@ -384,7 +384,6 @@ export class PromptManagerService {
         const flatScenes = this.buildFlatScenesList(story);
         // Force update by creating a new array reference to bypass distinctUntilChanged
         this.flatScenesSubject.next([...flatScenes]);
-        console.log('PromptManager refreshed with', flatScenes.length, 'scenes');
       }
     }
   }

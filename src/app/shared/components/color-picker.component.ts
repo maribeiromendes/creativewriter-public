@@ -514,7 +514,6 @@ export class ColorPickerComponent implements OnInit {
   copyToClipboard(): void {
     navigator.clipboard.writeText(this.currentColor).then(() => {
       // Could add a toast notification here
-      console.log('Farbe kopiert:', this.currentColor);
     });
   }
 

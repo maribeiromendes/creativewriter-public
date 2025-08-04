@@ -1588,7 +1588,6 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
         this.reloadModels();
         // Update text color
         this.currentTextColor = settings.appearance?.textColor || '#e0e0e0';
-        console.log('Beat AI: Text color updated to:', this.currentTextColor);
         
         // Apply the new color to this component
         this.applyTextColorDirectly();
@@ -1809,7 +1808,6 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
         const container = hostElement.querySelector?.('.beat-ai-container') || hostElement;
         if (container) {
           (container as HTMLElement).style.setProperty('--beat-ai-text-color', this.currentTextColor);
-          console.log('Beat AI component: Set CSS custom property to:', this.currentTextColor, 'on element:', container);
         }
       }
     }, 50);

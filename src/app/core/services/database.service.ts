@@ -48,7 +48,6 @@ export class DatabaseService {
   }
 
   private async initializeDatabase(dbName: string): Promise<void> {
-    console.log('Initializing database:', dbName);
     
     // Stop sync first
     await this.stopSync();
@@ -130,11 +129,9 @@ export class DatabaseService {
       const couchUrl = remoteUrl || this.getCouchDBUrl();
       
       if (!couchUrl) {
-        console.log('No CouchDB URL configured, running in local-only mode');
         return;
       }
 
-      console.log('Setting up sync with:', couchUrl);
       
       this.remoteDb = new PouchDB(couchUrl, {
         auth: {
@@ -145,7 +142,6 @@ export class DatabaseService {
 
       // Test connection
       await this.remoteDb.info();
-      console.log('CouchDB connection successful');
 
       // Start bidirectional sync
       this.startSync();
@@ -193,8 +189,7 @@ export class DatabaseService {
       retry: true,
       timeout: 30000
     })
-    .on('change', (info: unknown) => {
-      console.log('Sync change:', info);
+    .on('change', () => {
       this.updateSyncStatus({ 
         isSync: false, 
         lastSync: new Date(),
@@ -202,11 +197,9 @@ export class DatabaseService {
       });
     })
     .on('active', () => {
-      console.log('Sync active');
       this.updateSyncStatus({ isSync: true, error: undefined });
     })
     .on('paused', (info: unknown) => {
-      console.log('Sync paused:', info);
       this.updateSyncStatus({ 
         isSync: false, 
         error: info ? `Sync paused: ${info}` : undefined 
@@ -247,7 +240,6 @@ export class DatabaseService {
     
     try {
       await this.db.replicate.to(this.remoteDb);
-      console.log('Force push completed');
     } catch (error) {
       console.error('Force push failed:', error);
       throw error;
@@ -259,7 +251,6 @@ export class DatabaseService {
     
     try {
       await this.db.replicate.from(this.remoteDb);
-      console.log('Force pull completed');
     } catch (error) {
       console.error('Force pull failed:', error);
       throw error;

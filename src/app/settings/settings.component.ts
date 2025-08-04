@@ -1362,9 +1362,6 @@ export class SettingsComponent implements OnInit, OnDestroy {
         this.originalSettings = JSON.parse(JSON.stringify(settings));
         this.hasUnsavedChanges = false;
         
-        // Debug: Check if appearance settings exist
-        console.log('Loaded settings:', settings);
-        console.log('Appearance settings:', settings.appearance);
         
         // Ensure appearance object exists
         if (!this.settings.appearance) {
@@ -1424,7 +1421,6 @@ export class SettingsComponent implements OnInit, OnDestroy {
   }
 
   saveSettings(): void {
-    console.log('Saving settings:', this.settings);
     this.settingsService.updateSettings(this.settings);
     this.hasUnsavedChanges = false;
     
@@ -1443,9 +1439,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
   loadModels(): void {
     this.modelLoadError = null;
     this.modelService.loadAllModels().subscribe({
-      next: (models) => {
-        console.log('Models loaded successfully:', models);
-      },
+      next: () => { /* Do nothing - models are loaded */ },
       error: (error) => {
         console.error('Failed to load models:', error);
         this.modelLoadError = 'Fehler beim Laden der Modelle. Überprüfen Sie Ihre API-Keys und Internetverbindung.';
@@ -1459,13 +1453,10 @@ export class SettingsComponent implements OnInit, OnDestroy {
     // Auto-load models when API key is entered and provider is enabled
     // This ensures models are available for selection
     if (provider === 'openRouter' && this.settings.openRouter.enabled && this.settings.openRouter.apiKey) {
-      console.log('API key entered for OpenRouter, loading models...');
       this.modelService.loadOpenRouterModels().subscribe();
     } else if (provider === 'replicate' && this.settings.replicate.enabled && this.settings.replicate.apiKey) {
-      console.log('API key entered for Replicate, loading models...');
       this.modelService.loadReplicateModels().subscribe();
     } else if (provider === 'googleGemini' && this.settings.googleGemini.enabled && this.settings.googleGemini.apiKey) {
-      console.log('API key entered for Google Gemini, loading models...');
       this.modelService.loadGeminiModels().subscribe();
     }
   }
@@ -1477,13 +1468,10 @@ export class SettingsComponent implements OnInit, OnDestroy {
     // Load models when provider is enabled and has API key
     // This ensures models are available when user enables a provider
     if (provider === 'openRouter' && this.settings.openRouter.enabled && this.settings.openRouter.apiKey) {
-      console.log('OpenRouter enabled, loading models...');
       this.modelService.loadOpenRouterModels().subscribe();
     } else if (provider === 'replicate' && this.settings.replicate.enabled && this.settings.replicate.apiKey) {
-      console.log('Replicate enabled, loading models...');
       this.modelService.loadReplicateModels().subscribe();
     } else if (provider === 'googleGemini' && this.settings.googleGemini.enabled && this.settings.googleGemini.apiKey) {
-      console.log('Google Gemini enabled, loading models...');
       this.modelService.loadGeminiModels().subscribe();
     }
   }
@@ -1520,7 +1508,6 @@ export class SettingsComponent implements OnInit, OnDestroy {
         this.settings.openRouter.model && 
         this.openRouterModels.length === 0 &&
         !this.loadingModels) {
-      console.log('Auto-loading OpenRouter models because model is selected:', this.settings.openRouter.model);
       this.modelService.loadOpenRouterModels().subscribe();
     }
     
@@ -1534,7 +1521,6 @@ export class SettingsComponent implements OnInit, OnDestroy {
         this.settings.replicate.model && 
         this.replicateModels.length === 0 &&
         !this.loadingModels) {
-      console.log('Auto-loading Replicate models because model is selected:', this.settings.replicate.model);
       this.modelService.loadReplicateModels().subscribe();
     }
     
@@ -1548,7 +1534,6 @@ export class SettingsComponent implements OnInit, OnDestroy {
         this.settings.googleGemini.model && 
         this.geminiModels.length === 0 &&
         !this.loadingModels) {
-      console.log('Auto-loading Gemini models because model is selected:', this.settings.googleGemini.model);
       this.modelService.loadGeminiModels().subscribe();
     }
   }
@@ -1586,12 +1571,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
     this.modelService.getCombinedModels().subscribe({
       next: (models) => {
         this.combinedModels = models;
-        console.log('Combined models loaded successfully:', models);
         
-        // If there's a previously selected model, ensure it's still in the list
-        if (this.settings.selectedModel && !models.find(m => m.id === this.settings.selectedModel)) {
-          console.warn('Previously selected model not found in combined models:', this.settings.selectedModel);
-        }
       },
       error: (error) => {
         console.error('Failed to load combined models:', error);
@@ -1601,7 +1581,6 @@ export class SettingsComponent implements OnInit, OnDestroy {
   }
 
   onGlobalModelChange(): void {
-    console.log('Global model changed to:', this.settings.selectedModel);
     
     // Update the individual API model settings based on the selected model
     if (this.settings.selectedModel) {
@@ -1625,7 +1604,6 @@ export class SettingsComponent implements OnInit, OnDestroy {
   }
 
   onSceneTitleModelChange(): void {
-    console.log('Scene title model changed to:', this.settings.sceneTitleGeneration.selectedModel);
     this.onSettingsChange();
   }
 
@@ -1634,9 +1612,6 @@ export class SettingsComponent implements OnInit, OnDestroy {
     this.settings.appearance.textColor = color;
     this.onSettingsChange();
     
-    // Debug logging
-    console.log('Text color changed to:', color);
-    console.log('Settings appearance:', this.settings.appearance);
   }
 
   onBackgroundImageChange(backgroundImage: string): void {
@@ -1647,9 +1622,6 @@ export class SettingsComponent implements OnInit, OnDestroy {
     // Set preview background for immediate visual feedback
     this.backgroundService.setPreviewBackground(backgroundImage);
     
-    // Debug logging
-    console.log('Background image changed to:', backgroundImage);
-    console.log('Settings appearance:', this.settings.appearance);
   }
 
   onBackgroundUploaded(customBackground: CustomBackground): void {
@@ -1657,7 +1629,6 @@ export class SettingsComponent implements OnInit, OnDestroy {
     const customId = `custom:${customBackground._id}`;
     this.onBackgroundImageChange(customId);
     
-    console.log('Custom background uploaded and selected:', customBackground);
   }
 
   getModelDisplayName(modelId: string): string {

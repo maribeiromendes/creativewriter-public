@@ -118,7 +118,6 @@ export class GlobalErrorHandlerService implements ErrorHandler {
 
       // Log to AI logger for tracking API-related errors
       if (this.isApiRelatedError(error, errorMessage)) {
-        console.log('This appears to be an API-related error, logging to AI request logger');
         
         // Create a synthetic log entry for global errors
         const logId = this.aiLogger.logRequest({

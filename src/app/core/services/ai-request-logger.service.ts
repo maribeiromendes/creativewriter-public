@@ -120,17 +120,6 @@ export class AIRequestLoggerService {
       networkInfo: networkInfo
     };
 
-    console.log('🔍 AI Request Logger - New request:', {
-      id,
-      endpoint: data.endpoint,
-      model: data.model,
-      apiProvider: data.apiProvider,
-      streamingMode: data.streamingMode,
-      promptLength: data.prompt.length,
-      wordCount: data.wordCount,
-      maxTokens: data.maxTokens,
-      networkInfo
-    });
 
     const currentLogs = this.logsSubject.value;
     const updatedLogs = [newLog, ...currentLogs].slice(0, this.maxLogs);
@@ -168,15 +157,6 @@ export class AIRequestLoggerService {
       finishReason?: string;
     };
   }): void {
-    console.log('✅ AI Request Logger - Success:', {
-      id,
-      duration: duration + 'ms',
-      responseLength: response.length,
-      responseWordCount: response.split(/\s+/).length,
-      httpStatus: additionalData?.httpStatus,
-      retryCount: additionalData?.retryCount,
-      responsePreview: response.substring(0, 200) + '...'
-    });
 
     this.updateLog(id, {
       response,
@@ -209,14 +189,6 @@ export class AIRequestLoggerService {
       finishReason?: string;
     };
   }): void {
-    console.error('❌ AI Request Logger - Error:', {
-      id,
-      duration: duration + 'ms',
-      error,
-      httpStatus: additionalData?.httpStatus,
-      retryCount: additionalData?.retryCount,
-      errorDetails: additionalData?.errorDetails
-    });
 
     this.updateLog(id, {
       error,
@@ -231,10 +203,6 @@ export class AIRequestLoggerService {
   }
 
   logAborted(id: string, duration: number): void {
-    console.log('⏹️ AI Request Logger - Aborted:', {
-      id,
-      duration: duration + 'ms'
-    });
 
     this.updateLog(id, {
       error: 'Request aborted by user',
@@ -365,11 +333,6 @@ export class AIRequestLoggerService {
 
   // Method to log additional debugging info
   logDebugInfo(id: string, debugInfo: Record<string, unknown>): void {
-    console.log('🔍 AI Request Logger - Debug Info:', {
-      id,
-      debugInfo,
-      timestamp: new Date().toISOString()
-    });
 
     const currentLogs = this.logsSubject.value;
     const logIndex = currentLogs.findIndex(log => log.id === id);

@@ -156,7 +156,6 @@ export class ModelService {
   }
 
   private transformOpenRouterModels(models: OpenRouterModel[]): ModelOption[] {
-    console.log('Total OpenRouter models received:', models.length);
     
     // No filtering - show ALL models, let user search/filter in UI
     return models

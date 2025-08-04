@@ -22,7 +22,7 @@ import { Subscription, debounceTime, Subject, throttleTime } from 'rxjs';
 import { ProseMirrorEditorService } from '../../shared/services/prosemirror-editor.service';
 import { EditorView } from 'prosemirror-view';
 import { TextSelection } from 'prosemirror-state';
-import { BeatAI, BeatAIPromptEvent } from '../models/beat-ai.interface';
+import { BeatAIPromptEvent } from '../models/beat-ai.interface';
 import { BeatAIService } from '../../shared/services/beat-ai.service';
 import { PromptManagerService } from '../../shared/services/prompt-manager.service';
 import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/components/image-upload-dialog.component';
@@ -1176,7 +1176,6 @@ export class StoryEditorComponent implements OnInit, OnDestroy {
     this.subscription.add(
       this.settingsService.settings$.subscribe(settings => {
         this.currentTextColor = settings.appearance?.textColor || '#e0e0e0';
-        console.log('Story Editor: Text color updated to:', this.currentTextColor);
         this.applyTextColorToProseMirror();
       })
     );
@@ -1259,7 +1258,6 @@ export class StoryEditorComponent implements OnInit, OnDestroy {
     this.subscription.add(
       this.beatAIService.isStreaming$.subscribe(isStreaming => {
         this.isStreamingActive = isStreaming;
-        console.log('Streaming state changed:', isStreaming ? 'ACTIVE' : 'STOPPED');
       })
     );
 
@@ -1857,8 +1855,8 @@ export class StoryEditorComponent implements OnInit, OnDestroy {
         onBeatPromptSubmit: (event: BeatAIPromptEvent) => {
           this.handleBeatPromptSubmit(event);
         },
-        onBeatContentUpdate: (beatData: BeatAI) => {
-          this.handleBeatContentUpdate(beatData);
+        onBeatContentUpdate: () => {
+          this.handleBeatContentUpdate();
         },
         onBeatFocus: () => {
           this.hideSlashDropdown();
@@ -1915,11 +1913,9 @@ export class StoryEditorComponent implements OnInit, OnDestroy {
 
   private async scrollToEndOfContent(): Promise<void> {
     if (!this.editorView) {
-      console.log('scrollToEndOfContent: No editor view');
       return;
     }
     
-    console.log('scrollToEndOfContent: Starting scroll');
     
     try {
       const { state } = this.editorView;
@@ -1949,21 +1945,12 @@ export class StoryEditorComponent implements OnInit, OnDestroy {
       setTimeout(async () => {
         if (this.ionContent && this.ionContent.scrollToBottom) {
           try {
-            // Check if user is already near bottom before auto-scrolling
-            const scrollElement = await this.ionContent.getScrollElement();
-            const isNearBottom = scrollElement.scrollTop > 
-              (scrollElement.scrollHeight - scrollElement.clientHeight - 100);
+            // Auto-scroll to bottom when new content is added
+            await this.ionContent.getScrollElement();
             
-            console.log('Scroll position check:', {
-              scrollTop: scrollElement.scrollTop,
-              scrollHeight: scrollElement.scrollHeight,
-              clientHeight: scrollElement.clientHeight,
-              isNearBottom
-            });
             
             // Use IonContent's built-in scrollToBottom method
             await this.ionContent.scrollToBottom(400);
-            console.log('Scrolled to bottom using IonContent.scrollToBottom()');
             
             // Ensure cursor is visible after Ionic scroll completes
             // Use requestAnimationFrame for better timing
@@ -2097,7 +2084,6 @@ export class StoryEditorComponent implements OnInit, OnDestroy {
   }
 
   private handleBeatPromptSubmit(event: BeatAIPromptEvent): void {
-    console.log('Beat prompt submitted:', event);
     // Make sure dropdown is hidden when working with beat AI
     this.hideSlashDropdown();
     
@@ -2115,8 +2101,7 @@ export class StoryEditorComponent implements OnInit, OnDestroy {
     }
   }
 
-  private handleBeatContentUpdate(beatData: BeatAI): void {
-    console.log('Beat content updated:', beatData);
+  private handleBeatContentUpdate(): void {
     // Mark as changed but don't trigger immediate save for beat updates
     // These are already saved within the content
     this.hasUnsavedChanges = true;
@@ -2261,7 +2246,6 @@ export class StoryEditorComponent implements OnInit, OnDestroy {
       this.proseMirrorService.toggleDebugMode(this.debugModeEnabled);
     }
     
-    console.log('Debug mode:', this.debugModeEnabled ? 'enabled' : 'disabled');
   }
 
   showStoryStatsModal(): void {
@@ -2280,7 +2264,6 @@ export class StoryEditorComponent implements OnInit, OnDestroy {
       }
 
       // Show loading indicator (you can enhance this with a proper loading dialog)
-      console.log('Generating PDF...');
 
       // Export the story to PDF with background
       await this.pdfExportService.exportStoryToPDF(this.story, {
@@ -2289,7 +2272,6 @@ export class StoryEditorComponent implements OnInit, OnDestroy {
         orientation: 'portrait'
       });
 
-      console.log('PDF export completed successfully');
     } catch (error) {
       console.error('PDF export failed:', error);
       // You can add proper error handling/notification here
@@ -2312,7 +2294,6 @@ export class StoryEditorComponent implements OnInit, OnDestroy {
     const contentEditor = document.querySelector('.content-editor');
     if (contentEditor) {
       (contentEditor as HTMLElement).style.setProperty('--editor-text-color', this.currentTextColor);
-      console.log('Applied --editor-text-color to content-editor:', this.currentTextColor);
     }
     
     // Target the actual ProseMirror element created by the service
@@ -2320,28 +2301,23 @@ export class StoryEditorComponent implements OnInit, OnDestroy {
     if (prosemirrorElement) {
       (prosemirrorElement as HTMLElement).style.setProperty('--editor-text-color', this.currentTextColor);
       (prosemirrorElement as HTMLElement).style.color = this.currentTextColor;
-      console.log('Applied text color to ProseMirror element:', this.currentTextColor);
     }
     
     // Apply to all Beat AI components
     this.applyTextColorToBeatAIElements();
     
-    console.log('Applied text color to all existing elements:', this.currentTextColor);
   }
 
   private applyTextColorToBeatAIElements(): void {
     // Apply to all Beat AI containers - only set CSS custom property, let CSS handle the rest
     const beatAIContainers = document.querySelectorAll('.beat-ai-container');
-    console.log('Found', beatAIContainers.length, 'Beat AI containers to update with color:', this.currentTextColor);
-    beatAIContainers.forEach((container, index) => {
+    beatAIContainers.forEach((container) => {
       // Set CSS custom property
       (container as HTMLElement).style.setProperty('--beat-ai-text-color', this.currentTextColor);
-      console.log(`Applied --beat-ai-text-color to container ${index}:`, this.currentTextColor);
       
       // Debug: Check if the variable is actually set
       const computedStyle = window.getComputedStyle(container as HTMLElement);
-      const appliedColor = computedStyle.getPropertyValue('--beat-ai-text-color');
-      console.log(`Container ${index} computed --beat-ai-text-color:`, appliedColor);
+      computedStyle.getPropertyValue('--beat-ai-text-color');
     });
   }
 
@@ -2382,7 +2358,6 @@ export class StoryEditorComponent implements OnInit, OnDestroy {
         // Use longer delay to ensure Angular components are fully initialized
         setTimeout(() => {
           this.applyTextColorToBeatAIElements();
-          console.log('Applied text color to newly added Beat AI elements:', this.currentTextColor);
         }, 200);
       }
     });
@@ -2394,7 +2369,6 @@ export class StoryEditorComponent implements OnInit, OnDestroy {
       subtree: true
     });
     
-    console.log('MutationObserver setup complete for Beat AI text color application');
   }
 
 }
