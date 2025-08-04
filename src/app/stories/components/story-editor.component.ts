@@ -2345,10 +2345,16 @@ export class StoryEditorComponent implements OnInit, OnDestroy {
     // If image has no ID, generate one now
     if (!imageId || imageId === 'no-id') {
       imageId = this.generateImageId();
+      
+      // Add ID to the DOM element
       this.imageVideoService.addImageIdToElement(event.imageElement, imageId);
+      
+      // Update the ProseMirror document with the new ID
+      this.proseMirrorService.updateImageId(event.imageElement.src, imageId);
       
       // Mark as having unsaved changes since we modified the image
       this.hasUnsavedChanges = true;
+      this.saveSubject.next(); // Trigger auto-save
       
       console.log('Generated new ID for existing image:', imageId);
     }

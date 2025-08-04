@@ -79,7 +79,8 @@ export class ProseMirrorEditorService {
         attrs: {
           src: { default: '' },
           alt: { default: '' },
-          title: { default: null }
+          title: { default: null },
+          imageId: { default: null }
         },
         inline: false,
         group: 'block',
@@ -89,18 +90,28 @@ export class ProseMirrorEditorService {
           getAttrs: (dom: Element) => ({
             src: dom.getAttribute('src'),
             alt: dom.getAttribute('alt') || '',
-            title: dom.getAttribute('title') || null
+            title: dom.getAttribute('title') || null,
+            imageId: dom.getAttribute('data-image-id') || null
           })
         }],
-        toDOM: (node: ProseMirrorNode) => [
-          'img',
-          {
+        toDOM: (node: ProseMirrorNode) => {
+          const attrs: Record<string, string> = {
             src: node.attrs['src'],
             alt: node.attrs['alt'],
-            title: node.attrs['title'],
             style: 'max-width: 100%; height: auto; display: block; margin: 1rem auto;'
+          };
+          
+          if (node.attrs['title']) {
+            attrs.title = node.attrs['title'];
           }
-        ]
+          
+          if (node.attrs['imageId']) {
+            attrs['data-image-id'] = node.attrs['imageId'];
+            attrs.class = 'image-id-' + node.attrs['imageId'];
+          }
+          
+          return ['img', attrs];
+        }
       },
       beatAI: {
         attrs: {
@@ -875,11 +886,12 @@ export class ProseMirrorEditorService {
       const { state } = this.editorView;
       const pos = position ?? state.selection.from;
       
-      // Create image node
+      // Create image node with optional imageId
       const imageNode = this.editorSchema.nodes['image'].create({
         src: imageData.url,
         alt: imageData.alt,
-        title: imageData.title || null
+        title: imageData.title || null,
+        imageId: imageData.imageId || null
       });
       
       let tr;
@@ -921,6 +933,34 @@ export class ProseMirrorEditorService {
   requestImageInsert(): void {
     // This will be called by slash commands to request image insertion
     // The actual dialog will be handled by the component
+  }
+
+  /**
+   * Update the image ID for an existing image in the document
+   */
+  updateImageId(imageSrc: string, imageId: string): void {
+    if (!this.editorView) return;
+
+    const { state, dispatch } = this.editorView;
+    const { doc, tr } = state;
+    
+    // Find all image nodes with matching src
+    let updated = false;
+    doc.descendants((node, pos) => {
+      if (node.type.name === 'image' && node.attrs['src'] === imageSrc) {
+        // Update the image node with the new imageId
+        tr.setNodeMarkup(pos, null, {
+          ...node.attrs,
+          imageId: imageId
+        });
+        updated = true;
+      }
+    });
+
+    if (updated) {
+      dispatch(tr);
+      console.log('Updated image ID in ProseMirror document:', imageId);
+    }
   }
 
   private insertTextAtPosition(position: number, text: string): void {
