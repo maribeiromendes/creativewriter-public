@@ -26,6 +26,9 @@ import { BeatAIPromptEvent } from '../models/beat-ai.interface';
 import { BeatAIService } from '../../shared/services/beat-ai.service';
 import { PromptManagerService } from '../../shared/services/prompt-manager.service';
 import { ImageUploadDialogComponent, ImageInsertResult } from '../../shared/components/image-upload-dialog.component';
+import { VideoModalComponent } from '../../shared/components/video-modal.component';
+import { ImageVideoService, ImageClickEvent } from '../../shared/services/image-video.service';
+import { VideoService } from '../../shared/services/video.service';
 import { AppHeaderComponent, HeaderAction, BurgerMenuItem } from '../../shared/components/app-header.component';
 import { VersionTooltipComponent } from '../../shared/components/version-tooltip.component';
 import { HeaderNavigationService } from '../../shared/services/header-navigation.service';
@@ -42,7 +45,7 @@ import { PDFExportService } from '../../shared/services/pdf-export.service';
     IonContent, IonChip, IonLabel, IonButton, IonIcon,
     IonMenu, IonSplitPane,
     StoryStructureComponent, SlashCommandDropdownComponent, ImageUploadDialogComponent,
-    AppHeaderComponent, StoryStatsComponent, VersionTooltipComponent
+    VideoModalComponent, AppHeaderComponent, StoryStatsComponent, VersionTooltipComponent
   ],
   template: `
     <ion-split-pane contentId="main-content" when="lg">
@@ -205,6 +208,13 @@ import { PDFExportService } from '../../shared/services/pdf-export.service';
         (imageInserted)="onImageInserted($event)"
         (cancelled)="hideImageDialog()">
       </app-image-upload-dialog>
+      
+      <app-video-modal
+        [isVisible]="showVideoModal"
+        [imageId]="currentImageId"
+        (closed)="hideVideoModal()"
+        (videoAssociated)="onVideoAssociated($event)">
+      </app-video-modal>
       
       <app-story-stats
         [isOpen]="showStoryStats"
@@ -1085,6 +1095,35 @@ import { PDFExportService } from '../../shared/services/pdf-export.service';
         --side-max-width: 240px;
       }
     }
+
+    /* Video Modal Styles for Images */
+    img.has-video {
+      position: relative;
+      cursor: pointer !important;
+      transition: all 0.2s ease;
+      border: 2px solid transparent;
+    }
+
+    img.has-video:hover {
+      border-color: #007bff;
+      box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+      transform: scale(1.02);
+    }
+
+    img.has-video::after {
+      content: '🎬';
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 14px;
+      backdrop-filter: blur(4px);
+      pointer-events: none;
+      z-index: 1;
+    }
   `]
 })
 export class StoryEditorComponent implements OnInit, OnDestroy {
@@ -1101,6 +1140,8 @@ export class StoryEditorComponent implements OnInit, OnDestroy {
   versionService = inject(VersionService);
   private menuController = inject(MenuController);
   private pdfExportService = inject(PDFExportService);
+  private imageVideoService = inject(ImageVideoService);
+  private videoService = inject(VideoService);
 
   @ViewChild('headerTitle', { static: true }) headerTitle!: TemplateRef<unknown>;
   @ViewChild('burgerMenuFooter', { static: true }) burgerMenuFooter!: TemplateRef<unknown>;
@@ -1134,6 +1175,10 @@ export class StoryEditorComponent implements OnInit, OnDestroy {
   // Image dialog functionality
   showImageDialog = false;
   imageCursorPosition = 0;
+  
+  // Video modal functionality
+  showVideoModal = false;
+  currentImageId: string | null = null;
   
   // Story stats functionality
   showStoryStats = false;
@@ -1177,6 +1222,13 @@ export class StoryEditorComponent implements OnInit, OnDestroy {
       this.settingsService.settings$.subscribe(settings => {
         this.currentTextColor = settings.appearance?.textColor || '#e0e0e0';
         this.applyTextColorToProseMirror();
+      })
+    );
+    
+    // Subscribe to image click events
+    this.subscription.add(
+      this.imageVideoService.imageClicked$.subscribe((event: ImageClickEvent) => {
+        this.onImageClicked(event);
       })
     );
     
@@ -1282,6 +1334,12 @@ export class StoryEditorComponent implements OnInit, OnDestroy {
       this.mutationObserver.disconnect();
       this.mutationObserver = null;
     }
+    
+    // Cleanup image click handlers
+    if (this.editorContainer?.nativeElement) {
+      this.imageVideoService.removeImageClickHandlers(this.editorContainer.nativeElement);
+    }
+    
     this.subscription.unsubscribe();
     
     // Remove touch gesture listeners
@@ -1873,6 +1931,9 @@ export class StoryEditorComponent implements OnInit, OnDestroy {
     // Set initial content if we have an active scene (skip scroll, will be done in ngOnInit)
     this.updateEditorContent(true);
     
+    // Initialize image click handlers for video modal functionality
+    this.imageVideoService.initializeImageClickHandlers(this.editorContainer.nativeElement);
+    
     // Add click listener to hide dropdown when clicking in editor
     this.editorContainer.nativeElement.addEventListener('click', () => {
       if (this.showSlashDropdown) {
@@ -1898,6 +1959,12 @@ export class StoryEditorComponent implements OnInit, OnDestroy {
     if (this.editorView && this.activeScene) {
       this.proseMirrorService.setContent(this.activeScene.content || '');
       this.updateWordCount();
+      
+      // Update image video indicators after content is loaded
+      setTimeout(async () => {
+        await this.updateImageVideoIndicators();
+      }, 100);
+      
       // Scroll to end of content after setting content (unless skipped)
       if (!skipScroll) {
         setTimeout(async () => {
@@ -2129,6 +2196,21 @@ export class StoryEditorComponent implements OnInit, OnDestroy {
     // Insert image through ProseMirror service
     this.proseMirrorService.insertImage(imageData, this.imageCursorPosition, true);
     
+    // If the image has an ID (from our image service), add it to the image element for video association
+    if (imageData.imageId) {
+      // Wait a bit for the image to be inserted into the DOM
+      setTimeout(() => {
+        const editorElement = this.editorContainer.nativeElement;
+        const images = editorElement.querySelectorAll('img[src="' + imageData.url + '"]');
+        
+        // Find the most recently added image (should be the last one)
+        if (images.length > 0) {
+          const lastImage = images[images.length - 1] as HTMLImageElement;
+          this.imageVideoService.addImageIdToElement(lastImage, imageData.imageId!);
+        }
+      }, 100);
+    }
+    
     // Focus the editor
     // Only focus on desktop to prevent mobile keyboard from opening
     if (!this.isMobileDevice()) {
@@ -2254,6 +2336,59 @@ export class StoryEditorComponent implements OnInit, OnDestroy {
 
   hideStoryStats(): void {
     this.showStoryStats = false;
+  }
+
+  // Video modal methods
+  onImageClicked(event: ImageClickEvent): void {
+    if (event.imageId) {
+      this.currentImageId = event.imageId;
+      this.showVideoModal = true;
+    } else {
+      // Image has no ID - cannot associate video
+      console.warn('Clicked image has no ID, cannot associate video');
+    }
+  }
+  
+  hideVideoModal(): void {
+    this.showVideoModal = false;
+    this.currentImageId = null;
+  }
+  
+  onVideoAssociated(event: { imageId: string; videoId: string }): void {
+    console.log('Video associated with image:', event);
+    // Video has been successfully associated with the image
+    // You might want to update the UI to show that this image now has a video
+    
+    // Find the image element and add video indicator
+    const imageElements = this.editorContainer.nativeElement.querySelectorAll(`[data-image-id="${event.imageId}"]`);
+    imageElements.forEach((imgElement: Element) => {
+      if (imgElement instanceof HTMLImageElement) {
+        this.imageVideoService.addVideoIndicator(imgElement);
+      }
+    });
+  }
+
+  /**
+   * Check all images in the editor for existing video associations and add indicators
+   */
+  private async updateImageVideoIndicators(): Promise<void> {
+    if (!this.editorContainer) return;
+
+    const images = this.editorContainer.nativeElement.querySelectorAll('img[data-image-id]');
+    
+    for (const imgElement of Array.from(images)) {
+      const imageId = imgElement.getAttribute('data-image-id');
+      if (imageId && imgElement instanceof HTMLImageElement) {
+        try {
+          const video = await this.videoService.getVideoForImage(imageId);
+          if (video) {
+            this.imageVideoService.addVideoIndicator(imgElement);
+          }
+        } catch (error) {
+          console.error('Error checking video for image:', imageId, error);
+        }
+      }
+    }
   }
 
   async exportToPDF(): Promise<void> {

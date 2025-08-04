@@ -12,6 +12,11 @@ export interface StoredImage {
   type: 'image';
 }
 
+export interface ImageUploadResult {
+  url: string;
+  imageId: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -21,7 +26,58 @@ export class ImageService {
   private databaseService = inject(DatabaseService);
 
   /**
-   * Upload an image file and store it locally
+   * Upload an image file and store it locally, returning both URL and ID
+   */
+  async uploadImageWithId(file: File): Promise<ImageUploadResult> {
+    // Validate file size
+    if (file.size > this.MAX_IMAGE_SIZE) {
+      throw new Error(`Datei ist zu groß. Maximale Größe: ${this.formatFileSize(this.MAX_IMAGE_SIZE)}`);
+    }
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      throw new Error('Nur Bilddateien sind erlaubt');
+    }
+
+    try {
+      // Clean up old images first to make space
+      await this.cleanupImages();
+
+      // Convert file to base64
+      const base64Data = await this.fileToBase64(file);
+      
+      // Create image record
+      const imageId = this.generateImageId();
+      const storedImage: StoredImage = {
+        _id: `image_${imageId}`,
+        id: imageId,
+        name: file.name,
+        base64Data,
+        mimeType: file.type,
+        size: file.size,
+        createdAt: new Date(),
+        type: 'image'
+      };
+
+      // Store in PouchDB
+      await this.storeImage(storedImage);
+
+      // Return both URL and ID
+      return {
+        url: this.getImageDataUrl(storedImage),
+        imageId: imageId
+      };
+    } catch (error) {
+      console.error('Fehler beim Hochladen des Bildes:', error);
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('Fehler beim Hochladen des Bildes');
+    }
+  }
+
+  /**
+   * Upload an image file and store it locally (legacy method)
    */
   async uploadImage(file: File): Promise<string> {
     // Validate file size

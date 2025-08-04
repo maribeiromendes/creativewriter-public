@@ -1,12 +1,13 @@
 import { Component, EventEmitter, Output, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ImageService } from '../services/image.service';
+import { ImageService, ImageUploadResult } from '../services/image.service';
 
 export interface ImageInsertResult {
   url: string;
   alt: string;
   title?: string;
+  imageId?: string;
 }
 
 @Component({
@@ -423,18 +424,24 @@ export class ImageUploadDialogComponent {
 
     try {
       let imageUrl: string;
+      let imageId: string | undefined;
 
       if (this.activeTab === 'upload' && this.uploadedFile) {
-        // Convert to base64 for local storage
-        imageUrl = await this.imageService.uploadImage(this.uploadedFile);
+        // Convert to base64 for local storage and get both URL and ID
+        const uploadResult: ImageUploadResult = await this.imageService.uploadImageWithId(this.uploadedFile);
+        imageUrl = uploadResult.url;
+        imageId = uploadResult.imageId;
       } else {
         imageUrl = this.imageUrl;
+        // External URL images don't have IDs from our system
+        imageId = undefined;
       }
 
       this.imageInserted.emit({
         url: imageUrl,
         alt: this.altText || 'Bild',
-        title: this.titleText || undefined
+        title: this.titleText || undefined,
+        imageId: imageId
       });
     } catch (error) {
       console.error('Fehler beim Einfügen des Bildes:', error);
