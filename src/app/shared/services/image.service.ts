@@ -131,17 +131,20 @@ export class ImageService {
     try {
       const db = await this.databaseService.getDatabase();
       const result = await db.find({
-        selector: { type: 'image' },
-        sort: [{ createdAt: 'desc' }]
+        selector: { type: 'image' }
+        // Remove sort to avoid index issues - we'll sort in memory instead
       });
       
-      return result.docs.map((doc: unknown) => {
+      const images = result.docs.map((doc: unknown) => {
         const typedDoc = doc as StoredImage & { _id: string; _rev: string };
         return {
           ...typedDoc,
           createdAt: new Date(typedDoc.createdAt)
         };
       }) as StoredImage[];
+      
+      // Sort in memory by createdAt descending
+      return images.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
     } catch (error) {
       console.error('Fehler beim Laden der Bilder:', error);
       return [];

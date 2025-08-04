@@ -65,17 +65,20 @@ export class VideoService {
     try {
       const db = await this.databaseService.getDatabase();
       const result = await db.find({
-        selector: { type: 'video' },
-        sort: [{ createdAt: 'desc' }]
+        selector: { type: 'video' }
+        // Remove sort to avoid index issues - we'll sort in memory instead
       });
       
-      return result.docs.map((doc: unknown) => {
+      const videos = result.docs.map((doc: unknown) => {
         const typedDoc = doc as StoredVideo & { _id: string; _rev: string };
         return {
           ...typedDoc,
           createdAt: new Date(typedDoc.createdAt)
         };
       }) as StoredVideo[];
+      
+      // Sort in memory by createdAt descending
+      return videos.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
     } catch (error) {
       console.error('Fehler beim Laden der Videos:', error);
       return [];
