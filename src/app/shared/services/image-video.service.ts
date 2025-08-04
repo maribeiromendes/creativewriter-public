@@ -44,6 +44,7 @@ export class ImageVideoService {
       
       // Extract image ID from various possible sources
       const imageId = this.extractImageId(imageElement);
+      console.log('Image clicked - extracted ID:', imageId, 'from element:', imageElement);
       
       // Get click position for modal positioning
       const rect = imageElement.getBoundingClientRect();
@@ -71,17 +72,21 @@ export class ImageVideoService {
   private extractImageId(imageElement: HTMLImageElement): string | null {
     // Try to extract ID from data attributes
     const dataId = imageElement.getAttribute('data-image-id');
+    console.log('Checking data-image-id:', dataId);
     if (dataId) {
       return dataId;
     }
 
     // Try to extract ID from CSS classes
     const classes = imageElement.className;
+    console.log('Checking classes:', classes);
     const idMatch = classes.match(/image-id-([a-zA-Z0-9_-]+)/);
     if (idMatch) {
+      console.log('Found ID in classes:', idMatch[1]);
       return idMatch[1];
     }
 
+    console.log('No ID found, returning null');
     // For images without ID, return null - the story editor will generate one on click
     return null;
   }

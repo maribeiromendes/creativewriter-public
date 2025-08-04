@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, OnInit, OnDestroy, ViewChild, ElementRef, inject } from '@angular/core';
+import { Component, EventEmitter, Input, Output, OnInit, OnDestroy, OnChanges, SimpleChanges, ViewChild, ElementRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { VideoService } from '../services/video.service';
@@ -391,7 +391,7 @@ import { StoredVideo } from '../models/video.interface';
     }
   `]
 })
-export class VideoModalComponent implements OnInit, OnDestroy {
+export class VideoModalComponent implements OnInit, OnDestroy, OnChanges {
   @Input() isVisible = false;
   @Input() imageId: string | null = null;
   @Output() closed = new EventEmitter<void>();
@@ -422,6 +422,28 @@ export class VideoModalComponent implements OnInit, OnDestroy {
     console.log('VideoModal ngOnInit with imageId:', this.imageId);
     if (this.imageId) {
       await this.loadVideoForImage();
+    }
+  }
+
+  async ngOnChanges(changes: SimpleChanges): Promise<void> {
+    console.log('VideoModal ngOnChanges:', changes);
+    
+    // Check if imageId changed and the component is visible
+    if (changes['imageId'] && this.isVisible && this.imageId) {
+      console.log('ImageId changed to:', this.imageId, 'loading video...');
+      await this.loadVideoForImage();
+    }
+    
+    // Reset state when modal becomes visible with a new imageId
+    if (changes['isVisible']) {
+      if (this.isVisible && this.imageId) {
+        console.log('Modal became visible with imageId:', this.imageId);
+        await this.loadVideoForImage();
+      } else if (!this.isVisible) {
+        // Reset state when modal is hidden
+        console.log('Modal hidden, resetting state');
+        this.resetModalState();
+      }
     }
   }
 
@@ -585,6 +607,19 @@ export class VideoModalComponent implements OnInit, OnDestroy {
   private cleanupPreview(): void {
     if (this.uploadPreview) {
       URL.revokeObjectURL(this.uploadPreview);
+    }
+  }
+
+  private resetModalState(): void {
+    this.currentVideo = null;
+    this.hasVideo = false;
+    this.isUploading = false;
+    this.isProcessing = false;
+    this.isDragging = false;
+    this.uploadedFile = null;
+    this.uploadPreview = null;
+    if (this.fileInput) {
+      this.fileInput.nativeElement.value = '';
     }
   }
 

@@ -2340,6 +2340,7 @@ export class StoryEditorComponent implements OnInit, OnDestroy {
 
   // Video modal methods
   onImageClicked(event: ImageClickEvent): void {
+    console.log('Image clicked, event:', event);
     let imageId = event.imageId;
     
     // If image has no ID, generate one now
@@ -2359,8 +2360,15 @@ export class StoryEditorComponent implements OnInit, OnDestroy {
       console.log('Generated new ID for existing image:', imageId);
     }
     
+    console.log('Setting currentImageId to:', imageId);
     this.currentImageId = imageId;
+    
+    // Force change detection to ensure the binding is updated before showing modal
+    this.cdr.detectChanges();
+    
+    console.log('After detectChanges, currentImageId is:', this.currentImageId);
     this.showVideoModal = true;
+    console.log('Modal visibility set to:', this.showVideoModal);
   }
 
   private generateImageId(): string {
