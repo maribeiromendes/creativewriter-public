@@ -75,28 +75,14 @@ export class ImageVideoService {
       return dataId;
     }
 
-    // Try to extract ID from src URL if it's a base64 data URL from our system
-    const src = imageElement.src;
-    if (src && src.startsWith('data:')) {
-      // For images stored by our system, we might need to maintain a mapping
-      // For now, we'll extract it from a custom attribute or class
-      const classes = imageElement.className;
-      const idMatch = classes.match(/image-id-([a-zA-Z0-9_-]+)/);
-      if (idMatch) {
-        return idMatch[1];
-      }
+    // Try to extract ID from CSS classes
+    const classes = imageElement.className;
+    const idMatch = classes.match(/image-id-([a-zA-Z0-9_-]+)/);
+    if (idMatch) {
+      return idMatch[1];
     }
 
-    // Try to extract from alt text if it contains an ID pattern
-    const alt = imageElement.alt;
-    if (alt) {
-      const idMatch = alt.match(/id:([a-zA-Z0-9_-]+)/);
-      if (idMatch) {
-        return idMatch[1];
-      }
-    }
-
-    // If no ID found, return null (this means no video can be associated)
+    // For images without ID, return null - the story editor will generate one on click
     return null;
   }
 

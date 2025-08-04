@@ -2340,13 +2340,25 @@ export class StoryEditorComponent implements OnInit, OnDestroy {
 
   // Video modal methods
   onImageClicked(event: ImageClickEvent): void {
-    if (event.imageId) {
-      this.currentImageId = event.imageId;
-      this.showVideoModal = true;
-    } else {
-      // Image has no ID - cannot associate video
-      console.warn('Clicked image has no ID, cannot associate video');
+    let imageId = event.imageId;
+    
+    // If image has no ID, generate one now
+    if (!imageId || imageId === 'no-id') {
+      imageId = this.generateImageId();
+      this.imageVideoService.addImageIdToElement(event.imageElement, imageId);
+      
+      // Mark as having unsaved changes since we modified the image
+      this.hasUnsavedChanges = true;
+      
+      console.log('Generated new ID for existing image:', imageId);
     }
+    
+    this.currentImageId = imageId;
+    this.showVideoModal = true;
+  }
+
+  private generateImageId(): string {
+    return `img_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }
   
   hideVideoModal(): void {
@@ -2374,6 +2386,7 @@ export class StoryEditorComponent implements OnInit, OnDestroy {
   private async updateImageVideoIndicators(): Promise<void> {
     if (!this.editorContainer) return;
 
+    // Only check images that already have IDs for video associations
     const images = this.editorContainer.nativeElement.querySelectorAll('img[data-image-id]');
     
     for (const imgElement of Array.from(images)) {
