@@ -6,18 +6,23 @@ import {
   IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
   IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonItem, IonLabel,
   IonTextarea, IonCheckbox, IonRadio, IonRadioGroup, IonChip, IonNote,
-  IonText, IonGrid, IonRow, IonCol
+  IonText, IonGrid, IonRow, IonCol, IonProgressBar, IonList, IonThumbnail,
+  IonBadge
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { 
   arrowBack, saveOutline, refreshOutline, checkmarkCircleOutline,
   warningOutline, informationCircleOutline, codeSlashOutline,
-  settingsOutline, chatboxOutline, documentTextOutline
+  settingsOutline, chatboxOutline, documentTextOutline, serverOutline,
+  scanOutline, trashOutline, downloadOutline, statsChartOutline,
+  copyOutline, searchOutline, closeCircleOutline, checkboxOutline,
+  squareOutline
 } from 'ionicons/icons';
 import { StoryService } from '../services/story.service';
 import { Story, StorySettings, DEFAULT_STORY_SETTINGS } from '../models/story.interface';
 import { SettingsTabsComponent, TabItem } from '../../shared/components/settings-tabs.component';
 import { SettingsContentComponent } from '../../shared/components/settings-content.component';
+import { DbMaintenanceService, OrphanedImage, DatabaseStats, DuplicateImage, IntegrityIssue } from '../../shared/services/db-maintenance.service';
 
 @Component({
   selector: 'app-story-settings',
@@ -27,7 +32,8 @@ import { SettingsContentComponent } from '../../shared/components/settings-conte
     IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
     IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonItem, IonLabel,
     IonTextarea, IonCheckbox, IonRadio, IonRadioGroup, IonChip, IonNote,
-    IonText, IonGrid, IonRow, IonCol,
+    IonText, IonGrid, IonRow, IonCol, IonProgressBar, IonList, IonThumbnail,
+    IonBadge,
     SettingsTabsComponent, SettingsContentComponent
   ],
   template: `
@@ -181,6 +187,317 @@ import { SettingsContentComponent } from '../../shared/components/settings-conte
                     <ion-label>Bleibe im Moment</ion-label>
                   </ion-item>
                 </ion-radio-group>
+              </ion-card-content>
+            </ion-card>
+          </div>
+
+          <!-- DB Maintenance Tab -->
+          <div *ngSwitchCase="'db-maintenance'">
+            <!-- Database Statistics -->
+            <ion-card class="settings-section">
+              <ion-card-header>
+                <ion-card-title>Datenbank-Statistiken</ion-card-title>
+              </ion-card-header>
+              <ion-card-content>
+                <ion-button
+                  fill="outline"
+                  size="small"
+                  (click)="loadDatabaseStats()"
+                  [disabled]="isScanning">
+                  <ion-icon name="stats-chart-outline" slot="start"></ion-icon>
+                  Statistiken laden
+                </ion-button>
+
+                <div *ngIf="databaseStats" class="stats-grid">
+                  <ion-grid>
+                    <ion-row>
+                      <ion-col size="6" size-md="3">
+                        <div class="stat-item">
+                          <ion-text color="primary">
+                            <h3>{{ databaseStats.totalStories }}</h3>
+                          </ion-text>
+                          <ion-note>Geschichten</ion-note>
+                        </div>
+                      </ion-col>
+                      <ion-col size="6" size-md="3">
+                        <div class="stat-item">
+                          <ion-text color="primary">
+                            <h3>{{ databaseStats.totalImages }}</h3>
+                          </ion-text>
+                          <ion-note>Bilder</ion-note>
+                        </div>
+                      </ion-col>
+                      <ion-col size="6" size-md="3">
+                        <div class="stat-item">
+                          <ion-text color="warning">
+                            <h3>{{ databaseStats.orphanedImages }}</h3>
+                          </ion-text>
+                          <ion-note>Verwaiste Bilder</ion-note>
+                        </div>
+                      </ion-col>
+                      <ion-col size="6" size-md="3">
+                        <div class="stat-item">
+                          <ion-text color="medium">
+                            <h3>{{ formatBytes(databaseStats.databaseSizeEstimate) }}</h3>
+                          </ion-text>
+                          <ion-note>Gesamtgröße (ca.)</ion-note>
+                        </div>
+                      </ion-col>
+                    </ion-row>
+                  </ion-grid>
+                </div>
+              </ion-card-content>
+            </ion-card>
+
+            <!-- Progress Display -->
+            <ion-card *ngIf="isScanning" class="settings-section progress-card">
+              <ion-card-content>
+                <div class="progress-container">
+                  <ion-text color="primary">
+                    <h4>{{ scanProgress.operation }}</h4>
+                  </ion-text>
+                  <ion-progress-bar [value]="scanProgress.progress / 100"></ion-progress-bar>
+                  <ion-note>{{ scanProgress.message }}</ion-note>
+                </div>
+              </ion-card-content>
+            </ion-card>
+
+            <!-- Orphaned Images -->
+            <ion-card class="settings-section">
+              <ion-card-header>
+                <ion-card-title>Verwaiste Bilder</ion-card-title>
+              </ion-card-header>
+              <ion-card-content>
+                <ion-text color="medium">
+                  <p>Bilder, die nicht mehr in Geschichten verwendet werden.</p>
+                </ion-text>
+
+                <div class="action-buttons">
+                  <ion-button
+                    fill="outline"
+                    size="small"
+                    (click)="scanOrphanedImages()"
+                    [disabled]="isScanning">
+                    <ion-icon name="scan-outline" slot="start"></ion-icon>
+                    Scannen
+                  </ion-button>
+
+                  <ion-button
+                    fill="outline"
+                    size="small"
+                    color="secondary"
+                    (click)="selectAllOrphanedImages()"
+                    [disabled]="orphanedImages.length === 0">
+                    <ion-icon name="checkbox-outline" slot="start"></ion-icon>
+                    Alle auswählen
+                  </ion-button>
+
+                  <ion-button
+                    fill="outline"
+                    size="small"
+                    color="medium"
+                    (click)="deselectAllOrphanedImages()"
+                    [disabled]="selectedOrphanedImages.size === 0">
+                    <ion-icon name="square-outline" slot="start"></ion-icon>
+                    Auswahl aufheben
+                  </ion-button>
+
+                  <ion-button
+                    fill="solid"
+                    size="small"
+                    color="danger"
+                    (click)="deleteSelectedOrphanedImages()"
+                    [disabled]="selectedOrphanedImages.size === 0 || isScanning">
+                    <ion-icon name="trash-outline" slot="start"></ion-icon>
+                    Löschen ({{ selectedOrphanedImages.size }})
+                  </ion-button>
+                </div>
+
+                <ion-list *ngIf="orphanedImages.length > 0" class="media-list">
+                  <ion-item
+                    *ngFor="let image of orphanedImages"
+                    button
+                    (click)="toggleOrphanedImageSelection(image.id)">
+                    <ion-checkbox
+                      slot="start"
+                      [checked]="selectedOrphanedImages.has(image.id)">
+                    </ion-checkbox>
+                    <ion-thumbnail slot="start">
+                      <img [src]="'data:' + image.mimeType + ';base64,' + image.base64Data" [alt]="image.name">
+                    </ion-thumbnail>
+                    <ion-label>
+                      <h3>{{ image.name }}</h3>
+                      <p>{{ formatBytes(image.size) }} • {{ image.createdAt | date:'short' }}</p>
+                    </ion-label>
+                  </ion-item>
+                </ion-list>
+
+                <div *ngIf="orphanedImages.length === 0 && !isScanning" class="empty-state">
+                  <ion-text color="medium">
+                    <p>Keine verwaisten Bilder gefunden oder noch nicht gescannt.</p>
+                  </ion-text>
+                </div>
+              </ion-card-content>
+            </ion-card>
+
+            <!-- Duplicate Images -->
+            <ion-card class="settings-section">
+              <ion-card-header>
+                <ion-card-title>Doppelte Bilder</ion-card-title>
+              </ion-card-header>
+              <ion-card-content>
+                <ion-text color="medium">
+                  <p>Identische Bilder mit verschiedenen IDs.</p>
+                </ion-text>
+
+                <div class="action-buttons">
+                  <ion-button
+                    fill="outline"
+                    size="small"
+                    (click)="scanDuplicateImages()"
+                    [disabled]="isScanning">
+                    <ion-icon name="copy-outline" slot="start"></ion-icon>
+                    Duplikate suchen
+                  </ion-button>
+
+                  <ion-button
+                    fill="outline"
+                    size="small"
+                    color="secondary"
+                    (click)="selectAllDuplicates()"
+                    [disabled]="duplicateImages.length === 0">
+                    <ion-icon name="checkbox-outline" slot="start"></ion-icon>
+                    Alle auswählen
+                  </ion-button>
+
+                  <ion-button
+                    fill="outline"
+                    size="small"
+                    color="medium"
+                    (click)="deselectAllDuplicates()"
+                    [disabled]="selectedDuplicates.size === 0">
+                    <ion-icon name="square-outline" slot="start"></ion-icon>
+                    Auswahl aufheben
+                  </ion-button>
+
+                  <ion-button
+                    fill="solid"
+                    size="small"
+                    color="danger"
+                    (click)="deleteSelectedDuplicates()"
+                    [disabled]="selectedDuplicates.size === 0 || isScanning">
+                    <ion-icon name="trash-outline" slot="start"></ion-icon>
+                    Duplikate löschen ({{ selectedDuplicates.size }})
+                  </ion-button>
+                </div>
+
+                <ion-list *ngIf="duplicateImages.length > 0" class="media-list">
+                  <ion-item
+                    *ngFor="let duplicate of duplicateImages"
+                    button
+                    (click)="toggleDuplicateSelection(duplicate.originalId)">
+                    <ion-checkbox
+                      slot="start"
+                      [checked]="selectedDuplicates.has(duplicate.originalId)">
+                    </ion-checkbox>
+                    <ion-thumbnail slot="start">
+                      <img [src]="'data:image/jpeg;base64,' + duplicate.base64Data" [alt]="duplicate.name">
+                    </ion-thumbnail>
+                    <ion-label>
+                      <h3>{{ duplicate.name }}</h3>
+                      <p>
+                        {{ formatBytes(duplicate.size) }} •
+                        <ion-badge color="warning">{{ duplicate.duplicateIds.length }} Duplikate</ion-badge>
+                      </p>
+                    </ion-label>
+                  </ion-item>
+                </ion-list>
+
+                <div *ngIf="duplicateImages.length === 0 && !isScanning" class="empty-state">
+                  <ion-text color="medium">
+                    <p>Keine Duplikate gefunden oder noch nicht gescannt.</p>
+                  </ion-text>
+                </div>
+              </ion-card-content>
+            </ion-card>
+
+            <!-- Story Integrity -->
+            <ion-card class="settings-section">
+              <ion-card-header>
+                <ion-card-title>Story-Integrität</ion-card-title>
+              </ion-card-header>
+              <ion-card-content>
+                <ion-text color="medium">
+                  <p>Überprüfung auf beschädigte oder unvollständige Geschichten.</p>
+                </ion-text>
+
+                <ion-button
+                  fill="outline"
+                  size="small"
+                  (click)="checkIntegrity()"
+                  [disabled]="isScanning">
+                  <ion-icon name="search-outline" slot="start"></ion-icon>
+                  Integrität prüfen
+                </ion-button>
+
+                <ion-list *ngIf="integrityIssues.length > 0" class="integrity-list">
+                  <ion-item *ngFor="let issue of integrityIssues">
+                    <ion-icon
+                      [name]="issue.severity === 'high' ? 'close-circle-outline' : 'warning-outline'"
+                      [color]="issue.severity === 'high' ? 'danger' : 'warning'"
+                      slot="start">
+                    </ion-icon>
+                    <ion-label>
+                      <h3>{{ issue.storyTitle }}</h3>
+                      <p>{{ issue.description }}</p>
+                      <ion-note>Schweregrad: {{ issue.severity }}</ion-note>
+                    </ion-label>
+                  </ion-item>
+                </ion-list>
+
+                <div *ngIf="integrityIssues.length === 0 && !isScanning" class="empty-state">
+                  <ion-text color="success">
+                    <p>Alle Geschichten sind intakt oder noch nicht geprüft.</p>
+                  </ion-text>
+                </div>
+              </ion-card-content>
+            </ion-card>
+
+            <!-- Database Operations -->
+            <ion-card class="settings-section">
+              <ion-card-header>
+                <ion-card-title>Datenbank-Operationen</ion-card-title>
+              </ion-card-header>
+              <ion-card-content>
+                <div class="db-operations">
+                  <ion-button
+                    fill="outline"
+                    expand="block"
+                    (click)="compactDatabase()"
+                    [disabled]="isScanning"
+                    class="operation-button">
+                    <ion-icon name="refresh-outline" slot="start"></ion-icon>
+                    Datenbank komprimieren
+                  </ion-button>
+
+                  <ion-button
+                    fill="outline"
+                    expand="block"
+                    color="secondary"
+                    (click)="exportDatabase()"
+                    [disabled]="isScanning"
+                    class="operation-button">
+                    <ion-icon name="download-outline" slot="start"></ion-icon>
+                    Vollständigen Export erstellen
+                  </ion-button>
+                </div>
+
+                <ion-text color="medium">
+                  <p>
+                    <strong>Komprimieren:</strong> Entfernt gelöschte Daten und reduziert die Datenbankgröße.<br>
+                    <strong>Export:</strong> Erstellt eine JSON-Datei mit allen Geschichten und Bildern.
+                  </p>
+                </ion-text>
               </ion-card-content>
             </ion-card>
           </div>
@@ -516,6 +833,127 @@ import { SettingsContentComponent } from '../../shared/components/settings-conte
       font-size: 0.85rem;
     }
 
+    /* DB Maintenance Styles */
+    .stats-grid {
+      margin-top: 1rem;
+    }
+
+    .stat-item {
+      text-align: center;
+      padding: 1rem;
+      background: rgba(30, 30, 30, 0.3);
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-item h3 {
+      font-size: 1.5rem;
+      font-weight: bold;
+      margin: 0 0 0.25rem 0;
+    }
+
+    .progress-card {
+      background: linear-gradient(135deg, rgba(71, 118, 230, 0.1) 0%, rgba(139, 180, 248, 0.1) 100%);
+      border-color: rgba(71, 118, 230, 0.3);
+    }
+
+    .progress-container {
+      text-align: center;
+      padding: 1rem 0;
+    }
+
+    .progress-container h4 {
+      margin: 0 0 0.5rem 0;
+      color: #f8f9fa;
+    }
+
+    .progress-container ion-progress-bar {
+      margin: 1rem 0;
+      --progress-background: rgba(71, 118, 230, 0.8);
+      --background: rgba(255, 255, 255, 0.2);
+      height: 8px;
+      border-radius: 4px;
+    }
+
+    .action-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin: 1rem 0;
+    }
+
+    .action-buttons ion-button {
+      --border-radius: 6px;
+    }
+
+    .media-list {
+      background: transparent;
+      margin-top: 1rem;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .media-list ion-item {
+      --background: rgba(30, 30, 30, 0.3);
+      --border-color: rgba(255, 255, 255, 0.1);
+      --color: #f8f9fa;
+      transition: all 0.3s ease;
+    }
+
+    .media-list ion-item:hover {
+      --background: rgba(40, 40, 40, 0.4);
+      cursor: pointer;
+    }
+
+    .media-list ion-thumbnail {
+      width: 64px;
+      height: 64px;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .media-list ion-thumbnail img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .integrity-list {
+      background: transparent;
+      margin-top: 1rem;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .integrity-list ion-item {
+      --background: rgba(30, 30, 30, 0.3);
+      --border-color: rgba(255, 255, 255, 0.1);
+      --color: #f8f9fa;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 2rem;
+      background: rgba(30, 30, 30, 0.2);
+      border-radius: 8px;
+      margin-top: 1rem;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .db-operations {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .operation-button {
+      --border-radius: 8px;
+      height: 48px;
+    }
+
     @media (max-width: 768px) {
       .settings-actions {
         padding: 0 0.5rem;
@@ -523,6 +961,23 @@ import { SettingsContentComponent } from '../../shared/components/settings-conte
       
       .settings-textarea.large {
         min-height: 150px;
+      }
+
+      .action-buttons {
+        flex-direction: column;
+      }
+
+      .action-buttons ion-button {
+        width: 100%;
+      }
+
+      .stat-item h3 {
+        font-size: 1.2rem;
+      }
+
+      .media-list ion-thumbnail {
+        width: 48px;
+        height: 48px;
       }
     }
   `]
@@ -536,7 +991,8 @@ export class StorySettingsComponent implements OnInit {
   tabItems: TabItem[] = [
     { value: 'general', icon: 'information-circle-outline', label: 'Allgemein' },
     { value: 'ai-system', icon: 'chatbox-outline', label: 'AI System' },
-    { value: 'beat-config', icon: 'settings-outline', label: 'Beat Config' }
+    { value: 'beat-config', icon: 'settings-outline', label: 'Beat Config' },
+    { value: 'db-maintenance', icon: 'server-outline', label: 'DB-Wartung' }
   ];
   
   placeholders = [
@@ -551,15 +1007,29 @@ export class StorySettingsComponent implements OnInit {
     '{writingStyle}'
   ];
 
+  // DB Maintenance properties
+  orphanedImages: OrphanedImage[] = [];
+  databaseStats: DatabaseStats | null = null;
+  duplicateImages: DuplicateImage[] = [];
+  integrityIssues: IntegrityIssue[] = [];
+  isScanning = false;
+  scanProgress = { operation: '', progress: 0, message: '' };
+  selectedOrphanedImages = new Set<string>();
+  selectedDuplicates = new Set<string>();
+
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly storyService = inject(StoryService);
+  private readonly dbMaintenanceService = inject(DbMaintenanceService);
 
   constructor() {
     addIcons({ 
       arrowBack, saveOutline, refreshOutline, checkmarkCircleOutline,
       warningOutline, informationCircleOutline, codeSlashOutline,
-      settingsOutline, chatboxOutline, documentTextOutline
+      settingsOutline, chatboxOutline, documentTextOutline, serverOutline,
+      scanOutline, trashOutline, downloadOutline, statsChartOutline,
+      copyOutline, searchOutline, closeCircleOutline, checkboxOutline,
+      squareOutline
     });
   }
 
@@ -577,6 +1047,12 @@ export class StorySettingsComponent implements OnInit {
         this.router.navigate(['/']);
       }
     }
+
+    // Subscribe to DB maintenance progress
+    this.dbMaintenanceService.operationProgress$.subscribe(progress => {
+      this.scanProgress = progress;
+      this.isScanning = progress.progress > 0 && progress.progress < 100;
+    });
   }
 
   onSettingsChange(): void {
@@ -618,5 +1094,147 @@ export class StorySettingsComponent implements OnInit {
     } else {
       this.router.navigate(['/']);
     }
+  }
+
+  // DB Maintenance methods
+  async scanOrphanedImages(): Promise<void> {
+    try {
+      this.orphanedImages = await this.dbMaintenanceService.findOrphanedImages();
+      this.selectedOrphanedImages.clear();
+    } catch (error) {
+      console.error('Error scanning orphaned images:', error);
+    }
+  }
+
+  async loadDatabaseStats(): Promise<void> {
+    try {
+      this.databaseStats = await this.dbMaintenanceService.getDatabaseStats();
+    } catch (error) {
+      console.error('Error loading database stats:', error);
+    }
+  }
+
+  async scanDuplicateImages(): Promise<void> {
+    try {
+      this.duplicateImages = await this.dbMaintenanceService.findDuplicateImages();
+      this.selectedDuplicates.clear();
+    } catch (error) {
+      console.error('Error scanning duplicate images:', error);
+    }
+  }
+
+  async checkIntegrity(): Promise<void> {
+    try {
+      this.integrityIssues = await this.dbMaintenanceService.checkStoryIntegrity();
+    } catch (error) {
+      console.error('Error checking integrity:', error);
+    }
+  }
+
+  async compactDatabase(): Promise<void> {
+    if (confirm('Möchten Sie die Datenbank wirklich komprimieren? Dies kann einige Zeit dauern.')) {
+      try {
+        const result = await this.dbMaintenanceService.compactDatabase();
+        alert(`Komprimierung erfolgreich! ${result.saved} Dokumente entfernt.`);
+        await this.loadDatabaseStats(); // Refresh stats
+      } catch (error) {
+        console.error('Error compacting database:', error);
+        alert('Fehler bei der Datenbankkompress.');
+      }
+    }
+  }
+
+  async deleteSelectedOrphanedImages(): Promise<void> {
+    const selectedIds = Array.from(this.selectedOrphanedImages);
+    if (selectedIds.length === 0) return;
+
+    if (confirm(`Möchten Sie ${selectedIds.length} verwaiste Bilder wirklich löschen?`)) {
+      try {
+        const deletedCount = await this.dbMaintenanceService.deleteOrphanedImages(selectedIds);
+        alert(`${deletedCount} Bilder erfolgreich gelöscht.`);
+        await this.scanOrphanedImages(); // Refresh list
+        await this.loadDatabaseStats(); // Refresh stats
+      } catch (error) {
+        console.error('Error deleting orphaned images:', error);
+        alert('Fehler beim Löschen der Bilder.');
+      }
+    }
+  }
+
+  async deleteSelectedDuplicates(): Promise<void> {
+    const selectedDuplicates = this.duplicateImages.filter(dup => 
+      this.selectedDuplicates.has(dup.originalId)
+    );
+    
+    if (selectedDuplicates.length === 0) return;
+
+    const totalToDelete = selectedDuplicates.reduce((sum, dup) => sum + dup.duplicateIds.length, 0);
+    
+    if (confirm(`Möchten Sie ${totalToDelete} Duplikate wirklich löschen?`)) {
+      try {
+        const deletedCount = await this.dbMaintenanceService.deleteDuplicateImages(selectedDuplicates);
+        alert(`${deletedCount} Duplikate erfolgreich gelöscht.`);
+        await this.scanDuplicateImages(); // Refresh list
+        await this.loadDatabaseStats(); // Refresh stats
+      } catch (error) {
+        console.error('Error deleting duplicates:', error);
+        alert('Fehler beim Löschen der Duplikate.');
+      }
+    }
+  }
+
+  async exportDatabase(): Promise<void> {
+    try {
+      const exportData = await this.dbMaintenanceService.exportDatabase();
+      const blob = new Blob([exportData], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `creative-writer-backup-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error exporting database:', error);
+      alert('Fehler beim Export der Datenbank.');
+    }
+  }
+
+  toggleOrphanedImageSelection(imageId: string): void {
+    if (this.selectedOrphanedImages.has(imageId)) {
+      this.selectedOrphanedImages.delete(imageId);
+    } else {
+      this.selectedOrphanedImages.add(imageId);
+    }
+  }
+
+  toggleDuplicateSelection(originalId: string): void {
+    if (this.selectedDuplicates.has(originalId)) {
+      this.selectedDuplicates.delete(originalId);
+    } else {
+      this.selectedDuplicates.add(originalId);
+    }
+  }
+
+  selectAllOrphanedImages(): void {
+    this.orphanedImages.forEach(img => this.selectedOrphanedImages.add(img.id));
+  }
+
+  deselectAllOrphanedImages(): void {
+    this.selectedOrphanedImages.clear();
+  }
+
+  selectAllDuplicates(): void {
+    this.duplicateImages.forEach(dup => this.selectedDuplicates.add(dup.originalId));
+  }
+
+  deselectAllDuplicates(): void {
+    this.selectedDuplicates.clear();
+  }
+
+  formatBytes(bytes: number): string {
+    return this.dbMaintenanceService.formatBytes(bytes);
   }
 }
