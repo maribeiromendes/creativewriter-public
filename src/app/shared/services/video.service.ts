@@ -157,6 +157,8 @@ export class VideoService {
   async getVideoForImage(imageId: string): Promise<StoredVideo | null> {
     try {
       const db = await this.databaseService.getDatabase();
+      console.log('Searching for video association for imageId:', imageId);
+      
       const result = await db.find({
         selector: { 
           type: 'image-video-association',
@@ -164,12 +166,19 @@ export class VideoService {
         }
       });
 
+      console.log('Found associations:', result.docs.length);
+      
       if (result.docs.length === 0) {
         return null;
       }
 
       const association = result.docs[0] as ImageVideoAssociation;
-      return await this.getVideo(association.videoId);
+      console.log('Found association:', association);
+      
+      const video = await this.getVideo(association.videoId);
+      console.log('Found video:', !!video);
+      
+      return video;
     } catch (error) {
       console.error('Fehler beim Laden des verknüpften Videos:', error);
       return null;

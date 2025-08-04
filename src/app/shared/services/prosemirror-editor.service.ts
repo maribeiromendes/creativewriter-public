@@ -102,12 +102,12 @@ export class ProseMirrorEditorService {
           };
           
           if (node.attrs['title']) {
-            attrs.title = node.attrs['title'];
+            attrs['title'] = node.attrs['title'];
           }
           
           if (node.attrs['imageId']) {
             attrs['data-image-id'] = node.attrs['imageId'];
-            attrs.class = 'image-id-' + node.attrs['imageId'];
+            attrs['class'] = 'image-id-' + node.attrs['imageId'];
           }
           
           return ['img', attrs];

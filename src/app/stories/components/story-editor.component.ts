@@ -2394,14 +2394,20 @@ export class StoryEditorComponent implements OnInit, OnDestroy {
 
     // Only check images that already have IDs for video associations
     const images = this.editorContainer.nativeElement.querySelectorAll('img[data-image-id]');
+    console.log('Checking for video associations, found images with IDs:', images.length);
     
     for (const imgElement of Array.from(images)) {
       const imageId = imgElement.getAttribute('data-image-id');
+      console.log('Checking image with ID:', imageId);
+      
       if (imageId && imgElement instanceof HTMLImageElement) {
         try {
           const video = await this.videoService.getVideoForImage(imageId);
+          console.log('Video found for image', imageId, ':', !!video);
+          
           if (video) {
             this.imageVideoService.addVideoIndicator(imgElement);
+            console.log('Added video indicator for image:', imageId);
           }
         } catch (error) {
           console.error('Error checking video for image:', imageId, error);

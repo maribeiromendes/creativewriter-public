@@ -419,6 +419,7 @@ export class VideoModalComponent implements OnInit, OnDestroy {
   }
 
   async ngOnInit(): Promise<void> {
+    console.log('VideoModal ngOnInit with imageId:', this.imageId);
     if (this.imageId) {
       await this.loadVideoForImage();
     }
@@ -433,8 +434,10 @@ export class VideoModalComponent implements OnInit, OnDestroy {
     if (!this.imageId) return;
 
     try {
+      console.log('Loading video for image ID:', this.imageId);
       this.currentVideo = await this.videoService.getVideoForImage(this.imageId);
       this.hasVideo = !!this.currentVideo;
+      console.log('Found video for image:', !!this.currentVideo, this.currentVideo);
     } catch (error) {
       console.error('Fehler beim Laden des Videos:', error);
       this.hasVideo = false;
