@@ -21,7 +21,51 @@ export class StoryService {
         .map((row: { doc?: unknown }) => {
           return row.doc;
         })
-        .filter((doc: unknown) => doc && (doc as Story).id && (doc as unknown as { type?: string }).type !== 'codex') // Filter out design docs and codex entries
+        .filter((doc: unknown) => {
+          if (!doc) return false;
+          
+          const docWithType = doc as Record<string, unknown> & { 
+            _id?: string; 
+            type?: string; 
+            chapters?: unknown[]; 
+            content?: string;
+            id?: string;
+            title?: string;
+            createdAt?: unknown;
+          };
+          
+          // Filter out design docs
+          if (docWithType._id && docWithType._id.startsWith('_design')) {
+            return false;
+          }
+          
+          // If document has a type field, it's not a story (stories don't have type field)
+          if (docWithType.type) {
+            return false; // This filters out codex, video, image-video-association, etc.
+          }
+          
+          // A story MUST have either chapters array (new format) or content (legacy format)
+          const hasChapters = Array.isArray(docWithType.chapters);
+          const hasLegacyContent = typeof docWithType.content === 'string';
+          
+          // Must have one of these story-specific structures
+          if (!hasChapters && !hasLegacyContent) {
+            return false;
+          }
+          
+          // Must have an ID
+          if (!docWithType.id && !docWithType._id) {
+            return false;
+          }
+          
+          // Additional validation: Check if it's an empty/abandoned story
+          if (this.isEmptyStory(docWithType)) {
+            console.log('Filtering out empty story:', docWithType.title || 'Untitled', docWithType._id);
+            return false;
+          }
+          
+          return true;
+        })
         .map((story: unknown) => this.migrateStory(story as Story));
         
       return stories;
@@ -372,6 +416,73 @@ export class StoryService {
 
   private generateId(): string {
     return Date.now().toString(36) + Math.random().toString(36).substring(2);
+  }
+
+  /**
+   * Check if a story is considered "empty" and should be filtered out
+   */
+  private isEmptyStory(story: Partial<Story> & { content?: string }): boolean {
+    // Check if story has no title or just whitespace
+    const hasNoTitle = !story.title || story.title.trim() === '';
+    
+    // Check creation date - filter out very recent empty stories (last 24 hours)
+    const isRecent = story.createdAt && 
+      (Date.now() - new Date(story.createdAt).getTime()) < 24 * 60 * 60 * 1000;
+    
+    // For legacy stories with content field
+    if (story.content !== undefined) {
+      const hasNoContent = !story.content || this.stripHtmlTags(story.content).trim() === '';
+      // Only filter if BOTH no title AND no content AND recent
+      return hasNoTitle && hasNoContent && isRecent;
+    }
+    
+    // For new chapter/scene structure
+    if (Array.isArray(story.chapters)) {
+      // Check if any scene has content
+      const hasContentInScenes = story.chapters.some((chapter: Chapter) => 
+        chapter.scenes && chapter.scenes.some((scene: Scene) => {
+          const cleanContent = this.stripHtmlTags(scene.content || '').trim();
+          return cleanContent.length > 0;
+        })
+      );
+      
+      // Check if it has meaningful structure (more than default single empty scene)
+      const hasOnlyDefaultStructure = story.chapters.length === 1 && 
+        story.chapters[0].scenes && 
+        story.chapters[0].scenes.length === 1 &&
+        !this.stripHtmlTags(story.chapters[0].scenes[0].content || '').trim();
+      
+      // Filter out if: no title AND (no content OR only default structure) AND recent
+      return hasNoTitle && (!hasContentInScenes || hasOnlyDefaultStructure) && isRecent;
+    }
+    
+    // If no chapters and no content, consider empty
+    return true;
+  }
+
+  /**
+   * Strip HTML tags from content for content checking
+   */
+  private stripHtmlTags(html: string): string {
+    if (!html) return '';
+    
+    // Remove Beat AI nodes completely (they are editor-only components)
+    const cleanHtml = html.replace(/<div[^>]*class="beat-ai-node"[^>]*>.*?<\/div>/gs, '');
+    
+    // Create a temporary DOM element to safely strip remaining HTML tags
+    const div = document.createElement('div');
+    div.innerHTML = cleanHtml;
+    
+    // Get text content and normalize whitespace
+    const textContent = div.textContent || div.innerText || '';
+    
+    // Remove any remaining Beat AI artifacts
+    return textContent
+      .replace(/🎭\s*Beat\s*AI/gi, '')
+      .replace(/Prompt:\s*/gi, '')
+      .replace(/BeatAIPrompt/gi, '')
+      .trim()
+      .replace(/\s+/g, ' '); // Normalize whitespace
   }
 
   // Helper methods for formatting chapter and scene displays
