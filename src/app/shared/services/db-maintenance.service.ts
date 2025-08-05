@@ -2,8 +2,10 @@ import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { DatabaseService } from '../../core/services/database.service';
 import { ImageService } from './image.service';
+import { VideoService } from './video.service';
 import { StoryService } from '../../stories/services/story.service';
 import { StoredImage } from './image.service';
+import { ImageVideoAssociation } from '../models/video.interface';
 
 export interface OrphanedImage {
   id: string;
@@ -14,12 +16,25 @@ export interface OrphanedImage {
   mimeType: string;
 }
 
+export interface OrphanedVideo {
+  id: string;
+  name: string;
+  size: number;
+  createdAt: Date;
+  base64Data: string;
+  mimeType: string;
+}
+
 export interface DatabaseStats {
   totalImages: number;
+  totalVideos: number;
   totalStories: number;
   orphanedImages: number;
+  orphanedVideos: number;
   totalImageSize: number;
+  totalVideoSize: number;
   orphanedImageSize: number;
+  orphanedVideoSize: number;
   databaseSizeEstimate: number;
 }
 
@@ -45,6 +60,7 @@ export interface IntegrityIssue {
 export class DbMaintenanceService {
   private readonly databaseService = inject(DatabaseService);
   private readonly imageService = inject(ImageService);
+  private readonly videoService = inject(VideoService);
   private readonly storyService = inject(StoryService);
 
   private operationProgress = new BehaviorSubject<{ operation: string; progress: number; message: string }>({
@@ -134,6 +150,63 @@ export class DbMaintenanceService {
   }
 
   /**
+   * Finds all orphaned videos that are not associated with any images
+   */
+  async findOrphanedVideos(): Promise<OrphanedVideo[]> {
+    this.updateProgress('orphaned-video-scan', 0, 'Lade alle Videos...');
+    
+    try {
+      // Get all videos from database
+      const allVideos = await this.videoService.getAllVideos();
+      this.updateProgress('orphaned-video-scan', 30, `${allVideos.length} Videos gefunden`);
+
+      // Get all image-video associations
+      const db = await this.databaseService.getDatabase();
+      const associationsResult = await db.find({
+        selector: { type: 'image-video-association' }
+      });
+      
+      this.updateProgress('orphaned-video-scan', 60, `${associationsResult.docs.length} Verknüpfungen gefunden`);
+
+      // Extract video IDs that are associated with images
+      const associatedVideoIds = new Set<string>();
+      associationsResult.docs.forEach((assoc: ImageVideoAssociation & { _id: string; _rev: string }) => {
+        if (assoc.videoId) {
+          associatedVideoIds.add(assoc.videoId);
+        }
+      });
+
+      // Find orphaned videos by checking if they are associated
+      const orphanedVideos: OrphanedVideo[] = [];
+      let processedVideos = 0;
+
+      for (const video of allVideos) {
+        if (!associatedVideoIds.has(video.id)) {
+          orphanedVideos.push({
+            id: video.id,
+            name: video.name,
+            size: video.size,
+            createdAt: video.createdAt,
+            base64Data: video.base64Data,
+            mimeType: video.mimeType
+          });
+        }
+        processedVideos++;
+        this.updateProgress('orphaned-video-scan', 60 + (processedVideos / allVideos.length) * 40, 
+          `Analysiere Video ${processedVideos}/${allVideos.length}`);
+      }
+
+      this.updateProgress('orphaned-video-scan', 100, `${orphanedVideos.length} verwaiste Videos gefunden`);
+      
+      return orphanedVideos;
+    } catch (error) {
+      console.error('Error finding orphaned videos:', error);
+      this.updateProgress('orphaned-video-scan', 0, 'Fehler beim Scannen der verwaisten Videos');
+      throw error;
+    }
+  }
+
+  /**
    * Deletes orphaned images by their IDs
    */
   async deleteOrphanedImages(imageIds: string[]): Promise<number> {
@@ -153,6 +226,29 @@ export class DbMaintenanceService {
     }
 
     this.updateProgress('delete-images', 100, `${deletedCount} Bilder erfolgreich gelöscht`);
+    return deletedCount;
+  }
+
+  /**
+   * Deletes orphaned videos by their IDs
+   */
+  async deleteOrphanedVideos(videoIds: string[]): Promise<number> {
+    this.updateProgress('delete-videos', 0, `Lösche ${videoIds.length} Videos...`);
+    
+    let deletedCount = 0;
+    
+    for (let i = 0; i < videoIds.length; i++) {
+      try {
+        await this.videoService.deleteVideo(videoIds[i]);
+        deletedCount++;
+        this.updateProgress('delete-videos', ((i + 1) / videoIds.length) * 100, 
+          `Gelöscht: ${deletedCount}/${videoIds.length}`);
+      } catch (error) {
+        console.error(`Failed to delete video ${videoIds[i]}:`, error);
+      }
+    }
+
+    this.updateProgress('delete-videos', 100, `${deletedCount} Videos erfolgreich gelöscht`);
     return deletedCount;
   }
 
@@ -343,13 +439,15 @@ export class DbMaintenanceService {
     this.updateProgress('stats', 0, 'Sammle Statistiken...');
     
     try {
-      const [allImages, allStories, orphanedImages] = await Promise.all([
+      const [allImages, allVideos, allStories, orphanedImages, orphanedVideos] = await Promise.all([
         this.imageService.getAllImages(),
+        this.videoService.getAllVideos(),
         this.storyService.getAllStories(),
-        this.findOrphanedImages()
+        this.findOrphanedImages(),
+        this.findOrphanedVideos()
       ]);
 
-      this.updateProgress('stats', 50, 'Zähle Bilder in Stories...');
+      this.updateProgress('stats', 40, 'Zähle Bilder in Stories...');
 
       // Count images embedded in story content
       let embeddedImageCount = 0;
@@ -380,16 +478,25 @@ export class DbMaintenanceService {
       const totalImageSize = standaloneImageSize + embeddedImageSize;
       const orphanedImageSize = orphanedImages.reduce((sum, img) => sum + img.size, 0);
 
+      // Calculate video statistics
+      const totalVideos = allVideos.length;
+      const totalVideoSize = allVideos.reduce((sum, vid) => sum + vid.size, 0);
+      const orphanedVideoSize = orphanedVideos.reduce((sum, vid) => sum + vid.size, 0);
+
       // Estimate database size (rough calculation)
       const avgStorySize = 50000; // ~50KB per story estimate
-      const databaseSizeEstimate = totalImageSize + (allStories.length * avgStorySize);
+      const databaseSizeEstimate = totalImageSize + totalVideoSize + (allStories.length * avgStorySize);
 
       const stats: DatabaseStats = {
         totalImages,
+        totalVideos,
         totalStories: allStories.length,
         orphanedImages: orphanedImages.length,
+        orphanedVideos: orphanedVideos.length,
         totalImageSize,
+        totalVideoSize,
         orphanedImageSize,
+        orphanedVideoSize,
         databaseSizeEstimate
       };
 
