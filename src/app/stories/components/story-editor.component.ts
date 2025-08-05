@@ -74,8 +74,15 @@ import { PDFExportService } from '../../shared/services/pdf-export.service';
         
         <ng-template #headerTitle>
           <div *ngIf="activeScene" class="app-title">
-            <div class="title-line">{{ getCurrentChapterTitle() }}</div>
-            <div class="title-line">{{ getCurrentSceneTitle() }}</div>
+            <div class="header-content">
+              <div class="cover-thumbnail" *ngIf="story?.coverImage">
+                <img [src]="getCoverImageUrl()" [alt]="story.title || 'Story cover'" />
+              </div>
+              <div class="title-content">
+                <div class="title-line">{{ getCurrentChapterTitle() }}</div>
+                <div class="title-line">{{ getCurrentSceneTitle() }}</div>
+              </div>
+            </div>
           </div>
         </ng-template>
         
@@ -1036,6 +1043,39 @@ import { PDFExportService } from '../../shared/services/pdf-export.service';
       justify-content: center;
       height: 100%;
       overflow: hidden;
+    }
+
+    .header-content {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      width: 100%;
+      justify-content: center;
+    }
+
+    .cover-thumbnail {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      overflow: hidden;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      flex-shrink: 0;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .cover-thumbnail img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .title-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      min-width: 0; /* Allow text to wrap */
     }
     
     .title-line {
@@ -2537,6 +2577,11 @@ export class StoryEditorComponent implements OnInit, OnDestroy {
       subtree: true
     });
     
+  }
+
+  getCoverImageUrl(): string | null {
+    if (!this.story?.coverImage) return null;
+    return `data:image/png;base64,${this.story.coverImage}`;
   }
 
 }

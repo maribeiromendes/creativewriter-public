@@ -16,13 +16,14 @@ import {
   settingsOutline, chatboxOutline, documentTextOutline, serverOutline,
   scanOutline, trashOutline, downloadOutline, statsChartOutline,
   copyOutline, searchOutline, closeCircleOutline, checkboxOutline,
-  squareOutline
+  squareOutline, imageOutline
 } from 'ionicons/icons';
 import { StoryService } from '../services/story.service';
 import { Story, StorySettings, DEFAULT_STORY_SETTINGS } from '../models/story.interface';
 import { SettingsTabsComponent, TabItem } from '../../shared/components/settings-tabs.component';
 import { SettingsContentComponent } from '../../shared/components/settings-content.component';
 import { DbMaintenanceService, OrphanedImage, DatabaseStats, DuplicateImage, IntegrityIssue } from '../../shared/services/db-maintenance.service';
+import { ImageUploadComponent, ImageUploadResult } from '../../shared/components/image-upload.component';
 
 @Component({
   selector: 'app-story-settings',
@@ -34,7 +35,7 @@ import { DbMaintenanceService, OrphanedImage, DatabaseStats, DuplicateImage, Int
     IonTextarea, IonCheckbox, IonRadio, IonRadioGroup, IonChip, IonNote,
     IonText, IonGrid, IonRow, IonCol, IonProgressBar, IonList, IonThumbnail,
     IonBadge,
-    SettingsTabsComponent, SettingsContentComponent
+    SettingsTabsComponent, SettingsContentComponent, ImageUploadComponent
   ],
   template: `
     <div class="ion-page">
@@ -76,6 +77,28 @@ import { DbMaintenanceService, OrphanedImage, DatabaseStats, DuplicateImage, Int
                 <ion-note>
                   Erstellt: {{ story.createdAt | date:'short' }} | Zuletzt bearbeitet: {{ story.updatedAt | date:'short' }}
                 </ion-note>
+              </ion-card-content>
+            </ion-card>
+          </div>
+
+          <!-- Cover Image Tab -->
+          <div *ngSwitchCase="'cover-image'">
+            <ion-card class="settings-section">
+              <ion-card-header>
+                <ion-card-title>Cover-Bild</ion-card-title>
+              </ion-card-header>
+              <ion-card-content>
+                <ion-text color="medium">
+                  <p>Setzen Sie ein Cover-Bild für Ihre Geschichte. Das Bild wird in der Story-Liste und im Editor-Header angezeigt.</p>
+                </ion-text>
+                
+                <app-image-upload
+                  [currentImage]="getCoverImageDataUrl()"
+                  [fileName]="getCoverImageFileName()"
+                  [fileSize]="getCoverImageFileSize()"
+                  (imageSelected)="onCoverImageSelected($event)"
+                  (imageRemoved)="onCoverImageRemoved()">
+                </app-image-upload>
               </ion-card-content>
             </ion-card>
           </div>
@@ -990,6 +1013,7 @@ export class StorySettingsComponent implements OnInit {
   selectedTab = 'general';
   tabItems: TabItem[] = [
     { value: 'general', icon: 'information-circle-outline', label: 'Allgemein' },
+    { value: 'cover-image', icon: 'image-outline', label: 'Cover-Bild' },
     { value: 'ai-system', icon: 'chatbox-outline', label: 'AI System' },
     { value: 'beat-config', icon: 'settings-outline', label: 'Beat Config' },
     { value: 'db-maintenance', icon: 'server-outline', label: 'DB-Wartung' }
@@ -1029,7 +1053,7 @@ export class StorySettingsComponent implements OnInit {
       settingsOutline, chatboxOutline, documentTextOutline, serverOutline,
       scanOutline, trashOutline, downloadOutline, statsChartOutline,
       copyOutline, searchOutline, closeCircleOutline, checkboxOutline,
-      squareOutline
+      squareOutline, imageOutline
     });
   }
 
@@ -1236,5 +1260,36 @@ export class StorySettingsComponent implements OnInit {
 
   formatBytes(bytes: number): string {
     return this.dbMaintenanceService.formatBytes(bytes);
+  }
+
+  // Cover Image methods
+  getCoverImageDataUrl(): string | null {
+    if (!this.story?.coverImage) return null;
+    return `data:image/png;base64,${this.story.coverImage}`;
+  }
+
+  getCoverImageFileName(): string | null {
+    if (!this.story?.coverImage) return null;
+    return 'cover-image.png'; // Default filename since we don't store original filename
+  }
+
+  getCoverImageFileSize(): number {
+    if (!this.story?.coverImage) return 0;
+    // Rough estimation: base64 is ~33% larger than binary
+    return Math.floor((this.story.coverImage.length * 3) / 4);
+  }
+
+  onCoverImageSelected(result: ImageUploadResult): void {
+    if (!this.story) return;
+    
+    this.story.coverImage = result.base64Data;
+    this.hasUnsavedChanges = true;
+  }
+
+  onCoverImageRemoved(): void {
+    if (!this.story) return;
+    
+    this.story.coverImage = undefined;
+    this.hasUnsavedChanges = true;
   }
 }

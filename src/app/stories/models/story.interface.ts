@@ -35,6 +35,7 @@ export interface Story {
   chapters: Chapter[];
   settings?: StorySettings;
   codexId?: string;
+  coverImage?: string; // Base64 encoded image data or URL
   createdAt: Date;
   updatedAt: Date;
   // Legacy support for old stories

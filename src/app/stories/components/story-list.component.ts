@@ -89,7 +89,13 @@ import { VersionService } from '../../core/services/version.service';
       
       <div class="stories-grid" *ngIf="stories.length > 0; else noStories">
         <ion-card class="story-card" *ngFor="let story of stories" (click)="openStory(story.id)" button>
-          <ion-card-header>
+          <!-- Cover Image -->
+          <div class="story-cover" *ngIf="story.coverImage">
+            <img [src]="getCoverImageUrl(story)" [alt]="story.title || 'Story cover'" />
+            <div class="cover-overlay"></div>
+          </div>
+          
+          <ion-card-header [class.with-cover]="!!story.coverImage">
             <div class="card-header-content">
               <ion-card-title>{{ story.title || 'Unbenannte Geschichte' }}</ion-card-title>
               <ion-button fill="clear" size="small" color="danger" (click)="deleteStory($event, story.id)">
@@ -761,6 +767,52 @@ import { VersionService } from '../../core/services/version.service';
       border-color: rgba(71, 118, 230, 0.3);
       background: linear-gradient(135deg, rgba(25, 25, 25, 0.15) 0%, rgba(20, 20, 20, 0.15) 100%);
     }
+
+    .story-cover {
+      position: relative;
+      width: 100%;
+      height: 180px;
+      overflow: hidden;
+      border-radius: 16px 16px 0 0;
+    }
+
+    .story-cover img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.3s ease;
+    }
+
+    .story-card:hover .story-cover img {
+      transform: scale(1.05);
+    }
+
+    .cover-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 50%;
+      background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
+      pointer-events: none;
+    }
+
+    ion-card-header.with-cover {
+      position: relative;
+      z-index: 2;
+      margin-top: -40px;
+      background: linear-gradient(135deg, rgba(20, 20, 20, 0.9) 0%, rgba(15, 15, 15, 0.9) 100%);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-radius: 12px;
+      margin-left: 12px;
+      margin-right: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    ion-card-header.with-cover::before {
+      display: none; /* Remove the default overlay for cards with cover images */
+    }
     
     
     .card-header-content {
@@ -1038,6 +1090,11 @@ export class StoryListComponent implements OnInit {
     }
     
     return totalWords;
+  }
+
+  getCoverImageUrl(story: Story): string | null {
+    if (!story.coverImage) return null;
+    return `data:image/png;base64,${story.coverImage}`;
   }
 
   private stripHtmlTags(html: string): string {
