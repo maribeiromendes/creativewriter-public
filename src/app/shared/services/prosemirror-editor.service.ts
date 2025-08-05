@@ -10,6 +10,7 @@ import { history, undo, redo } from 'prosemirror-history';
 import { Subject } from 'rxjs';
 import { ModalController } from '@ionic/angular/standalone';
 import { BeatAINodeView } from './beat-ai-nodeview';
+import { ResizableImageNodeView } from './resizable-image-nodeview';
 import { BeatAI, BeatAIPromptEvent } from '../../stories/models/beat-ai.interface';
 import { BeatAIService } from './beat-ai.service';
 import { ImageInsertResult } from '../components/image-upload-dialog.component';
@@ -83,7 +84,9 @@ export class ProseMirrorEditorService {
           src: { default: '' },
           alt: { default: '' },
           title: { default: null },
-          imageId: { default: null }
+          imageId: { default: null },
+          width: { default: null },
+          height: { default: null }
         },
         inline: false,
         group: 'block',
@@ -94,15 +97,27 @@ export class ProseMirrorEditorService {
             src: dom.getAttribute('src'),
             alt: dom.getAttribute('alt') || '',
             title: dom.getAttribute('title') || null,
-            imageId: dom.getAttribute('data-image-id') || null
+            imageId: dom.getAttribute('data-image-id') || null,
+            width: dom.getAttribute('width') || null,
+            height: dom.getAttribute('height') || null
           })
         }],
         toDOM: (node: ProseMirrorNode) => {
           const attrs: Record<string, string> = {
             src: node.attrs['src'],
-            alt: node.attrs['alt'],
-            style: 'max-width: 100%; height: auto; display: block; margin: 1rem auto;'
+            alt: node.attrs['alt']
           };
+          
+          // Build style string
+          let style = 'display: block; margin: 1rem auto;';
+          
+          if (node.attrs['width'] && node.attrs['height']) {
+            style += ` width: ${node.attrs['width']}px; height: ${node.attrs['height']}px;`;
+          } else {
+            style += ' max-width: 100%; height: auto;';
+          }
+          
+          attrs['style'] = style;
           
           if (node.attrs['title']) {
             attrs['title'] = node.attrs['title'];
@@ -111,6 +126,14 @@ export class ProseMirrorEditorService {
           if (node.attrs['imageId']) {
             attrs['data-image-id'] = node.attrs['imageId'];
             attrs['class'] = 'image-id-' + node.attrs['imageId'];
+          }
+          
+          if (node.attrs['width']) {
+            attrs['width'] = node.attrs['width'];
+          }
+          
+          if (node.attrs['height']) {
+            attrs['height'] = node.attrs['height'];
           }
           
           return ['img', attrs];
@@ -234,6 +257,11 @@ export class ProseMirrorEditorService {
             config.onBeatFocus?.();
           },
           this.currentStoryContext
+        ),
+        image: (node, view, getPos) => new ResizableImageNodeView(
+          node,
+          view,
+          getPos as () => number
         )
       },
       dispatchTransaction: (transaction: Transaction) => {

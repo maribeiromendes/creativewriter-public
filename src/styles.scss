@@ -470,3 +470,130 @@ button:hover {
     scroll-behavior: smooth;
   }
 }
+
+/* Resizable Image Styles */
+.resizable-image-wrapper {
+  position: relative;
+  display: inline-block;
+  margin: 1rem auto;
+  max-width: 100%;
+  
+  /* Ensure wrapper is selectable for ProseMirror */
+  user-select: text;
+  
+  &:hover .resize-handle {
+    opacity: 1 !important;
+  }
+  
+  .resize-handle {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: #007cff;
+    border: 1px solid #fff;
+    border-radius: 2px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    z-index: 10;
+    
+    /* Prevent selection */
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    
+    /* Ensure handles are visible on touch devices */
+    @media (hover: none) and (pointer: coarse) {
+      width: 12px;
+      height: 12px;
+      opacity: 0.7;
+    }
+    
+    &.resize-handle-nw {
+      top: -4px;
+      left: -4px;
+      cursor: nw-resize;
+    }
+    
+    &.resize-handle-ne {
+      top: -4px;
+      right: -4px;
+      cursor: ne-resize;
+    }
+    
+    &.resize-handle-sw {
+      bottom: -4px;
+      left: -4px;
+      cursor: sw-resize;
+    }
+    
+    &.resize-handle-se {
+      bottom: -4px;
+      right: -4px;
+      cursor: se-resize;
+    }
+    
+    /* Hover effects for desktop */
+    @media (hover: hover) and (pointer: fine) {
+      &:hover {
+        background: #0056b3;
+        transform: scale(1.2);
+      }
+    }
+  }
+  
+  img {
+    display: block;
+    user-select: none;
+    pointer-events: auto;
+    
+    /* Prevent default drag behavior */
+    -webkit-user-drag: none;
+    -khtml-user-drag: none;
+    -moz-user-drag: none;
+    -o-user-drag: none;
+    user-drag: none;
+  }
+}
+
+/* Show resize handles when image wrapper is selected in ProseMirror */
+.ProseMirror .resizable-image-wrapper.ProseMirror-selectednode .resize-handle {
+  opacity: 1;
+}
+
+/* Improve touch interaction on mobile */
+@media (hover: none) and (pointer: coarse) {
+  .resizable-image-wrapper {
+    /* Make touch targets larger on mobile */
+    padding: 4px;
+    
+    .resize-handle {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: rgba(0, 124, 255, 0.8);
+      border: 2px solid rgba(255, 255, 255, 0.9);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      
+      &.resize-handle-nw {
+        top: -8px;
+        left: -8px;
+      }
+      
+      &.resize-handle-ne {
+        top: -8px;
+        right: -8px;
+      }
+      
+      &.resize-handle-sw {
+        bottom: -8px;
+        left: -8px;
+      }
+      
+      &.resize-handle-se {
+        bottom: -8px;
+        right: -8px;
+      }
+    }
+  }
+}
