@@ -175,11 +175,19 @@ export class ImageCropperModalComponent implements OnInit {
 
   imageCropped(event: ImageCroppedEvent) {
     console.log('Image cropped event:', event);
-    // Use objectUrl or base64 depending on what's available
-    if (event.objectUrl) {
-      this.croppedImage = event.objectUrl;
-    } else if (event.base64) {
+    // Use base64 if available, or convert blob to base64
+    if (event.base64) {
       this.croppedImage = event.base64;
+    } else if (event.blob) {
+      // Convert blob to base64 for compatibility with image-upload component
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.croppedImage = reader.result as string;
+      };
+      reader.readAsDataURL(event.blob);
+    } else if (event.objectUrl) {
+      // Fallback to objectUrl if neither base64 nor blob is available
+      this.croppedImage = event.objectUrl;
     }
   }
 
@@ -215,10 +223,21 @@ export class ImageCropperModalComponent implements OnInit {
       console.log('Trying to crop manually');
       const event = this.imageCropper.crop();
       console.log('Manual crop event:', event);
-      if (event?.objectUrl) {
-        this.croppedImage = event.objectUrl;
-      } else if (event?.base64) {
+      if (event?.base64) {
         this.croppedImage = event.base64;
+      } else if (event?.blob) {
+        // Convert blob to base64 for compatibility
+        const reader = new FileReader();
+        reader.onload = () => {
+          this.croppedImage = reader.result as string;
+          this.modalCtrl.dismiss({
+            croppedImage: this.croppedImage
+          });
+        };
+        reader.readAsDataURL(event.blob);
+        return; // Exit early to wait for FileReader
+      } else if (event?.objectUrl) {
+        this.croppedImage = event.objectUrl;
       }
     }
     
