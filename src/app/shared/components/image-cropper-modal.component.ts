@@ -83,6 +83,13 @@ import { ImageCropperComponent, ImageCroppedEvent, ImageTransform, LoadedImage }
         <ion-button 
           fill="outline" 
           size="small" 
+          [color]="aspectRatio === 16/9 ? 'primary' : 'medium'"
+          (click)="setAspectRatio(16/9)">
+          16:9
+        </ion-button>
+        <ion-button 
+          fill="outline" 
+          size="small" 
           [color]="aspectRatio === 0 ? 'primary' : 'medium'"
           (click)="setAspectRatio(0)">
           Frei
