@@ -801,7 +801,7 @@ import { VersionService } from '../../core/services/version.service';
       position: relative;
       z-index: 2;
       margin-top: -40px;
-      background: linear-gradient(135deg, rgba(20, 20, 20, 0.9) 0%, rgba(15, 15, 15, 0.9) 100%);
+      background: transparent;
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
       border-radius: 12px;
