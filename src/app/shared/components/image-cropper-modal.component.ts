@@ -175,7 +175,10 @@ export class ImageCropperModalComponent implements OnInit {
 
   imageCropped(event: ImageCroppedEvent) {
     console.log('Image cropped event:', event);
-    if (event.base64) {
+    // Use objectUrl or base64 depending on what's available
+    if (event.objectUrl) {
+      this.croppedImage = event.objectUrl;
+    } else if (event.base64) {
       this.croppedImage = event.base64;
     }
   }
@@ -212,7 +215,9 @@ export class ImageCropperModalComponent implements OnInit {
       console.log('Trying to crop manually');
       const event = this.imageCropper.crop();
       console.log('Manual crop event:', event);
-      if (event?.base64) {
+      if (event?.objectUrl) {
+        this.croppedImage = event.objectUrl;
+      } else if (event?.base64) {
         this.croppedImage = event.base64;
       }
     }
