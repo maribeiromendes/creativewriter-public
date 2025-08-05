@@ -49,7 +49,7 @@ export interface ImageUploadResult {
               <h3>Cover-Bild hochladen</h3>
               <p>Klicken Sie oder ziehen Sie ein Bild hierher</p>
             </ion-text>
-            <ion-note>JPG, PNG, WebP • Max. 5MB</ion-note>
+            <ion-note>JPG, PNG, WebP • Max. 5MB • Hochformat (Portrait) erforderlich</ion-note>
           </div>
 
           <!-- Image Preview -->
@@ -360,22 +360,39 @@ export class ImageUploadComponent {
     reader.onload = (e) => {
       const result = e.target?.result as string;
       if (result) {
-        const base64Data = result.split(',')[1]; // Remove data URL prefix
-        
-        const uploadResult: ImageUploadResult = {
-          base64Data,
-          fileName: file.name,
-          fileSize: file.size,
-          mimeType: file.type
+        // Create an image element to check dimensions
+        const img = new Image();
+        img.onload = () => {
+          // Check if image is portrait (height > width)
+          if (img.naturalHeight <= img.naturalWidth) {
+            this.errorMessage = 'Bitte wählen Sie ein Bild im Hochformat (Portrait). Das Bild sollte höher als breit sein.';
+            return;
+          }
+
+          const base64Data = result.split(',')[1]; // Remove data URL prefix
+          
+          const uploadResult: ImageUploadResult = {
+            base64Data,
+            fileName: file.name,
+            fileSize: file.size,
+            mimeType: file.type
+          };
+
+          this.successMessage = 'Bild erfolgreich hochgeladen!';
+          this.imageSelected.emit(uploadResult);
+
+          // Clear success message after 3 seconds
+          setTimeout(() => {
+            this.successMessage = '';
+          }, 3000);
         };
 
-        this.successMessage = 'Bild erfolgreich hochgeladen!';
-        this.imageSelected.emit(uploadResult);
+        img.onerror = () => {
+          this.errorMessage = 'Fehler beim Validieren des Bildes.';
+        };
 
-        // Clear success message after 3 seconds
-        setTimeout(() => {
-          this.successMessage = '';
-        }, 3000);
+        // Load the image to check dimensions
+        img.src = result;
       }
     };
 
