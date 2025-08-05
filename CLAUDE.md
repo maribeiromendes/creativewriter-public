@@ -5,5 +5,5 @@
 - ALWAYS: Before declaring a task as complete, test if the app has linting errors using `npm run lint`!
 - Keep the App modular!
 - ALWAYS: Before implementing any feature, do a web research for best practices in 2025.
-- ALWAYS: Before implementing any feature, do a web research if a framework component exists that covers the requirements
+- ALWAYS: Before implementing any feature, do a web research if a framework component (angular, ionic) exists that covers the requirements
 ---

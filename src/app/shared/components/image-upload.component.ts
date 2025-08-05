@@ -2,13 +2,14 @@ import { Component, Output, EventEmitter, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   IonCard, IonCardContent, IonButton, IonIcon, IonItem, IonLabel,
-  IonNote, IonText, IonThumbnail
+  IonNote, IonText, IonThumbnail, ModalController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { 
   cloudUploadOutline, imageOutline, trashOutline, checkmarkCircleOutline,
-  warningOutline, closeCircleOutline
+  warningOutline, closeCircleOutline, cropOutline
 } from 'ionicons/icons';
+import { ImageCropperModalComponent } from './image-cropper-modal.component';
 
 export interface ImageUploadResult {
   base64Data: string;
@@ -288,10 +289,10 @@ export class ImageUploadComponent {
   private readonly maxFileSize = 5 * 1024 * 1024; // 5MB
   private readonly allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 
-  constructor() {
+  constructor(private modalController: ModalController) {
     addIcons({ 
       cloudUploadOutline, imageOutline, trashOutline, checkmarkCircleOutline,
-      warningOutline, closeCircleOutline
+      warningOutline, closeCircleOutline, cropOutline
     });
   }
 
@@ -340,7 +341,7 @@ export class ImageUploadComponent {
     }
   }
 
-  private processFile(file: File): void {
+  private async processFile(file: File): Promise<void> {
     this.clearMessages();
 
     // Validate file type
@@ -357,25 +358,40 @@ export class ImageUploadComponent {
 
     // Read file as base64
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       const result = e.target?.result as string;
       if (result) {
-        const base64Data = result.split(',')[1]; // Remove data URL prefix
-        
-        const uploadResult: ImageUploadResult = {
-          base64Data,
-          fileName: file.name,
-          fileSize: file.size,
-          mimeType: file.type
-        };
+        // Open cropper modal
+        const modal = await this.modalController.create({
+          component: ImageCropperModalComponent,
+          componentProps: {
+            imageBase64: result,
+            initialAspectRatio: 3/4 // Default portrait aspect ratio
+          },
+          cssClass: 'image-cropper-modal'
+        });
 
-        this.successMessage = 'Bild erfolgreich hochgeladen!';
-        this.imageSelected.emit(uploadResult);
+        await modal.present();
+        const { data } = await modal.onDidDismiss();
 
-        // Clear success message after 3 seconds
-        setTimeout(() => {
-          this.successMessage = '';
-        }, 3000);
+        if (data?.croppedImage) {
+          const base64Data = data.croppedImage.split(',')[1]; // Remove data URL prefix
+          
+          const uploadResult: ImageUploadResult = {
+            base64Data,
+            fileName: file.name,
+            fileSize: file.size,
+            mimeType: file.type
+          };
+
+          this.successMessage = 'Bild erfolgreich zugeschnitten und hochgeladen!';
+          this.imageSelected.emit(uploadResult);
+
+          // Clear success message after 3 seconds
+          setTimeout(() => {
+            this.successMessage = '';
+          }, 3000);
+        }
       }
     };
 

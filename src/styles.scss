@@ -415,6 +415,18 @@ button:hover {
   cursor: not-allowed !important;
 }
 
+/* Image Cropper Modal Styles */
+.image-cropper-modal {
+  --width: 90%;
+  --max-width: 800px;
+  --height: 90%;
+  --border-radius: 16px;
+  
+  .modal-wrapper {
+    background: rgba(0, 0, 0, 0.8);
+  }
+}
+
 /* Mobile keyboard handling */
 @media (max-width: 768px) {
   /* Prevent zoom on input focus */
