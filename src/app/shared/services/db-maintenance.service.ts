@@ -349,9 +349,35 @@ export class DbMaintenanceService {
         this.findOrphanedImages()
       ]);
 
+      this.updateProgress('stats', 50, 'Zähle Bilder in Stories...');
+
+      // Count images embedded in story content
+      let embeddedImageCount = 0;
+      let embeddedImageSize = 0;
+
+      for (const story of allStories) {
+        for (const chapter of story.chapters) {
+          for (const scene of chapter.scenes) {
+            // Find base64 images in HTML content using the same regex as StoryStatsService
+            const base64Regex = /<img[^>]*src="data:image\/([^;]+);base64,([^"]+)"/gi;
+            let match;
+            
+            while ((match = base64Regex.exec(scene.content)) !== null) {
+              embeddedImageCount++;
+              const base64Data = match[2];
+              // Calculate size of base64 data (each base64 char is ~0.75 bytes)
+              embeddedImageSize += Math.round(base64Data.length * 0.75);
+            }
+          }
+        }
+      }
+
       this.updateProgress('stats', 80, 'Berechne Größen...');
 
-      const totalImageSize = allImages.reduce((sum, img) => sum + img.size, 0);
+      // Calculate total images: standalone images + embedded images
+      const totalImages = allImages.length + embeddedImageCount;
+      const standaloneImageSize = allImages.reduce((sum, img) => sum + img.size, 0);
+      const totalImageSize = standaloneImageSize + embeddedImageSize;
       const orphanedImageSize = orphanedImages.reduce((sum, img) => sum + img.size, 0);
 
       // Estimate database size (rough calculation)
@@ -359,7 +385,7 @@ export class DbMaintenanceService {
       const databaseSizeEstimate = totalImageSize + (allStories.length * avgStorySize);
 
       const stats: DatabaseStats = {
-        totalImages: allImages.length,
+        totalImages,
         totalStories: allStories.length,
         orphanedImages: orphanedImages.length,
         totalImageSize,
