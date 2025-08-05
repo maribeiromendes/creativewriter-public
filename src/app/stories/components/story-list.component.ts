@@ -802,12 +802,9 @@ import { VersionService } from '../../core/services/version.service';
       z-index: 2;
       margin-top: -40px;
       background: transparent;
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
       border-radius: 12px;
       margin-left: 12px;
       margin-right: 12px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     ion-card-header.with-cover::before {
