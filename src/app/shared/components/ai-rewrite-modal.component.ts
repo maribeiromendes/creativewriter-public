@@ -11,7 +11,12 @@ import { addIcons } from 'ionicons';
 import { closeOutline, sendOutline, refreshOutline, copyOutline, addOutline, readerOutline } from 'ionicons/icons';
 import { BeatAIService } from '../services/beat-ai.service';
 import { StoryService } from '../../stories/services/story.service';
+import { SettingsService } from '../../core/services/settings.service';
+import { AIRequestLoggerService } from '../../core/services/ai-request-logger.service';
+import { ModelService } from '../../core/services/model.service';
 import { Story, Scene, Chapter } from '../../stories/models/story.interface';
+import { Observable, of, from } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 
 export interface AIRewriteResult {
   originalText: string;
@@ -375,6 +380,9 @@ export class AIRewriteModalComponent implements OnInit {
   private modalController = inject(ModalController);
   private beatAIService = inject(BeatAIService);
   private storyService = inject(StoryService);
+  private settingsService = inject(SettingsService);
+  private aiLogger = inject(AIRequestLoggerService);
+  private modelService = inject(ModelService);
 
   customPrompt = '';
   rewrittenText = '';
@@ -461,19 +469,20 @@ export class AIRewriteModalComponent implements OnInit {
       // Generate a unique beat ID for this rewrite request
       const beatId = `rewrite_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-      // Use the existing BeatAI service for text generation
-      const response$ = this.beatAIService.generateBeatContent(fullPrompt, beatId, {
-        wordCount: Math.max(50, Math.ceil(this.selectedText.length * 1.2)),
-        beatType: 'story',
-        storyId: this.storyId,
-        chapterId: this.currentChapterId,
-        sceneId: this.currentSceneId
-      });
-
-      // Subscribe to the observable to get the generated content
-      response$.subscribe({
-        next: (content) => {
-          this.rewrittenText = content || 'Fehler beim Generieren des Textes.';
+      // Call AI directly without the beat generation template
+      let accumulatedResponse = '';
+      this.callAIDirectly(
+        fullPrompt,
+        beatId,
+        { wordCount: Math.max(50, Math.ceil(this.selectedText.length * 1.2)) }
+      ).subscribe({
+        next: (chunk) => {
+          accumulatedResponse = chunk;
+          // Show progressive response
+          this.rewrittenText = accumulatedResponse;
+        },
+        complete: () => {
+          this.rewrittenText = accumulatedResponse || 'Fehler beim Generieren des Textes.';
           this.isRewriting = false;
         },
         error: (error) => {
@@ -663,5 +672,246 @@ export class AIRewriteModalComponent implements OnInit {
     });
     
     return outline;
+  }
+
+  // Direct AI API calls (copied from Scene Chat)
+  private callAIDirectly(prompt: string, beatId: string, options: { wordCount: number }): Observable<string> {
+    const settings = this.settingsService.getSettings();
+    
+    // Use global model from settings
+    const modelToUse = settings.selectedModel;
+    
+    // Extract provider from the selected model
+    let provider: string | null = null;
+    let actualModelId: string | null = null;
+    
+    if (modelToUse) {
+      const [modelProvider, ...modelIdParts] = modelToUse.split(':');
+      provider = modelProvider;
+      actualModelId = modelIdParts.join(':'); // Rejoin in case model ID contains colons
+    }
+    
+    // Check which API to use based on the selected model's provider
+    const useGoogleGemini = provider === 'gemini' && settings.googleGemini.enabled && settings.googleGemini.apiKey;
+    const useOpenRouter = provider === 'openrouter' && settings.openRouter.enabled && settings.openRouter.apiKey;
+    
+    if (!useGoogleGemini && !useOpenRouter) {
+      console.warn('No AI API configured or no model selected');
+      return of('Entschuldigung, keine AI API konfiguriert oder kein Modell ausgewählt.');
+    }
+    
+    // For direct calls, we bypass the beat AI service and call the API directly
+    return new Observable<string>(observer => {
+      let accumulatedResponse = '';
+      let logId: string;
+      const startTime = Date.now();
+      
+      // Create a simple API call based on configuration
+      const apiCall = useGoogleGemini 
+        ? this.callGeminiAPI(prompt, { ...options, model: actualModelId })
+        : this.callOpenRouterAPI(prompt, { ...options, model: actualModelId });
+        
+      apiCall.subscribe({
+        next: (chunk) => {
+          accumulatedResponse += chunk;
+          observer.next(accumulatedResponse);
+        },
+        complete: () => {
+          // Log success
+          if (logId) {
+            this.aiLogger.logSuccess(
+              logId,
+              accumulatedResponse,
+              Date.now() - startTime
+            );
+          }
+          observer.complete();
+        },
+        error: (error) => {
+          // Log error
+          if (logId) {
+            this.aiLogger.logError(
+              logId,
+              error.message || 'Unknown error',
+              Date.now() - startTime,
+              { errorDetails: error }
+            );
+          }
+          observer.error(error);
+        }
+      });
+      
+      // Store log ID for later use
+      if (useGoogleGemini) {
+        logId = this.logGeminiRequest(prompt, { ...options, model: actualModelId });
+      } else {
+        logId = this.logOpenRouterRequest(prompt, { ...options, model: actualModelId });
+      }
+    });
+  }
+  
+  private callGeminiAPI(prompt: string, options: { wordCount: number; model?: string | null }): Observable<string> {
+    const settings = this.settingsService.getSettings();
+    const apiKey = settings.googleGemini.apiKey;
+    const model = options.model || settings.googleGemini.model || 'gemini-1.5-flash';
+    
+    const requestBody = {
+      contents: [{
+        role: 'user',
+        parts: [{ text: prompt }]
+      }],
+      generationConfig: {
+        temperature: 0.7,
+        maxOutputTokens: Math.ceil(options.wordCount * 2.5),
+        topP: 0.95,
+        topK: 40
+      }
+    };
+    
+    return from(fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?key=${apiKey}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestBody)
+    })).pipe(
+      switchMap(response => {
+        if (!response.ok) {
+          throw new Error(`API error: ${response.statusText}`);
+        }
+        return this.processStreamResponse(response);
+      })
+    );
+  }
+  
+  private callOpenRouterAPI(prompt: string, options: { wordCount: number; model?: string | null }): Observable<string> {
+    const settings = this.settingsService.getSettings();
+    const apiKey = settings.openRouter.apiKey;
+    const model = options.model || settings.openRouter.model || 'anthropic/claude-3-haiku';
+    
+    const requestBody = {
+      model: model,
+      messages: [{
+        role: 'user',
+        content: prompt
+      }],
+      stream: true,
+      max_tokens: Math.ceil(options.wordCount * 2.5),
+      temperature: 0.7
+    };
+    
+    return from(fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': window.location.href,
+        'X-Title': 'Creative Writer'
+      },
+      body: JSON.stringify(requestBody)
+    })).pipe(
+      switchMap(response => {
+        if (!response.ok) {
+          throw new Error(`API error: ${response.statusText}`);
+        }
+        return this.processStreamResponse(response);
+      })
+    );
+  }
+  
+  private processStreamResponse(response: Response): Observable<string> {
+    return new Observable<string>(observer => {
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      
+      const processChunk = async () => {
+        try {
+          const { done, value } = await reader!.read();
+          
+          if (done) {
+            observer.complete();
+            return;
+          }
+          
+          const chunk = decoder.decode(value, { stream: true });
+          const lines = chunk.split('\n');
+          
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const jsonStr = line.slice(6);
+              if (jsonStr === '[DONE]') continue;
+              
+              try {
+                const json = JSON.parse(jsonStr);
+                let text = '';
+                
+                // Handle different response formats
+                if (json.candidates?.[0]?.content?.parts?.[0]?.text) {
+                  // Gemini format
+                  text = json.candidates[0].content.parts[0].text;
+                } else if (json.choices?.[0]?.delta?.content) {
+                  // OpenRouter format
+                  text = json.choices[0].delta.content;
+                }
+                
+                if (text) {
+                  observer.next(text);
+                }
+              } catch {
+                // Ignore JSON parse errors
+              }
+            }
+          }
+          
+          processChunk();
+        } catch (error) {
+          observer.error(error);
+        }
+      };
+      
+      processChunk();
+    });
+  }
+
+  private logGeminiRequest(prompt: string, options: { wordCount: number; model?: string | null }): string {
+    const settings = this.settingsService.getSettings();
+    const model = options.model || settings.googleGemini.model || 'gemini-1.5-flash';
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent`;
+    
+    return this.aiLogger.logRequest({
+      endpoint: endpoint,
+      model: model,
+      wordCount: options.wordCount,
+      maxTokens: Math.ceil(options.wordCount * 2.5),
+      prompt: prompt,
+      apiProvider: 'gemini',
+      streamingMode: true,
+      requestDetails: {
+        source: 'ai-rewrite',
+        temperature: 0.7,
+        topP: 0.95,
+        topK: 40
+      }
+    });
+  }
+  
+  private logOpenRouterRequest(prompt: string, options: { wordCount: number; model?: string | null }): string {
+    const settings = this.settingsService.getSettings();
+    const model = options.model || settings.openRouter.model || 'anthropic/claude-3-haiku';
+    const endpoint = 'https://openrouter.ai/api/v1/chat/completions';
+    
+    return this.aiLogger.logRequest({
+      endpoint: endpoint,
+      model: model,
+      wordCount: options.wordCount,
+      maxTokens: Math.ceil(options.wordCount * 2.5),
+      prompt: prompt,
+      apiProvider: 'openrouter',
+      streamingMode: true,
+      requestDetails: {
+        source: 'ai-rewrite',
+        temperature: 0.7
+      }
+    });
   }
 }
