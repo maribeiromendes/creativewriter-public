@@ -1689,7 +1689,10 @@ export class ProseMirrorEditorService {
       const modal = await this.modalController.create({
         component: AIRewriteModalComponent,
         componentProps: {
-          selectedText
+          selectedText,
+          storyId: this.currentStoryContext?.storyId || '',
+          currentChapterId: this.currentStoryContext?.chapterId || '',
+          currentSceneId: this.currentStoryContext?.sceneId || ''
         },
         cssClass: 'ai-rewrite-modal'
       });
