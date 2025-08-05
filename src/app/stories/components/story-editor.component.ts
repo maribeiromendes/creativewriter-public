@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { 
   IonButton, IonIcon, 
-  IonContent, IonChip, IonLabel, IonMenu, IonSplitPane, MenuController
+  IonContent, IonChip, IonLabel, IonMenu, IonSplitPane, IonPopover, MenuController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { 
@@ -43,7 +43,7 @@ import { PDFExportService } from '../../shared/services/pdf-export.service';
   imports: [
     CommonModule, FormsModule, 
     IonContent, IonChip, IonLabel, IonButton, IonIcon,
-    IonMenu, IonSplitPane,
+    IonMenu, IonSplitPane, IonPopover,
     StoryStructureComponent, SlashCommandDropdownComponent, ImageUploadDialogComponent,
     VideoModalComponent, AppHeaderComponent, StoryStatsComponent, VersionTooltipComponent
   ],
@@ -75,7 +75,14 @@ import { PDFExportService } from '../../shared/services/pdf-export.service';
         <ng-template #headerTitle>
           <div *ngIf="activeScene" class="app-title">
             <div class="header-content">
-              <div class="cover-thumbnail" *ngIf="story?.coverImage">
+              <div class="cover-thumbnail" *ngIf="story?.coverImage" 
+                   id="cover-trigger" 
+                   tabindex="0"
+                   role="button"
+                   [attr.aria-label]="'Cover-Bild anzeigen: ' + (story.title || 'Unbenannte Geschichte')"
+                   (click)="openCoverPopover($event)"
+                   (keydown.enter)="openCoverPopover($event)"
+                   (keydown.space)="openCoverPopover($event)">
                 <img [src]="getCoverImageUrl()" [alt]="story.title || 'Story cover'" />
               </div>
               <div class="title-content">
@@ -222,6 +229,21 @@ import { PDFExportService } from '../../shared/services/pdf-export.service';
         (closed)="hideVideoModal()"
         (videoAssociated)="onVideoAssociated($event)">
       </app-video-modal>
+      
+      <!-- Cover Image Popover -->
+      <ion-popover 
+        trigger="cover-trigger" 
+        triggerAction="click"
+        side="bottom"
+        alignment="center"
+        [showBackdrop]="true"
+        [dismissOnSelect]="true">
+        <ng-template>
+          <div class="cover-popover-content">
+            <img [src]="getCoverImageUrl()" [alt]="story.title || 'Story cover'" class="cover-popover-image" />
+          </div>
+        </ng-template>
+      </ion-popover>
       
       <app-story-stats
         [isOpen]="showStoryStats"
@@ -1061,12 +1083,52 @@ import { PDFExportService } from '../../shared/services/pdf-export.service';
       border: 2px solid rgba(255, 255, 255, 0.3);
       flex-shrink: 0;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .cover-thumbnail:hover,
+    .cover-thumbnail:focus {
+      border-color: rgba(139, 180, 248, 0.6);
+      box-shadow: 0 2px 12px rgba(139, 180, 248, 0.4);
+      transform: scale(1.05);
+      outline: none;
+    }
+
+    .cover-thumbnail:focus-visible {
+      outline: 2px solid rgba(139, 180, 248, 0.8);
+      outline-offset: 2px;
     }
 
     .cover-thumbnail img {
       width: 100%;
       height: 100%;
       object-fit: cover;
+    }
+
+    .cover-popover-content {
+      padding: 0;
+      background: transparent;
+    }
+
+    .cover-popover-image {
+      max-width: 300px;
+      max-height: 400px;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Ensure popover has proper backdrop */
+    ion-popover::part(backdrop) {
+      background: rgba(0, 0, 0, 0.4);
+    }
+
+    ion-popover::part(content) {
+      background: transparent;
+      box-shadow: none;
     }
 
     .title-content {
@@ -2582,6 +2644,11 @@ export class StoryEditorComponent implements OnInit, OnDestroy {
   getCoverImageUrl(): string | null {
     if (!this.story?.coverImage) return null;
     return `data:image/png;base64,${this.story.coverImage}`;
+  }
+
+  openCoverPopover(event: Event): void {
+    event.stopPropagation();
+    // The popover will open automatically due to the trigger configuration
   }
 
 }
