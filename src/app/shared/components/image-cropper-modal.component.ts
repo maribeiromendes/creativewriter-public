@@ -1,4 +1,4 @@
-import { Component, Input, ViewChild } from '@angular/core';
+import { Component, Input, ViewChild, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { 
   IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, 
@@ -44,9 +44,8 @@ import { ImageCropperComponent, ImageCroppedEvent, ImageTransform, LoadedImage }
           [alignImage]="'left'"
           [backgroundColor]="'#000'"
           [format]="'png'"
-          [outputType]="'base64'"
           (imageCropped)="imageCropped($event)"
-          (imageLoaded)="imageLoaded()"
+          (imageLoaded)="imageLoaded($event)"
           (cropperReady)="cropperReady()"
           (loadImageFailed)="loadImageFailed()">
         </image-cropper>
@@ -148,19 +147,21 @@ import { ImageCropperComponent, ImageCroppedEvent, ImageTransform, LoadedImage }
     }
   `]
 })
-export class ImageCropperModalComponent {
+export class ImageCropperModalComponent implements OnInit {
   @Input() imageBase64!: string;
   @Input() initialAspectRatio: number = 3/4; // Default portrait aspect ratio
   @ViewChild(ImageCropperComponent) imageCropper!: ImageCropperComponent;
 
-  croppedImage: string = '';
+  croppedImage = '';
   canvasRotation = 0;
   transform: ImageTransform = {};
-  aspectRatio: number = 3/4;
+  aspectRatio = 3/4;
   isReady = false;
   showCropper = false;
 
-  constructor(private modalCtrl: ModalController) {
+  private modalCtrl = inject(ModalController);
+
+  constructor() {
     addIcons({ closeOutline, checkmarkOutline, cropOutline });
   }
 

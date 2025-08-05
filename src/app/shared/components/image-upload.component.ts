@@ -1,4 +1,4 @@
-import { Component, Output, EventEmitter, Input } from '@angular/core';
+import { Component, Output, EventEmitter, Input, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   IonCard, IonCardContent, IonButton, IonIcon, IonItem, IonLabel,
@@ -289,7 +289,9 @@ export class ImageUploadComponent {
   private readonly maxFileSize = 5 * 1024 * 1024; // 5MB
   private readonly allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 
-  constructor(private modalController: ModalController) {
+  private modalController = inject(ModalController);
+
+  constructor() {
     addIcons({ 
       cloudUploadOutline, imageOutline, trashOutline, checkmarkCircleOutline,
       warningOutline, closeCircleOutline, cropOutline
