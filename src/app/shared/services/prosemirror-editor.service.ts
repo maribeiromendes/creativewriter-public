@@ -8,6 +8,7 @@ import { keymap } from 'prosemirror-keymap';
 import { baseKeymap, splitBlock, chainCommands, newlineInCode, createParagraphNear, liftEmptyBlock } from 'prosemirror-commands';
 import { history, undo, redo } from 'prosemirror-history';
 import { Subject } from 'rxjs';
+import { ModalController } from '@ionic/angular/standalone';
 import { BeatAINodeView } from './beat-ai-nodeview';
 import { BeatAI, BeatAIPromptEvent } from '../../stories/models/beat-ai.interface';
 import { BeatAIService } from './beat-ai.service';
@@ -16,6 +17,7 @@ import { PromptManagerService } from './prompt-manager.service';
 import { createCodexHighlightingPlugin, updateCodexHighlightingPlugin } from './codex-highlighting-plugin';
 import { CodexEntry } from '../../stories/models/codex.interface';
 import { CodexService } from '../../stories/services/codex.service';
+import { AIRewriteModalComponent, AIRewriteResult } from '../components/ai-rewrite-modal.component';
 
 export interface EditorConfig {
   placeholder?: string;
@@ -48,6 +50,7 @@ export interface SimpleEditorConfig {
 })
 export class ProseMirrorEditorService {
   private injector = inject(Injector);
+  private modalController = inject(ModalController);
   private appRef = inject(ApplicationRef);
   private envInjector = inject(EnvironmentInjector);
   private beatAIService = inject(BeatAIService);
@@ -1545,10 +1548,16 @@ export class ProseMirrorEditorService {
     
     if (!pos) return;
     
+    // Check if there's selected text
+    const { from, to } = state.selection;
+    const hasSelection = from !== to;
+    const selectedText = hasSelection ? state.doc.textBetween(from, to) : '';
+    
     // Check if there are empty paragraphs in the document
     const hasEmptyParagraphs = this.hasEmptyParagraphs(state);
     
-    if (!hasEmptyParagraphs) return; // Don't show menu if no empty paragraphs
+    // Don't show menu if no empty paragraphs and no selection
+    if (!hasEmptyParagraphs && !hasSelection) return;
     
     const menu = document.createElement('div');
     menu.className = 'prosemirror-context-menu';
@@ -1567,30 +1576,24 @@ export class ProseMirrorEditorService {
       color: #cccccc;
     `;
     
-    const menuItem = document.createElement('div');
-    menuItem.className = 'context-menu-item';
-    menuItem.textContent = 'Leere Absätze entfernen';
-    menuItem.style.cssText = `
-      padding: 6px 12px;
-      cursor: pointer;
-      transition: background-color 0.2s;
-    `;
+    // Add AI rewrite option if text is selected
+    if (hasSelection && selectedText.trim()) {
+      const aiRewriteItem = this.createContextMenuItem('Mit KI neu formulieren', () => {
+        this.openAIRewriteModal(view, selectedText, from, to);
+        this.hideContextMenu();
+      });
+      menu.appendChild(aiRewriteItem);
+    }
     
-    menuItem.addEventListener('mouseenter', () => {
-      menuItem.style.backgroundColor = '#404040';
-    });
+    // Add empty paragraphs removal option if empty paragraphs exist
+    if (hasEmptyParagraphs) {
+      const removeEmptyItem = this.createContextMenuItem('Leere Absätze entfernen', () => {
+        this.removeEmptyParagraphs(view);
+        this.hideContextMenu();
+      });
+      menu.appendChild(removeEmptyItem);
+    }
     
-    menuItem.addEventListener('mouseleave', () => {
-      menuItem.style.backgroundColor = 'transparent';
-    });
-    
-    menuItem.addEventListener('click', (e) => {
-      e.stopPropagation();
-      this.removeEmptyParagraphs(view);
-      this.hideContextMenu();
-    });
-    
-    menu.appendChild(menuItem);
     document.body.appendChild(menu);
     
     // Store reference for cleanup
@@ -1653,5 +1656,66 @@ export class ProseMirrorEditorService {
       const content = this.getHTMLContent();
       this.contentUpdate$.next(content);
     }
+  }
+
+  private createContextMenuItem(text: string, onClick: () => void): HTMLElement {
+    const menuItem = document.createElement('div');
+    menuItem.className = 'context-menu-item';
+    menuItem.textContent = text;
+    menuItem.style.cssText = `
+      padding: 6px 12px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    `;
+    
+    menuItem.addEventListener('mouseenter', () => {
+      menuItem.style.backgroundColor = '#404040';
+    });
+    
+    menuItem.addEventListener('mouseleave', () => {
+      menuItem.style.backgroundColor = 'transparent';
+    });
+    
+    menuItem.addEventListener('click', (e) => {
+      e.stopPropagation();
+      onClick();
+    });
+    
+    return menuItem;
+  }
+
+  private async openAIRewriteModal(view: EditorView, selectedText: string, from: number, to: number): Promise<void> {
+    try {
+      const modal = await this.modalController.create({
+        component: AIRewriteModalComponent,
+        componentProps: {
+          selectedText
+        },
+        cssClass: 'ai-rewrite-modal'
+      });
+
+      await modal.present();
+      const { data } = await modal.onDidDismiss();
+
+      if (data?.rewrittenText) {
+        this.replaceSelectedText(view, data as AIRewriteResult, from, to);
+      }
+    } catch (error) {
+      console.error('Error opening AI rewrite modal:', error);
+    }
+  }
+
+  private replaceSelectedText(view: EditorView, result: AIRewriteResult, from: number, to: number): void {
+    const { state } = view;
+    const tr = state.tr;
+    
+    // Replace the selected text with the rewritten text
+    tr.insertText(result.rewrittenText, from, to);
+    
+    view.dispatch(tr);
+    
+    // Emit content update to trigger save
+    const content = this.getHTMLContent();
+    this.contentUpdate$.next(content);
   }
 }
