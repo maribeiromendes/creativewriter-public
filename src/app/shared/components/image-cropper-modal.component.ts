@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { 
   IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, 
@@ -6,7 +6,7 @@ import {
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { closeOutline, checkmarkOutline, cropOutline } from 'ionicons/icons';
-import { ImageCropperComponent, ImageCroppedEvent, ImageTransform } from 'ngx-image-cropper';
+import { ImageCropperComponent, ImageCroppedEvent, ImageTransform, LoadedImage } from 'ngx-image-cropper';
 
 @Component({
   selector: 'app-image-cropper-modal',
@@ -32,6 +32,7 @@ import { ImageCropperComponent, ImageCroppedEvent, ImageTransform } from 'ngx-im
     <ion-content class="cropper-content">
       <div class="cropper-wrapper">
         <image-cropper
+          *ngIf="showCropper"
           [imageBase64]="imageBase64"
           [maintainAspectRatio]="true"
           [aspectRatio]="aspectRatio"
@@ -42,7 +43,8 @@ import { ImageCropperComponent, ImageCroppedEvent, ImageTransform } from 'ngx-im
           [transform]="transform"
           [alignImage]="'left'"
           [backgroundColor]="'#000'"
-          format="png"
+          [format]="'png'"
+          [outputType]="'base64'"
           (imageCropped)="imageCropped($event)"
           (imageLoaded)="imageLoaded()"
           (cropperReady)="cropperReady()"
@@ -149,12 +151,14 @@ import { ImageCropperComponent, ImageCroppedEvent, ImageTransform } from 'ngx-im
 export class ImageCropperModalComponent {
   @Input() imageBase64!: string;
   @Input() initialAspectRatio: number = 3/4; // Default portrait aspect ratio
+  @ViewChild(ImageCropperComponent) imageCropper!: ImageCropperComponent;
 
   croppedImage: string = '';
   canvasRotation = 0;
   transform: ImageTransform = {};
   aspectRatio: number = 3/4;
   isReady = false;
+  showCropper = false;
 
   constructor(private modalCtrl: ModalController) {
     addIcons({ closeOutline, checkmarkOutline, cropOutline });
@@ -162,19 +166,31 @@ export class ImageCropperModalComponent {
 
   ngOnInit() {
     this.aspectRatio = this.initialAspectRatio;
+    // Show cropper after a short delay to ensure proper initialization
+    setTimeout(() => {
+      this.showCropper = true;
+    }, 100);
   }
 
   imageCropped(event: ImageCroppedEvent) {
+    console.log('Image cropped event:', event);
     if (event.base64) {
       this.croppedImage = event.base64;
     }
   }
 
-  imageLoaded() {
+  imageLoaded(image: LoadedImage) {
+    console.log('Image loaded:', image);
     this.isReady = true;
+    // Trigger initial crop
+    setTimeout(() => {
+      const event = new Event('crop');
+      document.querySelector('image-cropper')?.dispatchEvent(event);
+    }, 200);
   }
 
   cropperReady() {
+    console.log('Cropper ready');
     this.isReady = true;
   }
 
@@ -188,10 +204,24 @@ export class ImageCropperModalComponent {
   }
 
   confirmCrop() {
+    console.log('Confirm crop clicked, croppedImage:', this.croppedImage);
+    
+    // If no cropped image yet, try to get it from the cropper
+    if (!this.croppedImage && this.imageCropper) {
+      console.log('Trying to crop manually');
+      const event = this.imageCropper.crop();
+      console.log('Manual crop event:', event);
+      if (event?.base64) {
+        this.croppedImage = event.base64;
+      }
+    }
+    
     if (this.croppedImage) {
       this.modalCtrl.dismiss({
         croppedImage: this.croppedImage
       });
+    } else {
+      console.error('No cropped image available');
     }
   }
 
