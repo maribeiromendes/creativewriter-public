@@ -907,28 +907,30 @@ export class StoryListComponent implements OnInit {
       this.loadStories();
     });
     
+    // Subscribe to version changes and setup right actions when version is available
+    this.versionService.version$.subscribe(version => {
+      if (version) {
+        this.setupRightActions();
+      }
+    });
+    
     // Setup burger menu items
     this.setupBurgerMenu();
-    
-    // Setup version chip as right action
-    this.setupRightActions();
   }
   
   private setupRightActions(): void {
     this.rightActions = [];
     
-    // Add version chip
-    if (this.versionService.getVersionSync()) {
-      this.rightActions.push({
-        icon: '',
-        chipContent: this.versionService.getShortVersion(),
-        chipColor: 'medium',
-        action: () => { /* No action needed for version chip */ },
-        showOnMobile: true,
-        showOnDesktop: true,
-        showVersionTooltip: true
-      });
-    }
+    // Add version chip (version is guaranteed to be available when this is called)
+    this.rightActions.push({
+      icon: '',
+      chipContent: this.versionService.getShortVersion(),
+      chipColor: 'medium',
+      action: () => { /* No action needed for version chip */ },
+      showOnMobile: true,
+      showOnDesktop: true,
+      showVersionTooltip: true
+    });
   }
 
   logout(): void {

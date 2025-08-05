@@ -170,7 +170,8 @@ export class DbMaintenanceService {
 
       // Extract video IDs that are associated with images
       const associatedVideoIds = new Set<string>();
-      associationsResult.docs.forEach((assoc: ImageVideoAssociation & { _id: string; _rev: string }) => {
+      associationsResult.docs.forEach((doc: unknown) => {
+        const assoc = doc as ImageVideoAssociation & { _id: string; _rev: string };
         if (assoc.videoId) {
           associatedVideoIds.add(assoc.videoId);
         }
