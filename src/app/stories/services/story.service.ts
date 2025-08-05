@@ -24,14 +24,9 @@ export class StoryService {
         .filter((doc: unknown) => {
           if (!doc) return false;
           
-          const docWithType = doc as Record<string, unknown> & { 
-            _id?: string; 
+          const docWithType = doc as Partial<Story> & { 
             type?: string; 
-            chapters?: unknown[]; 
             content?: string;
-            id?: string;
-            title?: string;
-            createdAt?: unknown;
           };
           
           // Filter out design docs
@@ -426,8 +421,8 @@ export class StoryService {
     const hasNoTitle = !story.title || story.title.trim() === '';
     
     // Check creation date - filter out very recent empty stories (last 24 hours)
-    const isRecent = story.createdAt && 
-      (Date.now() - new Date(story.createdAt).getTime()) < 24 * 60 * 60 * 1000;
+    const isRecent = story.createdAt ? 
+      (Date.now() - new Date(story.createdAt).getTime()) < 24 * 60 * 60 * 1000 : false;
     
     // For legacy stories with content field
     if (story.content !== undefined) {
