@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { 
   IonButton, IonIcon, 
-  IonContent, IonChip, IonLabel, IonMenu, IonSplitPane, IonPopover, MenuController
+  IonContent, IonChip, IonLabel, IonMenu, IonSplitPane, MenuController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { 
@@ -43,7 +43,7 @@ import { PDFExportService } from '../../shared/services/pdf-export.service';
   imports: [
     CommonModule, FormsModule, 
     IonContent, IonChip, IonLabel, IonButton, IonIcon,
-    IonMenu, IonSplitPane, IonPopover,
+    IonMenu, IonSplitPane,
     StoryStructureComponent, SlashCommandDropdownComponent, ImageUploadDialogComponent,
     VideoModalComponent, AppHeaderComponent, StoryStatsComponent, VersionTooltipComponent
   ],
@@ -76,7 +76,6 @@ import { PDFExportService } from '../../shared/services/pdf-export.service';
           <div *ngIf="activeScene" class="app-title">
             <div class="header-content">
               <div class="cover-thumbnail" *ngIf="story?.coverImage" 
-                   id="cover-trigger" 
                    tabindex="0"
                    role="button"
                    [attr.aria-label]="'Cover-Bild anzeigen: ' + (story.title || 'Unbenannte Geschichte')"
@@ -230,20 +229,6 @@ import { PDFExportService } from '../../shared/services/pdf-export.service';
         (videoAssociated)="onVideoAssociated($event)">
       </app-video-modal>
       
-      <!-- Cover Image Popover -->
-      <ion-popover 
-        trigger="cover-trigger" 
-        triggerAction="click"
-        side="bottom"
-        alignment="center"
-        [showBackdrop]="true"
-        [dismissOnSelect]="true">
-        <ng-template>
-          <div class="cover-popover-content">
-            <img [src]="getCoverImageUrl()" [alt]="story.title || 'Story cover'" class="cover-popover-image" />
-          </div>
-        </ng-template>
-      </ion-popover>
       
       <app-story-stats
         [isOpen]="showStoryStats"
@@ -1121,12 +1106,12 @@ import { PDFExportService } from '../../shared/services/pdf-export.service';
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
     }
 
-    /* Ensure popover has proper backdrop */
-    ion-popover::part(backdrop) {
+    /* Cover Image Popover Styles */
+    .cover-image-popover::part(backdrop) {
       background: rgba(0, 0, 0, 0.4);
     }
 
-    ion-popover::part(content) {
+    .cover-image-popover::part(content) {
       background: transparent;
       box-shadow: none;
     }
@@ -2646,9 +2631,31 @@ export class StoryEditorComponent implements OnInit, OnDestroy {
     return `data:image/png;base64,${this.story.coverImage}`;
   }
 
-  openCoverPopover(event: Event): void {
+  async openCoverPopover(event: Event): Promise<void> {
     event.stopPropagation();
-    // The popover will open automatically due to the trigger configuration
+    
+    if (!this.story?.coverImage) return;
+
+    const popoverElement = document.createElement('ion-popover');
+    popoverElement.showBackdrop = true;
+    popoverElement.dismissOnSelect = true;
+    popoverElement.cssClass = 'cover-image-popover';
+    popoverElement.event = event;
+    
+    // Create the content
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'cover-popover-content';
+    
+    const img = document.createElement('img');
+    img.src = this.getCoverImageUrl() || '';
+    img.alt = this.story.title || 'Story cover';
+    img.className = 'cover-popover-image';
+    
+    contentDiv.appendChild(img);
+    popoverElement.appendChild(contentDiv);
+    
+    document.body.appendChild(popoverElement);
+    await popoverElement.present();
   }
 
 }
