@@ -161,7 +161,7 @@ import { EditorView } from 'prosemirror-view';
               class="generate-btn primary"
               (click)="generateContent(); $event.stopPropagation()"
               [disabled]="!currentPrompt.trim() || beatData.isGenerating || !selectedModel">
-              {{ beatData.generatedContent ? 'Regenerieren' : 'Generieren' }}
+              Generieren
             </button>
             <button 
               class="generate-btn primary"
@@ -1482,7 +1482,7 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
     this.promptSubmit.emit({
       beatId: this.beatData.id,
       prompt: this.beatData.prompt,
-      action: this.beatData.generatedContent ? 'regenerate' : 'generate',
+      action: 'generate',
       wordCount: this.getActualWordCount(),
       model: this.selectedModel,
       storyId: this.storyId,
@@ -1504,7 +1504,7 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
     this.promptSubmit.emit({
       beatId: this.beatData.id,
       prompt: this.beatData.prompt,
-      action: 'regenerate',
+      action: 'generate',
       wordCount: this.getActualWordCount(),
       model: this.selectedModel,
       storyId: this.storyId,

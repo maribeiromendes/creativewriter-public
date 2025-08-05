@@ -20,7 +20,7 @@ export interface BeatAIGenerationEvent {
 export interface BeatAIPromptEvent {
   beatId: string;
   prompt?: string;
-  action: 'generate' | 'regenerate' | 'deleteAfter';
+  action: 'generate' | 'deleteAfter';
   wordCount?: number;
   model?: string;
   storyId?: string;

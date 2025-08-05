@@ -674,10 +674,8 @@ export class ProseMirrorEditorService {
     const beatNodePosition = this.findBeatNodePosition(event.beatId);
     if (beatNodePosition === null) return;
     
-    // Clear any existing content after the beat node for regeneration
-    if (event.action === 'regenerate') {
-      this.clearContentAfterBeatNode(event.beatId);
-    }
+    // Content clearing is now only done through explicit delete action
+    // Regeneration no longer automatically deletes content
     
     // Track accumulating content for real-time insertion
     let accumulatedContent = '';
