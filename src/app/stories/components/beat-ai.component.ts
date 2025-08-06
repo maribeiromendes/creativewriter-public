@@ -7,7 +7,7 @@ import {
   IonButton, IonButtons, IonToolbar, IonTitle, IonHeader, IonContent, IonList, IonItem
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { logoGoogle, globeOutline, createOutline, refreshOutline, trashOutline, analyticsOutline, colorWandOutline, addOutline, closeOutline, readerOutline } from 'ionicons/icons';
+import { logoGoogle, globeOutline, createOutline, refreshOutline, trashOutline, analyticsOutline, colorWandOutline, addOutline, closeOutline, readerOutline, copyOutline } from 'ionicons/icons';
 import { TokenInfoPopoverComponent } from '../../shared/components/token-info-popover.component';
 import { TokenCounterService, SupportedModel } from '../../shared/services/token-counter.service';
 import { BeatAI, BeatAIPromptEvent } from '../models/beat-ai.interface';
@@ -271,13 +271,18 @@ interface SceneContext {
 
     <!-- Prompt Preview Modal -->
     <div class="preview-modal" *ngIf="showPreviewModal" (click)="hidePromptPreview()" (keydown.escape)="hidePromptPreview()" tabindex="0">
-      <div class="preview-content" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()" tabindex="0">
-        <div class="preview-header">
+      <div class="preview-content" #previewContentEl (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()" tabindex="0">
+        <div class="preview-header" (mousedown)="startResize($event)">
           <h3>Prompt-Vorschau</h3>
-          <button class="close-btn" (click)="hidePromptPreview(); $event.stopPropagation()">×</button>
+          <div class="header-actions">
+            <button class="icon-btn copy-btn" (click)="copyPromptToClipboard(); $event.stopPropagation()" title="Prompt kopieren">
+              <ion-icon name="copy-outline"></ion-icon>
+            </button>
+            <button class="close-btn" (click)="hidePromptPreview(); $event.stopPropagation()">×</button>
+          </div>
         </div>
         <div class="preview-body">
-          <pre class="prompt-preview">{{ previewContent }}</pre>
+          <pre class="prompt-preview" [innerHTML]="getHighlightedPrompt()"></pre>
         </div>
         <div class="preview-footer">
           <button class="btn btn-secondary" (click)="hidePromptPreview(); $event.stopPropagation()">Schließen</button>
@@ -285,6 +290,7 @@ interface SceneContext {
             Jetzt generieren
           </button>
         </div>
+        <div class="resize-handle" (mousedown)="startResize($event)"></div>
       </div>
     </div>
 
@@ -1160,7 +1166,7 @@ interface SceneContext {
       background: #343a40;
       border-bottom: 1px solid #495057;
       display: flex;
-      justify-content: between;
+      justify-content: space-between;\n      cursor: move;
       align-items: center;
     }
 
@@ -1400,7 +1406,7 @@ interface SceneContext {
         font-size: 0.75rem;
       }
     }
-  `]
+    \n    .header-actions {\n      display: flex;\n      gap: 0.5rem;\n      align-items: center;\n    }\n\n    .icon-btn {\n      background: none;\n      border: none;\n      color: #adb5bd;\n      cursor: pointer;\n      transition: all 0.2s;\n      padding: 0.5rem;\n      border-radius: 4px;\n      display: flex;\n      align-items: center;\n      justify-content: center;\n    }\n\n    .icon-btn:hover {\n      color: #f8f9fa;\n      background: rgba(255, 255, 255, 0.1);\n    }\n\n    .copy-btn ion-icon {\n      font-size: 1.2rem;\n    }\n\n    .resize-handle {\n      position: absolute;\n      bottom: 0;\n      right: 0;\n      width: 20px;\n      height: 20px;\n      cursor: nwse-resize;\n      background: linear-gradient(135deg, transparent 50%, #495057 50%);\n      border-radius: 0 0 6px 0;\n    }\n\n    .resize-handle::after {\n      content: '';\n      position: absolute;\n      bottom: 3px;\n      right: 3px;\n      width: 5px;\n      height: 5px;\n      border-right: 2px solid #adb5bd;\n      border-bottom: 2px solid #adb5bd;\n    }\n\n    /* Syntax highlighting styles */\n    .prompt-preview :global(.xml-tag) {\n      color: #ff79c6;\n    }\n\n    .prompt-preview :global(.xml-attr) {\n      color: #50fa7b;\n    }\n\n    .prompt-preview :global(.xml-value) {\n      color: #f1fa8c;\n    }\n\n    .prompt-preview :global(.xml-comment) {\n      color: #6272a4;\n      font-style: italic;\n    }\n\n    .prompt-preview :global(.xml-cdata) {\n      color: #bd93f9;\n    }\n\n    .prompt-preview :global(.template-var) {\n      color: #8be9fd;\n      font-weight: bold;\n    }\n  `]
 })
 export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
   private modelService = inject(ModelService);
@@ -1422,6 +1428,7 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
   @Output() beatFocus = new EventEmitter<void>();
   
   @ViewChild('promptInput') promptInput!: ElementRef<HTMLDivElement>;
+  @ViewChild('previewContentEl', { static: false }) previewContentElement?: ElementRef<HTMLDivElement>;
   
   currentPrompt = '';
   selectedWordCount: number | string = 400;
@@ -1455,6 +1462,8 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
   ];
   showPreviewModal = false;
   previewContent = '';
+  isResizing = false;
+  copyButtonText = 'Kopieren';
   
   // Context selection properties
   story: Story | null = null;
@@ -1469,7 +1478,7 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
   
   constructor() {
     // Register icons
-    addIcons({ logoGoogle, globeOutline, createOutline, refreshOutline, trashOutline, analyticsOutline, colorWandOutline, addOutline, closeOutline, readerOutline });
+    addIcons({ logoGoogle, globeOutline, createOutline, refreshOutline, trashOutline, analyticsOutline, colorWandOutline, addOutline, closeOutline, readerOutline, copyOutline });
   }
   
   ngOnInit(): void {
@@ -2247,4 +2256,131 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
     };
   }
   
+  getHighlightedPrompt(): string {
+    if (!this.previewContent) {
+      return '';
+    }
+    
+    return this.highlightSyntax(this.previewContent);
+  }
+
+  private highlightSyntax(content: string): string {
+    // Simple XML/template syntax highlighting without external library
+    let highlighted = content;
+    
+    // Escape HTML first
+    highlighted = highlighted.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    
+    // Highlight XML tags
+    highlighted = highlighted.replace(/&lt;\/?([\\w:-]+)([^&gt;]*)&gt;/g, (match, tagName, attributes) => {
+      let result = `<span class="xml-tag">&lt;${tagName.startsWith('/') ? '/' : ''}`;
+      const cleanTag = tagName.replace(/^\//, '');
+      result += `${cleanTag}</span>`;
+      
+      if (attributes) {
+        // Highlight attributes
+        const attrHighlighted = attributes.replace(/([\w:-]+)\s*=\s*(["'])([^"']*?)\2/g, 
+          '<span class="xml-attr">$1</span>=<span class="xml-value">$2$3$2</span>');
+        result += attrHighlighted;
+      }
+      
+      result += '<span class="xml-tag">&gt;</span>';
+      return result;
+    });
+    
+    // Highlight XML comments
+    highlighted = highlighted.replace(/&lt;!--([\s\S]*?)--&gt;/g, '<span class="xml-comment">&lt;!--$1--&gt;</span>');
+    
+    // Highlight template variables/placeholders (e.g., {{variable}}, {variable})
+    highlighted = highlighted.replace(/\{\{?([^}]+)\}?\}/g, '<span class="template-var">{$1}</span>');
+    
+    // Highlight CDATA sections
+    highlighted = highlighted.replace(/&lt;!\[CDATA\[([\s\S]*?)\]\]&gt;/g, '<span class="xml-cdata">&lt;![CDATA[$1]]&gt;</span>');
+    
+    return highlighted;
+  }
+
+  async copyPromptToClipboard(): Promise<void> {
+    if (!this.previewContent) {
+      return;
+    }
+    
+    try {
+      await navigator.clipboard.writeText(this.previewContent);
+      
+      // Brief visual feedback
+      this.copyButtonText = 'Kopiert!';
+      setTimeout(() => {
+        this.copyButtonText = 'Kopieren';
+      }, 1500);
+    } catch (err) {
+      console.error('Failed to copy text: ', err);
+      // Fallback for older browsers
+      this.fallbackCopyTextToClipboard(this.previewContent);
+    }
+  }
+
+  private fallbackCopyTextToClipboard(text: string): void {
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.style.position = 'fixed';
+    textArea.style.top = '-9999px';
+    textArea.style.left = '-9999px';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    try {
+      const successful = document.execCommand('copy');
+      if (successful) {
+        this.copyButtonText = 'Kopiert!';
+        setTimeout(() => {
+          this.copyButtonText = 'Kopieren';
+        }, 1500);
+      }
+    } catch (err) {
+      console.error('Fallback: Could not copy text: ', err);
+    }
+    
+    document.body.removeChild(textArea);
+  }
+
+  startResize(event: MouseEvent): void {
+    // Prevent text selection during resize
+    event.preventDefault();
+    
+    if (!this.previewContentElement) {
+      return;
+    }
+    
+    const startX = event.clientX;
+    const startY = event.clientY;
+    const startWidth = parseInt(document.defaultView!.getComputedStyle(this.previewContentElement.nativeElement).width, 10);
+    const startHeight = parseInt(document.defaultView!.getComputedStyle(this.previewContentElement.nativeElement).height, 10);
+    
+    this.isResizing = true;
+    
+    const doResize = (e: MouseEvent) => {
+      if (!this.previewContentElement) {
+        return;
+      }
+      
+      const newWidth = Math.max(300, startWidth + e.clientX - startX);
+      const newHeight = Math.max(200, startHeight + e.clientY - startY);
+      
+      this.previewContentElement.nativeElement.style.width = newWidth + 'px';
+      this.previewContentElement.nativeElement.style.height = newHeight + 'px';
+      this.previewContentElement.nativeElement.style.maxWidth = '95vw';
+      this.previewContentElement.nativeElement.style.maxHeight = '95vh';
+    };
+    
+    const stopResize = () => {
+      this.isResizing = false;
+      document.removeEventListener('mousemove', doResize, false);
+      document.removeEventListener('mouseup', stopResize, false);
+    };
+    
+    document.addEventListener('mousemove', doResize, false);
+    document.addEventListener('mouseup', stopResize, false);
+  }
 }
