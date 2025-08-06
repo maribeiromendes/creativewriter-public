@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { IonIcon, PopoverController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { logoGoogle, globeOutline, createOutline, refreshOutline, trashOutline, analyticsOutline } from 'ionicons/icons';
+import { logoGoogle, globeOutline, createOutline, refreshOutline, trashOutline, analyticsOutline, colorWandOutline } from 'ionicons/icons';
 import { TokenInfoPopoverComponent } from '../../shared/components/token-info-popover.component';
 import { TokenCounterService, SupportedModel } from '../../shared/services/token-counter.service';
 import { BeatAI, BeatAIPromptEvent } from '../models/beat-ai.interface';
@@ -25,7 +25,9 @@ import { EditorView } from 'prosemirror-view';
       <!-- Prompt Input Section -->
       <div class="beat-prompt-section" [class.collapsed]="!beatData.isEditing && beatData.generatedContent">
         <div class="beat-header">
-          <div class="beat-icon">🎭</div>
+          <div class="beat-icon">
+            <ion-icon name="color-wand-outline"></ion-icon>
+          </div>
           <div class="beat-title">Beat AI</div>
           <div class="beat-actions">
             <button 
@@ -283,6 +285,13 @@ import { EditorView } from 'prosemirror-view';
     }
     
     .beat-icon {
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      color: #8bb4f8;
+    }
+    
+    .beat-icon ion-icon {
       font-size: 1.2rem;
     }
     
@@ -1308,7 +1317,7 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
   
   constructor() {
     // Register icons
-    addIcons({ logoGoogle, globeOutline, createOutline, refreshOutline, trashOutline, analyticsOutline });
+    addIcons({ logoGoogle, globeOutline, createOutline, refreshOutline, trashOutline, analyticsOutline, colorWandOutline });
   }
   
   ngOnInit(): void {
