@@ -43,7 +43,7 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
       
       <ng-template #searchToolbar>
         <ion-searchbar
-          placeholder="Codex durchsuchen..."
+          placeholder="Nach Titel, Inhalt oder Tags suchen..."
           [(ngModel)]="searchQuery"
           (ionInput)="onSearch()"
           debounce="300">
@@ -132,7 +132,7 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
                                   <ion-label>{{ field.name }}: {{ getFieldValuePreview(field.value) }}</ion-label>
                                 </ion-chip>
                                 <ion-chip *ngFor="let tag of entry.tags" color="medium">
-                                  <ion-icon name="tag"></ion-icon>
+                                  <ion-icon name="pricetag"></ion-icon>
                                   <ion-label>{{ tag }}</ion-label>
                                 </ion-chip>
                               </div>
@@ -724,6 +724,20 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
       height: 20px !important;
       margin: 1px !important;
       /* Padding now inherited from global :root variables */
+    }
+    
+    /* Tag chips in search results and entry cards */
+    .entry-meta ion-chip[color="medium"] {
+      --background: rgba(146, 146, 146, 0.15) !important;
+      --color: var(--ion-color-medium) !important;
+      border: 1px solid rgba(146, 146, 146, 0.3) !important;
+      font-size: 0.7rem !important;
+      height: 20px !important;
+    }
+    
+    .entry-meta ion-chip[color="medium"] ion-icon {
+      font-size: 12px !important;
+      margin-right: 2px !important;
     }
     
     .entry-meta ion-note {
