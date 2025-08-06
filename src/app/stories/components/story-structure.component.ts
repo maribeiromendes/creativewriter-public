@@ -369,6 +369,15 @@ import { Subscription } from 'rxjs';
       min-height: 0; /* Important for flex children */
     }
     
+    /* Prevent scrolling on scene details and summary section */
+    .scene-details {
+      overflow: visible !important;
+    }
+    
+    .scene-summary-section {
+      overflow: visible !important;
+    }
+    
     .structure-content::part(background) {
       background: transparent !important;
     }
@@ -634,11 +643,14 @@ import { Subscription } from 'rxjs';
       border-radius: 8px;
       backdrop-filter: blur(4px);
       -webkit-backdrop-filter: blur(4px);
-      height: 200px;
-      overflow-y: auto;
+      height: 200px !important;
+      max-height: 200px !important;
+      overflow-y: auto !important;
+      overflow-x: hidden !important;
       resize: none;
       scrollbar-width: thin;
       scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+      display: block;
     }
     
     .summary-textarea::-webkit-scrollbar {
@@ -657,6 +669,18 @@ import { Subscription } from 'rxjs';
     
     .summary-textarea::-webkit-scrollbar-thumb:hover {
       background: rgba(255, 255, 255, 0.5);
+    }
+    
+    /* Force ion-textarea to use our scrolling */
+    ion-textarea.summary-textarea {
+      --padding-top: 12px;
+      --padding-bottom: 12px;
+    }
+    
+    ion-textarea.summary-textarea::part(native) {
+      height: 100% !important;
+      max-height: 100% !important;
+      overflow-y: auto !important;
     }
     
     .summary-info {
