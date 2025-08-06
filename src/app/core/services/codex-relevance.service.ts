@@ -107,11 +107,19 @@ export class CodexRelevanceService {
       }
     }
 
-    // 3. Check keywords
+    // 3. Check keywords/tags with improved matching
     for (const keyword of entry.keywords) {
-      if (combinedContext.includes(keyword.toLowerCase())) {
-        score.score += this.SEMANTIC_WEIGHT;
-        score.reasons.push(`Keyword "${keyword}" found`);
+      const keywordLower = keyword.toLowerCase();
+      
+      // Exact word match gets higher score
+      const exactMatches = this.countMatches(combinedContext, keywordLower);
+      if (exactMatches > 0) {
+        score.score += exactMatches * this.KEYWORD_WEIGHT;
+        score.reasons.push(`Tag "${keyword}" matched ${exactMatches} times`);
+      } else if (combinedContext.includes(keywordLower)) {
+        // Partial match gets lower score
+        score.score += this.SEMANTIC_WEIGHT * 0.5;
+        score.reasons.push(`Tag "${keyword}" partially matched`);
       }
     }
 

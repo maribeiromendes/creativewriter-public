@@ -48,7 +48,7 @@ import { BeatAIService } from '../../shared/services/beat-ai.service';
           </div>
           <div class="entry-content">{{ entry.content }}</div>
           <div class="entry-meta" *ngIf="entry.keywords?.length">
-            Keywords: {{ entry.keywords.join(', ') }}
+            <strong>Tags/Keywords:</strong> {{ entry.keywords.join(', ') }}
           </div>
         </div>
       </div>

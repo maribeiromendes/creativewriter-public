@@ -265,7 +265,7 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
                     </ion-input>
                   </ion-item>
                   <ion-note class="tag-help-text">
-                    Mehrere Tags mit Komma trennen (z.B. Fantasy, Magie, Drachen)
+                    Tags zur Identifizierung in Beat-AI (z.B. Kampf, Romanze, Konflikt)
                   </ion-note>
                   <div class="tags-container" *ngIf="editingEntry.tags?.length">
                     <ion-chip 

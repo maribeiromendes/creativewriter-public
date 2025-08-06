@@ -632,8 +632,14 @@ export class BeatAIService {
           }
         }
         
-        // Extract keywords from tags and content
+        // Extract keywords from tags - these are crucial for relevance matching
         const keywords: string[] = entry.tags || [];
+        
+        // Also extract important words from the title as additional keywords
+        const titleWords = entry.title.split(/\s+/)
+          .filter(word => word.length > 3)
+          .map(word => word.toLowerCase());
+        keywords.push(...titleWords);
         
         // Determine importance based on story role or category
         let importance: 'major' | 'minor' | 'background' = 'minor';
