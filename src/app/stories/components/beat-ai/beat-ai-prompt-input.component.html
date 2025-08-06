@@ -1,0 +1,44 @@
+<div class="beat-prompt-section" [class.collapsed]="!beatData.isEditing && beatData.generatedContent">
+  <!-- Context Chips -->
+  <div class="context-chips" *ngIf="selectedScenes.length > 0 || includeStoryOutline">
+    <ion-chip *ngIf="includeStoryOutline" color="success">
+      <ion-label>Geschichte-Überblick</ion-label>
+      <ion-icon 
+        name="close-outline" 
+        (click)="onToggleStoryOutline($event)">
+      </ion-icon>
+    </ion-chip>
+    <ion-chip 
+      *ngFor="let scene of selectedScenes" 
+      [color]="scene.sceneId === sceneId ? 'primary' : 'medium'">
+      <ion-label>{{ scene.chapterTitle }} - {{ scene.sceneTitle }}</ion-label>
+      <ion-icon 
+        name="close-outline" 
+        (click)="onRemoveSceneContext(scene, $event)">
+      </ion-icon>
+    </ion-chip>
+  </div>
+  
+  <!-- Prompt Input Container -->
+  <div class="prompt-input-container" *ngIf="beatData.isEditing || !beatData.prompt">
+    <div
+      #promptInput
+      class="prompt-input prosemirror-container">
+    </div>
+  </div>
+  
+  <!-- Prompt Display (Read-only) -->
+  <div class="prompt-display" *ngIf="!beatData.isEditing && beatData.prompt">
+    <div class="prompt-text">{{ beatData.prompt }}</div>
+    <div class="beat-info">
+      <span class="beat-type-badge" 
+            [class.story-beat]="(beatData.beatType || 'story') === 'story'" 
+            [class.scene-beat]="(beatData.beatType || 'story') === 'scene'">
+        {{ (beatData.beatType || 'story') === 'story' ? 'StoryBeat' : 'SceneBeat' }}
+      </span>
+      <span class="model-badge" *ngIf="beatData.model" title="Verwendetes AI-Modell">
+        {{ getModelDisplayName(beatData.model) }}
+      </span>
+    </div>
+  </div>
+</div>
