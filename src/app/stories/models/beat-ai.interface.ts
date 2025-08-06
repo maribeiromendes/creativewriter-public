@@ -30,6 +30,7 @@ export interface BeatAIPromptEvent {
   customContext?: {
     selectedScenes: string[];
     includeStoryOutline: boolean;
+    selectedSceneContexts: { sceneId: string; chapterId: string; content: string; }[];
   };
 }
 

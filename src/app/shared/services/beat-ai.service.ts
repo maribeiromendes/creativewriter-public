@@ -40,6 +40,7 @@ export class BeatAIService {
     customContext?: {
       selectedScenes: string[];
       includeStoryOutline: boolean;
+      selectedSceneContexts: { sceneId: string; chapterId: string; content: string; }[];
     };
   } = {}): Observable<string> {
     const settings = this.settingsService.getSettings();
@@ -297,6 +298,7 @@ export class BeatAIService {
     customContext?: {
       selectedScenes: string[];
       includeStoryOutline: boolean;
+      selectedSceneContexts: { sceneId: string; chapterId: string; content: string; }[];
     };
   }): Observable<string> {
     if (!options.storyId) {
@@ -428,9 +430,21 @@ export class BeatAIService {
         if (options.sceneId) {
           if (options.customContext !== undefined) {
             // Use custom context settings
-            storySoFar = options.customContext.includeStoryOutline 
-              ? await this.promptManager.getStoryXmlFormat(options.sceneId)
-              : '';
+            if (options.customContext.includeStoryOutline) {
+              if (options.customContext.selectedSceneContexts.length > 0) {
+                // Build modified story outline with selected scenes replaced by their full text
+                storySoFar = await this.buildModifiedStoryOutline(
+                  options.sceneId, 
+                  options.customContext.selectedSceneContexts,
+                  story
+                );
+              } else {
+                // No scenes selected, use default story outline
+                storySoFar = await this.promptManager.getStoryXmlFormat(options.sceneId);
+              }
+            } else {
+              storySoFar = '';
+            }
           } else {
             // Default behavior: For SceneBeat, we get the story without scene summaries
             storySoFar = options.beatType === 'scene' 
@@ -551,6 +565,7 @@ export class BeatAIService {
     customContext?: {
       selectedScenes: string[];
       includeStoryOutline: boolean;
+      selectedSceneContexts: { sceneId: string; chapterId: string; content: string; }[];
     };
   }): Observable<string> {
     return this.buildStructuredPromptFromTemplate(userPrompt, beatId, options);
@@ -767,5 +782,119 @@ export class BeatAIService {
     }
     
     return content;
+  }
+
+  /**
+   * Build a modified story outline where selected scenes have their full text instead of summaries
+   */
+  private async buildModifiedStoryOutline(
+    targetSceneId: string, 
+    selectedSceneContexts: { sceneId: string; chapterId: string; content: string; }[],
+    story: Story
+  ): Promise<string> {
+    // Create a map of scene IDs to their full content for quick lookup
+    const sceneTextMap = new Map<string, string>();
+    selectedSceneContexts.forEach(context => {
+      sceneTextMap.set(context.sceneId, context.content);
+    });
+
+    if (!story || !story.chapters) return '';
+
+    let xml = '<storySoFar>\n';
+    
+    // Group chapters by acts (for now, all in act 1)
+    xml += '  <act number="1">\n';
+    
+    const sortedChapters = [...story.chapters].sort((a, b) => a.order - b.order);
+    
+    for (const chapter of sortedChapters) {
+      if (!chapter.scenes || chapter.scenes.length === 0) continue;
+      
+      xml += `    <chapter title="${this.escapeXml(chapter.title)}" number="${chapter.order}">\n`;
+      
+      const sortedScenes = [...chapter.scenes].sort((a, b) => a.order - b.order);
+      
+      for (const scene of sortedScenes) {
+        // Stop before the target scene
+        if (scene.id === targetSceneId) {
+          xml += '    </chapter>\n';
+          xml += '  </act>\n';
+          xml += '</storySoFar>';
+          return xml;
+        }
+        
+        xml += `      <scene title="${this.escapeXml(scene.title)}" number="${scene.order}">`;
+        
+        // Check if this scene should use full text instead of summary
+        if (sceneTextMap.has(scene.id)) {
+          // Use the full text from selected scenes
+          const fullText = sceneTextMap.get(scene.id)!;
+          xml += this.escapeXml(fullText);
+        } else {
+          // Use summary if available, otherwise use full text from scene
+          const content = scene.summary || this.extractFullTextFromScene(scene);
+          xml += this.escapeXml(content);
+        }
+        
+        xml += '</scene>\n';
+      }
+      
+      xml += '    </chapter>\n';
+    }
+    
+    xml += '  </act>\n';
+    xml += '</storySoFar>';
+    
+    return xml;
+  }
+
+  private extractFullTextFromScene(scene: { content?: string }): string {
+    if (!scene.content) return '';
+
+    // Use DOM parser for more reliable HTML parsing
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(scene.content, 'text/html');
+    
+    // Remove all beat AI wrapper elements and their contents
+    const beatWrappers = doc.querySelectorAll('.beat-ai-wrapper, .beat-ai-node');
+    beatWrappers.forEach(element => element.remove());
+    
+    // Remove beat markers and comments
+    const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT);
+    const textNodes: Text[] = [];
+    let node;
+    while ((node = walker.nextNode())) {
+      textNodes.push(node as Text);
+    }
+    
+    textNodes.forEach(textNode => {
+      // Remove beat markers like [Beat: description]
+      textNode.textContent = textNode.textContent?.replace(/\[Beat:[^\]]*\]/g, '') || '';
+    });
+    
+    // Convert to text while preserving paragraph structure
+    let cleanText = '';
+    const paragraphs = doc.querySelectorAll('p');
+    
+    for (const p of paragraphs) {
+      const text = p.textContent?.trim() || '';
+      if (text) {
+        cleanText += text + '\n\n';
+      } else {
+        // Empty paragraph becomes single newline
+        cleanText += '\n';
+      }
+    }
+    
+    // If no paragraphs found, fall back to body text
+    if (!paragraphs.length) {
+      cleanText = doc.body.textContent || '';
+    }
+    
+    // Clean up extra whitespace
+    cleanText = cleanText.replace(/\n\s*\n\s*\n/g, '\n\n');
+    cleanText = cleanText.trim();
+
+    return cleanText;
   }
 }

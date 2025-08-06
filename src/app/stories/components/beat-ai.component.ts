@@ -2231,10 +2231,19 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
     return cleanText;
   }
 
-  private buildCustomContext(): { selectedScenes: string[]; includeStoryOutline: boolean } {
+  private buildCustomContext(): { 
+    selectedScenes: string[]; 
+    includeStoryOutline: boolean;
+    selectedSceneContexts: { sceneId: string; chapterId: string; content: string; }[];
+  } {
     return {
       selectedScenes: this.selectedScenes.map(scene => scene.content),
-      includeStoryOutline: this.includeStoryOutline
+      includeStoryOutline: this.includeStoryOutline,
+      selectedSceneContexts: this.selectedScenes.map(scene => ({
+        sceneId: scene.sceneId,
+        chapterId: scene.chapterId,
+        content: scene.content
+      }))
     };
   }
   
