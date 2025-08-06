@@ -27,6 +27,10 @@ export interface BeatAIPromptEvent {
   chapterId?: string;
   sceneId?: string;
   beatType?: 'story' | 'scene';
+  customContext?: {
+    selectedScenes: string[];
+    includeStoryOutline: boolean;
+  };
 }
 
 export interface BeatContentInsertEvent {

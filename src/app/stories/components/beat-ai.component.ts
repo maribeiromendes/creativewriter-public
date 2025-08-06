@@ -2,9 +2,12 @@ import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, AfterViewIni
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgSelectModule } from '@ng-select/ng-select';
-import { IonIcon, PopoverController } from '@ionic/angular/standalone';
+import { 
+  IonIcon, PopoverController, IonModal, IonChip, IonLabel, IonSearchbar, IonCheckbox, IonItemDivider,
+  IonButton, IonButtons, IonToolbar, IonTitle, IonHeader, IonContent, IonList, IonItem
+} from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { logoGoogle, globeOutline, createOutline, refreshOutline, trashOutline, analyticsOutline, colorWandOutline } from 'ionicons/icons';
+import { logoGoogle, globeOutline, createOutline, refreshOutline, trashOutline, analyticsOutline, colorWandOutline, addOutline, closeOutline, readerOutline } from 'ionicons/icons';
 import { TokenInfoPopoverComponent } from '../../shared/components/token-info-popover.component';
 import { TokenCounterService, SupportedModel } from '../../shared/services/token-counter.service';
 import { BeatAI, BeatAIPromptEvent } from '../models/beat-ai.interface';
@@ -15,11 +18,26 @@ import { SettingsService } from '../../core/services/settings.service';
 import { BeatAIService } from '../../shared/services/beat-ai.service';
 import { ProseMirrorEditorService, SimpleEditorConfig } from '../../shared/services/prosemirror-editor.service';
 import { EditorView } from 'prosemirror-view';
+import { StoryService } from '../services/story.service';
+import { Story, Scene, Chapter } from '../models/story.interface';
+
+interface SceneContext {
+  chapterId: string;
+  sceneId: string;
+  chapterTitle: string;
+  sceneTitle: string;
+  content: string;
+  selected: boolean;
+}
 
 @Component({
   selector: 'app-beat-ai',
   standalone: true,
-  imports: [CommonModule, FormsModule, NgSelectModule, IonIcon],
+  imports: [
+    CommonModule, FormsModule, NgSelectModule, IonIcon, IonModal, IonChip, IonLabel, 
+    IonSearchbar, IonCheckbox, IonItemDivider, IonButton, IonButtons, IonToolbar, 
+    IonTitle, IonHeader, IonContent, IonList, IonItem
+  ],
   template: `
     <div class="beat-ai-container" [class.editing]="beatData.isEditing" [class.generating]="beatData.isGenerating" [style.--beat-ai-text-color]="currentTextColor">
       <!-- Prompt Input Section -->
@@ -30,6 +48,21 @@ import { EditorView } from 'prosemirror-view';
           </div>
           <div class="beat-title">Beat AI</div>
           <div class="beat-actions">
+            <button 
+              *ngIf="beatData.isEditing || !beatData.prompt" 
+              class="action-btn context-btn"
+              (click)="showSceneSelector = true; $event.stopPropagation()"
+              title="Kontext auswählen">
+              <ion-icon name="add-outline"></ion-icon>
+            </button>
+            <button 
+              *ngIf="beatData.isEditing || !beatData.prompt" 
+              class="action-btn outline-btn"
+              [class.active]="includeStoryOutline"
+              (click)="includeStoryOutline = !includeStoryOutline; $event.stopPropagation()"
+              title="Geschichte-Überblick ein-/ausschließen">
+              <ion-icon name="reader-outline"></ion-icon>
+            </button>
             <button 
               *ngIf="!beatData.isEditing && beatData.prompt" 
               class="action-btn edit-btn"
@@ -52,6 +85,24 @@ import { EditorView } from 'prosemirror-view';
               <ion-icon name="trash-outline"></ion-icon>
             </button>
           </div>
+        </div>
+
+        <!-- Context Chips -->
+        <div class="context-chips" *ngIf="selectedScenes.length > 0 || includeStoryOutline">
+          <ion-chip *ngIf="includeStoryOutline" color="success">
+            <ion-label>Geschichte-Überblick</ion-label>
+            <ion-icon 
+              name="close-outline" 
+              (click)="includeStoryOutline = false; $event.stopPropagation()">
+            </ion-icon>
+          </ion-chip>
+          <ion-chip *ngFor="let scene of selectedScenes" [color]="scene.sceneId === sceneId ? 'primary' : 'medium'">
+            <ion-label>{{ scene.chapterTitle }} - {{ scene.sceneTitle }}</ion-label>
+            <ion-icon 
+              name="close-outline" 
+              (click)="removeSceneContext(scene); $event.stopPropagation()">
+            </ion-icon>
+          </ion-chip>
         </div>
         
         <div class="prompt-input-container" *ngIf="beatData.isEditing || !beatData.prompt">
@@ -236,6 +287,50 @@ import { EditorView } from 'prosemirror-view';
         </div>
       </div>
     </div>
+
+    <!-- Scene Selector Modal -->
+    <ion-modal [isOpen]="showSceneSelector" (didDismiss)="showSceneSelector = false">
+      <ng-template>
+        <ion-header>
+          <ion-toolbar>
+            <ion-title>Szenen als Kontext hinzufügen</ion-title>
+            <ion-buttons slot="end">
+              <ion-button (click)="showSceneSelector = false">
+                <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+              </ion-button>
+            </ion-buttons>
+          </ion-toolbar>
+        </ion-header>
+        <ion-content>
+          <ion-searchbar 
+            [(ngModel)]="sceneSearchTerm" 
+            placeholder="Szene suchen..."
+            animated="true">
+          </ion-searchbar>
+          
+          <ion-list>
+            <div *ngFor="let chapter of story?.chapters">
+              <ion-item-divider>
+                <ion-label>C{{ chapter.chapterNumber || chapter.order }}:{{ chapter.title }}</ion-label>
+              </ion-item-divider>
+              <ion-item 
+                *ngFor="let scene of getFilteredScenes(chapter)" 
+                [button]="true"
+                (click)="toggleSceneSelection(chapter.id, scene.id)">
+                <ion-checkbox 
+                  slot="start" 
+                  [checked]="isSceneSelected(scene.id)">
+                </ion-checkbox>
+                <ion-label>
+                  <h3>C{{ chapter.chapterNumber || chapter.order }}S{{ scene.sceneNumber || scene.order }}:{{ scene.title }}</h3>
+                  <p>{{ getScenePreview(scene) }}</p>
+                </ion-label>
+              </ion-item>
+            </div>
+          </ion-list>
+        </ion-content>
+      </ng-template>
+    </ion-modal>
   `,
   styles: [`
     .beat-ai-container {
@@ -381,6 +476,28 @@ import { EditorView } from 'prosemirror-view';
       color: #ff6b6b;
     }
     
+    .context-btn:hover {
+      background: linear-gradient(135deg, rgba(139, 180, 248, 0.2) 0%, rgba(71, 118, 230, 0.2) 100%);
+      border-color: rgba(139, 180, 248, 0.4);
+      transform: translateY(-1px) scale(1.05);
+      box-shadow: 0 4px 12px rgba(139, 180, 248, 0.3);
+      color: #a8c7ff;
+    }
+    
+    .outline-btn:hover {
+      background: linear-gradient(135deg, rgba(81, 207, 102, 0.2) 0%, rgba(64, 192, 87, 0.2) 100%);
+      border-color: rgba(81, 207, 102, 0.4);
+      transform: translateY(-1px) scale(1.05);
+      box-shadow: 0 4px 12px rgba(64, 192, 87, 0.3);
+      color: #51cf66;
+    }
+    
+    .outline-btn.active {
+      background: linear-gradient(135deg, rgba(81, 207, 102, 0.3) 0%, rgba(64, 192, 87, 0.3) 100%);
+      border-color: rgba(81, 207, 102, 0.6);
+      color: #51cf66;
+    }
+    
     @media (max-width: 768px) {
       .beat-actions {
         gap: 0.6rem;
@@ -402,6 +519,32 @@ import { EditorView } from 'prosemirror-view';
       .action-btn ion-icon {
         font-size: 1.2rem;
       }
+    }
+
+    .context-chips {
+      padding: 8px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      background: rgba(45, 45, 45, 0.3);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(8px);
+      margin-top: 0.5rem;
+    }
+
+    .context-chips ion-chip {
+      margin: 0;
+      cursor: pointer;
+    }
+
+    .context-chips ion-chip ion-icon {
+      cursor: pointer;
+      opacity: 0.7;
+      transition: opacity 0.2s;
+    }
+
+    .context-chips ion-chip ion-icon:hover {
+      opacity: 1;
     }
     
     .prompt-input-container {
@@ -1312,12 +1455,21 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
   ];
   showPreviewModal = false;
   previewContent = '';
+  
+  // Context selection properties
+  story: Story | null = null;
+  selectedScenes: SceneContext[] = [];
+  showSceneSelector = false;
+  sceneSearchTerm = '';
+  includeStoryOutline = true; // Default to including story outline
+  
   private subscription = new Subscription();
   private editorView: EditorView | null = null;
+  private storyService = inject(StoryService);
   
   constructor() {
     // Register icons
-    addIcons({ logoGoogle, globeOutline, createOutline, refreshOutline, trashOutline, analyticsOutline, colorWandOutline });
+    addIcons({ logoGoogle, globeOutline, createOutline, refreshOutline, trashOutline, analyticsOutline, colorWandOutline, addOutline, closeOutline, readerOutline });
   }
   
   ngOnInit(): void {
@@ -1350,6 +1502,9 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
     // Load available models and set default
     this.loadAvailableModels();
     this.setDefaultModel();
+    
+    // Load story and setup default context
+    this.loadStoryAndSetupContext();
     
     // Auto-focus prompt input if it's a new beat
     if (!this.beatData.prompt) {
@@ -1488,6 +1643,9 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
     this.beatData.wordCount = this.getActualWordCount();
     this.beatData.model = this.selectedModel;
     
+    // Build custom context from selected scenes
+    const customContext = this.buildCustomContext();
+    
     this.promptSubmit.emit({
       beatId: this.beatData.id,
       prompt: this.beatData.prompt,
@@ -1497,7 +1655,8 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
       storyId: this.storyId,
       chapterId: this.chapterId,
       sceneId: this.sceneId,
-      beatType: this.beatData.beatType
+      beatType: this.beatData.beatType,
+      customContext: customContext // Add custom context
     });
     
     this.contentUpdate.emit(this.beatData);
@@ -1510,6 +1669,9 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
     this.beatData.wordCount = this.getActualWordCount();
     this.beatData.model = this.selectedModel;
     
+    // Build custom context from selected scenes
+    const customContext = this.buildCustomContext();
+    
     this.promptSubmit.emit({
       beatId: this.beatData.id,
       prompt: this.beatData.prompt,
@@ -1519,7 +1681,8 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
       storyId: this.storyId,
       chapterId: this.chapterId,
       sceneId: this.sceneId,
-      beatType: this.beatData.beatType
+      beatType: this.beatData.beatType,
+      customContext: customContext // Add custom context
     });
     
     this.contentUpdate.emit(this.beatData);
@@ -1680,6 +1843,8 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
       return;
     }
 
+    // Build custom context from selected scenes
+    const customContext = this.buildCustomContext();
 
     // Use the context provided via Input properties
     // These will be set by the BeatAINodeView from the story editor context
@@ -1688,7 +1853,8 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
       chapterId: this.chapterId,
       sceneId: this.sceneId,
       wordCount: this.getActualWordCount(),
-      beatType: this.beatData.beatType
+      beatType: this.beatData.beatType,
+      customContext: customContext
     }).subscribe(content => {
       this.previewContent = content;
       this.showPreviewModal = true;
@@ -1705,13 +1871,17 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
       return;
     }
 
+    // Build custom context from selected scenes
+    const customContext = this.buildCustomContext();
+
     // Get the full prompt that would be sent to the model
     const fullPrompt = await this.beatAIService.previewPrompt(this.currentPrompt, this.beatData.id, {
       storyId: this.storyId,
       chapterId: this.chapterId,
       sceneId: this.sceneId,
       wordCount: this.getActualWordCount(),
-      beatType: this.beatData.beatType
+      beatType: this.beatData.beatType,
+      customContext: customContext
     }).toPromise();
 
     // Map the selected model to SupportedModel type
@@ -1883,6 +2053,189 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
   isFavorite(modelId: string): boolean {
     const settings = this.settingsService.getSettings();
     return (settings.favoriteModels || []).includes(modelId);
+  }
+
+  // Context selection methods
+  private async loadStoryAndSetupContext(): Promise<void> {
+    if (!this.storyId) return;
+    
+    try {
+      this.story = await this.storyService.getStory(this.storyId);
+      if (this.story) {
+        this.setupDefaultContext();
+      }
+    } catch (error) {
+      console.error('Error loading story for beat context:', error);
+    }
+  }
+
+  private setupDefaultContext(): void {
+    if (!this.story || !this.chapterId || !this.sceneId) return;
+    
+    const chapter = this.story.chapters.find(c => c.id === this.chapterId);
+    const scene = chapter?.scenes.find(s => s.id === this.sceneId);
+    
+    if (chapter && scene) {
+      // Add current scene as default context
+      const currentSceneContent = this.extractFullTextFromScene(scene);
+      
+      // If current scene has no content, try to find the previous scene with content
+      let contentToUse = currentSceneContent;
+      if (!contentToUse.trim()) {
+        const previousScene = this.findPreviousSceneWithContent(chapter, scene);
+        if (previousScene.scene) {
+          contentToUse = this.extractFullTextFromScene(previousScene.scene);
+        }
+      }
+      
+      this.selectedScenes.push({
+        chapterId: chapter.id,
+        sceneId: scene.id,
+        chapterTitle: `C${chapter.chapterNumber || chapter.order}:${chapter.title}`,
+        sceneTitle: `S${scene.sceneNumber || scene.order}:${scene.title}`,
+        content: contentToUse,
+        selected: true
+      });
+    }
+  }
+
+  private findPreviousSceneWithContent(currentChapter: Chapter, currentScene: Scene): { chapter: Chapter; scene: Scene } | { chapter: null; scene: null } {
+    if (!this.story) return { chapter: null, scene: null };
+    
+    // First, try to find previous scene in current chapter
+    const currentSceneIndex = currentChapter.scenes.findIndex(s => s.id === currentScene.id);
+    if (currentSceneIndex > 0) {
+      for (let i = currentSceneIndex - 1; i >= 0; i--) {
+        const scene = currentChapter.scenes[i];
+        const content = this.extractFullTextFromScene(scene);
+        if (content.trim()) {
+          return { chapter: currentChapter, scene };
+        }
+      }
+    }
+    
+    // If no previous scene found in current chapter, try previous chapters
+    const currentChapterIndex = this.story.chapters.findIndex(c => c.id === currentChapter.id);
+    if (currentChapterIndex > 0) {
+      for (let i = currentChapterIndex - 1; i >= 0; i--) {
+        const chapter = this.story.chapters[i];
+        // Start from last scene in previous chapter
+        for (let j = chapter.scenes.length - 1; j >= 0; j--) {
+          const scene = chapter.scenes[j];
+          const content = this.extractFullTextFromScene(scene);
+          if (content.trim()) {
+            return { chapter, scene };
+          }
+        }
+      }
+    }
+    
+    return { chapter: null, scene: null };
+  }
+
+  toggleSceneSelection(chapterId: string, sceneId: string): void {
+    const index = this.selectedScenes.findIndex(s => s.sceneId === sceneId);
+    
+    if (index > -1) {
+      this.selectedScenes.splice(index, 1);
+    } else {
+      const chapter = this.story?.chapters.find(c => c.id === chapterId);
+      const scene = chapter?.scenes.find(s => s.id === sceneId);
+      
+      if (chapter && scene) {
+        this.selectedScenes.push({
+          chapterId: chapter.id,
+          sceneId: scene.id,
+          chapterTitle: `C${chapter.chapterNumber || chapter.order}:${chapter.title}`,
+          sceneTitle: `S${scene.sceneNumber || scene.order}:${scene.title}`,
+          content: this.extractFullTextFromScene(scene),
+          selected: true
+        });
+      }
+    }
+  }
+
+  isSceneSelected(sceneId: string): boolean {
+    return this.selectedScenes.some(s => s.sceneId === sceneId);
+  }
+
+  removeSceneContext(scene: SceneContext): void {
+    const index = this.selectedScenes.findIndex(s => s.sceneId === scene.sceneId);
+    if (index > -1) {
+      this.selectedScenes.splice(index, 1);
+    }
+  }
+
+  getFilteredScenes(chapter: Chapter): Scene[] {
+    if (!this.sceneSearchTerm) return chapter.scenes;
+    
+    const searchLower = this.sceneSearchTerm.toLowerCase();
+    return chapter.scenes.filter(scene => 
+      scene.title.toLowerCase().includes(searchLower) ||
+      scene.content.toLowerCase().includes(searchLower)
+    );
+  }
+
+  getScenePreview(scene: Scene): string {
+    const cleanText = this.extractFullTextFromScene(scene);
+    return cleanText.substring(0, 100) + (cleanText.length > 100 ? '...' : '');
+  }
+
+  private extractFullTextFromScene(scene: Scene): string {
+    if (!scene.content) return '';
+
+    // Use DOM parser for more reliable HTML parsing
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(scene.content, 'text/html');
+    
+    // Remove all beat AI wrapper elements and their contents
+    const beatWrappers = doc.querySelectorAll('.beat-ai-wrapper, .beat-ai-node');
+    beatWrappers.forEach(element => element.remove());
+    
+    // Remove beat markers and comments
+    const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT);
+    const textNodes: Text[] = [];
+    let node;
+    while ((node = walker.nextNode())) {
+      textNodes.push(node as Text);
+    }
+    
+    textNodes.forEach(textNode => {
+      // Remove beat markers like [Beat: description]
+      textNode.textContent = textNode.textContent?.replace(/\[Beat:[^\]]*\]/g, '') || '';
+    });
+    
+    // Convert to text while preserving paragraph structure
+    let cleanText = '';
+    const paragraphs = doc.querySelectorAll('p');
+    
+    for (const p of paragraphs) {
+      const text = p.textContent?.trim() || '';
+      if (text) {
+        cleanText += text + '\n\n';
+      } else {
+        // Empty paragraph becomes single newline
+        cleanText += '\n';
+      }
+    }
+    
+    // If no paragraphs found, fall back to body text
+    if (!paragraphs.length) {
+      cleanText = doc.body.textContent || '';
+    }
+    
+    // Clean up extra whitespace
+    cleanText = cleanText.replace(/\n\s*\n\s*\n/g, '\n\n');
+    cleanText = cleanText.trim();
+
+    return cleanText;
+  }
+
+  private buildCustomContext(): { selectedScenes: string[]; includeStoryOutline: boolean } {
+    return {
+      selectedScenes: this.selectedScenes.map(scene => scene.content),
+      includeStoryOutline: this.includeStoryOutline
+    };
   }
   
 }

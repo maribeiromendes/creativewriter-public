@@ -37,6 +37,10 @@ export class BeatAIService {
     sceneId?: string;
     beatPosition?: number;
     beatType?: 'story' | 'scene';
+    customContext?: {
+      selectedScenes: string[];
+      includeStoryOutline: boolean;
+    };
   } = {}): Observable<string> {
     const settings = this.settingsService.getSettings();
     
@@ -290,6 +294,10 @@ export class BeatAIService {
     sceneId?: string;
     wordCount?: number;
     beatType?: 'story' | 'scene';
+    customContext?: {
+      selectedScenes: string[];
+      includeStoryOutline: boolean;
+    };
   }): Observable<string> {
     if (!options.storyId) {
       return of(userPrompt);
@@ -307,14 +315,20 @@ export class BeatAIService {
             // Get codex entries in XML format
             const allCodexEntries = this.codexService.getAllCodexEntries(options.storyId!);
             
-            // Get current scene text first
-            const sceneText = options.sceneId 
-              ? await this.promptManager.getCurrentOrPreviousSceneText(options.sceneId, beatId)
-              : '';
+            // Get scene context - either from custom context or default behavior
+            let sceneContext = '';
+            if (options.customContext && options.customContext.selectedScenes.length > 0) {
+              // Use custom selected scenes context
+              sceneContext = options.customContext.selectedScenes.join('\n\n');
+            } else {
+              // Default behavior: get current scene text
+              sceneContext = options.sceneId 
+                ? await this.promptManager.getCurrentOrPreviousSceneText(options.sceneId, beatId)
+                : '';
+            }
             
             // Convert to relevance service format and filter
             const convertedEntries = this.convertCodexEntriesToRelevanceFormat(allCodexEntries);
-            const sceneContext = sceneText || '';
             const relevantEntries = await this.codexRelevanceService.getRelevantEntries(
               convertedEntries,
               sceneContext,
@@ -409,12 +423,21 @@ export class BeatAIService {
 
 
         // Get story so far in XML format
-        // For SceneBeat, we get the story without scene summaries
-        const storySoFar = options.sceneId 
-          ? (options.beatType === 'scene' 
+        // Check custom context settings first, then fallback to beatType
+        let storySoFar = '';
+        if (options.sceneId) {
+          if (options.customContext !== undefined) {
+            // Use custom context settings
+            storySoFar = options.customContext.includeStoryOutline 
+              ? await this.promptManager.getStoryXmlFormat(options.sceneId)
+              : '';
+          } else {
+            // Default behavior: For SceneBeat, we get the story without scene summaries
+            storySoFar = options.beatType === 'scene' 
               ? await this.promptManager.getStoryXmlFormatWithoutSummaries(options.sceneId)
-              : await this.promptManager.getStoryXmlFormat(options.sceneId))
-          : '';
+              : await this.promptManager.getStoryXmlFormat(options.sceneId);
+          }
+        }
 
         // Build template placeholders
         const placeholders = {
@@ -422,7 +445,7 @@ export class BeatAIService {
           codexEntries: codexText,
           storySoFar: storySoFar,
           storyTitle: story.title || 'Story',
-          sceneFullText: sceneText,
+          sceneFullText: sceneContext, // Use the sceneContext we built above
           wordCount: (options.wordCount || 200).toString(),
           prompt: userPrompt,
           pointOfView: pointOfView,
@@ -525,6 +548,10 @@ export class BeatAIService {
     sceneId?: string;
     wordCount?: number;
     beatType?: 'story' | 'scene';
+    customContext?: {
+      selectedScenes: string[];
+      includeStoryOutline: boolean;
+    };
   }): Observable<string> {
     return this.buildStructuredPromptFromTemplate(userPrompt, beatId, options);
   }
