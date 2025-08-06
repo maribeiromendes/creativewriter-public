@@ -1526,6 +1526,9 @@ export class StoryEditorComponent implements OnInit, OnDestroy {
       this.hasUnsavedChanges = false;
       this.updateHeaderActions(); // Update header to show saved status
       
+      // Refresh prompt manager to get the latest scene content for Beat AI
+      await this.promptManager.refresh();
+      
     } catch (error) {
       console.error('Error saving story:', error);
       // Re-mark as unsaved so it can be retried
