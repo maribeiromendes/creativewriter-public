@@ -116,31 +116,33 @@
 }
 
 /* Syntax highlighting styles */
-.prompt-preview :global(.xml-tag) {
-  color: #ff79c6;
-  font-weight: 500;
-}
+.prompt-preview {
+  ::ng-deep .xml-tag {
+    color: #ff79c6;
+    font-weight: 500;
+  }
 
-.prompt-preview :global(.xml-attr) {
-  color: #50fa7b;
-}
+  ::ng-deep .xml-attr {
+    color: #50fa7b;
+  }
 
-.prompt-preview :global(.xml-value) {
-  color: #f1fa8c;
-}
+  ::ng-deep .xml-value {
+    color: #f1fa8c;
+  }
 
-.prompt-preview :global(.xml-comment) {
-  color: #6272a4;
-  font-style: italic;
-}
+  ::ng-deep .xml-comment {
+    color: #6272a4;
+    font-style: italic;
+  }
 
-.prompt-preview :global(.xml-cdata) {
-  color: #bd93f9;
-}
+  ::ng-deep .xml-cdata {
+    color: #bd93f9;
+  }
 
-.prompt-preview :global(.template-var) {
-  color: #8be9fd;
-  font-weight: bold;
+  ::ng-deep .template-var {
+    color: #8be9fd;
+    font-weight: bold;
+  }
 }
 
 .preview-footer {
