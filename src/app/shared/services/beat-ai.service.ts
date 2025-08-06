@@ -319,9 +319,17 @@ export class BeatAIService {
             
             // Get scene context - either from custom context or default behavior
             let sceneContext = '';
+            
             if (options.customContext && options.customContext.selectedScenes.length > 0) {
-              // Use custom selected scenes context
-              sceneContext = options.customContext.selectedScenes.join('\n\n');
+              // Check if we'll be using a modified story outline
+              if (options.customContext.includeStoryOutline) {
+                // If story outline is included, scenes are already in the outline
+                // so we don't need to append them separately
+                sceneContext = '';
+              } else {
+                // If no story outline, use custom selected scenes context
+                sceneContext = options.customContext.selectedScenes.join('\n\n');
+              }
             } else {
               // Default behavior: get current scene text
               sceneContext = options.sceneId 
