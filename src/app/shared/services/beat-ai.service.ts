@@ -323,9 +323,24 @@ export class BeatAIService {
             if (options.customContext && options.customContext.selectedScenes.length > 0) {
               // Check if we'll be using a modified story outline
               if (options.customContext.includeStoryOutline) {
-                // If story outline is included, scenes are already in the outline
-                // so we don't need to append them separately
-                sceneContext = '';
+                // Story outline is included. Check if current scene is selected
+                const currentSceneSelected = options.customContext.selectedSceneContexts.some(
+                  ctx => ctx.sceneId === options.sceneId
+                );
+                
+                if (currentSceneSelected) {
+                  // Current scene is selected and will be included via sceneFullText
+                  // Get its content from our selected scenes
+                  const currentScene = options.customContext.selectedSceneContexts.find(
+                    ctx => ctx.sceneId === options.sceneId
+                  );
+                  sceneContext = currentScene ? currentScene.content : '';
+                } else {
+                  // Current scene not explicitly selected, get default content
+                  sceneContext = options.sceneId 
+                    ? await this.promptManager.getCurrentOrPreviousSceneText(options.sceneId, beatId)
+                    : '';
+                }
               } else {
                 // If no story outline, use custom selected scenes context
                 sceneContext = options.customContext.selectedScenes.join('\n\n');
