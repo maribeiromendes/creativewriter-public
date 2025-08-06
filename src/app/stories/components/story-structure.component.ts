@@ -592,7 +592,6 @@ import { Subscription } from 'rxjs';
       border: 1px solid var(--ion-color-step-200);
       display: flex;
       flex-direction: column;
-      min-height: 280px;
     }
     
     .summary-header {
@@ -637,8 +636,8 @@ import { Subscription } from 'rxjs';
       border-radius: 8px;
       backdrop-filter: blur(4px);
       -webkit-backdrop-filter: blur(4px);
-      flex: 1;
-      min-height: 180px;
+      height: 200px;
+      max-height: 200px;
       overflow-y: auto;
       resize: vertical;
       scrollbar-width: thin;
