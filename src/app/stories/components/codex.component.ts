@@ -259,11 +259,14 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
                     <ion-label position="stacked">Tags</ion-label>
                     <ion-input 
                       [(ngModel)]="tagInput" 
-                      (keyup.enter)="addTag()"
-                      placeholder="Tag eingeben und Enter drücken..."
+                      (ionBlur)="parseAndAddTags()"
+                      placeholder="Tags eingeben (kommagetrennt)..."
                       class="tag-input">
                     </ion-input>
                   </ion-item>
+                  <ion-note class="tag-help-text">
+                    Mehrere Tags mit Komma trennen (z.B. Fantasy, Magie, Drachen)
+                  </ion-note>
                   <div class="tags-container" *ngIf="editingEntry.tags?.length">
                     <ion-chip 
                       *ngFor="let tag of editingEntry.tags" 
@@ -902,16 +905,39 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
       align-content: flex-start;
     }
 
+    .tag-help-text {
+      display: block;
+      margin-top: 8px;
+      margin-left: 16px;
+      font-size: 0.875rem;
+      color: var(--ion-color-medium);
+      font-style: italic;
+    }
+
     .tag-chip {
       --background: var(--ion-color-primary-tint);
       --color: var(--ion-color-primary-contrast);
       cursor: pointer;
       transition: all 0.2s ease;
+      font-size: 0.875rem;
+      height: 32px;
     }
 
     .tag-chip:hover {
       --background: var(--ion-color-primary);
-      transform: scale(1.05);
+      transform: translateY(-1px);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .tag-chip ion-icon {
+      margin-left: 6px;
+      font-size: 14px;
+      opacity: 0.7;
+      transition: opacity 0.2s;
+    }
+
+    .tag-chip:hover ion-icon {
+      opacity: 1;
     }
 
     /* Image Preview */
@@ -1211,7 +1237,8 @@ export class CodexComponent implements OnInit, OnDestroy {
       customFields: entry.metadata?.['customFields'] && Array.isArray(entry.metadata['customFields']) ? [...entry.metadata['customFields']] : [],
       alwaysInclude: entry.alwaysInclude || false
     };
-    this.tagInput = '';
+    // Load existing tags as comma-separated string
+    this.tagInput = entry.tags ? entry.tags.join(', ') : '';
     this.resetCustomFieldInputs();
   }
 
@@ -1285,6 +1312,9 @@ export class CodexComponent implements OnInit, OnDestroy {
     if (!storyId || !entry) return;
 
     try {
+      // Parse tags before saving
+      this.parseAndAddTags();
+      
       // Prepare the updated entry with story role and custom fields in metadata
       const updatedEntry = {
         ...this.editingEntry,
@@ -1322,19 +1352,26 @@ export class CodexComponent implements OnInit, OnDestroy {
     }
   }
 
-  addTag() {
-    const tag = this.tagInput.trim();
-    if (!tag) return;
+  parseAndAddTags() {
+    if (!this.tagInput || !this.tagInput.trim()) return;
     
     // Ensure tags array exists
     if (!this.editingEntry.tags) {
       this.editingEntry.tags = [];
     }
     
-    if (!this.editingEntry.tags.includes(tag)) {
-      this.editingEntry.tags.push(tag);
-      this.tagInput = '';
-    }
+    // Parse comma-separated tags
+    const newTags = this.tagInput
+      .split(',')
+      .map(tag => tag.trim())
+      .filter(tag => tag.length > 0)
+      .filter(tag => !this.editingEntry.tags!.includes(tag));
+    
+    // Add new tags
+    this.editingEntry.tags.push(...newTags);
+    
+    // Clear input
+    this.tagInput = '';
   }
 
   removeTag(tag: string) {
