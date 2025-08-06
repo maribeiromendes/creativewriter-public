@@ -369,13 +369,13 @@ import { Subscription } from 'rxjs';
       min-height: 0; /* Important for flex children */
     }
     
-    /* Prevent scrolling on scene details and summary section */
+    /* Ensure parent containers don't interfere with scrolling */
     .scene-details {
-      overflow: visible !important;
+      overflow: visible;
     }
     
     .scene-summary-section {
-      overflow: visible !important;
+      overflow: visible;
     }
     
     .structure-content::part(background) {
@@ -643,14 +643,19 @@ import { Subscription } from 'rxjs';
       border-radius: 8px;
       backdrop-filter: blur(4px);
       -webkit-backdrop-filter: blur(4px);
-      height: 200px !important;
-      max-height: 200px !important;
-      overflow-y: auto !important;
-      overflow-x: hidden !important;
+      height: 200px;
+      max-height: 200px;
       resize: none;
       scrollbar-width: thin;
       scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
-      display: block;
+    }
+    
+    /* Fix for ionic textarea native element scrolling */
+    .summary-textarea textarea {
+      overflow: unset;
+      height: 100%;
+      min-height: 100%;
+      resize: none;
     }
     
     .summary-textarea::-webkit-scrollbar {
@@ -671,17 +676,6 @@ import { Subscription } from 'rxjs';
       background: rgba(255, 255, 255, 0.5);
     }
     
-    /* Force ion-textarea to use our scrolling */
-    ion-textarea.summary-textarea {
-      --padding-top: 12px;
-      --padding-bottom: 12px;
-    }
-    
-    ion-textarea.summary-textarea::part(native) {
-      height: 100% !important;
-      max-height: 100% !important;
-      overflow-y: auto !important;
-    }
     
     .summary-info {
       margin-top: 0.5rem;
