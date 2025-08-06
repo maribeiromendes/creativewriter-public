@@ -592,6 +592,8 @@ import { Subscription } from 'rxjs';
       border: 1px solid var(--ion-color-step-200);
       display: flex;
       flex-direction: column;
+      min-height: 300px;
+      height: 100%;
     }
     
     .summary-header {
@@ -602,6 +604,7 @@ import { Subscription } from 'rxjs';
       font-size: 0.9rem;
       color: var(--ion-color-medium);
       font-weight: 500;
+      flex-shrink: 0;
     }
     
     .summary-buttons {
@@ -619,6 +622,7 @@ import { Subscription } from 'rxjs';
       backdrop-filter: blur(4px);
       border: 1px solid rgba(255, 255, 255, 0.2);
       border-radius: 8px;
+      flex-shrink: 0;
     }
     
     .summary-textarea {
@@ -636,8 +640,8 @@ import { Subscription } from 'rxjs';
       border-radius: 8px;
       backdrop-filter: blur(4px);
       -webkit-backdrop-filter: blur(4px);
-      height: 200px;
-      max-height: 200px;
+      flex: 1;
+      min-height: 150px;
       overflow-y: auto;
       resize: vertical;
       scrollbar-width: thin;
@@ -665,6 +669,7 @@ import { Subscription } from 'rxjs';
     .summary-info {
       margin-top: 0.5rem;
       float: right;
+      flex-shrink: 0;
     }
     
     .add-scene-btn {
