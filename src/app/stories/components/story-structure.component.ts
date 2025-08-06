@@ -648,22 +648,21 @@ import { Subscription } from 'rxjs';
       border-radius: 8px;
       backdrop-filter: blur(4px);
       -webkit-backdrop-filter: blur(4px);
-      flex: 1;
-      min-height: 0;
-      height: 100%;
+      flex: 1 1 auto;
+      min-height: 200px;
       resize: none;
       scrollbar-width: thin;
       scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
-      display: flex;
-      align-items: stretch;
+      
+      /* Try ionic custom properties for height */
+      --min-height: 200px;
+      --max-height: none;
     }
     
     /* Fix for ionic textarea native element scrolling */
     .summary-textarea textarea {
       overflow: unset;
-      height: 100% !important;
-      min-height: 100% !important;
-      max-height: 100% !important;
+      height: 100%;
       resize: none;
       box-sizing: border-box;
     }
