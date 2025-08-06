@@ -265,7 +265,7 @@ import { Subscription } from 'rxjs';
                         placeholder="Hier wird die AI-generierte Zusammenfassung der Szene angezeigt..."
                         class="summary-textarea"
                         [rows]="2"
-                        [autoGrow]="true"
+                        [autoGrow]="false"
                         [attr.aria-label]="'Zusammenfassung für Szene: ' + (scene.title || 'Ohne Titel')">
                       </ion-textarea>
                       
@@ -634,7 +634,30 @@ import { Subscription } from 'rxjs';
       border-radius: 8px;
       backdrop-filter: blur(4px);
       -webkit-backdrop-filter: blur(4px);
-      min-height: 60px;
+      min-height: 80px;
+      max-height: 200px;
+      overflow-y: auto;
+      resize: vertical;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+    }
+    
+    .summary-textarea::-webkit-scrollbar {
+      width: 8px;
+    }
+    
+    .summary-textarea::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+    }
+    
+    .summary-textarea::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 4px;
+    }
+    
+    .summary-textarea::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.5);
     }
     
     .summary-info {
@@ -867,6 +890,8 @@ import { Subscription } from 'rxjs';
       
       .summary-textarea {
         font-size: 0.8rem;
+        max-height: 150px; /* Smaller max height on very small screens */
+        -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
       }
       
       .add-scene-btn {
@@ -1802,6 +1827,10 @@ Antworte nur mit dem Titel, ohne weitere Erklärungen oder Anführungszeichen.`;
   autoResizeTextarea(event: Event): void {
     const textarea = event.target as HTMLTextAreaElement;
     if (textarea) {
+      // For summary textareas, we don't resize since they have fixed max-height with scrolling
+      if (textarea.classList.contains('summary-textarea')) {
+        return;
+      }
       this.resizeTextarea(textarea);
     }
   }
