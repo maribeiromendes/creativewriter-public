@@ -471,6 +471,217 @@ button:hover {
   }
 }
 
+/* Custom Ionic Scrollbar Styles - Modern 2025 Implementation */
+
+/* Scrollbar CSS Custom Properties */
+:root {
+  --scrollbar-width: 8px;
+  --scrollbar-track-bg: rgba(255, 255, 255, 0.05);
+  --scrollbar-thumb-bg: rgba(139, 180, 248, 0.3);
+  --scrollbar-thumb-hover-bg: rgba(139, 180, 248, 0.5);
+  --scrollbar-thumb-active-bg: rgba(139, 180, 248, 0.7);
+}
+
+/* Modern Scrollbar Support for Firefox */
+@supports (scrollbar-width: auto) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb-bg) var(--scrollbar-track-bg);
+    transition: scrollbar-color 0.2s ease;
+  }
+  
+  *:hover {
+    scrollbar-color: var(--scrollbar-thumb-hover-bg) var(--scrollbar-track-bg);
+  }
+}
+
+/* Webkit Scrollbar Support (Chrome, Safari, Edge) */
+@supports selector(::-webkit-scrollbar) {
+  /* Global scrollbar styles */
+  *::-webkit-scrollbar {
+    width: var(--scrollbar-width);
+    height: var(--scrollbar-width);
+  }
+  
+  *::-webkit-scrollbar-track {
+    background: var(--scrollbar-track-bg);
+    border-radius: 4px;
+  }
+  
+  *::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb-bg);
+    border-radius: 4px;
+    border: 1px solid rgba(139, 180, 248, 0.1);
+    transition: all 0.2s ease;
+  }
+  
+  *::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-thumb-hover-bg);
+    border-color: rgba(139, 180, 248, 0.2);
+  }
+  
+  *::-webkit-scrollbar-thumb:active {
+    background: var(--scrollbar-thumb-active-bg);
+  }
+  
+  *::-webkit-scrollbar-corner {
+    background: var(--scrollbar-track-bg);
+  }
+}
+
+/* Ionic Content Specific Scrollbar Styling */
+ion-content {
+  /* Enable custom scrolling */
+  --overflow: auto;
+  overflow: auto;
+  
+  /* Modern browsers */
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb-bg) transparent;
+  
+  /* Webkit browsers */
+  &::-webkit-scrollbar {
+    width: var(--scrollbar-width);
+    height: var(--scrollbar-width);
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 4px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb-bg);
+    border-radius: 4px;
+    border: 1px solid rgba(139, 180, 248, 0.1);
+    transition: all 0.2s ease;
+  }
+  
+  &::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-thumb-hover-bg);
+    border-color: rgba(139, 180, 248, 0.2);
+  }
+  
+  &::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+}
+
+/* Alternative approach for Ion-Content using ::part() */
+ion-content::part(scroll) {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb-bg) transparent;
+  
+  &::-webkit-scrollbar {
+    width: var(--scrollbar-width);
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb-bg);
+    border-radius: 4px;
+    transition: background 0.2s ease;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+/* Touch Device Optimizations */
+@media (hover: none) and (pointer: coarse) {
+  :root {
+    --scrollbar-width: 4px; /* Thinner on touch devices */
+  }
+  
+  /* Hide scrollbars on touch devices or make them minimal */
+  *::-webkit-scrollbar {
+    width: 2px;
+    height: 2px;
+  }
+  
+  *::-webkit-scrollbar-thumb {
+    background: rgba(139, 180, 248, 0.4);
+    border: none;
+  }
+  
+  ion-content::-webkit-scrollbar {
+    width: 2px;
+    height: 2px;
+  }
+  
+  ion-content::-webkit-scrollbar-thumb {
+    background: rgba(139, 180, 248, 0.4);
+    border-radius: 2px;
+  }
+}
+
+/* Desktop/Mouse Device Optimizations */
+@media (hover: hover) and (pointer: fine) {
+  /* Enhanced hover effects for desktop */
+  *::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-thumb-hover-bg);
+    box-shadow: 0 2px 4px rgba(139, 180, 248, 0.2);
+  }
+  
+  ion-content::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-thumb-hover-bg);
+    box-shadow: 0 2px 4px rgba(139, 180, 248, 0.2);
+  }
+}
+
+/* Modal and Popover Scrollbar Styling */
+ion-modal .modal-wrapper,
+ion-popover .popover-wrapper {
+  *::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  *::-webkit-scrollbar-thumb {
+    background: rgba(139, 180, 248, 0.4);
+    border-radius: 3px;
+  }
+  
+  *::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.03);
+  }
+}
+
+/* List and Card Scrollable Areas */
+ion-list,
+ion-card-content {
+  /* Ensure lists and card content can have custom scrollbars */
+  overflow-y: auto;
+  
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb-bg);
+    border-radius: 3px;
+  }
+}
+
+/* ProseMirror Editor Scrollbar */
+.ProseMirror {
+  overflow-y: auto;
+  
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb-bg);
+    border-radius: 4px;
+    border: 1px solid rgba(139, 180, 248, 0.1);
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 4px;
+  }
+}
+
 /* Resizable Image Styles */
 .resizable-image-wrapper {
   position: relative;
