@@ -634,7 +634,7 @@ import { Subscription } from 'rxjs';
       border-radius: 8px;
       backdrop-filter: blur(4px);
       -webkit-backdrop-filter: blur(4px);
-      min-height: 80px;
+      min-height: 200px;
       max-height: 200px;
       overflow-y: auto;
       resize: vertical;
