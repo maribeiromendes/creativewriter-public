@@ -28,16 +28,21 @@ export class VersionService {
   private loadVersion(): void {
     this.http.get<VersionInfo>('/assets/version.json')
       .pipe(
-        catchError(() => of({
-          version: '0.0.0',
-          buildNumber: 'dev',
-          commitHash: 'unknown',
-          commitMessage: 'Development build',
-          buildDate: new Date().toISOString(),
-          branch: 'local'
-        }))
+        catchError(error => {
+          console.warn('Failed to load version.json:', error);
+          console.warn('Falling back to default version 0.0.0');
+          return of({
+            version: '0.0.0',
+            buildNumber: 'dev',
+            commitHash: 'unknown',
+            commitMessage: 'Development build',
+            buildDate: new Date().toISOString(),
+            branch: 'local'
+          });
+        })
       )
       .subscribe(version => {
+        console.log('Version loaded:', version);
         this.versionSubject.next(version);
       });
   }
