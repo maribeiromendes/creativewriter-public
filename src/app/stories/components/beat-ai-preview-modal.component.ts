@@ -179,8 +179,8 @@ export class BeatAIPreviewModalComponent {
     // Escape HTML first
     highlighted = highlighted.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     
-    // Highlight XML tags
-    highlighted = highlighted.replace(/&lt;\/?([\\w:-]+)([^&gt;]*)&gt;/g, (match, tagName, attributes) => {
+    // Highlight XML tags - fixed regex pattern
+    highlighted = highlighted.replace(/&lt;\/?([\w:-]+)([^&gt;]*)&gt;/g, (match, tagName, attributes) => {
       let result = `<span class="xml-tag">&lt;${tagName.startsWith('/') ? '/' : ''}`;
       const cleanTag = tagName.replace(/^\//, '');
       result += `${cleanTag}</span>`;
@@ -196,14 +196,15 @@ export class BeatAIPreviewModalComponent {
       return result;
     });
     
-    // Highlight XML comments
-    highlighted = highlighted.replace(/&lt;!--([\s\S]*?)--&gt;/g, '<span class="xml-comment">&lt;!--$1--&gt;</span>');
+    // Highlight XML comments - using non-greedy match
+    highlighted = highlighted.replace(/&lt;!--(.+?)--&gt;/g, '<span class="xml-comment">&lt;!--$1--&gt;</span>');
     
-    // Highlight template variables/placeholders (e.g., {{variable}}, {variable})
-    highlighted = highlighted.replace(/\{\{?([^}]+)\}?\}/g, '<span class="template-var">{$1}</span>');
+    // Highlight template variables/placeholders - more specific pattern to avoid issues
+    highlighted = highlighted.replace(/\{\{([^{}]+)\}\}/g, '<span class="template-var">{{$1}}</span>');
+    highlighted = highlighted.replace(/\{([^{}]+)\}/g, '<span class="template-var">{$1}</span>');
     
-    // Highlight CDATA sections
-    highlighted = highlighted.replace(/&lt;!\[CDATA\[([\s\S]*?)\]\]&gt;/g, '<span class="xml-cdata">&lt;![CDATA[$1]]&gt;</span>');
+    // Highlight CDATA sections - using non-greedy match
+    highlighted = highlighted.replace(/&lt;!\[CDATA\[(.+?)\]\]&gt;/g, '<span class="xml-cdata">&lt;![CDATA[$1]]&gt;</span>');
     
     return highlighted;
   }
