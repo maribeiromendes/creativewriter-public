@@ -13,8 +13,7 @@ export class StoryService {
     try {
       this.db = await this.databaseService.getDatabase();
       const result = await this.db.allDocs({ 
-        include_docs: true,
-        descending: true 
+        include_docs: true
       });
       
       const stories = result.rows
@@ -62,6 +61,19 @@ export class StoryService {
           return true;
         })
         .map((story: unknown) => this.migrateStory(story as Story));
+      
+      // Sort stories by order field (if exists) or by updatedAt (descending)
+      stories.sort((a, b) => {
+        // If both have order, sort by order (ascending)
+        if (a.order !== undefined && b.order !== undefined) {
+          return a.order - b.order;
+        }
+        // If only one has order, it comes first
+        if (a.order !== undefined) return -1;
+        if (b.order !== undefined) return 1;
+        // Otherwise sort by updatedAt (descending - newest first)
+        return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+      });
         
       return stories;
     } catch (error) {
@@ -102,6 +114,7 @@ export class StoryService {
 
   async createStory(): Promise<Story> {
     this.db = await this.databaseService.getDatabase();
+    
     const firstChapter: Chapter = {
       id: this.generateId(),
       title: 'Kapitel 1',
@@ -127,6 +140,7 @@ export class StoryService {
       title: '',
       chapters: [firstChapter],
       settings: { ...DEFAULT_STORY_SETTINGS },
+      // Don't set order here - let it be undefined so it appears at top with latest updatedAt
       createdAt: new Date(),
       updatedAt: new Date()
     };
@@ -485,11 +499,11 @@ export class StoryService {
     try {
       this.db = await this.databaseService.getDatabase();
       
-      // Update each story with new updatedAt timestamp to maintain ordering
-      // We'll use the reverse of array index as a timestamp offset to maintain order
+      // Update each story with new order field
       const bulkDocs = stories.map((story, index) => ({
         ...story,
-        updatedAt: new Date(Date.now() - (stories.length - index) * 1000) // Reverse order for descending sort
+        order: index, // Save the array index as the order
+        updatedAt: story.updatedAt // Keep original updatedAt
       }));
 
       await this.db.bulkDocs(bulkDocs);

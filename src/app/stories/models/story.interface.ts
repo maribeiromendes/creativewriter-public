@@ -36,6 +36,7 @@ export interface Story {
   settings?: StorySettings;
   codexId?: string;
   coverImage?: string; // Base64 encoded image data or URL
+  order?: number; // For custom sorting
   createdAt: Date;
   updatedAt: Date;
   // Legacy support for old stories
