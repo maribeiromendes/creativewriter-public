@@ -9,7 +9,7 @@ import { copyOutline } from 'ionicons/icons';
   standalone: true,
   imports: [CommonModule, IonIcon],
   template: `
-    <div class="preview-modal" *ngIf="isVisible" (click)="onBackdropClick()" (keydown.escape)="onClose()" tabindex="0">
+    <div class="preview-modal-backdrop" *ngIf="isVisible" (click)="onBackdropClick()" (keydown.escape)="onClose()" tabindex="0">
       <div class="preview-content" #previewContentEl (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()" tabindex="0">
         <div class="preview-header" (mousedown)="startResize($event)">
           <h3>Prompt-Vorschau</h3>
@@ -34,36 +34,40 @@ import { copyOutline } from 'ionicons/icons';
     </div>
   `,
   styles: [`
-    .preview-modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0, 0, 0, 0.8);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
+    .preview-modal-backdrop {
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      bottom: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      background: rgba(0, 0, 0, 0.8) !important;
+      z-index: 10000 !important;
       backdrop-filter: blur(2px);
-      overflow: hidden;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      padding: 1rem !important;
+      box-sizing: border-box !important;
     }
 
     .preview-content {
-      background: rgba(45, 45, 45, 0.85);
+      background: rgba(45, 45, 45, 0.95) !important;
       backdrop-filter: blur(10px);
       border-radius: 8px;
-      width: 90vw;
-      max-width: 800px;
-      max-height: 80vh;
-      min-height: 300px;
-      min-width: 400px;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-      position: relative;
-      margin: 0 auto;
+      width: 90% !important;
+      max-width: 800px !important;
+      max-height: calc(100vh - 2rem) !important;
+      min-height: 300px !important;
+      min-width: 400px !important;
+      display: flex !important;
+      flex-direction: column !important;
+      overflow: hidden !important;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important;
+      position: relative !important;
+      margin: 0 !important;
+      flex-shrink: 0 !important;
     }
 
     .preview-header {
@@ -239,11 +243,10 @@ import { copyOutline } from 'ionicons/icons';
     /* Mobile optimizations */
     @media (max-width: 768px) {
       .preview-content {
-        width: 95vw;
-        max-height: 90vh;
+        width: 95%;
+        max-height: calc(100vh - 2rem);
         min-width: 300px;
         min-height: 250px;
-        margin: 0 auto;
       }
 
       .preview-header {
@@ -276,10 +279,9 @@ import { copyOutline } from 'ionicons/icons';
 
     @media (max-width: 480px) {
       .preview-content {
-        width: 98vw;
+        width: 98%;
         min-width: 280px;
         min-height: 200px;
-        margin: 0 auto;
       }
 
       .prompt-preview {
