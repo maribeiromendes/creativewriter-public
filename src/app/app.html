@@ -1,4 +1,11 @@
 
 <ion-app>
   <router-outlet></router-outlet>
+  <app-beat-ai-preview-modal
+    [isVisible]="modalService.isVisible"
+    [content]="modalService.content"
+    (closeModal)="modalService.close()"
+    (generateContent)="modalService.onGenerate()"
+    (copyContent)="modalService.onCopy()">
+  </app-beat-ai-preview-modal>
 </ion-app>

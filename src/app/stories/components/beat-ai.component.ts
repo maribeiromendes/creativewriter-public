@@ -8,7 +8,7 @@ import {
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { logoGoogle, globeOutline, createOutline, refreshOutline, trashOutline, analyticsOutline, colorWandOutline, addOutline, closeOutline, readerOutline, copyOutline } from 'ionicons/icons';
-import { BeatAIPreviewModalComponent } from './beat-ai-preview-modal.component';
+import { BeatAIModalService } from '../../shared/services/beat-ai-modal.service';
 import { TokenInfoPopoverComponent } from '../../shared/components/token-info-popover.component';
 import { TokenCounterService, SupportedModel } from '../../shared/services/token-counter.service';
 import { BeatAI, BeatAIPromptEvent } from '../models/beat-ai.interface';
@@ -37,7 +37,7 @@ interface SceneContext {
   imports: [
     CommonModule, FormsModule, NgSelectModule, IonIcon, IonModal, IonChip, IonLabel, 
     IonSearchbar, IonCheckbox, IonItemDivider, IonButton, IonButtons, IonToolbar, 
-    IonTitle, IonHeader, IonContent, IonList, IonItem, BeatAIPreviewModalComponent
+    IonTitle, IonHeader, IonContent, IonList, IonItem
   ],
   template: `
     <div class="beat-ai-container" [class.editing]="beatData.isEditing" [class.generating]="beatData.isGenerating" [style.--beat-ai-text-color]="currentTextColor">
@@ -270,14 +270,6 @@ interface SceneContext {
       </div>
     </div>
 
-    <!-- Prompt Preview Modal -->
-    <app-beat-ai-preview-modal
-      [isVisible]="showPreviewModal"
-      [content]="previewContent"
-      (closeModal)="hidePromptPreview()"
-      (generateContent)="generateContent()"
-      (copyContent)="copyPromptToClipboard()">
-    </app-beat-ai-preview-modal>
 
     <!-- Scene Selector Modal -->
     <ion-modal [isOpen]="showSceneSelector" (didDismiss)="showSceneSelector = false">
@@ -1257,6 +1249,7 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
   private elementRef = inject(ElementRef);
   private popoverController = inject(PopoverController);
   private tokenCounter = inject(TokenCounterService);
+  private modalService = inject(BeatAIModalService);
 
   @Input() beatData!: BeatAI;
   @Input() storyId?: string;
@@ -1300,8 +1293,6 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
     { value: 12000, label: '~12.000 Wörter' },
     { value: 'custom', label: 'Eigene Anzahl...' }
   ];
-  showPreviewModal = false;
-  previewContent = '';
   copyButtonText = 'Kopieren';
   
   // Context selection properties
@@ -1326,6 +1317,11 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
     this.currentTextColor = settings.appearance?.textColor || '#e0e0e0';
     
     this.currentPrompt = this.beatData.prompt;
+    
+    // Subscribe to modal events
+    this.modalService.close$.subscribe(() => this.hidePromptPreview());
+    this.modalService.generate$.subscribe(() => this.generateContent());
+    this.modalService.copy$.subscribe(() => this.copyPromptToClipboard());
     
     // Load saved beat type or use default
     this.selectedBeatType = this.beatData.beatType || 'story';
@@ -1704,14 +1700,12 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
       beatType: this.beatData.beatType,
       customContext: customContext
     }).subscribe(content => {
-      this.previewContent = content;
-      this.showPreviewModal = true;
+      this.modalService.show(content);
     });
   }
 
   hidePromptPreview(): void {
-    this.showPreviewModal = false;
-    this.previewContent = '';
+    this.modalService.close();
   }
 
   async showTokenInfo(): Promise<void> {
@@ -2130,12 +2124,12 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   async copyPromptToClipboard(): Promise<void> {
-    if (!this.previewContent) {
+    if (!this.modalService.content) {
       return;
     }
     
     try {
-      await navigator.clipboard.writeText(this.previewContent);
+      await navigator.clipboard.writeText(this.modalService.content);
       
       // Brief visual feedback
       this.copyButtonText = 'Kopiert!';
@@ -2145,7 +2139,7 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
     } catch (err) {
       console.error('Failed to copy text: ', err);
       // Fallback for older browsers
-      this.fallbackCopyTextToClipboard(this.previewContent);
+      this.fallbackCopyTextToClipboard(this.modalService.content);
     }
   }
 

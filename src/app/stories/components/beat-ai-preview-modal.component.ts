@@ -24,30 +24,30 @@ import { CommonModule } from '@angular/common';
   `,
   styles: [`
     .modal-fixed {
-      position: fixed !important;
-      top: 0 !important;
-      left: 0 !important;
-      width: 100vw !important;
-      height: 100vh !important;
-      background: rgba(0, 0, 0, 0.8) !important;
-      display: flex !important;
-      align-items: center !important;
-      justify-content: center !important;
-      z-index: 9999 !important;
-      overflow: hidden !important;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      overflow: hidden;
     }
     
     .modal-content {
-      background: #2d2d2d !important;
-      border-radius: 8px !important;
-      width: 90vw !important;
-      max-width: 800px !important;
-      max-height: 80vh !important;
-      min-height: 300px !important;
-      display: flex !important;
-      flex-direction: column !important;
-      position: relative !important;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important;
+      background: #2d2d2d;
+      border-radius: 8px;
+      width: 90vw;
+      max-width: 800px;
+      max-height: 80vh;
+      min-height: 300px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
     }
     
     .modal-header {
