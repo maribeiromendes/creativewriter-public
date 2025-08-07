@@ -90,7 +90,7 @@ import { VersionService } from '../../core/services/version.service';
       </div>
       
       <div class="stories-grid" *ngIf="stories.length > 0; else noStories" cdkDropList (cdkDropListDropped)="drop($event)">
-        <ion-card class="story-card" *ngFor="let story of stories" cdkDrag [cdkDragDisabled]="false" (click)="openStory(story.id)" button>
+        <ion-card class="story-card" *ngFor="let story of stories" cdkDrag [cdkDragStartDelay]="300" (click)="openStory(story.id)" button>
           <!-- Cover Image -->
           <div class="story-cover" *ngIf="story.coverImage">
             <img [src]="getCoverImageUrl(story)" [alt]="story.title || 'Story cover'" />
@@ -829,12 +829,27 @@ import { VersionService } from '../../core/services/version.service';
       --background: transparent;
       cursor: move;
       flex-shrink: 0;
-      touch-action: none; /* Prevent scrolling when dragging on touch devices */
+      --padding-start: 4px;
+      --padding-end: 4px;
     }
     
     .drag-handle:hover {
       --color: rgba(255, 255, 255, 0.9);
       --background: rgba(255, 255, 255, 0.1);
+    }
+    
+    /* Make drag handle bigger on mobile for easier grabbing */
+    @media (max-width: 767px) {
+      .drag-handle {
+        --padding-start: 8px;
+        --padding-end: 8px;
+        min-width: 44px;
+        min-height: 44px;
+      }
+      
+      .drag-handle ion-icon {
+        font-size: 24px;
+      }
     }
     
     /* Ensure only the handle is draggable */
