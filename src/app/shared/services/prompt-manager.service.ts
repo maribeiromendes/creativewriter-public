@@ -59,6 +59,12 @@ export class PromptManagerService {
   async setCurrentStory(storyId: string | null): Promise<void> {
     this.currentStoryIdSubject.next(storyId);
     
+    // Clear cached data when story is set to null
+    if (!storyId) {
+      this.flatScenesSubject.next([]);
+      return;
+    }
+    
     // Force immediate update
     if (storyId) {
       const story = await this.storyService.getStory(storyId);

@@ -1527,7 +1527,10 @@ export class StoryEditorComponent implements OnInit, OnDestroy {
       this.updateHeaderActions(); // Update header to show saved status
       
       // Refresh prompt manager to get the latest scene content for Beat AI
-      await this.promptManager.refresh();
+      // Force a complete reload by resetting and re-setting the story
+      await this.promptManager.setCurrentStory(null); // Clear current story
+      await new Promise(resolve => setTimeout(resolve, 50)); // Small delay
+      await this.promptManager.setCurrentStory(this.story.id); // Re-set story to force complete reload
       
     } catch (error) {
       console.error('Error saving story:', error);
