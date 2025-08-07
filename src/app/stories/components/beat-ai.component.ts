@@ -1643,7 +1643,7 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
   
-  generateContent(): void {
+  async generateContent(): Promise<void> {
     if (!this.currentPrompt.trim() || !this.selectedModel) return;
     
     this.beatData.prompt = this.currentPrompt.trim();
@@ -1654,7 +1654,7 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
     this.beatData.model = this.selectedModel;
     
     // Build custom context from selected scenes
-    const customContext = this.buildCustomContext();
+    const customContext = await this.buildCustomContext();
     
     this.promptSubmit.emit({
       beatId: this.beatData.id,
@@ -1672,7 +1672,7 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
     this.contentUpdate.emit(this.beatData);
   }
   
-  regenerateContent(): void {
+  async regenerateContent(): Promise<void> {
     if (!this.beatData.prompt) return;
     
     this.beatData.isGenerating = true;
@@ -1680,7 +1680,7 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
     this.beatData.model = this.selectedModel;
     
     // Build custom context from selected scenes
-    const customContext = this.buildCustomContext();
+    const customContext = await this.buildCustomContext();
     
     this.promptSubmit.emit({
       beatId: this.beatData.id,
@@ -1848,13 +1848,13 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
-  showPromptPreview(): void {
+  async showPromptPreview(): Promise<void> {
     if (!this.currentPrompt.trim()) {
       return;
     }
 
     // Build custom context from selected scenes
-    const customContext = this.buildCustomContext();
+    const customContext = await this.buildCustomContext();
 
     // Use the context provided via Input properties
     // These will be set by the BeatAINodeView from the story editor context
@@ -1882,7 +1882,7 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
     }
 
     // Build custom context from selected scenes
-    const customContext = this.buildCustomContext();
+    const customContext = await this.buildCustomContext();
 
     // Get the full prompt that would be sent to the model
     const fullPrompt = await this.beatAIService.previewPrompt(this.currentPrompt, this.beatData.id, {
@@ -2072,17 +2072,21 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
     try {
       this.story = await this.storyService.getStory(this.storyId);
       if (this.story) {
-        this.setupDefaultContext();
+        await this.setupDefaultContext();
       }
     } catch (error) {
       console.error('Error loading story for beat context:', error);
     }
   }
 
-  private setupDefaultContext(): void {
-    if (!this.story || !this.chapterId || !this.sceneId) return;
+  private async setupDefaultContext(): Promise<void> {
+    if (!this.storyId || !this.chapterId || !this.sceneId) return;
     
-    const chapter = this.story.chapters.find(c => c.id === this.chapterId);
+    // Always get fresh data from database to ensure we have the latest content
+    const freshStory = await this.storyService.getStory(this.storyId);
+    if (!freshStory) return;
+    
+    const chapter = freshStory.chapters.find(c => c.id === this.chapterId);
     const scene = chapter?.scenes.find(s => s.id === this.sceneId);
     
     if (chapter && scene) {
@@ -2143,13 +2147,17 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
     return { chapter: null, scene: null };
   }
 
-  toggleSceneSelection(chapterId: string, sceneId: string): void {
+  async toggleSceneSelection(chapterId: string, sceneId: string): Promise<void> {
     const index = this.selectedScenes.findIndex(s => s.sceneId === sceneId);
     
     if (index > -1) {
       this.selectedScenes.splice(index, 1);
     } else {
-      const chapter = this.story?.chapters.find(c => c.id === chapterId);
+      // Get fresh data from database to ensure latest content
+      const freshStory = await this.storyService.getStory(this.storyId!);
+      if (!freshStory) return;
+      
+      const chapter = freshStory.chapters.find(c => c.id === chapterId);
       const scene = chapter?.scenes.find(s => s.id === sceneId);
       
       if (chapter && scene) {
@@ -2241,19 +2249,45 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
     return cleanText;
   }
 
-  private buildCustomContext(): { 
+  private async buildCustomContext(): Promise<{ 
     selectedScenes: string[]; 
     includeStoryOutline: boolean;
     selectedSceneContexts: { sceneId: string; chapterId: string; content: string; }[];
-  } {
-    return {
-      selectedScenes: this.selectedScenes.map(scene => scene.content),
-      includeStoryOutline: this.includeStoryOutline,
-      selectedSceneContexts: this.selectedScenes.map(scene => ({
+  }> {
+    // For the current scene, get fresh content from database
+    const freshSelectedScenes = [];
+    
+    for (const scene of this.selectedScenes) {
+      let content = scene.content;
+      
+      // If this is the current scene being edited, get fresh content from database
+      if (scene.sceneId === this.sceneId && this.storyId) {
+        try {
+          const freshStory = await this.storyService.getStory(this.storyId);
+          if (freshStory) {
+            const freshChapter = freshStory.chapters.find(c => c.id === scene.chapterId);
+            const freshScene = freshChapter?.scenes.find(s => s.id === scene.sceneId);
+            if (freshScene) {
+              content = this.extractFullTextFromScene(freshScene);
+            }
+          }
+        } catch (error) {
+          console.error('Error getting fresh scene content:', error);
+          // Fall back to cached content
+        }
+      }
+      
+      freshSelectedScenes.push({
         sceneId: scene.sceneId,
         chapterId: scene.chapterId,
-        content: scene.content
-      }))
+        content: content
+      });
+    }
+    
+    return {
+      selectedScenes: freshSelectedScenes.map(scene => scene.content),
+      includeStoryOutline: this.includeStoryOutline,
+      selectedSceneContexts: freshSelectedScenes
     };
   }
   
