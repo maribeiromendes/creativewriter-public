@@ -90,7 +90,7 @@ import { VersionService } from '../../core/services/version.service';
       </div>
       
       <div class="stories-grid" *ngIf="stories.length > 0; else noStories" cdkDropList (cdkDropListDropped)="drop($event)">
-        <ion-card class="story-card" *ngFor="let story of stories" cdkDrag (click)="openStory(story.id)" button>
+        <ion-card class="story-card" *ngFor="let story of stories" cdkDrag [cdkDragDisabled]="false" (click)="openStory(story.id)" button>
           <!-- Cover Image -->
           <div class="story-cover" *ngIf="story.coverImage">
             <img [src]="getCoverImageUrl(story)" [alt]="story.title || 'Story cover'" />
@@ -99,7 +99,7 @@ import { VersionService } from '../../core/services/version.service';
           
           <ion-card-header [class.with-cover]="!!story.coverImage">
             <div class="card-header-content">
-              <ion-button fill="clear" size="small" color="medium" class="drag-handle" cdkDragHandle>
+              <ion-button fill="clear" size="small" color="medium" class="drag-handle" cdkDragHandle (click)="$event.stopPropagation()">
                 <ion-icon name="reorder-three" slot="icon-only"></ion-icon>
               </ion-button>
               <ion-card-title>{{ story.title || 'Unbenannte Geschichte' }}</ion-card-title>
@@ -829,11 +829,21 @@ import { VersionService } from '../../core/services/version.service';
       --background: transparent;
       cursor: move;
       flex-shrink: 0;
+      touch-action: none; /* Prevent scrolling when dragging on touch devices */
     }
     
     .drag-handle:hover {
       --color: rgba(255, 255, 255, 0.9);
       --background: rgba(255, 255, 255, 0.1);
+    }
+    
+    /* Ensure only the handle is draggable */
+    .story-card {
+      cursor: pointer;
+    }
+    
+    .story-card.cdk-drag-dragging {
+      cursor: move;
     }
     
     .card-header-content ion-card-title {
