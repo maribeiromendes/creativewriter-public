@@ -38,14 +38,15 @@ import { copyOutline } from 'ionicons/icons';
       position: fixed;
       top: 0;
       left: 0;
-      width: 100%;
-      height: 100%;
+      width: 100vw;
+      height: 100vh;
       background: rgba(0, 0, 0, 0.8);
       display: flex;
       align-items: center;
       justify-content: center;
       z-index: 1000;
       backdrop-filter: blur(2px);
+      overflow: hidden;
     }
 
     .preview-content {
@@ -55,10 +56,13 @@ import { copyOutline } from 'ionicons/icons';
       width: 90%;
       max-width: 800px;
       max-height: 80vh;
+      min-height: 300px;
+      min-width: 400px;
       display: flex;
       flex-direction: column;
       overflow: hidden;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      position: relative;
     }
 
     .preview-header {
@@ -236,6 +240,8 @@ import { copyOutline } from 'ionicons/icons';
       .preview-content {
         width: 95%;
         max-height: 90vh;
+        min-width: 300px;
+        min-height: 250px;
         margin: 0.5rem;
       }
 
@@ -270,6 +276,8 @@ import { copyOutline } from 'ionicons/icons';
     @media (max-width: 480px) {
       .preview-content {
         width: 98%;
+        min-width: 280px;
+        min-height: 200px;
         margin: 0.25rem;
       }
 
@@ -376,13 +384,11 @@ export class BeatAIPreviewModalComponent {
         return;
       }
       
-      const newWidth = Math.max(300, startWidth + e.clientX - startX);
-      const newHeight = Math.max(200, startHeight + e.clientY - startY);
+      const newWidth = Math.max(280, Math.min(startWidth + e.clientX - startX, window.innerWidth * 0.95));
+      const newHeight = Math.max(200, Math.min(startHeight + e.clientY - startY, window.innerHeight * 0.95));
       
       this.previewContentElement.nativeElement.style.width = newWidth + 'px';
       this.previewContentElement.nativeElement.style.height = newHeight + 'px';
-      this.previewContentElement.nativeElement.style.maxWidth = '95vw';
-      this.previewContentElement.nativeElement.style.maxHeight = '95vh';
     };
     
     const stopResize = () => {
