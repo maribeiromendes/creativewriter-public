@@ -612,16 +612,13 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
           </ion-card-content>
         </ion-card>
           </div>
-        </div>
 
-        <!-- Scene Summary Generation -->
-        <div class="settings-group">
-          <div class="settings-group-header">
-            <h2>Szenen-Zusammenfassung</h2>
-            <p>Einstellungen für die automatische Generierung von Szenen-Zusammenfassungen</p>
-          </div>
-          <div class="settings-group-content">
-        <ion-card class="settings-card">
+          <!-- Scene Summary Tab -->
+          <div *ngSwitchCase="'scene-summary'">
+            <ion-card>
+          <ion-card-header>
+            <ion-card-title>Szenen-Zusammenfassung</ion-card-title>
+          </ion-card-header>
           <ion-card-content>
             <ion-item>
               <ion-label>Kreativität (Temperature)</ion-label>
@@ -1452,7 +1449,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
   tabItems: TabItem[] = [
     { value: 'models', icon: 'cloud-outline', label: 'AI Modelle' },
     { value: 'appearance', icon: 'color-palette-outline', label: 'Darstellung' },
-    { value: 'scene-title', icon: 'document-text-outline', label: 'Szenentitel' }
+    { value: 'scene-title', icon: 'document-text-outline', label: 'Szenentitel' },
+    { value: 'scene-summary', icon: 'list-outline', label: 'Szenen-Zusammenfassung' }
   ];
 
   constructor() {
