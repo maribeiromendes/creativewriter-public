@@ -614,6 +614,113 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
           </div>
         </div>
 
+        <!-- Scene Summary Generation -->
+        <div class="settings-group">
+          <div class="settings-group-header">
+            <h2>Szenen-Zusammenfassung</h2>
+            <p>Einstellungen für die automatische Generierung von Szenen-Zusammenfassungen</p>
+          </div>
+          <div class="settings-group-content">
+        <ion-card class="settings-card">
+          <ion-card-content>
+            <ion-item>
+              <ion-label>Kreativität (Temperature)</ion-label>
+              <ion-range
+                [(ngModel)]="settings.sceneSummaryGeneration.temperature"
+                (ngModelChange)="onSettingsChange()"
+                min="0.1"
+                max="1.0"
+                step="0.1"
+                snaps="true"
+                slot="end">
+                <ion-label slot="start">0.1</ion-label>
+                <ion-label slot="end">1.0</ion-label>
+              </ion-range>
+            </ion-item>
+
+            <ion-item>
+              <ion-label position="stacked">AI-Modell für Szenen-Zusammenfassung</ion-label>
+              <div class="model-selection-container">
+                <ng-select [(ngModel)]="settings.sceneSummaryGeneration.selectedModel"
+                           [items]="combinedModels"
+                           bindLabel="label"
+                           bindValue="id"
+                           [searchable]="true"
+                           [clearable]="true"
+                           [disabled]="(!settings.openRouter.enabled || !settings.openRouter.apiKey) && (!settings.googleGemini.enabled || !settings.googleGemini.apiKey)"
+                           placeholder="Modell auswählen (leer = globales Modell verwenden)"
+                           (ngModelChange)="onSceneSummaryModelChange()"
+                           [loading]="loadingModels"
+                           [virtualScroll]="true"
+                           class="ng-select-custom"
+                           appendTo="body">
+                  <ng-template ng-option-tmp let-item="item">
+                    <div class="model-option">
+                      <div class="model-option-header">
+                        <ion-icon [name]="item.provider === 'gemini' ? 'logo-google' : 'globe-outline'" class="provider-icon" [class.gemini]="item.provider === 'gemini'" [class.openrouter]="item.provider === 'openrouter'"></ion-icon>
+                        <span class="model-label">{{ item.label }}</span>
+                      </div>
+                      <div class="model-description" *ngIf="item.description">{{ item.description }}</div>
+                    </div>
+                  </ng-template>
+                </ng-select>
+                <div class="model-info-small">
+                  <p *ngIf="!settings.sceneSummaryGeneration.selectedModel" class="info-text">
+                    Kein Modell ausgewählt - das globale Modell wird verwendet
+                  </p>
+                  <p *ngIf="settings.sceneSummaryGeneration.selectedModel" class="info-text">
+                    Spezifisches Modell für Szenen-Zusammenfassung: {{ getModelDisplayName(settings.sceneSummaryGeneration.selectedModel) }}
+                  </p>
+                </div>
+              </div>
+            </ion-item>
+
+            <ion-item>
+              <ion-label position="stacked">Zusätzliche Anweisungen (optional)</ion-label>
+              <ion-textarea
+                [(ngModel)]="settings.sceneSummaryGeneration.customInstruction"
+                (ngModelChange)="onSettingsChange()"
+                placeholder="z.B. 'Fokussiere auf emotionale Aspekte' oder 'Erwähne wichtige Objekte'"
+                rows="3"
+                auto-grow="true">
+              </ion-textarea>
+            </ion-item>
+
+            <ion-item>
+              <ion-label>Benutzerdefinierten Prompt verwenden</ion-label>
+              <ion-toggle
+                [(ngModel)]="settings.sceneSummaryGeneration.useCustomPrompt"
+                (ngModelChange)="onSettingsChange()"
+                slot="end">
+              </ion-toggle>
+            </ion-item>
+            
+            <ion-item *ngIf="settings.sceneSummaryGeneration.useCustomPrompt">
+              <ion-label position="stacked">
+                Benutzerdefinierter Prompt
+                <p class="prompt-help">
+                  Verfügbare Platzhalter: {{ '{' }}sceneTitle{{ '}' }}, {{ '{' }}sceneContent{{ '}' }}, {{ '{' }}customInstruction{{ '}' }}
+                </p>
+              </ion-label>
+              <ion-textarea
+                [(ngModel)]="settings.sceneSummaryGeneration.customPrompt"
+                (ngModelChange)="onSettingsChange()"
+                placeholder="Erstelle eine Zusammenfassung der folgenden Szene..."
+                rows="8"
+                auto-grow="true">
+              </ion-textarea>
+            </ion-item>
+            
+            <ion-item *ngIf="settings.sceneSummaryGeneration.useCustomPrompt">
+              <ion-button fill="outline" size="small" (click)="resetToDefaultSummaryPrompt()">
+                Standard-Prompt wiederherstellen
+              </ion-button>
+            </ion-item>
+          </ion-card-content>
+        </ion-card>
+          </div>
+        </div>
+
         <!-- Actions -->
         <div class="settings-actions">
           <ion-button expand="block" color="primary" (click)="saveSettings()" [disabled]="!hasUnsavedChanges">
@@ -1604,6 +1711,16 @@ export class SettingsComponent implements OnInit, OnDestroy {
   }
 
   onSceneTitleModelChange(): void {
+    this.onSettingsChange();
+  }
+
+  resetToDefaultSummaryPrompt(): void {
+    const defaultPrompt = 'Erstelle eine Zusammenfassung der folgenden Szene:\n\nTitel: {sceneTitle}\n\nInhalt:\n{sceneContent}\n\nDie Zusammenfassung soll die wichtigsten Handlungspunkte und Charakterentwicklungen erfassen. Schreibe eine vollständige und umfassende Zusammenfassung mit mindestens 3-5 Sätzen.';
+    this.settings.sceneSummaryGeneration.customPrompt = defaultPrompt;
+    this.onSettingsChange();
+  }
+
+  onSceneSummaryModelChange(): void {
     this.onSettingsChange();
   }
 

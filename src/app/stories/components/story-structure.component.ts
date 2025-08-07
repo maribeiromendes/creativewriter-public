@@ -1372,12 +1372,19 @@ export class StoryStructureComponent implements OnInit, OnChanges, AfterViewInit
     const chapter = this.story.chapters.find(c => c.id === chapterId);
     const scene = chapter?.scenes.find(s => s.id === sceneId);
     
-    if (!scene || !scene.content.trim() || !this.selectedModel) {
+    if (!scene || !scene.content.trim()) {
       return;
     }
     
     // Get settings to check API availability
     const settings = this.settingsService.getSettings();
+    
+    // Use specific model for scene summary if configured, otherwise fall back to selected model
+    const modelToUse = settings.sceneSummaryGeneration.selectedModel || this.selectedModel;
+    
+    if (!modelToUse) {
+      return;
+    }
     const openRouterAvailable = settings.openRouter.enabled && settings.openRouter.apiKey;
     const googleGeminiAvailable = settings.googleGemini.enabled && settings.googleGemini.apiKey;
     
@@ -1411,7 +1418,16 @@ export class StoryStructureComponent implements OnInit, OnChanges, AfterViewInit
       contentTruncated = true;
     }
     
-    const prompt = `Erstelle eine Zusammenfassung der folgenden Szene:
+    // Build prompt based on settings
+    let prompt: string;
+    if (settings.sceneSummaryGeneration.useCustomPrompt) {
+      prompt = settings.sceneSummaryGeneration.customPrompt
+        .replace(/{sceneTitle}/g, scene.title || 'Ohne Titel')
+        .replace(/{sceneContent}/g, sceneContent + (contentTruncated ? '\n\n[Hinweis: Der Inhalt wurde gekürzt, da er zu lang war]' : ''))
+        .replace(/{customInstruction}/g, settings.sceneSummaryGeneration.customInstruction || '');
+    } else {
+      // Default prompt
+      prompt = `Erstelle eine Zusammenfassung der folgenden Szene:
 
 Titel: ${scene.title || 'Ohne Titel'}
 
@@ -1419,13 +1435,19 @@ Inhalt:
 ${sceneContent}${contentTruncated ? '\n\n[Hinweis: Der Inhalt wurde gekürzt, da er zu lang war]' : ''}
 
 Die Zusammenfassung soll die wichtigsten Handlungspunkte und Charakterentwicklungen erfassen. Schreibe eine vollständige und umfassende Zusammenfassung mit mindestens 3-5 Sätzen.`;
+      
+      // Add custom instruction if provided
+      if (settings.sceneSummaryGeneration.customInstruction) {
+        prompt += `\n\nZusätzliche Anweisungen: ${settings.sceneSummaryGeneration.customInstruction}`;
+      }
+    }
 
     // Extract provider from model if available
     let provider: string | null = null;
     let actualModelId: string | null = null;
     
-    if (this.selectedModel) {
-      const [modelProvider, ...modelIdParts] = this.selectedModel.split(':');
+    if (modelToUse) {
+      const [modelProvider, ...modelIdParts] = modelToUse.split(':');
       provider = modelProvider;
       actualModelId = modelIdParts.join(':'); // Rejoin in case model ID contains colons
     }
@@ -1446,7 +1468,7 @@ Die Zusammenfassung soll die wichtigsten Handlungspunkte und Charakterentwicklun
       this.googleGeminiApiService.generateText(prompt, {
         model: actualModelId!,
         maxTokens: 3000,
-        temperature: 0.3
+        temperature: settings.sceneSummaryGeneration.temperature
       }).subscribe({
         next: async (response) => {
           let summary = '';
@@ -1514,7 +1536,7 @@ Die Zusammenfassung soll die wichtigsten Handlungspunkte und Charakterentwicklun
       this.openRouterApiService.generateText(prompt, {
         model: actualModelId!,
         maxTokens: 3000,
-        temperature: 0.3
+        temperature: settings.sceneSummaryGeneration.temperature
       }).subscribe({
       next: async (response) => {
         if (response.choices && response.choices.length > 0) {

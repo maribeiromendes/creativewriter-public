@@ -3,6 +3,7 @@ export interface Settings {
   replicate: ReplicateSettings;
   googleGemini: GoogleGeminiSettings;
   sceneTitleGeneration: SceneTitleGenerationSettings;
+  sceneSummaryGeneration: SceneSummaryGenerationSettings;
   selectedModel: string; // Global selected model (format: "provider:model_id")
   favoriteModels: string[]; // List of favorite model IDs for quick access
   appearance: AppearanceSettings;
@@ -56,6 +57,14 @@ export interface SceneTitleGenerationSettings {
   selectedModel: string;
 }
 
+export interface SceneSummaryGenerationSettings {
+  temperature: number;
+  customInstruction: string;
+  customPrompt: string;
+  useCustomPrompt: boolean;
+  selectedModel: string;
+}
+
 export const DEFAULT_SETTINGS: Settings = {
   openRouter: {
     apiKey: '',
@@ -92,6 +101,13 @@ export const DEFAULT_SETTINGS: Settings = {
     temperature: 0.3,
     customInstruction: '',
     customPrompt: 'Erstelle einen Titel für die folgende Szene. Der Titel soll bis zu {maxWords} Wörter lang sein und den Kern der Szene erfassen.\n\n{styleInstruction}\n{genreInstruction}\n{languageInstruction}{customInstruction}\n\nSzenencontent (nur diese eine Szene):\n{sceneContent}\n\nAntworte nur mit dem Titel, ohne weitere Erklärungen oder Anführungszeichen.',
+    useCustomPrompt: false,
+    selectedModel: ''
+  },
+  sceneSummaryGeneration: {
+    temperature: 0.7,
+    customInstruction: '',
+    customPrompt: 'Erstelle eine Zusammenfassung der folgenden Szene:\n\nTitel: {sceneTitle}\n\nInhalt:\n{sceneContent}\n\nDie Zusammenfassung soll die wichtigsten Handlungspunkte und Charakterentwicklungen erfassen. Schreibe eine vollständige und umfassende Zusammenfassung mit mindestens 3-5 Sätzen.',
     useCustomPrompt: false,
     selectedModel: ''
   },
