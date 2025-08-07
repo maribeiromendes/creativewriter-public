@@ -53,7 +53,7 @@ import { copyOutline } from 'ionicons/icons';
       background: rgba(45, 45, 45, 0.85);
       backdrop-filter: blur(10px);
       border-radius: 8px;
-      width: 90%;
+      width: 90vw;
       max-width: 800px;
       max-height: 80vh;
       min-height: 300px;
@@ -63,6 +63,7 @@ import { copyOutline } from 'ionicons/icons';
       overflow: hidden;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
       position: relative;
+      margin: 0 auto;
     }
 
     .preview-header {
@@ -238,11 +239,11 @@ import { copyOutline } from 'ionicons/icons';
     /* Mobile optimizations */
     @media (max-width: 768px) {
       .preview-content {
-        width: 95%;
+        width: 95vw;
         max-height: 90vh;
         min-width: 300px;
         min-height: 250px;
-        margin: 0.5rem;
+        margin: 0 auto;
       }
 
       .preview-header {
@@ -275,10 +276,10 @@ import { copyOutline } from 'ionicons/icons';
 
     @media (max-width: 480px) {
       .preview-content {
-        width: 98%;
+        width: 98vw;
         min-width: 280px;
         min-height: 200px;
-        margin: 0.25rem;
+        margin: 0 auto;
       }
 
       .prompt-preview {
