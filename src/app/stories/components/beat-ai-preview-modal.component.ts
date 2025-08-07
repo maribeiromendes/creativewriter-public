@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, ViewEncapsulation } from '@angular/core';
+import { Component, Input, Output, EventEmitter, ViewEncapsulation, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -13,7 +13,7 @@ import { CommonModule } from '@angular/common';
           <button (click)="onClose()" class="close-btn">×</button>
         </div>
         <div class="modal-body">
-          <pre [innerHTML]="highlightedContent"></pre>
+          <pre [innerHTML]="processedContent"></pre>
         </div>
         <div class="modal-footer">
           <button (click)="onClose()" class="btn-secondary">Schließen</button>
@@ -145,18 +145,28 @@ import { CommonModule } from '@angular/common';
   `],
   encapsulation: ViewEncapsulation.None
 })
-export class BeatAIPreviewModalComponent {
+export class BeatAIPreviewModalComponent implements OnChanges {
   @Input() isVisible = false;
   @Input() content = '';
   @Output() closeModal = new EventEmitter<void>();
   @Output() generateContent = new EventEmitter<void>();
   @Output() copyContent = new EventEmitter<void>();
 
-  get highlightedContent(): string {
-    if (!this.content) {
-      return '';
+  processedContent = '';
+
+  ngOnChanges(changes: SimpleChanges): void {
+    // Only process content when it actually changes and modal is visible
+    if (changes['content'] && this.isVisible) {
+      this.processedContent = this.content ? this.highlightSyntax(this.content) : '';
     }
-    return this.highlightSyntax(this.content);
+    // Process content when modal becomes visible
+    if (changes['isVisible'] && this.isVisible && this.content) {
+      this.processedContent = this.highlightSyntax(this.content);
+    }
+    // Clear processed content when modal is hidden to free memory
+    if (changes['isVisible'] && !this.isVisible) {
+      this.processedContent = '';
+    }
   }
 
   onClose(): void {
@@ -173,40 +183,54 @@ export class BeatAIPreviewModalComponent {
   }
 
   private highlightSyntax(content: string): string {
-    // Simple XML/template syntax highlighting without external library
-    let highlighted = content;
-    
-    // Escape HTML first
-    highlighted = highlighted.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    
-    // Highlight XML tags - fixed regex pattern
-    highlighted = highlighted.replace(/&lt;\/?([\w:-]+)([^&gt;]*)&gt;/g, (match, tagName, attributes) => {
-      let result = `<span class="xml-tag">&lt;${tagName.startsWith('/') ? '/' : ''}`;
-      const cleanTag = tagName.replace(/^\//, '');
-      result += `${cleanTag}</span>`;
-      
-      if (attributes) {
-        // Highlight attributes
-        const attrHighlighted = attributes.replace(/([\w:-]+)\s*=\s*(["'])([^"']*?)\2/g, 
-          '<span class="xml-attr">$1</span>=<span class="xml-value">$2$3$2</span>');
-        result += attrHighlighted;
+    try {
+      // Limit content length to prevent performance issues
+      if (content.length > 100000) {
+        content = content.substring(0, 100000) + '\n\n... (Content truncated for performance)';
       }
       
-      result += '<span class="xml-tag">&gt;</span>';
-      return result;
-    });
-    
-    // Highlight XML comments - using non-greedy match
-    highlighted = highlighted.replace(/&lt;!--(.+?)--&gt;/g, '<span class="xml-comment">&lt;!--$1--&gt;</span>');
-    
-    // Highlight template variables/placeholders - more specific pattern to avoid issues
-    highlighted = highlighted.replace(/\{\{([^{}]+)\}\}/g, '<span class="template-var">{{$1}}</span>');
-    highlighted = highlighted.replace(/\{([^{}]+)\}/g, '<span class="template-var">{$1}</span>');
-    
-    // Highlight CDATA sections - using non-greedy match
-    highlighted = highlighted.replace(/&lt;!\[CDATA\[(.+?)\]\]&gt;/g, '<span class="xml-cdata">&lt;![CDATA[$1]]&gt;</span>');
-    
-    return highlighted;
+      // Simple XML/template syntax highlighting without external library
+      let highlighted = content;
+      
+      // Escape HTML first
+      highlighted = highlighted.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      
+      // Highlight XML tags - optimized pattern
+      highlighted = highlighted.replace(/&lt;\/?([\w:-]+)([^&gt;]{0,500}?)&gt;/g, (match, tagName, attributes) => {
+        let result = `<span class="xml-tag">&lt;`;
+        if (tagName.startsWith('/')) {
+          result += '/';
+          tagName = tagName.substring(1);
+        }
+        result += `${tagName}</span>`;
+        
+        if (attributes && attributes.length > 0) {
+          // Highlight attributes - limit processing
+          const attrHighlighted = attributes.replace(/([\w:-]+)\s*=\s*(["'])([^"']{0,200}?)\2/g, 
+            '<span class="xml-attr">$1</span>=<span class="xml-value">$2$3$2</span>');
+          result += attrHighlighted;
+        }
+        
+        result += '<span class="xml-tag">&gt;</span>';
+        return result;
+      });
+      
+      // Highlight XML comments - limit match length
+      highlighted = highlighted.replace(/&lt;!--(.{1,1000}?)--&gt;/g, '<span class="xml-comment">&lt;!--$1--&gt;</span>');
+      
+      // Highlight template variables - limit match length
+      highlighted = highlighted.replace(/\{\{([^{}]{1,100}?)\}\}/g, '<span class="template-var">{{$1}}</span>');
+      highlighted = highlighted.replace(/\{([^{}]{1,100}?)\}/g, '<span class="template-var">{$1}</span>');
+      
+      // Highlight CDATA sections - limit match length
+      highlighted = highlighted.replace(/&lt;!\[CDATA\[(.{1,5000}?)\]\]&gt;/g, '<span class="xml-cdata">&lt;![CDATA[$1]]&gt;</span>');
+      
+      return highlighted;
+    } catch (error) {
+      console.error('Error in syntax highlighting:', error);
+      // Return escaped content without highlighting if there's an error
+      return content.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
   }
 
 }
