@@ -114,6 +114,34 @@ import { CommonModule } from '@angular/common';
       background: #0d6efd;
       color: white;
     }
+
+    /* Syntax highlighting styles */
+    .xml-tag {
+      color: #89ddff;
+      font-weight: 600;
+    }
+    
+    .xml-attr {
+      color: #c792ea;
+    }
+    
+    .xml-value {
+      color: #c3e88d;
+    }
+    
+    .template-var {
+      color: #f78c6c;
+      font-weight: 600;
+    }
+    
+    .xml-comment {
+      color: #546e7a;
+      font-style: italic;
+    }
+    
+    .xml-cdata {
+      color: #ffcb6b;
+    }
   `],
   encapsulation: ViewEncapsulation.None
 })
