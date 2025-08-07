@@ -480,6 +480,25 @@ export class StoryService {
       .replace(/\s+/g, ' '); // Normalize whitespace
   }
 
+  // Reorder stories method
+  async reorderStories(stories: Story[]): Promise<void> {
+    try {
+      this.db = await this.databaseService.getDatabase();
+      
+      // Update each story with new updatedAt timestamp to maintain ordering
+      // We'll use the reverse of array index as a timestamp offset to maintain order
+      const bulkDocs = stories.map((story, index) => ({
+        ...story,
+        updatedAt: new Date(Date.now() - (stories.length - index) * 1000) // Reverse order for descending sort
+      }));
+
+      await this.db.bulkDocs(bulkDocs);
+    } catch (error) {
+      console.error('Error reordering stories:', error);
+      throw error;
+    }
+  }
+
   // Helper methods for formatting chapter and scene displays
   formatChapterDisplay(chapter: Chapter): string {
     return `C${chapter.chapterNumber || chapter.order}:${chapter.title}`;

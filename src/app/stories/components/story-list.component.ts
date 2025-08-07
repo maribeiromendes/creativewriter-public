@@ -5,8 +5,9 @@ import {
   IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonChip, IonIcon, IonButton, 
   IonContent, IonLabel
 } from '@ionic/angular/standalone';
+import { CdkDropList, CdkDrag, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { addIcons } from 'ionicons';
-import { add, download, settings, statsChart, trash, create, images, menu, close } from 'ionicons/icons';
+import { add, download, settings, statsChart, trash, create, images, menu, close, reorderThree } from 'ionicons/icons';
 import { StoryService } from '../services/story.service';
 import { Story } from '../models/story.interface';
 import { SyncStatusComponent } from '../../shared/components/sync-status.component';
@@ -23,6 +24,7 @@ import { VersionService } from '../../core/services/version.service';
     CommonModule, 
     IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonChip, IonIcon, IonButton, 
     IonContent, IonLabel,
+    CdkDropList, CdkDrag,
     SyncStatusComponent, LoginComponent, AppHeaderComponent
   ],
   template: `
@@ -87,8 +89,8 @@ import { VersionService } from '../../core/services/version.service';
         </ion-button>
       </div>
       
-      <div class="stories-grid" *ngIf="stories.length > 0; else noStories">
-        <ion-card class="story-card" *ngFor="let story of stories" (click)="openStory(story.id)" button>
+      <div class="stories-grid" *ngIf="stories.length > 0; else noStories" cdkDropList (cdkDropListDropped)="drop($event)">
+        <ion-card class="story-card" *ngFor="let story of stories" cdkDrag (click)="openStory(story.id)" button>
           <!-- Cover Image -->
           <div class="story-cover" *ngIf="story.coverImage">
             <img [src]="getCoverImageUrl(story)" [alt]="story.title || 'Story cover'" />
@@ -97,6 +99,9 @@ import { VersionService } from '../../core/services/version.service';
           
           <ion-card-header [class.with-cover]="!!story.coverImage">
             <div class="card-header-content">
+              <ion-button fill="clear" size="small" color="medium" class="drag-handle" cdkDragHandle>
+                <ion-icon name="reorder-three" slot="icon-only"></ion-icon>
+              </ion-button>
               <ion-card-title>{{ story.title || 'Unbenannte Geschichte' }}</ion-card-title>
               <ion-button fill="clear" size="small" color="danger" (click)="deleteStory($event, story.id)">
                 <ion-icon name="trash" slot="icon-only"></ion-icon>
@@ -814,14 +819,25 @@ import { VersionService } from '../../core/services/version.service';
     
     .card-header-content {
       display: flex;
-      justify-content: space-between;
       align-items: flex-start;
       width: 100%;
+      gap: 8px;
+    }
+    
+    .drag-handle {
+      --color: rgba(255, 255, 255, 0.6);
+      --background: transparent;
+      cursor: move;
+      flex-shrink: 0;
+    }
+    
+    .drag-handle:hover {
+      --color: rgba(255, 255, 255, 0.9);
+      --background: rgba(255, 255, 255, 0.1);
     }
     
     .card-header-content ion-card-title {
       flex: 1;
-      margin-right: 8px;
       font-size: 1.3rem;
       font-weight: 700;
       color: #f8f9fa;
@@ -925,6 +941,34 @@ import { VersionService } from '../../core/services/version.service';
       height: 48px;
     }
     
+    /* CDK Drag and Drop Styles */
+    .cdk-drag-preview {
+      box-sizing: border-box;
+      border-radius: 16px;
+      box-shadow: 0 8px 25px rgba(71, 118, 230, 0.4);
+      transform: rotate(5deg);
+      opacity: 0.8;
+    }
+    
+    .cdk-drag-placeholder {
+      opacity: 0.4;
+      transform: scale(0.95);
+      background: rgba(139, 180, 248, 0.1) !important;
+      border: 2px dashed rgba(139, 180, 248, 0.5) !important;
+    }
+    
+    .cdk-drop-list.cdk-drop-list-receiving .cdk-drag-placeholder {
+      transform: scale(1.05);
+    }
+    
+    .cdk-drag-animating {
+      transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+    }
+    
+    .stories-grid.cdk-drop-list-dragging .story-card:not(.cdk-drag-placeholder) {
+      transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+    }
+    
   `]
 })
 export class StoryListComponent implements OnInit {
@@ -943,7 +987,7 @@ export class StoryListComponent implements OnInit {
 
   constructor() {
     // Register Ionic icons
-    addIcons({ add, download, settings, statsChart, trash, create, images, menu, close });
+    addIcons({ add, download, settings, statsChart, trash, create, images, menu, close, reorderThree });
   }
 
   ngOnInit(): void {
@@ -990,6 +1034,22 @@ export class StoryListComponent implements OnInit {
 
   async loadStories(): Promise<void> {
     this.stories = await this.storyService.getAllStories();
+  }
+
+  async drop(event: CdkDragDrop<Story[]>): Promise<void> {
+    if (event.previousIndex !== event.currentIndex) {
+      // Move item in local array
+      moveItemInArray(this.stories, event.previousIndex, event.currentIndex);
+      
+      try {
+        // Persist the new order to the database
+        await this.storyService.reorderStories(this.stories);
+      } catch (error) {
+        console.error('Failed to save story order:', error);
+        // Reload stories to reset to previous state if save fails
+        await this.loadStories();
+      }
+    }
   }
 
   toggleFabMenu(): void {
