@@ -1,6 +1,6 @@
 # CreativeWriter 2
 
-> **🔗 Self-Hosters: Looking for the public version? Visit [creativewriter2-public](https://github.com/MarcoDroll/creativewriter2-public) for easy deployment!**
+> **🔗 Self-Hosters: Looking for the public version? Visit [creativewriter-public](https://github.com/MarcoDroll/creativewriter-public) for easy deployment!**
 
 A powerful, AI-enhanced creative writing application that helps authors craft compelling stories with intelligent assistance for plot development, character creation, and narrative structure.
 

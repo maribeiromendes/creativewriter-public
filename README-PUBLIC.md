@@ -4,9 +4,9 @@
 > 
 > This repository is automatically synced from the main development repository and contains the stable, production-ready version of CreativeWriter 2.
 
-[![Docker](https://img.shields.io/badge/Docker-Ready-brightgreen)](https://github.com/MarcoDroll/creativewriter2-public)
+[![Docker](https://img.shields.io/badge/Docker-Ready-brightgreen)](https://github.com/MarcoDroll/creativewriter-public)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
-[![Latest Release](https://img.shields.io/github/v/release/MarcoDroll/creativewriter2-public)](https://github.com/MarcoDroll/creativewriter2-public/releases)
+[![Latest Release](https://img.shields.io/github/v/release/MarcoDroll/creativewriter-public)](https://github.com/MarcoDroll/creativewriter-public/releases)
 
 ## 🚀 Quick Start for Self-Hosters
 
@@ -15,7 +15,7 @@
 1. **Create a directory and download compose file**
    ```bash
    mkdir creativewriter && cd creativewriter
-   curl -O https://raw.githubusercontent.com/MarcoDroll/creativewriter2-public/main/docker-compose.yml
+   curl -O https://raw.githubusercontent.com/MarcoDroll/creativewriter-public/main/docker-compose.yml
    ```
 
 2. **Start the application**
@@ -39,13 +39,13 @@ Run multiple isolated instances on the same host:
 ```bash
 # Instance 1
 mkdir writer-personal && cd writer-personal
-curl -O https://raw.githubusercontent.com/MarcoDroll/creativewriter2-public/main/docker-compose.yml
+curl -O https://raw.githubusercontent.com/MarcoDroll/creativewriter-public/main/docker-compose.yml
 echo "PORT=3080" > .env
 docker compose -p writer-personal up -d
 
 # Instance 2  
 mkdir ../writer-work && cd ../writer-work
-curl -O https://raw.githubusercontent.com/MarcoDroll/creativewriter2-public/main/docker-compose.yml
+curl -O https://raw.githubusercontent.com/MarcoDroll/creativewriter-public/main/docker-compose.yml
 echo "PORT=3081" > .env
 docker compose -p writer-work up -d
 ```
@@ -92,9 +92,9 @@ Configure your AI provider API keys directly in the application:
 
 ## 🆘 Support & Issues
 
-- **Issues**: [Report problems here](https://github.com/MarcoDroll/creativewriter2-public/issues)
-- **Documentation**: [Full documentation](https://github.com/MarcoDroll/creativewriter2-public)
-- **Discussions**: [Community discussions](https://github.com/MarcoDroll/creativewriter2-public/discussions)
+- **Issues**: [Report problems here](https://github.com/MarcoDroll/creativewriter-public/issues)
+- **Documentation**: [Full documentation](https://github.com/MarcoDroll/creativewriter-public)
+- **Discussions**: [Community discussions](https://github.com/MarcoDroll/creativewriter-public/discussions)
 
 ## 📄 License
 

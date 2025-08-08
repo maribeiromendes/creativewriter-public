@@ -24,7 +24,7 @@ jobs:
 
       - name: Add public repository remote
         run: |
-          git remote add public https://${{ secrets.PUBLIC_REPO_TOKEN }}@github.com/MarcoDroll/creativewriter2-public.git
+          git remote add public https://${{ secrets.PUBLIC_REPO_TOKEN }}@github.com/MarcoDroll/creativewriter-public.git
 
       - name: Sync to public repository
         run: |
