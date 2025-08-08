@@ -8,7 +8,7 @@ import {
 } from '@ionic/angular/standalone';
 import { CdkDropList, CdkDrag, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { addIcons } from 'ionicons';
-import { add, download, settings, statsChart, trash, create, images, menu, close, reorderThree } from 'ionicons/icons';
+import { add, download, settings, statsChart, trash, create, images, menu, close, reorderThree, swapVertical, move } from 'ionicons/icons';
 import { StoryService } from '../services/story.service';
 import { Story } from '../models/story.interface';
 import { SyncStatusComponent } from '../../shared/components/sync-status.component';
@@ -1058,7 +1058,7 @@ export class StoryListComponent implements OnInit {
 
   constructor() {
     // Register Ionic icons
-    addIcons({ add, download, settings, statsChart, trash, create, images, menu, close, reorderThree });
+    addIcons({ add, download, settings, statsChart, trash, create, images, menu, close, reorderThree, swapVertical, move });
   }
 
   ngOnInit(): void {
@@ -1093,7 +1093,7 @@ export class StoryListComponent implements OnInit {
     // Add reorder toggle button if there are multiple stories
     if (this.stories.length > 1) {
       this.rightActions.push({
-        icon: 'reorder-three',
+        icon: 'swap-vertical',
         action: () => this.toggleReordering(),
         showOnMobile: true,
         showOnDesktop: true,
