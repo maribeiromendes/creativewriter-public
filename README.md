@@ -61,48 +61,67 @@ CreativeWriter is built with modern web technologies:
 
 ## 🚀 Getting Started
 
-### Quick Start with Docker
+### Quick Start with Docker (No Cloning Required!)
 
-1. **Clone the repository**
+1. **Create a directory for your instance**
+   ```bash
+   mkdir creativewriter && cd creativewriter
+   ```
+
+2. **Download docker-compose.yml**
+   ```bash
+   curl -O https://raw.githubusercontent.com/MarcoDroll/creativewriter2/main/docker-compose.yml
+   curl -O https://raw.githubusercontent.com/MarcoDroll/creativewriter2/main/.env.example
+   ```
+
+3. **Configure environment (optional)**
+   ```bash
+   mv .env.example .env
+   # Edit .env if you need to change ports or paths
+   # Default configuration works out of the box
+   ```
+
+4. **Start the application**
+   ```bash
+   docker compose up -d
+   ```
+
+5. **Access CreativeWriter**
+   ```
+   http://localhost:3080
+   ```
+
+   Initial setup in the app:
+   - Configure AI providers in Settings
+   - Create your first story
+   - Start writing!
+
+### Development Setup
+
+For development or customization, clone the repository:
+
+1. **Clone and setup**
    ```bash
    git clone https://github.com/MarcoDroll/creativewriter2.git
    cd creativewriter2
    ```
 
-2. **Copy docker-compose.yml and create .env**
-   ```bash
-   cp .env.example .env
-   # Edit .env with your configuration
-   ```
-
-3. **Run with Docker Compose**
-   ```bash
-   docker compose up -d
-   ```
-
-4. **Access the application**
-   ```
-   http://localhost:3080
-   ```
-
-### Development Setup
-
-1. **Prerequisites**
+2. **Prerequisites**
    - Node.js 20+
    - npm 10+
    - Angular CLI 19+
 
-2. **Install dependencies**
+3. **Install dependencies**
    ```bash
    npm install
    ```
 
-3. **Start development server**
+4. **Start development server**
    ```bash
    npm start
    ```
 
-4. **Build for production**
+5. **Build for production**
    ```bash
    npm run build
    ```
@@ -122,8 +141,17 @@ The application uses PouchDB for local storage with optional CouchDB sync:
 
 ## 🐳 Docker Deployment
 
+### Prerequisites
+- Docker and Docker Compose installed
+- No need to clone the repository
+- ~500MB-1GB RAM per instance
+- Port 3080 available (or configure a different port)
+
 ### Single Instance
+Simply download and run:
 ```bash
+mkdir creativewriter && cd creativewriter
+curl -O https://raw.githubusercontent.com/MarcoDroll/creativewriter2/main/docker-compose.yml
 docker compose up -d
 ```
 
@@ -131,10 +159,16 @@ docker compose up -d
 Run multiple isolated instances on the same host:
 
 ```bash
-# Instance 1
+# Instance 1 - Personal Writing
+mkdir writer-personal && cd writer-personal
+curl -O https://raw.githubusercontent.com/MarcoDroll/creativewriter2/main/docker-compose.yml
+echo "PORT=3080" > .env
 docker compose -p writer-personal up -d
 
-# Instance 2 (with different .env)
+# Instance 2 - Work Projects (different directory)
+mkdir ../writer-work && cd ../writer-work
+curl -O https://raw.githubusercontent.com/MarcoDroll/creativewriter2/main/docker-compose.yml
+echo "PORT=3081" > .env
 docker compose -p writer-work up -d
 ```
 
