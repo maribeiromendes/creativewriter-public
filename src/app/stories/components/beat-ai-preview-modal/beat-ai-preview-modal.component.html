@@ -1,0 +1,20 @@
+<div *ngIf="isVisible" class="modal-fixed" (click)="onClose()" (keydown.escape)="onClose()" tabindex="0">
+  <div class="modal-content" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()" tabindex="0">
+    <div class="modal-header">
+      <h3>Prompt-Vorschau</h3>
+      <button (click)="onClose()" class="close-btn">×</button>
+    </div>
+    <div class="modal-body">
+      <code-editor 
+        class="code-editor"
+        [(ngModel)]="content"
+        [readonly]="true"
+        [extensions]="editorExtensions">
+      </code-editor>
+    </div>
+    <div class="modal-footer">
+      <button (click)="onClose()" class="btn-secondary">Schließen</button>
+      <button (click)="onGenerate()" class="btn-primary">Jetzt generieren</button>
+    </div>
+  </div>
+</div>

@@ -3,7 +3,7 @@ import { RouterOutlet } from '@angular/router';
 import { IonApp } from '@ionic/angular/standalone';
 import { BackgroundService } from './shared/services/background.service';
 import { BeatAIModalService } from './shared/services/beat-ai-modal.service';
-import { BeatAIPreviewModalComponent } from './stories/components/beat-ai-preview-modal.component';
+import { BeatAIPreviewModalComponent } from './stories/components/beat-ai-preview-modal/beat-ai-preview-modal.component';
 
 @Component({
   selector: 'app-root',
