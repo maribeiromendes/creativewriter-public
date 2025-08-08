@@ -4,12 +4,9 @@ const axios = require('axios');
 
 const app = express();
 const PORT = process.env.PORT || 3002;
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
-if (!GEMINI_API_KEY) {
-  console.error('GEMINI_API_KEY environment variable is required');
-  process.exit(1);
-}
+// API key can come from environment variable (legacy) or from request headers
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
 // Middleware
 app.use(cors());
@@ -22,10 +19,12 @@ app.get('/health', (req, res) => {
 
 // Test endpoint
 app.get('/api/gemini/test', (req, res) => {
+  const apiKeyFromHeader = req.headers['x-api-key'];
   res.json({ 
     status: 'ok',
     message: 'Gemini proxy is running',
-    apiKeyConfigured: !!GEMINI_API_KEY,
+    apiKeyConfigured: !!(GEMINI_API_KEY || apiKeyFromHeader),
+    apiKeySource: apiKeyFromHeader ? 'header' : (GEMINI_API_KEY ? 'environment' : 'none'),
     timestamp: new Date().toISOString()
   });
 });
@@ -39,8 +38,19 @@ app.all('/api/gemini/*', async (req, res) => {
     const path = req.params[0];
     const queryString = req.url.split('?')[1] || '';
     
+    // Get API key from header or fall back to environment variable
+    const apiKey = req.headers['x-api-key'] || GEMINI_API_KEY;
+    
+    if (!apiKey) {
+      console.error(`[${requestId}] No API key provided in header or environment`);
+      return res.status(401).json({ 
+        error: 'Unauthorized', 
+        message: 'API key is required. Please provide it in X-API-Key header or configure GEMINI_API_KEY environment variable' 
+      });
+    }
+    
     // Ensure API key is included in URL
-    let apiKeyParam = `key=${GEMINI_API_KEY}`;
+    let apiKeyParam = `key=${apiKey}`;
     if (queryString && queryString.includes('key=')) {
       // API key already in query string, don't add it again
       apiKeyParam = '';
@@ -48,9 +58,9 @@ app.all('/api/gemini/*', async (req, res) => {
     
     const url = `https://generativelanguage.googleapis.com/v1beta/${path}${queryString || apiKeyParam ? '?' : ''}${apiKeyParam}${queryString && apiKeyParam ? '&' : ''}${queryString || ''}`;
     
-    console.log(`[${requestId}] Proxying ${req.method} request to: ${url.replace(GEMINI_API_KEY, '[REDACTED]')}`);
+    console.log(`[${requestId}] Proxying ${req.method} request to: ${url.replace(apiKey, '[REDACTED]')}`);
     console.log(`[${requestId}] Request body size: ${JSON.stringify(req.body || {}).length} bytes`);
-    console.log(`[${requestId}] API Key present: ${!!GEMINI_API_KEY}`);
+    console.log(`[${requestId}] API Key source: ${req.headers['x-api-key'] ? 'header' : 'environment'}`);
     
     // Check if this is a streaming request
     const isStreaming = url.includes('streamGenerateContent') && url.includes('alt=sse');
@@ -172,6 +182,7 @@ app.all('/api/gemini/*', async (req, res) => {
       delete config.headers.host;
       delete config.headers['content-length'];
       delete config.headers.authorization; // Remove since we use API key in URL
+      delete config.headers['x-api-key']; // Remove our custom header
       
       const response = await axios(config);
       const duration = Date.now() - startTime;

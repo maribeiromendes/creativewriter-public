@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, BehaviorSubject, interval, switchMap, takeWhile, map, catchError } from 'rxjs';
+import { SettingsService } from '../../core/services/settings.service';
 import { 
   ImageGenerationModel, 
   ImageGenerationRequest, 
@@ -13,6 +14,7 @@ import {
 })
 export class ImageGenerationService {
   private http = inject(HttpClient);
+  private settingsService = inject(SettingsService);
 
   private readonly apiUrl = '/api/replicate';
   private readonly storageKey = 'creative-writer-image-jobs';
@@ -265,7 +267,14 @@ export class ImageGenerationService {
       input
     };
 
-    return this.http.post<ImageGenerationResponse>(`${this.apiUrl}/predictions`, request)
+    // Get API key from settings
+    const settings = this.settingsService.getSettings();
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'X-API-Token': settings.replicate?.apiKey || '' // Pass API token to proxy
+    });
+
+    return this.http.post<ImageGenerationResponse>(`${this.apiUrl}/predictions`, request, { headers })
       .pipe(
         switchMap(response => {
           // Update job status
@@ -336,8 +345,14 @@ export class ImageGenerationService {
   }
 
   private pollPrediction(predictionId: string, jobId: string): Observable<ImageGenerationResponse> {
+    // Get API key from settings
+    const settings = this.settingsService.getSettings();
+    const headers = new HttpHeaders({
+      'X-API-Token': settings.replicate?.apiKey || '' // Pass API token to proxy
+    });
+
     return interval(2000).pipe(
-      switchMap(() => this.http.get<ImageGenerationResponse>(`${this.apiUrl}/predictions/${predictionId}`)),
+      switchMap(() => this.http.get<ImageGenerationResponse>(`${this.apiUrl}/predictions/${predictionId}`, { headers })),
       map(response => {
         // Update job status in real-time
         if (response.status === 'processing' || response.status === 'starting') {
