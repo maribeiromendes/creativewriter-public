@@ -2,7 +2,7 @@ name: Sync to Public Repository
 
 on:
   push:
-    branches: [main]
+    branches: [release]  # Only sync on release branch pushes
   workflow_dispatch: # Allow manual trigger
 
 jobs:
@@ -28,9 +28,9 @@ jobs:
 
       - name: Sync to public repository
         run: |
-          echo "Syncing main branch to public repository..."
-          git push public main --force
-          echo "✅ Successfully synced to public repository"
+          echo "Syncing release branch to public repository..."
+          git push public release:main --force
+          echo "✅ Successfully synced release branch to public repository main branch"
 
       - name: Create release info
         run: |

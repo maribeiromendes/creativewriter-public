@@ -228,6 +228,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 - [Multi-Instance Deployment](README-MULTI-INSTANCE.md)
 - [Image Generation Setup](README-IMAGE-GENERATION.md)
+- [Release Process](RELEASE.md)
 - [API Documentation](docs/api.md)
 
 ## 🔗 Links
