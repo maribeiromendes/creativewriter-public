@@ -2,9 +2,7 @@ version: '3.8'
 
 services:
   nginx:
-    build:
-      context: .
-      dockerfile: Dockerfile.nginx
+    image: ghcr.io/marcodroll/creativewriter2-nginx:latest
     container_name: creativewriter-nginx
     restart: unless-stopped
     ports:
