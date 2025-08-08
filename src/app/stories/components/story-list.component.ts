@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { 
   IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonChip, IonIcon, IonButton, 
-  IonContent, IonLabel, IonToggle
+  IonContent, IonLabel
 } from '@ionic/angular/standalone';
 import { CdkDropList, CdkDrag, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { addIcons } from 'ionicons';
@@ -24,7 +24,7 @@ import { VersionService } from '../../core/services/version.service';
   imports: [
     CommonModule, FormsModule,
     IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonChip, IonIcon, IonButton, 
-    IonContent, IonLabel, IonToggle,
+    IonContent, IonLabel,
     CdkDropList, CdkDrag,
     SyncStatusComponent, LoginComponent, AppHeaderComponent
   ],
@@ -88,14 +88,6 @@ import { VersionService } from '../../core/services/version.service';
           <ion-icon name="images" slot="start"></ion-icon>
           Bildgenerierung
         </ion-button>
-      </div>
-      
-      <!-- Reorder Toggle -->
-      <div class="reorder-toggle" *ngIf="stories.length > 1">
-        <ion-toggle [(ngModel)]="reorderingEnabled" (ionChange)="onReorderToggleChange()">
-          <ion-icon name="reorder-three" slot="start"></ion-icon>
-          Reihenfolge anpassen
-        </ion-toggle>
       </div>
       
       <div class="stories-grid" *ngIf="stories.length > 0; else noStories" 
@@ -596,27 +588,23 @@ import { VersionService } from '../../core/services/version.service';
       overflow: visible;
     }
     
-    .reorder-toggle {
-      display: flex;
-      justify-content: center;
-      margin: 0 auto 2rem;
-      max-width: 600px;
+    /* Reorder button active state */
+    :host ::ng-deep app-header ion-button.reorder-active {
+      --background: rgba(71, 118, 230, 0.2);
+      --color: #4776E6;
+      animation: pulse 2s infinite;
     }
     
-    .reorder-toggle ion-toggle {
-      --background: rgba(255, 255, 255, 0.1);
-      --background-checked: rgba(71, 118, 230, 0.3);
-      --handle-background: #f8f9fa;
-      --handle-background-checked: #4776E6;
-      padding: 0.5rem 1rem;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 12px;
-      backdrop-filter: blur(10px);
-    }
-    
-    .reorder-toggle ion-icon {
-      margin-right: 0.5rem;
-      color: #8bb4f8;
+    @keyframes pulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(71, 118, 230, 0.4);
+      }
+      70% {
+        box-shadow: 0 0 0 10px rgba(71, 118, 230, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(71, 118, 230, 0);
+      }
     }
     
     .action-buttons ion-button {
@@ -774,16 +762,6 @@ import { VersionService } from '../../core/services/version.service';
       
       .action-buttons {
         display: none;
-      }
-      
-      .reorder-toggle {
-        margin: 1rem auto 1.5rem;
-        padding: 0 1rem;
-      }
-      
-      .reorder-toggle ion-toggle {
-        width: 100%;
-        justify-content: center;
       }
     }
     
@@ -1084,13 +1062,18 @@ export class StoryListComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.loadStories();
+    this.loadStories().then(() => {
+      // Setup right actions after stories are loaded
+      this.setupRightActions();
+    });
     
     // Subscribe to user changes
     this.authService.currentUser$.subscribe(user => {
       this.currentUser = user;
       // Reload stories when user changes (different database)
-      this.loadStories();
+      this.loadStories().then(() => {
+        this.setupRightActions();
+      });
     });
     
     // Subscribe to version changes and setup right actions when version is available
@@ -1106,6 +1089,18 @@ export class StoryListComponent implements OnInit {
   
   private setupRightActions(): void {
     this.rightActions = [];
+    
+    // Add reorder toggle button if there are multiple stories
+    if (this.stories.length > 1) {
+      this.rightActions.push({
+        icon: 'reorder-three',
+        action: () => this.toggleReordering(),
+        showOnMobile: true,
+        showOnDesktop: true,
+        cssClass: this.reorderingEnabled ? 'reorder-active' : '',
+        tooltip: this.reorderingEnabled ? 'Sortierung beenden' : 'Stories sortieren'
+      });
+    }
     
     // Add version chip (version is guaranteed to be available when this is called)
     this.rightActions.push({
@@ -1145,7 +1140,11 @@ export class StoryListComponent implements OnInit {
     }
   }
   
-  onReorderToggleChange(): void {
+  toggleReordering(): void {
+    this.reorderingEnabled = !this.reorderingEnabled;
+    // Update the header actions to reflect the new state
+    this.setupRightActions();
+    
     // Optionally show feedback when toggling reorder mode
     if (this.reorderingEnabled) {
       console.log('Reordering mode enabled - drag stories to reorder');

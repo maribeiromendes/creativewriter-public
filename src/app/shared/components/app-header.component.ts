@@ -15,6 +15,8 @@ export interface HeaderAction {
   chipContent?: string;
   chipColor?: string;
   showVersionTooltip?: boolean;
+  cssClass?: string;
+  tooltip?: string;
 }
 
 export interface BurgerMenuItem {
@@ -72,11 +74,13 @@ export interface BurgerMenuItem {
             <ion-button 
               [class.desktop-only]="!action.showOnMobile"
               [class.mobile-only]="!action.showOnDesktop"
+              [class]="action.cssClass"
               [disabled]="action.disabled"
               [color]="action.color"
+              [title]="action.tooltip"
               (click)="action.action()">
               <ion-icon [name]="action.icon" slot="start" *ngIf="action.label"></ion-icon>
-              <ion-icon [name]="action.icon" slot="icon-only" *ngIf="!action.label"></ion-icon>
+              <ion-icon [name]="action.icon" slot="icon-only" *ngIf="!action.label && action.icon"></ion-icon>
               <span *ngIf="action.label">{{ action.label }}</span>
             </ion-button>
           </ng-container>
