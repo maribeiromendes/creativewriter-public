@@ -90,6 +90,14 @@ Configure your AI provider API keys directly in the application:
 - **Available port** (default: 3080)
 - **API Keys** for AI providers (optional but recommended)
 
+## ☕ Support the Developer
+
+Enjoying CreativeWriter? Consider supporting its development:
+
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-support%20development-orange?style=for-the-badge&logo=buy-me-a-coffee)](https://www.buymeacoffee.com/marcodroll)
+
+Your support helps keep this project free and open-source for the self-hosting community!
+
 ## 🆘 Support & Issues
 
 - **Issues**: [Report problems here](https://github.com/MarcoDroll/creativewriter-public/issues)

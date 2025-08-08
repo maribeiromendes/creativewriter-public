@@ -217,6 +217,14 @@ Contributions are welcome! Please feel free to submit issues and pull requests.
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
+## ☕ Support the Project
+
+If you find CreativeWriter helpful and want to support its development:
+
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-support%20development-orange?style=for-the-badge&logo=buy-me-a-coffee)](https://www.buymeacoffee.com/marcodroll)
+
+Your support helps maintain and improve CreativeWriter for the community!
+
 ## 🙏 Acknowledgments
 
 - Built with Angular and Ionic frameworks
