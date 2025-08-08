@@ -2,6 +2,8 @@ import { Component, Input, Output, EventEmitter, ViewEncapsulation } from '@angu
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CodeEditor } from '@acrodata/code-editor';
+import { Extension } from '@codemirror/state';
+import { EditorView } from '@codemirror/view';
 
 @Component({
   selector: 'app-beat-ai-preview-modal',
@@ -19,7 +21,7 @@ import { CodeEditor } from '@acrodata/code-editor';
             class="code-editor"
             [(ngModel)]="content"
             [readonly]="true"
-            setup="basic">
+            [extensions]="editorExtensions">
           </code-editor>
         </div>
         <div class="modal-footer">
@@ -152,6 +154,10 @@ export class BeatAIPreviewModalComponent {
   @Output() closeModal = new EventEmitter<void>();
   @Output() generateContent = new EventEmitter<void>();
   @Output() copyContent = new EventEmitter<void>();
+
+  editorExtensions: Extension[] = [
+    EditorView.lineWrapping
+  ];
 
 
 

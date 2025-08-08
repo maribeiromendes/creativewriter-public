@@ -20,6 +20,8 @@
     "@angular/forms": "^20.0.0",
     "@angular/platform-browser": "^20.0.0",
     "@angular/router": "^20.0.0",
+    "@codemirror/state": "^6.5.2",
+    "@codemirror/view": "^6.38.1",
     "@ionic/angular": "^8.6.2",
     "@ionic/core": "^8.6.2",
     "@ng-select/ng-select": "^15.1.2",
