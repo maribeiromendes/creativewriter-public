@@ -71,30 +71,22 @@ CreativeWriter is built with modern web technologies:
 2. **Download docker-compose.yml**
    ```bash
    curl -O https://raw.githubusercontent.com/MarcoDroll/creativewriter2/main/docker-compose.yml
-   curl -O https://raw.githubusercontent.com/MarcoDroll/creativewriter2/main/.env.example
    ```
 
-3. **Configure environment (optional)**
-   ```bash
-   mv .env.example .env
-   # Edit .env if you need to change ports or paths
-   # Default configuration works out of the box
-   ```
-
-4. **Start the application**
+3. **Start the application**
    ```bash
    docker compose up -d
    ```
 
-5. **Access CreativeWriter**
+4. **Access CreativeWriter**
    ```
    http://localhost:3080
    ```
 
-   Initial setup in the app:
-   - Configure AI providers in Settings
-   - Create your first story
-   - Start writing!
+5. **Configure your AI providers**
+   - Open Settings in the app
+   - Add your API keys for OpenRouter, Google Gemini, or Replicate
+   - Start writing with AI assistance!
 
 ### Development Setup
 
@@ -154,6 +146,7 @@ mkdir creativewriter && cd creativewriter
 curl -O https://raw.githubusercontent.com/MarcoDroll/creativewriter2/main/docker-compose.yml
 docker compose up -d
 ```
+Then configure your AI API keys in Settings after accessing the app at http://localhost:3080.
 
 ### Multiple Instances
 Run multiple isolated instances on the same host:
@@ -171,6 +164,8 @@ curl -O https://raw.githubusercontent.com/MarcoDroll/creativewriter2/main/docker
 echo "PORT=3081" > .env
 docker compose -p writer-work up -d
 ```
+
+Each instance maintains its own database and settings, so configure API keys separately in each instance's Settings.
 
 See [README-MULTI-INSTANCE.md](README-MULTI-INSTANCE.md) for detailed multi-instance setup.
 
