@@ -9,7 +9,7 @@ import {
   IonChip, IonItem, IonLabel, IonSelect, IonSelectOption, IonRange, IonTextarea
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { arrowBack, statsChart, warning, checkmarkCircle, globeOutline, logoGoogle, colorPaletteOutline, documentTextOutline, cloudOutline } from 'ionicons/icons';
+import { arrowBack, statsChart, warning, checkmarkCircle, globeOutline, logoGoogle, colorPaletteOutline, documentTextOutline, cloudOutline, listOutline } from 'ionicons/icons';
 import { SettingsService } from '../core/services/settings.service';
 import { ModelService } from '../core/services/model.service';
 import { Settings } from '../core/models/settings.interface';
@@ -1456,7 +1456,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
   constructor() {
     this.settings = this.settingsService.getSettings();
     // Register Ionic icons
-    addIcons({ arrowBack, statsChart, warning, checkmarkCircle, globeOutline, logoGoogle, colorPaletteOutline, documentTextOutline, cloudOutline });
+    addIcons({ arrowBack, statsChart, warning, checkmarkCircle, globeOutline, logoGoogle, colorPaletteOutline, documentTextOutline, cloudOutline, listOutline });
   }
 
   ngOnInit(): void {
