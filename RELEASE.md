@@ -106,4 +106,4 @@ git push origin v1.2.3
 # The tag will also sync to public repository
 ```
 
-This ensures self-hosters can easily identify and use specific versions.
+This ensures self-hosters can easily identify and use specific versions.# Test Release - Fri Aug  8 22:18:44 CEST 2025
