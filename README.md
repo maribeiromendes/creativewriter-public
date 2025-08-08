@@ -1,59 +1,206 @@
-# Creativewriter2
+# CreativeWriter 2
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.0.2.
+A powerful, AI-enhanced creative writing application that helps authors craft compelling stories with intelligent assistance for plot development, character creation, and narrative structure.
 
-## Development server
+![Angular](https://img.shields.io/badge/Angular-20-red)
+![Ionic](https://img.shields.io/badge/Ionic-8-blue)
+![Docker](https://img.shields.io/badge/Docker-Ready-brightgreen)
+![License](https://img.shields.io/badge/License-MIT-yellow)
 
-To start a local development server, run:
+## 🎯 What is CreativeWriter?
 
+CreativeWriter is a modern web-based writing tool designed for fiction authors who want to leverage AI technology to enhance their creative process. It combines traditional story structuring techniques with cutting-edge AI capabilities to help writers overcome creative blocks, develop rich narratives, and maintain consistency throughout their work.
+
+## ✨ Features
+
+### 📝 Story Management
+- **Multi-Story Support**: Manage multiple writing projects simultaneously
+- **Rich Text Editor**: Full-featured ProseMirror-based editor with formatting tools
+- **Story Structure**: Organize your narrative with acts, chapters, scenes, and beats
+- **Auto-Save**: Never lose your work with automatic saving to local database
+
+### 🤖 AI Integration
+- **Multiple AI Providers**: Support for OpenRouter, Google Gemini, and other LLMs
+- **Beat AI Assistant**: Get intelligent suggestions for plot development
+- **Scene Enhancement**: AI-powered scene expansion and refinement
+- **Character Consistency**: Maintain character voice and traits with AI assistance
+- **Custom Prompts**: Fine-tune AI behavior with customizable prompt templates
+
+### 📚 Codex System
+- **Dynamic Knowledge Base**: Automatically track characters, locations, and plot elements
+- **Smart Context Awareness**: AI understands your story's universe
+- **Relevance Scoring**: Intelligent filtering of relevant codex entries for each scene
+- **Tag Management**: Organize codex entries with custom tags
+
+### 🎨 Customization
+- **Theme Support**: Dark and light modes
+- **Custom Backgrounds**: Upload and manage custom backgrounds for your writing environment
+- **Flexible Layouts**: Adjustable editor and panel configurations
+- **Font Options**: Multiple font choices for comfortable reading and writing
+
+### 🔄 Data Management
+- **Local Database**: PouchDB/CouchDB for offline-first functionality
+- **Import/Export**: Support for various formats including NovelCrafter projects
+- **PDF Export**: Generate formatted PDFs of your stories
+- **Version History**: Track changes and revisions
+
+### 🖼️ Media Support
+- **Image Generation**: Integration with Replicate for AI image generation
+- **Image Management**: Upload and manage story-related images
+- **Video Support**: Embed and manage video content
+
+## 🏗️ Architecture
+
+CreativeWriter is built with modern web technologies:
+
+- **Frontend**: Angular 20 with Ionic 8 for responsive UI
+- **Editor**: ProseMirror for rich text editing
+- **Database**: PouchDB with CouchDB sync capability
+- **AI Services**: Modular integration with multiple AI providers
+- **Deployment**: Docker containers with nginx reverse proxy
+
+## 🚀 Getting Started
+
+### Quick Start with Docker
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/MarcoDroll/creativewriter2.git
+   cd creativewriter2
+   ```
+
+2. **Copy docker-compose.yml and create .env**
+   ```bash
+   cp .env.example .env
+   # Edit .env with your configuration
+   ```
+
+3. **Run with Docker Compose**
+   ```bash
+   docker compose up -d
+   ```
+
+4. **Access the application**
+   ```
+   http://localhost:3080
+   ```
+
+### Development Setup
+
+1. **Prerequisites**
+   - Node.js 20+
+   - npm 10+
+   - Angular CLI 19+
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Start development server**
+   ```bash
+   npm start
+   ```
+
+4. **Build for production**
+   ```bash
+   npm run build
+   ```
+
+### Configuration
+
+#### AI Providers
+Configure your AI providers in the application settings:
+- **OpenRouter**: Add your API key for access to multiple models
+- **Google Gemini**: Direct integration with Gemini models
+- **Custom Endpoints**: Support for self-hosted models
+
+#### Database
+The application uses PouchDB for local storage with optional CouchDB sync:
+- Local-only mode works out of the box
+- For sync, configure CouchDB connection in settings
+
+## 🐳 Docker Deployment
+
+### Single Instance
 ```bash
-ng serve
+docker compose up -d
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+### Multiple Instances
+Run multiple isolated instances on the same host:
 
 ```bash
-ng generate component component-name
+# Instance 1
+docker compose -p writer-personal up -d
+
+# Instance 2 (with different .env)
+docker compose -p writer-work up -d
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+See [README-MULTI-INSTANCE.md](README-MULTI-INSTANCE.md) for detailed multi-instance setup.
 
-```bash
-ng generate --help
+## 📦 Docker Images
+
+Pre-built images available on GitHub Container Registry:
+- `ghcr.io/marcodroll/creativewriter2:latest` - Main application
+- `ghcr.io/marcodroll/creativewriter2-nginx:latest` - Nginx reverse proxy
+- `ghcr.io/marcodroll/creativewriter2-proxy:latest` - Replicate API proxy
+- `ghcr.io/marcodroll/creativewriter2-gemini-proxy:latest` - Gemini API proxy
+
+## 🛠️ Development
+
+### Project Structure
+```
+src/
+├── app/
+│   ├── core/        # Core services and models
+│   ├── shared/      # Shared components and utilities
+│   ├── stories/     # Story management module
+│   └── settings/    # Settings module
+├── assets/          # Static assets and templates
+└── styles.scss      # Global styles
 ```
 
-## Building
+### Key Technologies
+- **Angular 20**: Modern web framework
+- **Ionic 8**: UI components and mobile support
+- **ProseMirror**: Powerful text editor framework
+- **PouchDB**: Local-first database
+- **RxJS**: Reactive programming
+- **TypeScript**: Type-safe development
 
-To build the project run:
+## 📝 Usage Tips
 
-```bash
-ng build
-```
+1. **Start with Story Structure**: Define your acts and chapters before diving into scenes
+2. **Build Your Codex**: Add characters and locations early for better AI context
+3. **Use Beat AI**: Let AI help with writer's block on individual beats
+4. **Customize Prompts**: Tailor AI responses to your writing style
+5. **Regular Exports**: Backup your work regularly using export features
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+## 🤝 Contributing
 
-## Running unit tests
+Contributions are welcome! Please feel free to submit issues and pull requests.
 
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
+## 📄 License
 
-```bash
-ng test
-```
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-## Running end-to-end tests
+## 🙏 Acknowledgments
 
-For end-to-end (e2e) testing, run:
+- Built with Angular and Ionic frameworks
+- AI integrations powered by OpenRouter and Google Gemini
+- ProseMirror for the editing experience
+- Community contributors and testers
 
-```bash
-ng e2e
-```
+## 📚 Documentation
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+- [Multi-Instance Deployment](README-MULTI-INSTANCE.md)
+- [Image Generation Setup](README-IMAGE-GENERATION.md)
+- [API Documentation](docs/api.md)
 
-## Additional Resources
+## 🔗 Links
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+- [GitHub Repository](https://github.com/MarcoDroll/creativewriter2)
+- [Issue Tracker](https://github.com/MarcoDroll/creativewriter2/issues)
+- [Docker Images](https://github.com/MarcoDroll/creativewriter2/pkgs/container/creativewriter2)
