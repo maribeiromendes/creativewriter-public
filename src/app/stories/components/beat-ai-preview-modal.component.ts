@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { CodeEditor } from '@acrodata/code-editor';
 import { Extension } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
+import { xml } from '@codemirror/lang-xml';
 
 @Component({
   selector: 'app-beat-ai-preview-modal',
@@ -156,7 +157,8 @@ export class BeatAIPreviewModalComponent {
   @Output() copyContent = new EventEmitter<void>();
 
   editorExtensions: Extension[] = [
-    EditorView.lineWrapping
+    EditorView.lineWrapping,
+    xml()
   ];
 
 
