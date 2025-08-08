@@ -1251,8 +1251,8 @@ export class CodexComponent implements OnInit, OnDestroy {
       customFields: entry.metadata?.['customFields'] && Array.isArray(entry.metadata['customFields']) ? [...entry.metadata['customFields']] : [],
       alwaysInclude: entry.alwaysInclude || false
     };
-    // Load existing tags as comma-separated string
-    this.tagInput = entry.tags ? entry.tags.join(', ') : '';
+    // Clear tag input - tags are already in editingEntry.tags
+    this.tagInput = '';
     this.resetCustomFieldInputs();
   }
 
