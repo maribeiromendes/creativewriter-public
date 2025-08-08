@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, ViewEncapsulation } from '@angular/core';
+import { Component, Input, Output, EventEmitter, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CodeEditor } from '@acrodata/code-editor';
@@ -12,7 +12,8 @@ import { xml } from '@codemirror/lang-xml';
   imports: [CommonModule, FormsModule, CodeEditor],
   templateUrl: './beat-ai-preview-modal.component.html',
   styleUrls: ['./beat-ai-preview-modal.component.scss'],
-  encapsulation: ViewEncapsulation.None
+  encapsulation: ViewEncapsulation.None,
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BeatAIPreviewModalComponent {
   @Input() isVisible = false;
@@ -26,12 +27,17 @@ export class BeatAIPreviewModalComponent {
     xml()
   ];
 
+  onBackdropClick(event: MouseEvent): void {
+    if (event.target === event.currentTarget) {
+      this.onClose();
+    }
+  }
+
   onClose(): void {
     this.closeModal.emit();
   }
 
   onGenerate(): void {
-    this.closeModal.emit();
     this.generateContent.emit();
   }
 

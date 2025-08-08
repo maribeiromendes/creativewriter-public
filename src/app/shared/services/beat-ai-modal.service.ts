@@ -22,13 +22,17 @@ export class BeatAIModalService {
   }
   
   close() {
-    this.isVisible = false;
-    this.closeSubject.next();
+    if (this.isVisible) {
+      this.isVisible = false;
+      this.closeSubject.next();
+    }
   }
   
   onGenerate() {
-    this.isVisible = false;
-    this.generateSubject.next();
+    if (this.isVisible) {
+      this.isVisible = false;
+      this.generateSubject.next();
+    }
   }
   
   onCopy() {

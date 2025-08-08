@@ -1,5 +1,5 @@
 @if (isVisible) {
-<div class="modal-fixed" (click)="onClose()" (keydown.escape)="onClose()" tabindex="0">
+<div class="modal-fixed" (click)="onBackdropClick($event)" (keydown.escape)="onClose()" tabindex="0">
   <div class="modal-content" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()" role="dialog" aria-modal="true">
     <div class="modal-header">
       <h3>Prompt-Vorschau</h3>
@@ -8,7 +8,7 @@
     <div class="modal-body">
       <code-editor 
         class="code-editor"
-        [(ngModel)]="content"
+        [ngModel]="content"
         [readonly]="true"
         [extensions]="editorExtensions">
       </code-editor>
