@@ -1,9 +1,10 @@
 import { Component, OnInit, TemplateRef, ViewChild, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { 
   IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonChip, IonIcon, IonButton, 
-  IonContent, IonLabel
+  IonContent, IonLabel, IonToggle
 } from '@ionic/angular/standalone';
 import { CdkDropList, CdkDrag, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { addIcons } from 'ionicons';
@@ -21,9 +22,9 @@ import { VersionService } from '../../core/services/version.service';
   selector: 'app-story-list',
   standalone: true,
   imports: [
-    CommonModule, 
+    CommonModule, FormsModule,
     IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonChip, IonIcon, IonButton, 
-    IonContent, IonLabel,
+    IonContent, IonLabel, IonToggle,
     CdkDropList, CdkDrag,
     SyncStatusComponent, LoginComponent, AppHeaderComponent
   ],
@@ -89,8 +90,25 @@ import { VersionService } from '../../core/services/version.service';
         </ion-button>
       </div>
       
-      <div class="stories-grid" *ngIf="stories.length > 0; else noStories" cdkDropList (cdkDropListDropped)="drop($event)">
-        <ion-card class="story-card" *ngFor="let story of stories" cdkDrag [cdkDragStartDelay]="300" (click)="openStory(story.id)" button>
+      <!-- Reorder Toggle -->
+      <div class="reorder-toggle" *ngIf="stories.length > 1">
+        <ion-toggle [(ngModel)]="reorderingEnabled" (ionChange)="onReorderToggleChange()">
+          <ion-icon name="reorder-three" slot="start"></ion-icon>
+          Reihenfolge anpassen
+        </ion-toggle>
+      </div>
+      
+      <div class="stories-grid" *ngIf="stories.length > 0; else noStories" 
+           [cdkDropListDisabled]="!reorderingEnabled"
+           cdkDropList 
+           (cdkDropListDropped)="drop($event)">
+        <ion-card class="story-card" 
+                  *ngFor="let story of stories" 
+                  [cdkDragDisabled]="!reorderingEnabled"
+                  cdkDrag 
+                  (click)="!reorderingEnabled && openStory(story.id)" 
+                  [class.reordering-enabled]="reorderingEnabled"
+                  button>
           <!-- Cover Image -->
           <div class="story-cover" *ngIf="story.coverImage">
             <img [src]="getCoverImageUrl(story)" [alt]="story.title || 'Story cover'" />
@@ -99,7 +117,11 @@ import { VersionService } from '../../core/services/version.service';
           
           <ion-card-header [class.with-cover]="!!story.coverImage">
             <div class="card-header-content">
-              <ion-button fill="clear" size="small" color="medium" class="drag-handle" cdkDragHandle (click)="$event.stopPropagation()">
+              <ion-button fill="clear" size="small" color="medium" 
+                          class="drag-handle" 
+                          [style.visibility]="reorderingEnabled ? 'visible' : 'hidden'"
+                          cdkDragHandle 
+                          (click)="$event.stopPropagation()">
                 <ion-icon name="reorder-three" slot="icon-only"></ion-icon>
               </ion-button>
               <ion-card-title>{{ story.title || 'Unbenannte Geschichte' }}</ion-card-title>
@@ -567,11 +589,34 @@ import { VersionService } from '../../core/services/version.service';
     .action-buttons {
       display: flex;
       gap: 1rem;
-      margin: 0 auto 2rem;
+      margin: 0 auto 1rem;
       max-width: 600px;
       flex-wrap: wrap;
       padding: 0.5rem 0;
       overflow: visible;
+    }
+    
+    .reorder-toggle {
+      display: flex;
+      justify-content: center;
+      margin: 0 auto 2rem;
+      max-width: 600px;
+    }
+    
+    .reorder-toggle ion-toggle {
+      --background: rgba(255, 255, 255, 0.1);
+      --background-checked: rgba(71, 118, 230, 0.3);
+      --handle-background: #f8f9fa;
+      --handle-background-checked: #4776E6;
+      padding: 0.5rem 1rem;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+    }
+    
+    .reorder-toggle ion-icon {
+      margin-right: 0.5rem;
+      color: #8bb4f8;
     }
     
     .action-buttons ion-button {
@@ -731,7 +776,15 @@ import { VersionService } from '../../core/services/version.service';
         display: none;
       }
       
+      .reorder-toggle {
+        margin: 1rem auto 1.5rem;
+        padding: 0 1rem;
+      }
       
+      .reorder-toggle ion-toggle {
+        width: 100%;
+        justify-content: center;
+      }
     }
     
     @media (max-width: 480px) {
@@ -766,11 +819,21 @@ import { VersionService } from '../../core/services/version.service';
       -webkit-backdrop-filter: blur(2px) saturate(120%);
     }
     
-    .story-card:hover {
+    .story-card:not(.reordering-enabled):hover {
       transform: translateY(-4px);
       box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
       border-color: rgba(71, 118, 230, 0.3);
       background: linear-gradient(135deg, rgba(25, 25, 25, 0.15) 0%, rgba(20, 20, 20, 0.15) 100%);
+    }
+    
+    .story-card.reordering-enabled {
+      cursor: move;
+      border: 2px dashed rgba(139, 180, 248, 0.4);
+    }
+    
+    .story-card.reordering-enabled:hover {
+      border-color: rgba(139, 180, 248, 0.6);
+      background: rgba(139, 180, 248, 0.05);
     }
 
     .story-cover {
@@ -852,9 +915,13 @@ import { VersionService } from '../../core/services/version.service';
       }
     }
     
-    /* Ensure only the handle is draggable */
-    .story-card {
+    /* Ensure proper cursor based on mode */
+    .story-card:not(.reordering-enabled) {
       cursor: pointer;
+    }
+    
+    .story-card.reordering-enabled {
+      cursor: move;
     }
     
     .story-card.cdk-drag-dragging {
@@ -1009,6 +1076,7 @@ export class StoryListComponent implements OnInit {
   fabMenuOpen = false;
   burgerMenuItems: BurgerMenuItem[] = [];
   rightActions: HeaderAction[] = [];
+  reorderingEnabled = false;
 
   constructor() {
     // Register Ionic icons
@@ -1074,6 +1142,15 @@ export class StoryListComponent implements OnInit {
         // Reload stories to reset to previous state if save fails
         await this.loadStories();
       }
+    }
+  }
+  
+  onReorderToggleChange(): void {
+    // Optionally show feedback when toggling reorder mode
+    if (this.reorderingEnabled) {
+      console.log('Reordering mode enabled - drag stories to reorder');
+    } else {
+      console.log('Reordering mode disabled - click stories to open');
     }
   }
 
