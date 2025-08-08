@@ -1,10 +1,12 @@
-import { Component, Input, Output, EventEmitter, ViewEncapsulation, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, Output, EventEmitter, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { CodeEditor } from '@acrodata/code-editor';
 
 @Component({
   selector: 'app-beat-ai-preview-modal',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule, CodeEditor],
   template: `
     <div *ngIf="isVisible" class="modal-fixed" (click)="onClose()" (keydown.escape)="onClose()" tabindex="0">
       <div class="modal-content" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()" tabindex="0">
@@ -13,7 +15,12 @@ import { CommonModule } from '@angular/common';
           <button (click)="onClose()" class="close-btn">×</button>
         </div>
         <div class="modal-body">
-          <pre [innerHTML]="processedContent"></pre>
+          <code-editor 
+            class="code-editor"
+            [(ngModel)]="content"
+            [readonly]="true"
+            setup="basic">
+          </code-editor>
         </div>
         <div class="modal-footer">
           <button (click)="onClose()" class="btn-secondary">Schließen</button>
@@ -77,17 +84,11 @@ import { CommonModule } from '@angular/common';
       padding: 1rem;
     }
     
-    .modal-body pre {
-      background: #1a1a1a;
+    .code-editor {
+      height: 400px;
       border: 1px solid #404040;
       border-radius: 6px;
-      padding: 1rem;
-      color: #e0e0e0;
-      font-family: monospace;
-      font-size: 0.9rem;
-      line-height: 1.5;
-      white-space: pre-wrap;
-      margin: 0;
+      overflow: hidden;
     }
     
     .modal-footer {
@@ -145,29 +146,14 @@ import { CommonModule } from '@angular/common';
   `],
   encapsulation: ViewEncapsulation.None
 })
-export class BeatAIPreviewModalComponent implements OnChanges {
+export class BeatAIPreviewModalComponent {
   @Input() isVisible = false;
   @Input() content = '';
   @Output() closeModal = new EventEmitter<void>();
   @Output() generateContent = new EventEmitter<void>();
   @Output() copyContent = new EventEmitter<void>();
 
-  processedContent = '';
 
-  ngOnChanges(changes: SimpleChanges): void {
-    // Only process content when it actually changes and modal is visible
-    if (changes['content'] && this.isVisible) {
-      this.processedContent = this.content ? this.highlightSyntax(this.content) : '';
-    }
-    // Process content when modal becomes visible
-    if (changes['isVisible'] && this.isVisible && this.content) {
-      this.processedContent = this.highlightSyntax(this.content);
-    }
-    // Clear processed content when modal is hidden to free memory
-    if (changes['isVisible'] && !this.isVisible) {
-      this.processedContent = '';
-    }
-  }
 
   onClose(): void {
     this.closeModal.emit();
@@ -182,55 +168,5 @@ export class BeatAIPreviewModalComponent implements OnChanges {
     this.copyContent.emit();
   }
 
-  private highlightSyntax(content: string): string {
-    try {
-      // Limit content length to prevent performance issues
-      if (content.length > 100000) {
-        content = content.substring(0, 100000) + '\n\n... (Content truncated for performance)';
-      }
-      
-      // Simple XML/template syntax highlighting without external library
-      let highlighted = content;
-      
-      // Escape HTML first
-      highlighted = highlighted.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-      
-      // Highlight XML tags - optimized pattern
-      highlighted = highlighted.replace(/&lt;\/?([\w:-]+)([^&gt;]{0,500}?)&gt;/g, (match, tagName, attributes) => {
-        let result = `<span class="xml-tag">&lt;`;
-        if (tagName.startsWith('/')) {
-          result += '/';
-          tagName = tagName.substring(1);
-        }
-        result += `${tagName}</span>`;
-        
-        if (attributes && attributes.length > 0) {
-          // Highlight attributes - limit processing
-          const attrHighlighted = attributes.replace(/([\w:-]+)\s*=\s*(["'])([^"']{0,200}?)\2/g, 
-            '<span class="xml-attr">$1</span>=<span class="xml-value">$2$3$2</span>');
-          result += attrHighlighted;
-        }
-        
-        result += '<span class="xml-tag">&gt;</span>';
-        return result;
-      });
-      
-      // Highlight XML comments - limit match length
-      highlighted = highlighted.replace(/&lt;!--(.{1,1000}?)--&gt;/g, '<span class="xml-comment">&lt;!--$1--&gt;</span>');
-      
-      // Highlight template variables - limit match length
-      highlighted = highlighted.replace(/\{\{([^{}]{1,100}?)\}\}/g, '<span class="template-var">{{$1}}</span>');
-      highlighted = highlighted.replace(/\{([^{}]{1,100}?)\}/g, '<span class="template-var">{$1}</span>');
-      
-      // Highlight CDATA sections - limit match length
-      highlighted = highlighted.replace(/&lt;!\[CDATA\[(.{1,5000}?)\]\]&gt;/g, '<span class="xml-cdata">&lt;![CDATA[$1]]&gt;</span>');
-      
-      return highlighted;
-    } catch (error) {
-      console.error('Error in syntax highlighting:', error);
-      // Return escaped content without highlighting if there's an error
-      return content.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    }
-  }
 
 }
