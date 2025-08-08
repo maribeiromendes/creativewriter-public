@@ -5,9 +5,6 @@ const axios = require('axios');
 const app = express();
 const PORT = process.env.PORT || 3002;
 
-// API key can come from environment variable (legacy) or from request headers
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-
 // Middleware
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
@@ -23,8 +20,8 @@ app.get('/api/gemini/test', (req, res) => {
   res.json({ 
     status: 'ok',
     message: 'Gemini proxy is running',
-    apiKeyConfigured: !!(GEMINI_API_KEY || apiKeyFromHeader),
-    apiKeySource: apiKeyFromHeader ? 'header' : (GEMINI_API_KEY ? 'environment' : 'none'),
+    apiKeyConfigured: !!apiKeyFromHeader,
+    apiKeySource: apiKeyFromHeader ? 'header' : 'none',
     timestamp: new Date().toISOString()
   });
 });
@@ -38,14 +35,14 @@ app.all('/api/gemini/*', async (req, res) => {
     const path = req.params[0];
     const queryString = req.url.split('?')[1] || '';
     
-    // Get API key from header or fall back to environment variable
-    const apiKey = req.headers['x-api-key'] || GEMINI_API_KEY;
+    // Get API key from header only
+    const apiKey = req.headers['x-api-key'];
     
     if (!apiKey) {
-      console.error(`[${requestId}] No API key provided in header or environment`);
+      console.error(`[${requestId}] No API key provided in X-API-Key header`);
       return res.status(401).json({ 
         error: 'Unauthorized', 
-        message: 'API key is required. Please provide it in X-API-Key header or configure GEMINI_API_KEY environment variable' 
+        message: 'API key is required. Please provide it in X-API-Key header' 
       });
     }
     
@@ -60,7 +57,7 @@ app.all('/api/gemini/*', async (req, res) => {
     
     console.log(`[${requestId}] Proxying ${req.method} request to: ${url.replace(apiKey, '[REDACTED]')}`);
     console.log(`[${requestId}] Request body size: ${JSON.stringify(req.body || {}).length} bytes`);
-    console.log(`[${requestId}] API Key source: ${req.headers['x-api-key'] ? 'header' : 'environment'}`);
+    console.log(`[${requestId}] API Key source: header`);
     
     // Check if this is a streaming request
     const isStreaming = url.includes('streamGenerateContent') && url.includes('alt=sse');
