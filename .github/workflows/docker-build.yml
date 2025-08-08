@@ -74,6 +74,13 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
+    - name: Get version info
+      id: version
+      run: |
+        VERSION=$(node -p "require('./package.json').version")
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "Version: $VERSION"
+
     - name: Extract metadata
       id: meta
       uses: docker/metadata-action@v5
@@ -82,10 +89,15 @@ jobs:
         tags: |
           type=ref,event=branch
           type=ref,event=pr
-          type=semver,pattern={{version}}
-          type=semver,pattern={{major}}.{{minor}}
-          type=semver,pattern={{major}}
+          type=raw,value=v${{ steps.version.outputs.version }}
           type=raw,value=latest,enable={{is_default_branch}}
+        labels: |
+          org.opencontainers.image.title=${{ github.event.repository.name }}
+          org.opencontainers.image.description=${{ github.event.repository.description }}
+          org.opencontainers.image.version=v${{ steps.version.outputs.version }}
+          org.opencontainers.image.source=${{ github.event.repository.html_url }}
+          org.opencontainers.image.revision=${{ github.sha }}
+          org.opencontainers.image.created=${{ github.event.head_commit.timestamp }}
 
     - name: Build and push Docker image
       id: build
