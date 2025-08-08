@@ -1,5 +1,6 @@
-<div *ngIf="isVisible" class="modal-fixed" (click)="onClose()" (keydown.escape)="onClose()" tabindex="0">
-  <div class="modal-content" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()" tabindex="0">
+@if (isVisible) {
+<div class="modal-fixed" (click)="onClose()" (keydown.escape)="onClose()" tabindex="0">
+  <div class="modal-content" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()" role="dialog" aria-modal="true">
     <div class="modal-header">
       <h3>Prompt-Vorschau</h3>
       <button (click)="onClose()" class="close-btn">×</button>
@@ -18,3 +19,4 @@
     </div>
   </div>
 </div>
+}
