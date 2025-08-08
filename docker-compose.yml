@@ -3,10 +3,10 @@ version: '3.8'
 services:
   nginx:
     image: ghcr.io/marcodroll/creativewriter2-nginx:latest
-    container_name: creativewriter-nginx
+    # container_name removed - Docker Compose will use project name prefix
     restart: unless-stopped
     ports:
-      - "3080:80"  # Single port for both webapp and CouchDB
+      - "${PORT:-3080}:80"  # Port can be overridden via .env, defaults to 3080
     depends_on:
       - creativewriter
       - couchdb
@@ -17,11 +17,11 @@ services:
 
   creativewriter:
     image: ghcr.io/marcodroll/creativewriter2:latest
-    container_name: creativewriter
+    # container_name removed
     restart: unless-stopped
     # No ports exposed directly - only through nginx
     environment:
-      - TZ=Europe/Berlin  # Adjust timezone as needed
+      - TZ=${TZ:-Europe/Berlin}  # Timezone can be overridden via .env
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
     networks:
@@ -31,22 +31,22 @@ services:
 
   couchdb:
     image: couchdb:3.3
-    container_name: creativewriter-couchdb
+    # container_name removed
     restart: unless-stopped
     # No ports exposed directly - only through nginx
     environment:
-      - COUCHDB_USER=admin
-      - COUCHDB_PASSWORD=password  # Change this in production!
-      - COUCHDB_SECRET=mysecret    # Change this in production!
+      - COUCHDB_USER=${COUCHDB_USER:-admin}
+      - COUCHDB_PASSWORD=${COUCHDB_PASSWORD:-password}  # Change this in production!
+      - COUCHDB_SECRET=${COUCHDB_SECRET:-mysecret}    # Change this in production!
     volumes:
-      - /share/Docker/creativewriter/data/couchdb-data:/opt/couchdb/data
-      - /share/Docker/creativewriter/data/log/couchdb_log:/opt/couchdb/var/log
+      - ${DATA_PATH:-./data}/couchdb-data:/opt/couchdb/data
+      - ${DATA_PATH:-./data}/log/couchdb_log:/opt/couchdb/var/log
     networks:
       - creativewriter-network
 
   replicate-proxy:
     image: ghcr.io/marcodroll/creativewriter2-proxy:latest
-    container_name: creativewriter-replicate-proxy
+    # container_name removed
     restart: unless-stopped
     environment:
       - REPLICATE_API_TOKEN=${REPLICATE_API_TOKEN}
@@ -58,7 +58,7 @@ services:
 
   gemini-proxy:
     image: ghcr.io/marcodroll/creativewriter2-gemini-proxy:latest
-    container_name: creativewriter-gemini-proxy
+    # container_name removed
     restart: unless-stopped
     environment:
       - GEMINI_API_KEY=${GEMINI_API_KEY}
