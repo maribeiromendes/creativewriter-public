@@ -223,7 +223,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 If you find CreativeWriter helpful and want to support its development:
 
-[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-support%20development-orange?style=for-the-badge&logo=buy-me-a-coffee)](https://www.buymeacoffee.com/olAhbNGYb7)
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-support%20development-orange?style=for-the-badge&logo=buy-me-a-coffee)](https://www.buymeacoffee.com/nostramo83)
 
 Your support helps maintain and improve CreativeWriter for the community!
 
