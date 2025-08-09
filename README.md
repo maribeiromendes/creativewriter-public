@@ -1,5 +1,7 @@
 # CreativeWriter 2
 
+> **⚠️ Early Development Version:** This is a very early version in active development. Expect bugs, missing features, and frequent changes. Use at your own risk and consider it experimental software.
+
 > **🔗 Self-Hosters: Looking for the public version? Visit [creativewriter-public](https://github.com/MarcoDroll/creativewriter-public) for easy deployment!**
 
 A powerful, AI-enhanced creative writing application that helps authors craft compelling stories with intelligent assistance for plot development, character creation, and narrative structure.

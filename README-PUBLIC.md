@@ -1,8 +1,10 @@
 # CreativeWriter 2 - Self-Hosted Version
 
+> **⚠️ Early Development Version:** This is a very early version in active development. Expect bugs, missing features, and frequent changes. Use at your own risk and consider it experimental software.
+
 > **📢 This is the public release repository for self-hosters**
 > 
-> This repository is automatically synced from the main development repository and contains the stable, production-ready version of CreativeWriter 2.
+> This repository is automatically synced from the main development repository and contains the latest version of CreativeWriter 2.
 
 [![Docker](https://img.shields.io/badge/Docker-Ready-brightgreen)](https://github.com/MarcoDroll/creativewriter-public)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
