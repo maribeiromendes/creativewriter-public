@@ -108,9 +108,17 @@ Your support helps keep this project free and open-source for the self-hosting c
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🤖 Built with AI
+## 🤖 Built with AI-Powered Development
 
 This application was developed using AI-powered pair programming with [Claude Code](https://claude.ai/code), showcasing the future of software development through human-AI collaboration.
+
+**Important Note:** While AI significantly accelerates development, creating production-ready applications like CreativeWriter still requires:
+- 💰 **Investment**: Paid Claude subscription for development
+- 🧠 **Expertise**: Deep software engineering knowledge to guide the AI
+- ⏱️ **Time & Effort**: Hundreds of hours of human-AI collaboration
+- 🎯 **Vision**: Clear architectural decisions and quality standards
+
+The AI is a powerful tool, but the human developer's expertise, creativity, and effort remain essential for creating quality software.
 
 ---
 
