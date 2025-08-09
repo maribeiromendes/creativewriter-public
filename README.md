@@ -4,7 +4,7 @@
 
 A powerful, AI-enhanced creative writing application that helps authors craft compelling stories with intelligent assistance for plot development, character creation, and narrative structure.
 
-> **🤖 Built with AI:** This entire application was developed using AI-powered pair programming with [Claude Code](https://claude.ai/code), demonstrating the power of human-AI collaboration in modern software development.
+> **🤖 Built with AI:** This entire application was developed using AI-powered pair programming with [Claude Code](https://claude.ai/code), demonstrating the power of human-AI collaboration in modern software development. While AI accelerates development, it still requires significant human expertise, effort, and a paid Claude subscription to guide the AI, make architectural decisions, and ensure quality.
 
 ![Angular](https://img.shields.io/badge/Angular-20-red)
 ![Ionic](https://img.shields.io/badge/Ionic-8-blue)
@@ -232,7 +232,8 @@ Your support helps maintain and improve CreativeWriter for the community!
 - Built with Angular and Ionic frameworks
 - AI integrations powered by OpenRouter and Google Gemini
 - ProseMirror for the editing experience
-- Developed using AI-powered pair programming with [Claude Code](https://claude.ai/code)
+- Developed using AI-powered pair programming with [Claude Code](https://claude.ai/code) (paid subscription)
+- Hundreds of hours of human expertise and effort guiding the AI development
 - Community contributors and testers
 
 ## 📚 Documentation
