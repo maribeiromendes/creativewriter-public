@@ -27,13 +27,16 @@ jobs:
           echo "Syncing release branch to public repository..."
           git remote add public https://x-access-token:${GITHUB_TOKEN}@github.com/MarcoDroll/creativewriter-public.git
           
-          # Create a temporary branch without workflow files for public sync
+          # Create a temporary branch without development files for public sync
           git checkout -b temp-public-sync
           git rm -r .github/ || true  # Remove workflow files
-          git commit -m "Remove private workflow files for public sync" || true
+          git rm -r .claude/ || true  # Remove Claude development files
+          git rm -r .vscode/ || true  # Remove VS Code settings
+          git rm -r .claudescreenshots/ || true  # Remove Claude screenshots
+          git commit -m "Remove private development files for public sync" || true
           
           git push public temp-public-sync:main --force
-          echo "✅ Successfully synced release branch to public repository main branch (without private workflows)"
+          echo "✅ Successfully synced release branch to public repository main branch (without private development files)"
 
       - name: Create release info
         run: |
