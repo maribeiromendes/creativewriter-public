@@ -115,7 +115,7 @@ This application was developed using AI-powered pair programming with [Claude Co
 **Important Note:** While AI significantly accelerates development, creating production-ready applications like CreativeWriter still requires:
 - 💰 **Investment**: Paid Claude subscription for development
 - 🧠 **Expertise**: Deep software engineering knowledge to guide the AI
-- ⏱️ **Time & Effort**: Hundreds of hours of human-AI collaboration
+- ⏱️ **Time & Effort**: Many hours of focused human-AI collaboration
 - 🎯 **Vision**: Clear architectural decisions and quality standards
 
 The AI is a powerful tool, but the human developer's expertise, creativity, and effort remain essential for creating quality software.

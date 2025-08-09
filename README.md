@@ -233,7 +233,7 @@ Your support helps maintain and improve CreativeWriter for the community!
 - AI integrations powered by OpenRouter and Google Gemini
 - ProseMirror for the editing experience
 - Developed using AI-powered pair programming with [Claude Code](https://claude.ai/code) (paid subscription)
-- Hundreds of hours of human expertise and effort guiding the AI development
+- Significant human expertise and effort guiding the AI development
 - Community contributors and testers
 
 ## 📚 Documentation
