@@ -108,6 +108,10 @@ Your support helps keep this project free and open-source for the self-hosting c
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
+## 🤖 Built with AI
+
+This application was developed using AI-powered pair programming with [Claude Code](https://claude.ai/code), showcasing the future of software development through human-AI collaboration.
+
 ---
 
 **⚡ Ready to start writing? Deploy in under 2 minutes with the commands above!**
