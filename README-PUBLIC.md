@@ -8,6 +8,14 @@
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 [![Latest Release](https://img.shields.io/github/v/release/MarcoDroll/creativewriter-public)](https://github.com/MarcoDroll/creativewriter-public/releases)
 
+## ☕ Support the Developer
+
+Enjoying CreativeWriter? Consider supporting its development:
+
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-support%20development-orange?style=for-the-badge&logo=buy-me-a-coffee)](https://www.buymeacoffee.com/nostramo83)
+
+Your support helps keep this project free and open-source for the self-hosting community!
+
 ## 🚀 Quick Start for Self-Hosters
 
 ### Zero-Configuration Deployment
@@ -89,14 +97,6 @@ Configure your AI provider API keys directly in the application:
 - **500MB-1GB RAM** per instance
 - **Available port** (default: 3080)
 - **API Keys** for AI providers (optional but recommended)
-
-## ☕ Support the Developer
-
-Enjoying CreativeWriter? Consider supporting its development:
-
-[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-support%20development-orange?style=for-the-badge&logo=buy-me-a-coffee)](https://www.buymeacoffee.com/nostramo83)
-
-Your support helps keep this project free and open-source for the self-hosting community!
 
 ## 🆘 Support & Issues
 

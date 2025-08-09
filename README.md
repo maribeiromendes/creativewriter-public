@@ -11,6 +11,14 @@ A powerful, AI-enhanced creative writing application that helps authors craft co
 ![Docker](https://img.shields.io/badge/Docker-Ready-brightgreen)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 
+## ☕ Support the Project
+
+If you find CreativeWriter helpful and want to support its development:
+
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-support%20development-orange?style=for-the-badge&logo=buy-me-a-coffee)](https://www.buymeacoffee.com/nostramo83)
+
+Your support helps maintain and improve CreativeWriter for the community!
+
 ## 🎯 What is CreativeWriter?
 
 CreativeWriter is a modern web-based writing tool designed for fiction authors who want to leverage AI technology to enhance their creative process. It combines traditional story structuring techniques with cutting-edge AI capabilities to help writers overcome creative blocks, develop rich narratives, and maintain consistency throughout their work.
@@ -218,14 +226,6 @@ Contributions are welcome! Please feel free to submit issues and pull requests.
 ## 📄 License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
-
-## ☕ Support the Project
-
-If you find CreativeWriter helpful and want to support its development:
-
-[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-support%20development-orange?style=for-the-badge&logo=buy-me-a-coffee)](https://www.buymeacoffee.com/nostramo83)
-
-Your support helps maintain and improve CreativeWriter for the community!
 
 ## 🙏 Acknowledgments
 
