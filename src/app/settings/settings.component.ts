@@ -428,7 +428,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
           </ion-card-header>
           <ion-card-content>
             <div class="appearance-section">
-              <h3>Textfarbe</h3>
+              <h3>Text Color</h3>
               <p class="appearance-description">
                 This color is used for text in the story editor and Beat AI input.
               </p>
@@ -462,7 +462,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
           </ion-card-header>
           <ion-card-content>
             <ion-item>
-              <ion-label>Maximale Wortanzahl</ion-label>
+              <ion-label>Maximum Word Count</ion-label>
               <ion-range
                 [(ngModel)]="settings.sceneTitleGeneration.maxWords"
                 (ngModelChange)="onSettingsChange()"
@@ -478,15 +478,15 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
             </ion-item>
 
             <ion-item>
-              <ion-label>Stil</ion-label>
+              <ion-label>Style</ion-label>
               <ion-select
                 [(ngModel)]="settings.sceneTitleGeneration.style"
                 (ngModelChange)="onSettingsChange()"
                 interface="popover"
                 slot="end">
-                <ion-select-option value="concise">Knapp</ion-select-option>
-                <ion-select-option value="descriptive">Beschreibend</ion-select-option>
-                <ion-select-option value="action">Actionreich</ion-select-option>
+                <ion-select-option value="concise">Concise</ion-select-option>
+                <ion-select-option value="descriptive">Descriptive</ion-select-option>
+                <ion-select-option value="action">Action-packed</ion-select-option>
                 <ion-select-option value="emotional">Emotional</ion-select-option>
               </ion-select>
             </ion-item>
@@ -498,8 +498,8 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
                 (ngModelChange)="onSettingsChange()"
                 interface="popover"
                 slot="end">
-                <ion-select-option value="german">Deutsch</ion-select-option>
-                <ion-select-option value="english">Englisch</ion-select-option>
+                <ion-select-option value="german">German</ion-select-option>
+                <ion-select-option value="english">English</ion-select-option>
               </ion-select>
             </ion-item>
 
@@ -580,7 +580,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
             </ion-item>
             
             <ion-item>
-              <ion-label>Benutzerdefinierten Prompt verwenden</ion-label>
+              <ion-label>Use Custom Prompt</ion-label>
               <ion-toggle
                 [(ngModel)]="settings.sceneTitleGeneration.useCustomPrompt"
                 (ngModelChange)="onSettingsChange()"
@@ -590,7 +590,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
             
             <ion-item *ngIf="settings.sceneTitleGeneration.useCustomPrompt">
               <ion-label position="stacked">
-                Benutzerdefinierter Prompt
+                Custom Prompt
                 <p class="prompt-help">
                   Available placeholders: {{ '{' }}maxWords{{ '}' }}, {{ '{' }}styleInstruction{{ '}' }}, {{ '{' }}genreInstruction{{ '}' }}, {{ '{' }}languageInstruction{{ '}' }}, {{ '{' }}customInstruction{{ '}' }}, {{ '{' }}sceneContent{{ '}' }}
                 </p>
@@ -606,7 +606,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
             
             <ion-item *ngIf="settings.sceneTitleGeneration.useCustomPrompt">
               <ion-button fill="outline" size="small" (click)="resetToDefaultPrompt()">
-                Standard-Prompt wiederherstellen
+                Restore Default Prompt
               </ion-button>
             </ion-item>
           </ion-card-content>
@@ -684,7 +684,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
             </ion-item>
 
             <ion-item>
-              <ion-label>Benutzerdefinierten Prompt verwenden</ion-label>
+              <ion-label>Use Custom Prompt</ion-label>
               <ion-toggle
                 [(ngModel)]="settings.sceneSummaryGeneration.useCustomPrompt"
                 (ngModelChange)="onSettingsChange()"
@@ -694,7 +694,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
             
             <ion-item *ngIf="settings.sceneSummaryGeneration.useCustomPrompt">
               <ion-label position="stacked">
-                Benutzerdefinierter Prompt
+                Custom Prompt
                 <p class="prompt-help">
                   Available placeholders: {{ '{' }}sceneTitle{{ '}' }}, {{ '{' }}sceneContent{{ '}' }}, {{ '{' }}customInstruction{{ '}' }}
                 </p>
@@ -710,7 +710,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
             
             <ion-item *ngIf="settings.sceneSummaryGeneration.useCustomPrompt">
               <ion-button fill="outline" size="small" (click)="resetToDefaultSummaryPrompt()">
-                Standard-Prompt wiederherstellen
+                Restore Default Prompt
               </ion-button>
             </ion-item>
           </ion-card-content>

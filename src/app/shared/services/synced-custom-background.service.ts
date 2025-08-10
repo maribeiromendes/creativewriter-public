@@ -71,7 +71,7 @@ export class SyncedCustomBackgroundService {
 
     const currentUser = this.authService.getCurrentUser();
     if (!currentUser) {
-      throw new Error('Sie müssen angemeldet sein, um eigene Hintergründe hochzuladen.');
+      throw new Error('You must be logged in to upload custom backgrounds.');
     }
 
     // Convert file to base64
@@ -123,7 +123,7 @@ export class SyncedCustomBackgroundService {
       const currentUser = this.authService.getCurrentUser();
       const typedDoc = doc as CustomBackground;
       if (!currentUser || typedDoc.createdBy !== currentUser.username) {
-        throw new Error('Sie können nur eigene Hintergründe löschen.');
+        throw new Error('You can only delete your own backgrounds.');
       }
       
       await db.remove(doc);

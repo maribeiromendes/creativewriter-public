@@ -54,7 +54,7 @@ import { SyncedCustomBackgroundService, CustomBackground } from '../services/syn
             
             <div class="upload-content" *ngIf="!selectedFile() && !isUploading()">
               <ion-icon name="image-outline" class="upload-icon"></ion-icon>
-              <p>Klicken oder Datei hierher ziehen</p>
+              <p>Click or drag file here</p>
               <small>PNG, JPG, JPEG, WebP (max. 5MB)</small>
             </div>
             
@@ -135,9 +135,9 @@ import { SyncedCustomBackgroundService, CustomBackground } from '../services/syn
         <ion-card-content>
           <div class="storage-stats">
             <ion-text color="medium" *ngIf="isUserLoggedIn()">
-              <p>Speicher: {{ formatFileSize(getTotalStorage()) }} belegt</p>
-              <p>{{ getUserBackgroundCount() }} eigene Hintergründe</p>
-              <p>Synchronisiert als: {{ getCurrentUser()?.displayName }}</p>
+              <p>Storage: {{ formatFileSize(getTotalStorage()) }} used</p>
+              <p>{{ getUserBackgroundCount() }} custom backgrounds</p>
+              <p>Synced as: {{ getCurrentUser()?.displayName }}</p>
             </ion-text>
             <ion-text color="medium" *ngIf="!isUserLoggedIn()">
               <p>Melden Sie sich an für geräteübergreifende Synchronisation</p>

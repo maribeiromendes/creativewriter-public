@@ -97,9 +97,9 @@ interface BackgroundOption {
 
       <!-- Custom Backgrounds Section -->
       <div class="section-header" *ngIf="customBackgrounds().length > 0">
-        <h4>Meine Hintergründe</h4>
+        <h4>My Backgrounds</h4>
         <ion-text color="medium">
-          <small>{{ customBackgrounds().length }} eigene Hintergründe</small>
+          <small>{{ customBackgrounds().length }} custom backgrounds</small>
         </ion-text>
       </div>
       
