@@ -857,7 +857,7 @@ export class SceneChatComponent implements OnInit, OnDestroy {
       // Add chat history context (exclude initial system message and preset prompts)
       const chatHistory = this.buildChatHistory();
       if (chatHistory) {
-        contextText += `Bisheriger Chat-Verlauf:\n${chatHistory}\n\n`;
+        contextText += `Previous chat history:\n${chatHistory}\n\n`;
       }
       
       // Build prompt based on type

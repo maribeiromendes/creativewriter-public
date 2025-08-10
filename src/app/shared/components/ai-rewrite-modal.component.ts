@@ -482,7 +482,7 @@ export class AIRewriteModalComponent implements OnInit {
           this.rewrittenText = accumulatedResponse;
         },
         complete: () => {
-          this.rewrittenText = accumulatedResponse || 'Fehler beim Generieren des Textes.';
+          this.rewrittenText = accumulatedResponse || 'Error generating text.';
           this.isRewriting = false;
         },
         error: (error) => {

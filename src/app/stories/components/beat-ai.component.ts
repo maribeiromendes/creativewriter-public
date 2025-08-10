@@ -215,7 +215,7 @@ interface SceneContext {
               class="generate-btn primary"
               (click)="generateContent(); $event.stopPropagation()"
               [disabled]="!currentPrompt.trim() || beatData.isGenerating || !selectedModel">
-              Generieren
+              Generate
             </button>
             <button 
               class="generate-btn primary"

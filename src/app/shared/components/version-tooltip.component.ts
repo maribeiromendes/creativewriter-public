@@ -234,13 +234,13 @@ export class VersionTooltipComponent implements OnInit {
       const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
       
       if (diffDays === 0) {
-        return 'Heute';
+        return 'Today';
       } else if (diffDays === 1) {
-        return 'Gestern';
+        return 'Yesterday';
       } else if (diffDays < 7) {
-        return `vor ${diffDays} Tagen`;
+        return `${diffDays} days ago`;
       } else {
-        return date.toLocaleDateString('de-DE', {
+        return date.toLocaleDateString('en-US', {
           day: '2-digit',
           month: '2-digit',
           year: 'numeric',

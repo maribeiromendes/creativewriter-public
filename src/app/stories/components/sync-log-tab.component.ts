@@ -283,15 +283,15 @@ export class SyncLogTabComponent implements OnInit, OnDestroy {
     const diff = now.getTime() - date.getTime();
     
     if (diff < 60000) { // Less than 1 minute
-      return 'Gerade eben';
+      return 'Just now';
     } else if (diff < 3600000) { // Less than 1 hour
       const minutes = Math.floor(diff / 60000);
-      return `Vor ${minutes} ${minutes === 1 ? 'Minute' : 'Minuten'}`;
+      return `${minutes} ${minutes === 1 ? 'minute' : 'minutes'} ago`;
     } else if (diff < 86400000) { // Less than 1 day
       const hours = Math.floor(diff / 3600000);
-      return `Vor ${hours} ${hours === 1 ? 'Stunde' : 'Stunden'}`;
+      return `${hours} ${hours === 1 ? 'hour' : 'hours'} ago`;
     } else {
-      return date.toLocaleString('de-DE');
+      return date.toLocaleString('en-US');
     }
   }
 

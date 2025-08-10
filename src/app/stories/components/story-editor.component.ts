@@ -78,7 +78,7 @@ import { PDFExportService } from '../../shared/services/pdf-export.service';
               <div class="cover-thumbnail" *ngIf="story?.coverImage" 
                    tabindex="0"
                    role="button"
-                   [attr.aria-label]="'Cover-Bild anzeigen: ' + (story.title || 'Unbenannte Geschichte')"
+                   [attr.aria-label]="'Show cover image: ' + (story.title || 'Untitled Story')"
                    (click)="openCoverPopover($event)"
                    (keydown.enter)="openCoverPopover($event)"
                    (keydown.space)="openCoverPopover($event)">

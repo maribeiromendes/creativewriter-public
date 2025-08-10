@@ -1526,7 +1526,7 @@ Die Zusammenfassung soll die wichtigsten Handlungspunkte und Charakterentwicklun
           console.error('Error generating scene summary:', error);
           clearTimeout(timeoutId); // Clear timeout on error
           
-          const errorMessage = 'Fehler beim Generieren der Zusammenfassung.';
+          const errorMessage = 'Error generating summary.';
           alert(errorMessage);
           this.isGeneratingSummary.delete(sceneId);
           this.cdr.detectChanges(); // Force change detection
@@ -1592,7 +1592,7 @@ Die Zusammenfassung soll die wichtigsten Handlungspunkte und Charakterentwicklun
         console.error('Error generating scene summary:', error);
         clearTimeout(timeoutId); // Clear timeout on error
         
-        let errorMessage = 'Fehler beim Generieren der Zusammenfassung.';
+        let errorMessage = 'Error generating summary.';
         
         // Check for specific error types
         if (error.status === 400) {
@@ -1779,7 +1779,7 @@ Antworte nur mit dem Titel, ohne weitere Erklärungen oder Anführungszeichen.`;
           console.error('Error generating scene title:', error);
           clearTimeout(timeoutId); // Clear timeout on error
           
-          const errorMessage = 'Fehler beim Generieren des Titels.';
+          const errorMessage = 'Error generating title.';
           alert(errorMessage);
           this.isGeneratingTitle.delete(sceneId);
           this.cdr.detectChanges(); // Force change detection
@@ -1817,7 +1817,7 @@ Antworte nur mit dem Titel, ohne weitere Erklärungen oder Anführungszeichen.`;
         console.error('Error generating scene title:', error);
         clearTimeout(timeoutId); // Clear timeout on error
         
-        let errorMessage = 'Fehler beim Generieren des Titels.';
+        let errorMessage = 'Error generating title.';
         
         // Check for specific error types
         if (error.status === 400) {

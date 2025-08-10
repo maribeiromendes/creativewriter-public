@@ -52,7 +52,7 @@ import { VersionService } from '../../core/services/version.service';
         <div *ngIf="currentUser">
           <app-sync-status [showActions]="true" class="full-sync-status"></app-sync-status>
           <ion-button fill="clear" color="danger" (click)="logout()" class="logout-button">
-            Abmelden
+            Sign Out
           </ion-button>
         </div>
         <div class="version-info">
@@ -78,7 +78,7 @@ import { VersionService } from '../../core/services/version.service';
       <div class="action-buttons">
         <ion-button expand="block" size="default" color="primary" (click)="createNewStory()">
           <ion-icon name="add" slot="start"></ion-icon>
-          Neue Geschichte schreiben
+          Write New Story
         </ion-button>
         <ion-button expand="block" size="default" fill="outline" color="medium" (click)="importNovelCrafter()">
           <ion-icon name="download" slot="start"></ion-icon>
@@ -86,7 +86,7 @@ import { VersionService } from '../../core/services/version.service';
         </ion-button>
         <ion-button expand="block" size="default" fill="outline" color="secondary" (click)="goToImageGeneration()">
           <ion-icon name="images" slot="start"></ion-icon>
-          Bildgenerierung
+          Image Generation
         </ion-button>
       </div>
       
@@ -116,7 +116,7 @@ import { VersionService } from '../../core/services/version.service';
                           (click)="$event.stopPropagation()">
                 <ion-icon name="reorder-three" slot="icon-only"></ion-icon>
               </ion-button>
-              <ion-card-title>{{ story.title || 'Unbenannte Geschichte' }}</ion-card-title>
+              <ion-card-title>{{ story.title || 'Untitled Story' }}</ion-card-title>
               <ion-button fill="clear" size="small" color="danger" (click)="deleteStory($event, story.id)">
                 <ion-icon name="trash" slot="icon-only"></ion-icon>
               </ion-button>
