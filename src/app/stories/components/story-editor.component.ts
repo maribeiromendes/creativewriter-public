@@ -134,9 +134,9 @@ import { PDFExportService } from '../../shared/services/pdf-export.service';
                       (click)="navigateToPreviousScene()"
                       [disabled]="!hasPreviousScene()"
                       class="nav-button prev-button"
-                      [attr.aria-label]="'Zur vorherigen Szene'">
+                      [attr.aria-label]="'To previous scene'">
                       <ion-icon name="chevron-back" slot="start"></ion-icon>
-                      Vorherige Szene
+                      Previous Scene
                     </ion-button>
                     
                     
@@ -146,8 +146,8 @@ import { PDFExportService } from '../../shared/services/pdf-export.service';
                       (click)="navigateToNextScene()"
                       [disabled]="!hasNextScene()"
                       class="nav-button next-button"
-                      [attr.aria-label]="'Zur nächsten Szene'">
-                      Nächste Szene
+                      [attr.aria-label]="'To next scene'">
+                      Next Scene
                       <ion-icon name="chevron-forward" slot="end"></ion-icon>
                     </ion-button>
                   </div>
@@ -181,9 +181,9 @@ import { PDFExportService } from '../../shared/services/pdf-export.service';
                       (click)="navigateToPreviousScene()"
                       [disabled]="!hasPreviousScene()"
                       class="nav-button prev-button"
-                      [attr.aria-label]="'Zur vorherigen Szene'">
+                      [attr.aria-label]="'To previous scene'">
                       <ion-icon name="chevron-back" slot="start"></ion-icon>
-                      Vorherige Szene
+                      Previous Scene
                     </ion-button>
                     
                     <ion-button 
@@ -192,15 +192,15 @@ import { PDFExportService } from '../../shared/services/pdf-export.service';
                       (click)="navigateToNextScene()"
                       [disabled]="!hasNextScene()"
                       class="nav-button next-button"
-                      [attr.aria-label]="'Zur nächsten Szene'">
-                      Nächste Szene
+                      [attr.aria-label]="'To next scene'">
+                      Next Scene
                       <ion-icon name="chevron-forward" slot="end"></ion-icon>
                     </ion-button>
                   </div>
                 </div>
                 
                 <div class="no-scene" *ngIf="!activeScene">
-                  <p>Wähle eine Szene aus der Struktur, um zu beginnen.</p>
+                  <p>Select a scene from the structure to begin.</p>
                 </div>
               </div>
             </div>
@@ -1637,12 +1637,12 @@ export class StoryEditorComponent implements OnInit, OnDestroy {
       },
       {
         icon: 'settings-outline',
-        label: 'Story Einstellungen',
+        label: 'Story Settings',
         action: () => this.goToSettings()
       },
       {
         icon: 'chatbubbles-outline',
-        label: 'Szenen Chat',
+        label: 'Scene Chat',
         action: () => this.goToSceneChat()
       },
       {
@@ -1652,7 +1652,7 @@ export class StoryEditorComponent implements OnInit, OnDestroy {
       },
       {
         icon: 'images',
-        label: 'Bildgenerierung',
+        label: 'Image Generation',
         action: () => this.headerNavService.goToImageGeneration()
       }
     ];
@@ -1991,7 +1991,7 @@ export class StoryEditorComponent implements OnInit, OnDestroy {
     this.editorView = this.proseMirrorService.createEditor(
       this.editorContainer.nativeElement,
       {
-        placeholder: 'Hier beginnt deine Szene...',
+        placeholder: 'Your scene begins here...',
         onUpdate: (signal: string) => {
           // Content changed - get it only when needed
           if (signal === '__content_changed__' && this.editorView) {

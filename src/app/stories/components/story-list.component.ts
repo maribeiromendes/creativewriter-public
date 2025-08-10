@@ -154,7 +154,7 @@ import { VersionService } from '../../core/services/version.service';
         <div class="mobile-fab-menu" *ngIf="fabMenuOpen">
           <button class="mobile-fab-option" (click)="createNewStory()">
             <ion-icon name="create"></ion-icon>
-            <span>Neue Geschichte</span>
+            <span>New Story</span>
           </button>
           <button class="mobile-fab-option" (click)="importNovelCrafter()">
             <ion-icon name="download"></ion-icon>
@@ -162,7 +162,7 @@ import { VersionService } from '../../core/services/version.service';
           </button>
           <button class="mobile-fab-option" (click)="goToImageGeneration()">
             <ion-icon name="images"></ion-icon>
-            <span>Bilder</span>
+            <span>Images</span>
           </button>
         </div>
       </div>

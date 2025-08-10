@@ -46,11 +46,11 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
               <ion-icon name="arrow-back" slot="icon-only"></ion-icon>
             </ion-button>
           </ion-buttons>
-          <ion-title>Story-Einstellungen</ion-title>
+          <ion-title>Story Settings</ion-title>
           <ion-buttons slot="end">
             <ion-chip [color]="hasUnsavedChanges ? 'warning' : 'success'">
               <ion-icon [name]="hasUnsavedChanges ? 'warning-outline' : 'checkmark-circle-outline'"></ion-icon>
-              <ion-label>{{ hasUnsavedChanges ? 'Nicht gespeichert' : 'Gespeichert' }}</ion-label>
+              <ion-label>{{ hasUnsavedChanges ? 'Not saved' : 'Saved' }}</ion-label>
             </ion-chip>
           </ion-buttons>
         </ion-toolbar>
@@ -71,11 +71,11 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
             <div *ngSwitchCase="'general'">
             <ion-card class="story-info-card">
               <ion-card-header>
-                <ion-card-title>{{ story.title || 'Unbenannte Geschichte' }}</ion-card-title>
+                <ion-card-title>{{ story.title || 'Untitled Story' }}</ion-card-title>
               </ion-card-header>
               <ion-card-content>
                 <ion-note>
-                  Erstellt: {{ story.createdAt | date:'short' }} | Zuletzt bearbeitet: {{ story.updatedAt | date:'short' }}
+                  Created: {{ story.createdAt | date:'short' }} | Last edited: {{ story.updatedAt | date:'short' }}
                 </ion-note>
               </ion-card-content>
             </ion-card>
@@ -85,11 +85,11 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
           <div *ngSwitchCase="'cover-image'">
             <ion-card class="settings-section">
               <ion-card-header>
-                <ion-card-title>Cover-Bild</ion-card-title>
+                <ion-card-title>Cover Image</ion-card-title>
               </ion-card-header>
               <ion-card-content>
                 <ion-text color="medium">
-                  <p>Setzen Sie ein Cover-Bild für Ihre Geschichte. Das Bild wird in der Story-Liste und im Editor-Header angezeigt.</p>
+                  <p>Set a cover image for your story. The image will be displayed in the story list and editor header.</p>
                 </ion-text>
                 
                 <app-image-upload
@@ -111,7 +111,7 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
               </ion-card-header>
               <ion-card-content>
                 <ion-text color="medium">
-                  <p>Diese Nachricht definiert den Kontext und die Persönlichkeit des AI-Assistenten für diese Geschichte.</p>
+                  <p>This message defines the context and personality of the AI assistant for this story.</p>
                 </ion-text>
                 <ion-textarea
                   [(ngModel)]="settings.systemMessage"
@@ -131,7 +131,7 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
               </ion-card-header>
               <ion-card-content>
                 <ion-text color="medium">
-                  <p>XML-Template für Beat-Generierung im Messages-Format. Verfügbare Platzhalter:</p>
+                  <p>XML template for beat generation in messages format. Available placeholders:</p>
                 </ion-text>
                 
                 <div class="template-placeholders">
@@ -186,8 +186,8 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
                     slot="start">
                   </ion-checkbox>
                   <ion-label>
-                    <h3>Vollständigen Story-Kontext verwenden</h3>
-                    <p>Wenn aktiviert, wird der vollständige Text aller Szenen als Kontext verwendet. Andernfalls werden nur Zusammenfassungen verwendet (falls verfügbar).</p>
+                    <h3>Use Complete Story Context</h3>
+                    <p>When enabled, the complete text of all scenes is used as context. Otherwise, only summaries are used (if available).</p>
                   </ion-label>
                 </ion-item>
 
@@ -312,7 +312,7 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
                     (click)="selectAllOrphanedImages()"
                     [disabled]="orphanedImages.length === 0">
                     <ion-icon name="checkbox-outline" slot="start"></ion-icon>
-                    Alle auswählen
+                    Select All
                   </ion-button>
 
                   <ion-button
@@ -332,7 +332,7 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
                     (click)="deleteSelectedOrphanedImages()"
                     [disabled]="selectedOrphanedImages.size === 0 || isScanning">
                     <ion-icon name="trash-outline" slot="start"></ion-icon>
-                    Löschen ({{ selectedOrphanedImages.size }})
+                    Delete ({{ selectedOrphanedImages.size }})
                   </ion-button>
                 </div>
 
@@ -390,7 +390,7 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
                     (click)="selectAllDuplicates()"
                     [disabled]="duplicateImages.length === 0">
                     <ion-icon name="checkbox-outline" slot="start"></ion-icon>
-                    Alle auswählen
+                    Select All
                   </ion-button>
 
                   <ion-button
@@ -410,7 +410,7 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
                     (click)="deleteSelectedDuplicates()"
                     [disabled]="selectedDuplicates.size === 0 || isScanning">
                     <ion-icon name="trash-outline" slot="start"></ion-icon>
-                    Duplikate löschen ({{ selectedDuplicates.size }})
+                    Delete Duplicates ({{ selectedDuplicates.size }})
                   </ion-button>
                 </div>
 
@@ -451,7 +451,7 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
               </ion-card-header>
               <ion-card-content>
                 <ion-text color="medium">
-                  <p>Überprüfung auf beschädigte oder unvollständige Geschichten.</p>
+                  <p>Check for damaged or incomplete stories.</p>
                 </ion-text>
 
                 <ion-button
@@ -511,7 +511,7 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
                     [disabled]="isScanning"
                     class="operation-button">
                     <ion-icon name="download-outline" slot="start"></ion-icon>
-                    Vollständigen Export erstellen
+                    Create Complete Export
                   </ion-button>
                 </div>
 
@@ -535,7 +535,7 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
           [disabled]="!hasUnsavedChanges"
           class="save-button">
           <ion-icon name="save-outline" slot="start"></ion-icon>
-          Einstellungen speichern
+          Save Settings
         </ion-button>
         
         <ion-button 
@@ -545,7 +545,7 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
           (click)="resetToDefaults()"
           class="reset-button">
           <ion-icon name="refresh-outline" slot="start"></ion-icon>
-          Auf Standard zurücksetzen
+          Reset to Default
         </ion-button>
         </div>
       </ion-content>
@@ -1096,7 +1096,7 @@ export class StorySettingsComponent implements OnInit {
   }
 
   resetToDefaults(): void {
-    if (confirm('Möchten Sie die Einstellungen wirklich auf die Standardwerte zurücksetzen?')) {
+    if (confirm('Do you really want to reset the settings to default values?')) {
       this.settings = { ...DEFAULT_STORY_SETTINGS };
       this.onSettingsChange();
     }
@@ -1104,7 +1104,7 @@ export class StorySettingsComponent implements OnInit {
 
   goBack(): void {
     if (this.hasUnsavedChanges) {
-      if (confirm('Sie haben ungespeicherte Änderungen. Möchten Sie die Seite wirklich verlassen?')) {
+      if (confirm('You have unsaved changes. Do you really want to leave the page?')) {
         this.navigateBack();
       }
     } else {
@@ -1156,14 +1156,14 @@ export class StorySettingsComponent implements OnInit {
   }
 
   async compactDatabase(): Promise<void> {
-    if (confirm('Möchten Sie die Datenbank wirklich komprimieren? Dies kann einige Zeit dauern.')) {
+    if (confirm('Do you really want to compress the database? This may take some time.')) {
       try {
         const result = await this.dbMaintenanceService.compactDatabase();
-        alert(`Komprimierung erfolgreich! ${result.saved} Dokumente entfernt.`);
+        alert(`Compression successful! ${result.saved} documents removed.`);
         await this.loadDatabaseStats(); // Refresh stats
       } catch (error) {
         console.error('Error compacting database:', error);
-        alert('Fehler bei der Datenbankkompress.');
+        alert('Error during database compression.');
       }
     }
   }
@@ -1172,15 +1172,15 @@ export class StorySettingsComponent implements OnInit {
     const selectedIds = Array.from(this.selectedOrphanedImages);
     if (selectedIds.length === 0) return;
 
-    if (confirm(`Möchten Sie ${selectedIds.length} verwaiste Bilder wirklich löschen?`)) {
+    if (confirm(`Do you really want to delete ${selectedIds.length} orphaned images?`)) {
       try {
         const deletedCount = await this.dbMaintenanceService.deleteOrphanedImages(selectedIds);
-        alert(`${deletedCount} Bilder erfolgreich gelöscht.`);
+        alert(`${deletedCount} images successfully deleted.`);
         await this.scanOrphanedImages(); // Refresh list
         await this.loadDatabaseStats(); // Refresh stats
       } catch (error) {
         console.error('Error deleting orphaned images:', error);
-        alert('Fehler beim Löschen der Bilder.');
+        alert('Error deleting images.');
       }
     }
   }
@@ -1194,15 +1194,15 @@ export class StorySettingsComponent implements OnInit {
 
     const totalToDelete = selectedDuplicates.reduce((sum, dup) => sum + dup.duplicateIds.length, 0);
     
-    if (confirm(`Möchten Sie ${totalToDelete} Duplikate wirklich löschen?`)) {
+    if (confirm(`Do you really want to delete ${totalToDelete} duplicates?`)) {
       try {
         const deletedCount = await this.dbMaintenanceService.deleteDuplicateImages(selectedDuplicates);
-        alert(`${deletedCount} Duplikate erfolgreich gelöscht.`);
+        alert(`${deletedCount} duplicates successfully deleted.`);
         await this.scanDuplicateImages(); // Refresh list
         await this.loadDatabaseStats(); // Refresh stats
       } catch (error) {
         console.error('Error deleting duplicates:', error);
-        alert('Fehler beim Löschen der Duplikate.');
+        alert('Error deleting duplicates.');
       }
     }
   }

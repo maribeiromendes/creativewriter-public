@@ -43,7 +43,7 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
       
       <ng-template #searchToolbar>
         <ion-searchbar
-          placeholder="Nach Titel, Inhalt oder Tags suchen..."
+          placeholder="Search by title, content, or tags..."
           [(ngModel)]="searchQuery"
           (ionInput)="onSearch()"
           debounce="300">
@@ -58,7 +58,7 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
             <ion-col size="12" size-md="3" class="categories-sidebar">
               <ion-card>
                 <ion-card-header>
-                  <ion-card-title>Kategorien</ion-card-title>
+                  <ion-card-title>Categories</ion-card-title>
                 </ion-card-header>
                 <ion-card-content>
                   <ion-list>
@@ -70,7 +70,7 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
                       <ion-icon [name]="getDefaultIcon()" slot="start"></ion-icon>
                       <ion-label>
                         <h3>{{ category.icon }} {{ category.title }}</h3>
-                        <p>{{ category.entries.length }} Einträge</p>
+                        <p>{{ category.entries.length }} entries</p>
                       </ion-label>
                       <ion-button 
                         fill="clear" 
@@ -84,11 +84,11 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
                       <ion-list *ngIf="categoryMenuId() === category.id" class="category-menu">
                         <ion-item button (click)="editCategory()">
                           <ion-icon name="create" slot="start"></ion-icon>
-                          <ion-label>Bearbeiten</ion-label>
+                          <ion-label>Edit</ion-label>
                         </ion-item>
                         <ion-item button (click)="deleteCategory(category.id)" color="danger">
                           <ion-icon name="trash" slot="start"></ion-icon>
-                          <ion-label>Löschen</ion-label>
+                          <ion-label>Delete</ion-label>
                         </ion-item>
                       </ion-list>
                     </ion-item>
@@ -158,7 +158,7 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
                           size="small" 
                           (click)="createNewEntry()">
                           <ion-icon name="add" slot="start"></ion-icon>
-                          Eintrag hinzufügen
+                          Add Entry
                         </ion-button>
                       </div>
                     </ion-card-header>
@@ -226,7 +226,7 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
         <ng-template>
           <ion-header>
             <ion-toolbar color="primary">
-              <ion-title>{{ editingEntry.title || 'Eintrag bearbeiten' }}</ion-title>
+              <ion-title>{{ editingEntry.title || 'Edit Entry' }}</ion-title>
               <ion-buttons slot="end">
                 <ion-button (click)="closeEntryModal()">
                   <ion-icon name="close" slot="icon-only"></ion-icon>
@@ -312,10 +312,10 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
                     <ion-label position="stacked">Story-Rolle</ion-label>
                     <ion-select 
                       [(ngModel)]="editingEntry.storyRole"
-                      placeholder="Rolle auswählen..."
+                      placeholder="Select role..."
                       interface="popover"
                       class="role-select">
-                      <ion-select-option value="">Keine Rolle</ion-select-option>
+                      <ion-select-option value="">No Role</ion-select-option>
                       <ion-select-option 
                         *ngFor="let role of storyRoles" 
                         [value]="role.value">
@@ -356,7 +356,7 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
                     [disabled]="!newCustomFieldName.trim()"
                     (click)="addCustomField()">
                     <ion-icon name="add" slot="start"></ion-icon>
-                    Feld hinzufügen
+                    Add Field
                   </ion-button>
                 </div>
                   
@@ -394,7 +394,7 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
                   <!-- Add new custom field form -->
                   <div class="new-custom-field">
                     <ion-item lines="none" class="form-item">
-                      <ion-label position="stacked">Neuer Feldname</ion-label>
+                      <ion-label position="stacked">New Field Name</ion-label>
                       <ion-input 
                         [(ngModel)]="newCustomFieldName" 
                         placeholder="Feldname eingeben...">
@@ -435,11 +435,11 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
               <div class="modal-actions">
                 <ion-button (click)="deleteEntry()" fill="outline" color="danger" size="default">
                   <ion-icon name="trash" slot="start"></ion-icon>
-                  Löschen
+                  Delete
                 </ion-button>
                 <ion-button (click)="saveEntry()" color="primary" size="default">
                   <ion-icon name="save" slot="start"></ion-icon>
-                  Speichern
+                  Save
                 </ion-button>
               </div>
             </div>
@@ -1284,7 +1284,7 @@ export class CodexComponent implements OnInit, OnDestroy {
     const storyId = this.storyId();
     if (!storyId) return;
 
-    if (confirm('Kategorie und alle Einträge löschen?')) {
+    if (confirm('Delete category and all entries?')) {
       try {
         await this.codexService.deleteCategory(storyId, categoryId);
         if (this.selectedCategoryId() === categoryId) {
@@ -1356,7 +1356,7 @@ export class CodexComponent implements OnInit, OnDestroy {
     const entry = this.selectedEntry();
     if (!storyId || !entry) return;
 
-    if (confirm('Eintrag löschen?')) {
+    if (confirm('Delete entry?')) {
       try {
         await this.codexService.deleteEntry(storyId, entry.categoryId, entry.id);
         this.closeEntryModal();

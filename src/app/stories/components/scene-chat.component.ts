@@ -67,7 +67,7 @@ interface PresetPrompt {
   template: `
     <div class="ion-page">
       <app-header 
-        title="Szenen-Chat" 
+        title="Scene Chat" 
         [showBackButton]="true"
         [backAction]="goBack.bind(this)"
         [rightActions]="headerActions"
@@ -83,7 +83,7 @@ interface PresetPrompt {
                      bindValue="id"
                      [clearable]="false"
                      [searchable]="true"
-                     placeholder="Modell auswählen..."
+                     placeholder="Select model..."
                      class="model-select"
                      appendTo="body">
             <ng-template ng-option-tmp let-item="item">
@@ -103,7 +103,7 @@ interface PresetPrompt {
       <ion-content class="chat-content" [scrollEvents]="true">
         <div class="context-chips" *ngIf="selectedScenes.length > 0 || includeStoryOutline">
           <ion-chip *ngIf="includeStoryOutline" color="success">
-            <ion-label>Geschichte-Überblick</ion-label>
+            <ion-label>Story Overview</ion-label>
             <ion-icon 
               name="close-outline" 
               (click)="includeStoryOutline = false">
@@ -147,7 +147,7 @@ interface PresetPrompt {
                   color="primary"
                   (click)="addToCodex(message)">
                   <ion-icon name="add-outline" slot="start"></ion-icon>
-                  Zum Codex hinzufügen
+                  Add to Codex
                 </ion-button>
               </div>
             </div>
@@ -175,7 +175,7 @@ interface PresetPrompt {
           <ion-textarea
             #messageInput
             [(ngModel)]="currentMessage"
-            placeholder="Stelle eine Frage zu deiner Szene..."
+            placeholder="Ask a question about your scene..."
             [autoGrow]="true"
             [rows]="1"
             (keydown.enter)="onEnterKey($any($event))"
@@ -199,7 +199,7 @@ interface PresetPrompt {
       <ng-template>
         <ion-header>
           <ion-toolbar>
-            <ion-title>Szenen als Kontext hinzufügen</ion-title>
+            <ion-title>Add Scenes as Context</ion-title>
             <ion-buttons slot="end">
               <ion-button (click)="showSceneSelector = false">
                 <ion-icon name="close-outline" slot="icon-only"></ion-icon>
@@ -210,7 +210,7 @@ interface PresetPrompt {
         <ion-content>
           <ion-searchbar 
             [(ngModel)]="sceneSearchTerm" 
-            placeholder="Szene suchen..."
+            placeholder="Search scenes..."
             animated="true">
           </ion-searchbar>
           
@@ -243,7 +243,7 @@ interface PresetPrompt {
       <ng-template>
         <ion-header>
           <ion-toolbar>
-            <ion-title>Vorgefertigte Prompts</ion-title>
+            <ion-title>Predefined Prompts</ion-title>
             <ion-buttons slot="end">
               <ion-button (click)="showPresetPrompts = false">
                 <ion-icon name="close-outline" slot="icon-only"></ion-icon>
@@ -797,7 +797,7 @@ export class SceneChatComponent implements OnInit, OnDestroy {
       // Add initial system message
       this.messages.push({
         role: 'assistant',
-        content: 'Hallo! Ich bin dein KI-Assistent für diese Szene. Ich arbeite ausschließlich mit dem Kontext der ausgewählten Szenen. Du kannst mir Fragen stellen, um Charaktere zu extrahieren, Details zu analysieren oder Ideen zu entwickeln.',
+        content: 'Hello! I am your AI assistant for this scene. I work exclusively with the context of selected scenes. You can ask me questions to extract characters, analyze details, or develop ideas.',
         timestamp: new Date()
       });
     }
@@ -1059,8 +1059,8 @@ export class SceneChatComponent implements OnInit, OnDestroy {
     this.presetPrompts = [
       {
         id: 'extract-characters',
-        title: 'Charaktere extrahieren',
-        description: 'Extrahiere alle Charaktere aus den ausgewählten Szenen',
+        title: 'Extract Characters',
+        description: 'Extract all characters from selected scenes',
         extractionType: 'characters',
         icon: 'person-outline',
         prompt: `Bitte analysiere die folgenden Szenen und extrahiere alle Charaktere. Für jeden Charakter gib folgende Informationen an:
@@ -1075,8 +1075,8 @@ Strukturiere die Antwort klar nach Charakteren getrennt.`
       },
       {
         id: 'extract-locations',
-        title: 'Orte extrahieren',
-        description: 'Extrahiere alle Schauplätze und Orte aus den Szenen',
+        title: 'Extract Locations',
+        description: 'Extract all locations and places from scenes',
         extractionType: 'locations',
         icon: 'location-outline',
         prompt: `Bitte analysiere die folgenden Szenen und extrahiere alle Orte und Schauplätze. Für jeden Ort gib folgende Informationen an:
@@ -1091,8 +1091,8 @@ Strukturiere die Antwort klar nach Orten getrennt.`
       },
       {
         id: 'extract-objects',
-        title: 'Gegenstände extrahieren',
-        description: 'Extrahiere wichtige Objekte und Gegenstände',
+        title: 'Extract Objects',
+        description: 'Extract important objects and items',
         extractionType: 'objects',
         icon: 'cube-outline',
         prompt: `Bitte analysiere die folgenden Szenen und extrahiere alle wichtigen Gegenstände und Objekte. Für jeden Gegenstand gib folgende Informationen an:
@@ -1593,7 +1593,7 @@ Strukturiere die Antwort klar nach Gegenständen getrennt.`
     // Filter out system messages, preset prompts, and the current message being processed
     const relevantMessages = this.messages.filter(message => {
       // Skip initial system message
-      if (message.content.includes('Hallo! Ich bin dein KI-Assistent')) {
+      if (message.content.includes('Hello! I am your AI assistant')) {
         return false;
       }
       // Skip preset prompt messages (they have extractionType but we want to keep extraction results)

@@ -85,7 +85,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
                     (click)="loadCombinedModels()" 
                     [disabled]="(!settings.openRouter.enabled || !settings.openRouter.apiKey) && (!settings.googleGemini.enabled || !settings.googleGemini.apiKey) || loadingModels"
                     title="Modelle laden">
-                    {{ loadingModels ? 'Laden...' : 'Modelle laden' }}
+                    {{ loadingModels ? 'Loading...' : 'Load Models' }}
                   </ion-button>
                 </div>
                 <ng-select [(ngModel)]="settings.selectedModel"
@@ -95,7 +95,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
                            [searchable]="true"
                            [clearable]="true"
                            [disabled]="(!settings.openRouter.enabled || !settings.openRouter.apiKey) && (!settings.googleGemini.enabled || !settings.googleGemini.apiKey)"
-                           placeholder="Modell auswählen oder suchen..."
+                           placeholder="Select or search model..."
                            (ngModelChange)="onGlobalModelChange()"
                            [loading]="loadingModels"
                            [virtualScroll]="true"
@@ -118,10 +118,10 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
                 <div class="model-info">
                   <p *ngIf="modelLoadError" class="error-text">{{ modelLoadError }}</p>
                   <p *ngIf="!modelLoadError && combinedModels.length > 0" class="info-text">
-                    {{ combinedModels.length }} Modelle verfügbar. Preise in EUR pro 1M Tokens.
+                    {{ combinedModels.length }} models available. Prices in EUR per 1M tokens.
                   </p>
                   <p *ngIf="!modelLoadError && combinedModels.length === 0 && (settings.openRouter.enabled || settings.googleGemini.enabled)" class="info-text">
-                    Klicken Sie "Modelle laden" um verfügbare Modelle anzuzeigen.
+                    Click 'Load Models' to display available models.
                   </p>
                 </div>
               </div>
@@ -199,7 +199,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
           </ion-card-header>
           <ion-card-content>
             <ion-item>
-              <ion-label>Replicate aktivieren</ion-label>
+              <ion-label>Enable Replicate</ion-label>
               <ion-toggle 
                 [(ngModel)]="settings.replicate.enabled"
                 (ngModelChange)="onProviderToggle('replicate')"
@@ -216,7 +216,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
                 [disabled]="!settings.replicate.enabled"
                 label="API Key"
                 labelPlacement="stacked"
-                helperText="Ihren Replicate API Key finden Sie unter replicate.com/account/api-tokens">
+                helperText="Find your Replicate API key at replicate.com/account/api-tokens">
               </ion-input>
             </ion-item>
 
@@ -230,7 +230,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
                     (click)="loadModels()" 
                     [disabled]="!settings.replicate.enabled || !settings.replicate.apiKey || loadingModels"
                     title="Modelle von Replicate laden">
-                    {{ loadingModels ? 'Laden...' : 'Modelle laden' }}
+                    {{ loadingModels ? 'Loading...' : 'Load Models' }}
                   </ion-button>
                 </div>
                 <ng-select [(ngModel)]="settings.replicate.model"
@@ -240,7 +240,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
                            [searchable]="true"
                            [clearable]="true"
                            [disabled]="!settings.replicate.enabled"
-                           placeholder="Modell auswählen oder suchen..."
+                           placeholder="Select or search model..."
                            (ngModelChange)="onSettingsChange()"
                            [loading]="loadingModels"
                            [virtualScroll]="true"
@@ -249,10 +249,10 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
                 <div class="model-info">
                   <p *ngIf="modelLoadError" class="error-text">{{ modelLoadError }}</p>
                   <p *ngIf="!modelLoadError && replicateModels.length > 0" class="info-text">
-                    {{ replicateModels.length }} Modelle verfügbar. Preise geschätzt in EUR pro 1M Tokens.
+                    {{ replicateModels.length }} models available. Estimated prices in EUR per 1M tokens.
                   </p>
                   <p *ngIf="!modelLoadError && replicateModels.length === 0 && settings.replicate.enabled" class="info-text">
-                    Klicken Sie "Modelle laden" um verfügbare Modelle anzuzeigen.
+                    Click 'Load Models' to display available models.
                   </p>
                   <p *ngIf="!settings.replicate.enabled" class="info-text">
                     Format: owner/model-name (z.B. meta/llama-2-70b-chat)
@@ -266,7 +266,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
                 type="text"
                 [(ngModel)]="settings.replicate.version"
                 (ngModelChange)="onSettingsChange()"
-                placeholder="Lassen Sie leer für die neueste Version"
+                placeholder="Leave empty for latest version"
                 [disabled]="!settings.replicate.enabled"
                 label="Version (optional)"
                 labelPlacement="stacked">
@@ -282,7 +282,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
           </ion-card-header>
           <ion-card-content>
             <ion-item>
-              <ion-label>Google Gemini aktivieren</ion-label>
+              <ion-label>Enable Google Gemini</ion-label>
               <ion-toggle 
                 [(ngModel)]="settings.googleGemini.enabled"
                 (ngModelChange)="onProviderToggle('googleGemini')"
@@ -338,10 +338,10 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
 
             <!-- Content Filter Settings -->
             <div *ngIf="settings.googleGemini.enabled" class="content-filter-section">
-              <h4 class="section-title">Content Filter Einstellungen</h4>
+              <h4 class="section-title">Content Filter Settings</h4>
               
               <ion-item>
-                <ion-label>Belästigung</ion-label>
+                <ion-label>Harassment</ion-label>
                 <ion-select
                   [(ngModel)]="settings.googleGemini.contentFilter.harassment"
                   (ngModelChange)="onSettingsChange()"
@@ -383,7 +383,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
               </ion-item>
 
               <ion-item>
-                <ion-label>Gefährlicher Inhalt</ion-label>
+                <ion-label>Dangerous Content</ion-label>
                 <ion-select
                   [(ngModel)]="settings.googleGemini.contentFilter.dangerousContent"
                   (ngModelChange)="onSettingsChange()"
@@ -397,7 +397,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
               </ion-item>
 
               <ion-item>
-                <ion-label>Bürgerliche Integrität</ion-label>
+                <ion-label>Civic Integrity</ion-label>
                 <ion-select
                   [(ngModel)]="settings.googleGemini.contentFilter.civicIntegrity"
                   (ngModelChange)="onSettingsChange()"
@@ -413,7 +413,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
 
             <div class="model-info" *ngIf="settings.googleGemini.enabled">
               <p class="info-text">
-                <strong>Content Filter:</strong> Konfigurierbare Sicherheitseinstellungen für verschiedene Inhaltskategorien.
+                <strong>Content Filter:</strong> Configurable safety settings for different content categories.
               </p>
             </div>
           </ion-card-content>
@@ -458,7 +458,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
           <div *ngSwitchCase="'scene-title'">
             <ion-card>
           <ion-card-header>
-            <ion-card-title>Szenentitel-Generierung</ion-card-title>
+            <ion-card-title>Scene Title Generation</ion-card-title>
           </ion-card-header>
           <ion-card-content>
             <ion-item>
@@ -492,7 +492,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
             </ion-item>
 
             <ion-item>
-              <ion-label>Sprache</ion-label>
+              <ion-label>Language</ion-label>
               <ion-select
                 [(ngModel)]="settings.sceneTitleGeneration.language"
                 (ngModelChange)="onSettingsChange()"
@@ -504,7 +504,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
             </ion-item>
 
             <ion-item>
-              <ion-label>Genre berücksichtigen</ion-label>
+              <ion-label>Consider Genre</ion-label>
               <ion-toggle
                 [(ngModel)]="settings.sceneTitleGeneration.includeGenre"
                 (ngModelChange)="onSettingsChange()"
@@ -513,7 +513,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
             </ion-item>
 
             <ion-item>
-              <ion-label>Kreativität (Temperature)</ion-label>
+              <ion-label>Creativity (Temperature)</ion-label>
               <ion-range
                 [(ngModel)]="settings.sceneTitleGeneration.temperature"
                 (ngModelChange)="onSettingsChange()"
@@ -528,7 +528,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
             </ion-item>
             
             <ion-item>
-              <ion-label position="stacked">AI-Modell für Szenentitel</ion-label>
+              <ion-label position="stacked">AI Model for Scene Titles</ion-label>
               <div class="model-selection-container">
                 <ng-select [(ngModel)]="settings.sceneTitleGeneration.selectedModel"
                            [items]="combinedModels"
@@ -537,7 +537,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
                            [searchable]="true"
                            [clearable]="true"
                            [disabled]="(!settings.openRouter.enabled || !settings.openRouter.apiKey) && (!settings.googleGemini.enabled || !settings.googleGemini.apiKey)"
-                           placeholder="Modell auswählen (leer = globales Modell verwenden)"
+                           placeholder="Select model (empty = use global model)"
                            (ngModelChange)="onSceneTitleModelChange()"
                            [loading]="loadingModels"
                            [virtualScroll]="true"
@@ -562,18 +562,18 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
                     Kein Modell ausgewählt - das globale Modell wird verwendet
                   </p>
                   <p *ngIf="settings.sceneTitleGeneration.selectedModel" class="info-text">
-                    Spezifisches Modell für Szenentitel: {{ getModelDisplayName(settings.sceneTitleGeneration.selectedModel) }}
+                    Specific model for scene titles: {{ getModelDisplayName(settings.sceneTitleGeneration.selectedModel) }}
                   </p>
                 </div>
               </div>
             </ion-item>
 
             <ion-item>
-              <ion-label position="stacked">Zusätzliche Anweisungen (optional)</ion-label>
+              <ion-label position="stacked">Additional Instructions (optional)</ion-label>
               <ion-textarea
                 [(ngModel)]="settings.sceneTitleGeneration.customInstruction"
                 (ngModelChange)="onSettingsChange()"
-                placeholder="z.B. 'Verwende keine Artikel' oder 'Fokussiere auf Emotionen'"
+                placeholder="e.g. 'Don't use articles' or 'Focus on emotions'"
                 rows="3"
                 auto-grow="true">
               </ion-textarea>
@@ -598,7 +598,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
               <ion-textarea
                 [(ngModel)]="settings.sceneTitleGeneration.customPrompt"
                 (ngModelChange)="onSettingsChange()"
-                placeholder="Erstelle einen kurzen Titel für die folgende Szene..."
+                placeholder="Create a short title for the following scene..."
                 rows="8"
                 auto-grow="true">
               </ion-textarea>
@@ -617,11 +617,11 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
           <div *ngSwitchCase="'scene-summary'">
             <ion-card>
           <ion-card-header>
-            <ion-card-title>Szenen-Zusammenfassung</ion-card-title>
+            <ion-card-title>Scene Summary</ion-card-title>
           </ion-card-header>
           <ion-card-content>
             <ion-item>
-              <ion-label>Kreativität (Temperature)</ion-label>
+              <ion-label>Creativity (Temperature)</ion-label>
               <ion-range
                 [(ngModel)]="settings.sceneSummaryGeneration.temperature"
                 (ngModelChange)="onSettingsChange()"
@@ -636,7 +636,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
             </ion-item>
 
             <ion-item>
-              <ion-label position="stacked">AI-Modell für Szenen-Zusammenfassung</ion-label>
+              <ion-label position="stacked">AI Model for Scene Summary</ion-label>
               <div class="model-selection-container">
                 <ng-select [(ngModel)]="settings.sceneSummaryGeneration.selectedModel"
                            [items]="combinedModels"
@@ -645,7 +645,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
                            [searchable]="true"
                            [clearable]="true"
                            [disabled]="(!settings.openRouter.enabled || !settings.openRouter.apiKey) && (!settings.googleGemini.enabled || !settings.googleGemini.apiKey)"
-                           placeholder="Modell auswählen (leer = globales Modell verwenden)"
+                           placeholder="Select model (empty = use global model)"
                            (ngModelChange)="onSceneSummaryModelChange()"
                            [loading]="loadingModels"
                            [virtualScroll]="true"
@@ -666,18 +666,18 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
                     Kein Modell ausgewählt - das globale Modell wird verwendet
                   </p>
                   <p *ngIf="settings.sceneSummaryGeneration.selectedModel" class="info-text">
-                    Spezifisches Modell für Szenen-Zusammenfassung: {{ getModelDisplayName(settings.sceneSummaryGeneration.selectedModel) }}
+                    Specific model for scene summary: {{ getModelDisplayName(settings.sceneSummaryGeneration.selectedModel) }}
                   </p>
                 </div>
               </div>
             </ion-item>
 
             <ion-item>
-              <ion-label position="stacked">Zusätzliche Anweisungen (optional)</ion-label>
+              <ion-label position="stacked">Additional Instructions (optional)</ion-label>
               <ion-textarea
                 [(ngModel)]="settings.sceneSummaryGeneration.customInstruction"
                 (ngModelChange)="onSettingsChange()"
-                placeholder="z.B. 'Fokussiere auf emotionale Aspekte' oder 'Erwähne wichtige Objekte'"
+                placeholder="e.g. 'Focus on emotional aspects' or 'Mention important objects'"
                 rows="3"
                 auto-grow="true">
               </ion-textarea>
@@ -702,7 +702,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
               <ion-textarea
                 [(ngModel)]="settings.sceneSummaryGeneration.customPrompt"
                 (ngModelChange)="onSettingsChange()"
-                placeholder="Erstelle eine Zusammenfassung der folgenden Szene..."
+                placeholder="Create a summary of the following scene..."
                 rows="8"
                 auto-grow="true">
               </ion-textarea>
@@ -721,10 +721,10 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
         <!-- Actions -->
         <div class="settings-actions">
           <ion-button expand="block" color="primary" (click)="saveSettings()" [disabled]="!hasUnsavedChanges">
-            Einstellungen speichern
+            Save Settings
           </ion-button>
           <ion-button expand="block" fill="outline" color="medium" (click)="resetSettings()">
-            Auf Standard zurücksetzen
+            Reset to Default
           </ion-button>
         </div>
       </app-settings-content>
@@ -1450,7 +1450,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
     { value: 'models', icon: 'cloud-outline', label: 'AI Modelle' },
     { value: 'appearance', icon: 'color-palette-outline', label: 'Darstellung' },
     { value: 'scene-title', icon: 'document-text-outline', label: 'Szenentitel' },
-    { value: 'scene-summary', icon: 'list-outline', label: 'Szenen-Zusammenfassung' }
+    { value: 'scene-summary', icon: 'list-outline', label: 'Scene Summary' }
   ];
 
   constructor() {
@@ -1534,7 +1534,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
   }
 
   resetSettings(): void {
-    if (confirm('Sind Sie sicher, dass Sie alle Einstellungen auf die Standardwerte zurücksetzen möchten?')) {
+    if (confirm('Are you sure you want to reset all settings to default values?')) {
       this.settingsService.clearSettings();
       // Clear preview background
       this.backgroundService.clearPreviewBackground();
@@ -1547,7 +1547,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
       next: () => { /* Do nothing - models are loaded */ },
       error: (error) => {
         console.error('Failed to load models:', error);
-        this.modelLoadError = 'Fehler beim Laden der Modelle. Überprüfen Sie Ihre API-Keys und Internetverbindung.';
+        this.modelLoadError = 'Error loading models. Check your API keys and internet connection.';
       }
     });
   }
@@ -1645,7 +1645,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
   goBack(): void {
     if (this.hasUnsavedChanges) {
-      if (confirm('Sie haben ungespeicherte Änderungen. Möchten Sie die Seite wirklich verlassen?')) {
+      if (confirm('You have unsaved changes. Do you really want to leave the page?')) {
         // Clear preview background since we're discarding changes
         this.backgroundService.clearPreviewBackground();
         this.router.navigate(['/']);
@@ -1659,7 +1659,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
   goToAILogs(): void {
     if (this.hasUnsavedChanges) {
-      if (confirm('Sie haben ungespeicherte Änderungen. Möchten Sie die Seite wirklich verlassen?')) {
+      if (confirm('You have unsaved changes. Do you really want to leave the page?')) {
         // Clear preview background since we're discarding changes
         this.backgroundService.clearPreviewBackground();
         this.router.navigate(['/logs']);
@@ -1680,7 +1680,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         console.error('Failed to load combined models:', error);
-        this.modelLoadError = 'Fehler beim Laden der Modelle. Überprüfen Sie Ihre API-Keys und Internetverbindung.';
+        this.modelLoadError = 'Error loading models. Check your API keys and internet connection.';
       }
     });
   }
