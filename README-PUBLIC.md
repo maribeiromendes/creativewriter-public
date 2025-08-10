@@ -18,20 +18,6 @@ Enjoying CreativeWriter? Consider supporting its development:
 
 Your support helps keep this project free and open-source for the self-hosting community!
 
-## 📸 Screenshots
-
-### Story Management Dashboard
-![Story Overview](https://raw.githubusercontent.com/MarcoDroll/creativewriter-public/main/docs/screenshots/story-overview.png)
-*Organize and manage multiple writing projects*
-
-### Professional Writing Environment
-![Editor View](https://raw.githubusercontent.com/MarcoDroll/creativewriter-public/main/docs/screenshots/editor-view.png)
-*Rich text editor with story structure and codex integration*
-
-### AI-Powered Writing Assistant
-![Beat AI](https://raw.githubusercontent.com/MarcoDroll/creativewriter-public/main/docs/screenshots/beat-ai.png)
-*Context-aware AI suggestions for plot development*
-
 ## 🚀 Quick Start for Self-Hosters
 
 ### Zero-Configuration Deployment
