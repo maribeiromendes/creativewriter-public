@@ -172,7 +172,7 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
           <div *ngSwitchCase="'beat-config'">
             <ion-card class="settings-section">
               <ion-card-header>
-                <ion-card-title>Beat AI Konfiguration</ion-card-title>
+                <ion-card-title>Beat AI Configuration</ion-card-title>
               </ion-card-header>
               <ion-card-content>
                 <ion-text color="medium">
@@ -203,11 +203,11 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
                   (ionChange)="onSettingsChange()">
                   <ion-item>
                     <ion-radio slot="start" value="continue"></ion-radio>
-                    <ion-label>Setze die Geschichte fort</ion-label>
+                    <ion-label>Continue the story</ion-label>
                   </ion-item>
                   <ion-item>
                     <ion-radio slot="start" value="stay"></ion-radio>
-                    <ion-label>Bleibe im Moment</ion-label>
+                    <ion-label>Stay in the moment</ion-label>
                   </ion-item>
                 </ion-radio-group>
               </ion-card-content>
@@ -1012,11 +1012,11 @@ export class StorySettingsComponent implements OnInit {
   private originalSettings!: StorySettings;
   selectedTab = 'general';
   tabItems: TabItem[] = [
-    { value: 'general', icon: 'information-circle-outline', label: 'Allgemein' },
-    { value: 'cover-image', icon: 'image-outline', label: 'Cover-Bild' },
+    { value: 'general', icon: 'information-circle-outline', label: 'General' },
+    { value: 'cover-image', icon: 'image-outline', label: 'Cover Image' },
     { value: 'ai-system', icon: 'chatbox-outline', label: 'AI System' },
     { value: 'beat-config', icon: 'settings-outline', label: 'Beat Config' },
-    { value: 'db-maintenance', icon: 'server-outline', label: 'DB-Wartung' }
+    { value: 'db-maintenance', icon: 'server-outline', label: 'DB Maintenance' }
   ];
   
   placeholders = [

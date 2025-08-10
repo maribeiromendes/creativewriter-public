@@ -24,7 +24,7 @@ export interface StorySettings {
   systemMessage: string;
   beatGenerationTemplate: string; // Advanced template for beat generation
   useFullStoryContext: boolean; // true = full story, false = summaries only
-  beatInstruction: 'continue' | 'stay'; // continue = "Setze die Geschichte fort", stay = "Bleibe im Moment"
+  beatInstruction: 'continue' | 'stay'; // continue = "Continue the story", stay = "Stay in the moment"
 }
 
 export interface Story {

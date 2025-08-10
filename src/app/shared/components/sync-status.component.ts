@@ -177,15 +177,15 @@ export class SyncStatusComponent implements OnInit, OnDestroy {
         return 'DB nicht erreichbar';
       }
       if (errorText.includes('timeout')) {
-        return 'Verbindung timeout';
+        return 'Connection timeout';
       }
       if (errorText.includes('auth')) {
-        return 'Anmeldung fehlgeschlagen';
+        return 'Login failed';
       }
       // Generic truncation for other errors
-      return errorText.length > 30 ? `Fehler: ${errorText.substring(0, 27)}...` : `Fehler: ${errorText}`;
+      return errorText.length > 30 ? `Error: ${errorText.substring(0, 27)}...` : `Error: ${errorText}`;
     }
-    if (this.syncStatus.isSync) return 'Synchronisiert...';
+    if (this.syncStatus.isSync) return 'Syncing...';
     if (!this.syncStatus.isOnline) return 'Offline';
     
     const lastSync = this.syncStatus.lastSync;

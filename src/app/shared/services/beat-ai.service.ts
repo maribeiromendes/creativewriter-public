@@ -487,8 +487,8 @@ export class BeatAIService {
           prompt: userPrompt,
           pointOfView: pointOfView,
           writingStyle: story.settings!.beatInstruction === 'continue' 
-            ? 'Setze die Geschichte fort' 
-            : 'Bleibe im Moment'
+            ? 'Continue the story' 
+            : 'Stay in the moment'
         };
 
         // Log the final codex text to debug
