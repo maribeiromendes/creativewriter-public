@@ -31,7 +31,7 @@ import { TokenCounterService, SupportedModel, TokenCountResult } from '../servic
   template: `
     <ion-header>
       <ion-toolbar>
-        <ion-title>Token-Analyse</ion-title>
+        <ion-title>Token Analysis</ion-title>
         <ion-buttons slot="end">
           <ion-button (click)="dismiss()">
             <ion-icon name="close-outline"></ion-icon>
@@ -46,7 +46,7 @@ import { TokenCounterService, SupportedModel, TokenCountResult } from '../servic
           <ion-label>
             <div class="loading-content">
               <div class="spinner"></div>
-              <p>Ermittle genaue Token-Anzahl...</p>
+              <p>Determining exact token count...</p>
             </div>
           </ion-label>
         </ion-item>
@@ -65,11 +65,11 @@ import { TokenCounterService, SupportedModel, TokenCountResult } from '../servic
         <!-- Token Count -->
         <ion-item>
           <ion-label>
-            <h3>Token-Anzahl</h3>
+            <h3>Token Count</h3>
             <p>{{ tokenResult.tokens }} Tokens</p>
           </ion-label>
           <ion-note slot="end" color="medium">
-            ~{{ Math.round(tokenResult.tokens * 1.33) }} Wörter
+            ~{{ Math.round(tokenResult.tokens * 1.33) }} words
           </ion-note>
         </ion-item>
 
@@ -88,8 +88,8 @@ import { TokenCounterService, SupportedModel, TokenCountResult } from '../servic
               [color]="getProgressColor(usagePercentage)">
             </ion-progress-bar>
             <div class="usage-text">
-              <span>{{ usagePercentage.toFixed(2) }}% verwendet</span>
-              <span>{{ formatNumber(modelInfo.contextWindow - tokenResult.tokens) }} Tokens verfügbar</span>
+              <span>{{ usagePercentage.toFixed(2) }}% used</span>
+              <span>{{ formatNumber(modelInfo.contextWindow - tokenResult.tokens) }} tokens available</span>
             </div>
           </div>
         </ion-item>
@@ -101,7 +101,7 @@ import { TokenCounterService, SupportedModel, TokenCountResult } from '../servic
             <p>{{ formatNumber(modelInfo.outputLimit) }} Tokens</p>
           </ion-label>
           <ion-note slot="end" color="medium">
-            ~{{ formatNumber(Math.round(modelInfo.outputLimit * 0.75)) }} Wörter
+            ~{{ formatNumber(Math.round(modelInfo.outputLimit * 0.75)) }} words
           </ion-note>
         </ion-item>
 
@@ -110,8 +110,8 @@ import { TokenCounterService, SupportedModel, TokenCountResult } from '../servic
           <ion-icon name="information-circle-outline" slot="start" color="medium"></ion-icon>
           <ion-label class="ion-text-wrap">
             <p class="info-text">
-              Diese Schätzung basiert auf durchschnittlichen Token-zu-Zeichen-Verhältnissen.
-              Die tatsächliche Token-Anzahl kann leicht abweichen.
+              This estimate is based on average token-to-character ratios.
+              The actual token count may vary slightly.
             </p>
           </ion-label>
         </ion-item>
@@ -119,7 +119,7 @@ import { TokenCounterService, SupportedModel, TokenCountResult } from '../servic
         <!-- Model Comparison -->
         <ion-item lines="none" *ngIf="showComparison">
           <ion-label>
-            <h3>Vergleich mit anderen Modellen</h3>
+            <h3>Comparison with other models</h3>
           </ion-label>
         </ion-item>
         

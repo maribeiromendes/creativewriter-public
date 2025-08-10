@@ -239,7 +239,7 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
                           <ion-text color="primary">
                             <h3>{{ databaseStats.totalStories }}</h3>
                           </ion-text>
-                          <ion-note>Geschichten</ion-note>
+                          <ion-note>Stories</ion-note>
                         </div>
                       </ion-col>
                       <ion-col size="6" size-md="3">
@@ -292,7 +292,7 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
               </ion-card-header>
               <ion-card-content>
                 <ion-text color="medium">
-                  <p>Bilder, die nicht mehr in Geschichten verwendet werden.</p>
+                  <p>Images that are no longer used in stories.</p>
                 </ion-text>
 
                 <div class="action-buttons">
@@ -480,7 +480,7 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
 
                 <div *ngIf="integrityIssues.length === 0 && !isScanning" class="empty-state">
                   <ion-text color="success">
-                    <p>Alle Geschichten sind intakt oder noch nicht geprüft.</p>
+                    <p>All stories are intact or not yet checked.</p>
                   </ion-text>
                 </div>
               </ion-card-content>
@@ -518,7 +518,7 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
                 <ion-text color="medium">
                   <p>
                     <strong>Komprimieren:</strong> Entfernt gelöschte Daten und reduziert die Datenbankgröße.<br>
-                    <strong>Export:</strong> Erstellt eine JSON-Datei mit allen Geschichten und Bildern.
+                    <strong>Export:</strong> Creates a JSON file with all stories and images.
                   </p>
                 </ion-text>
               </ion-card-content>

@@ -30,7 +30,7 @@ import { VersionService } from '../../core/services/version.service';
   ],
   template: `
     <app-header
-      title="Meine Geschichten"
+      title="My Stories"
       [showBurgerMenu]="true"
       [burgerMenuItems]="burgerMenuItems"
       [burgerMenuFooterContent]="burgerMenuFooter"
@@ -70,7 +70,7 @@ import { VersionService } from '../../core/services/version.service';
       <div class="app-branding">
         <h1 class="app-title">
           <span class="app-name">Creative Writer</span>
-          <span class="app-tagline">Deine Geschichten, deine Welt</span>
+          <span class="app-tagline">Your Stories, Your World</span>
         </h1>
         <div class="brand-decoration"></div>
       </div>
@@ -126,7 +126,7 @@ import { VersionService } from '../../core/services/version.service';
             <p class="story-preview">{{ getStoryPreview(story) }}</p>
             <div class="story-chips">
               <ion-chip color="medium">
-                <span>{{ getWordCount(story) }} Wörter</span>
+                <span>{{ getWordCount(story) }} words</span>
               </ion-chip>
               <ion-chip color="medium">
                 <span>{{ story.updatedAt | date:'short' }}</span>
@@ -138,7 +138,7 @@ import { VersionService } from '../../core/services/version.service';
       
       <ng-template #noStories>
         <div class="no-stories">
-          <p>Noch keine Geschichten vorhanden.</p>
+          <p>No stories available yet.</p>
           <p>Beginne mit dem Schreiben deiner ersten Geschichte!</p>
         </div>
       </ng-template>

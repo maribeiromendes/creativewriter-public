@@ -97,11 +97,11 @@ import { PDFExportService } from '../../shared/services/pdf-export.service';
             <div class="status-detail">
               <ion-chip [color]="hasUnsavedChanges ? 'warning' : 'success'" class="full-status">
                 <ion-icon [name]="hasUnsavedChanges ? 'save-outline' : 'checkmark-circle-outline'"></ion-icon>
-                <ion-label>{{ hasUnsavedChanges ? 'Nicht gespeichert' : 'Gespeichert' }}</ion-label>
+                <ion-label>{{ hasUnsavedChanges ? 'Not saved' : 'Saved' }}</ion-label>
               </ion-chip>
               <ion-chip color="medium" class="full-status">
                 <ion-icon name="stats-chart-outline"></ion-icon>
-                <ion-label>{{ wordCount }} Wörter</ion-label>
+                <ion-label>{{ wordCount }} words</ion-label>
               </ion-chip>
               <app-version-tooltip *ngIf="versionService.getVersionSync()">
                 <ion-chip color="medium" class="full-status">
@@ -1600,7 +1600,7 @@ export class StoryEditorComponent implements OnInit, OnDestroy {
     this.rightActions = [
       {
         icon: this.hasUnsavedChanges ? 'save-outline' : 'checkmark-circle-outline',
-        chipContent: this.hasUnsavedChanges ? 'Nicht gespeichert' : 'Gespeichert',
+        chipContent: this.hasUnsavedChanges ? 'Not saved' : 'Saved',
         chipColor: this.hasUnsavedChanges ? 'warning' : 'success',
         action: () => { /* No action needed for save status indicator */ },
         showOnMobile: false,
@@ -1663,7 +1663,7 @@ export class StoryEditorComponent implements OnInit, OnDestroy {
     if (this.rightActions.length >= 2) {
       // Update save status chip
       this.rightActions[0].icon = this.hasUnsavedChanges ? 'save-outline' : 'checkmark-circle-outline';
-      this.rightActions[0].chipContent = this.hasUnsavedChanges ? 'Nicht gespeichert' : 'Gespeichert';
+      this.rightActions[0].chipContent = this.hasUnsavedChanges ? 'Not saved' : 'Saved';
       this.rightActions[0].chipColor = this.hasUnsavedChanges ? 'warning' : 'success';
       
       // Update word count chip

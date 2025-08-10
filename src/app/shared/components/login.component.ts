@@ -12,11 +12,11 @@ import { AuthService } from '../../core/services/auth.service';
     <div class="login-container" *ngIf="!isLoggedIn">
       <div class="login-card">
         <h2>Creative Writer</h2>
-        <p class="login-subtitle">Melde dich an, um deine Geschichten zu synchronisieren</p>
+        <p class="login-subtitle">Sign in to sync your stories</p>
         
         <form (ngSubmit)="onLogin()" #loginForm="ngForm">
           <div class="form-group">
-            <label for="username">Benutzername</label>
+            <label for="username">Username</label>
             <input 
               type="text" 
               id="username" 
@@ -26,32 +26,32 @@ import { AuthService } from '../../core/services/auth.service';
               minlength="2"
               maxlength="20"
               pattern="[a-zA-Z0-9_-]+"
-              placeholder="dein-username"
+              placeholder="your-username"
               #usernameField="ngModel">
             <div class="field-help" *ngIf="usernameField.invalid && usernameField.touched">
-              <small *ngIf="usernameField.errors?.['required']">Benutzername ist erforderlich</small>
-              <small *ngIf="usernameField.errors?.['minlength']">Mindestens 2 Zeichen</small>
-              <small *ngIf="usernameField.errors?.['pattern']">Nur Buchstaben, Zahlen, _ und - erlaubt</small>
+              <small *ngIf="usernameField.errors?.['required']">Username is required</small>
+              <small *ngIf="usernameField.errors?.['minlength']">At least 2 characters</small>
+              <small *ngIf="usernameField.errors?.['pattern']">Only letters, numbers, _ and - allowed</small>
             </div>
           </div>
           
           <div class="form-group">
-            <label for="displayName">Anzeigename (optional)</label>
+            <label for="displayName">Display name (optional)</label>
             <input 
               type="text" 
               id="displayName" 
               name="displayName"
               [(ngModel)]="displayName" 
               maxlength="50"
-              placeholder="Dein Name">
+              placeholder="Your Name">
           </div>
           
           <button 
             type="submit" 
             class="login-btn"
             [disabled]="loginForm.invalid || isLoading">
-            <span *ngIf="!isLoading">Anmelden</span>
-            <span *ngIf="isLoading">Wird angemeldet...</span>
+            <span *ngIf="!isLoading">Sign in</span>
+            <span *ngIf="isLoading">Signing in...</span>
           </button>
           
           <div class="error-message" *ngIf="errorMessage">
@@ -60,17 +60,17 @@ import { AuthService } from '../../core/services/auth.service';
         </form>
         
         <div class="login-info">
-          <h3>ℹ️ Hinweise:</h3>
+          <h3>ℹ️ Notes:</h3>
           <ul>
-            <li>Keine Registrierung erforderlich - einfach Benutzername eingeben</li>
-            <li>Deine Geschichten werden automatisch mit allen deinen Geräten synchronisiert</li>
-            <li>Ohne Anmeldung werden Daten nur lokal gespeichert</li>
-            <li>Der Benutzername wird für die Datenbank verwendet (nur a-z, 0-9, _, -)</li>
+            <li>No registration required - just enter username</li>
+            <li>Your stories are automatically synced across all your devices</li>
+            <li>Without signing in, data is only stored locally</li>
+            <li>The username is used for the database (only a-z, 0-9, _, -)</li>
           </ul>
         </div>
         
         <button class="skip-btn" (click)="skipLogin()">
-          Ohne Anmeldung fortfahren (nur lokal)
+          Continue without signing in (local only)
         </button>
       </div>
     </div>
@@ -256,7 +256,7 @@ export class LoginComponent implements OnInit {
       await this.authService.login(this.username, this.displayName || undefined);
       // Login successful - component will hide automatically
     } catch (error: unknown) {
-      this.errorMessage = error instanceof Error ? error.message : 'Anmeldung fehlgeschlagen';
+      this.errorMessage = error instanceof Error ? error.message : 'Sign in failed';
     } finally {
       this.isLoading = false;
     }

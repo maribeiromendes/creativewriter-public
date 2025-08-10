@@ -141,13 +141,13 @@ export interface StoryStatistics {
                   <ion-col size="6">
                     <div class="stat-item">
                       <div class="stat-value">{{ statistics.averageWordsPerChapter | number:'1.0-0' }}</div>
-                      <div class="stat-label">Wörter pro Kapitel</div>
+                      <div class="stat-label">Words per Chapter</div>
                     </div>
                   </ion-col>
                   <ion-col size="6">
                     <div class="stat-item">
                       <div class="stat-value">{{ statistics.averageWordsPerScene | number:'1.0-0' }}</div>
-                      <div class="stat-label">Wörter pro Szene</div>
+                      <div class="stat-label">Words per Scene</div>
                     </div>
                   </ion-col>
                 </ion-row>
@@ -169,7 +169,7 @@ export interface StoryStatistics {
                 <ion-label>
                   <h3>Längstes Kapitel</h3>
                   <p>{{ statistics.longestChapter.title }}</p>
-                  <ion-chip color="success">{{ statistics.longestChapter.wordCount | number }} Wörter</ion-chip>
+                  <ion-chip color="success">{{ statistics.longestChapter.wordCount | number }} words</ion-chip>
                 </ion-label>
               </ion-item>
               
@@ -178,7 +178,7 @@ export interface StoryStatistics {
                 <ion-label>
                   <h3>Kürzestes Kapitel</h3>
                   <p>{{ statistics.shortestChapter.title }}</p>
-                  <ion-chip color="warning">{{ statistics.shortestChapter.wordCount | number }} Wörter</ion-chip>
+                  <ion-chip color="warning">{{ statistics.shortestChapter.wordCount | number }} words</ion-chip>
                 </ion-label>
               </ion-item>
             </ion-card-content>
@@ -197,13 +197,13 @@ export interface StoryStatistics {
                 <ion-item *ngFor="let chapter of statistics.chapterCounts; trackBy: trackChapter" lines="inset">
                   <ion-label>
                     <h3>{{ chapter.chapterTitle }}</h3>
-                    <p>{{ chapter.sceneCount }} Szenen • Ø {{ chapter.averageWordsPerScene | number:'1.0-0' }} Wörter/Szene</p>
+                    <p>{{ chapter.sceneCount }} scenes • Ø {{ chapter.averageWordsPerScene | number:'1.0-0' }} words/scene</p>
                   </ion-label>
                   <ion-chip 
                     slot="end" 
                     [color]="getChapterChipColor(chapter.wordCount)"
                     class="word-count-chip">
-                    {{ chapter.wordCount | number }} Wörter
+                    {{ chapter.wordCount | number }} words
                   </ion-chip>
                 </ion-item>
               </ion-list>
