@@ -161,7 +161,7 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
                 <ion-item *ngIf="!settings.beatGenerationTemplate.includes('{prompt}')" class="template-warning">
                   <ion-icon name="warning-outline" color="warning" slot="start"></ion-icon>
                   <ion-label color="warning">
-                    Das Template sollte {{ '{prompt}' }} enthalten, um den Benutzer-Prompt einzufügen.
+                    The template should contain {{ '{prompt}' }} to insert the user prompt.
                   </ion-label>
                 </ion-item>
               </ion-card-content>
@@ -176,7 +176,7 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
               </ion-card-header>
               <ion-card-content>
                 <ion-text color="medium">
-                  <p>Konfiguration für die Beat AI Generierung.</p>
+                  <p>Configuration for Beat AI generation.</p>
                 </ion-text>
                 
                 <ion-item class="setting-item">
@@ -194,7 +194,7 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
                 <ion-item class="radio-section">
                   <ion-label>
                     <h3>Beat Anweisung</h3>
-                    <p>Standardanweisung für die Beat AI Generierung.</p>
+                    <p>Default instruction for Beat AI generation.</p>
                   </ion-label>
                 </ion-item>
                 
@@ -263,7 +263,7 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
                           <ion-text color="medium">
                             <h3>{{ formatBytes(databaseStats.databaseSizeEstimate) }}</h3>
                           </ion-text>
-                          <ion-note>Gesamtgröße (ca.)</ion-note>
+                          <ion-note>Total size (approx.)</ion-note>
                         </div>
                       </ion-col>
                     </ion-row>
@@ -447,7 +447,7 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
             <!-- Story Integrity -->
             <ion-card class="settings-section">
               <ion-card-header>
-                <ion-card-title>Story-Integrität</ion-card-title>
+                <ion-card-title>Story Integrity</ion-card-title>
               </ion-card-header>
               <ion-card-content>
                 <ion-text color="medium">
@@ -460,7 +460,7 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
                   (click)="checkIntegrity()"
                   [disabled]="isScanning">
                   <ion-icon name="search-outline" slot="start"></ion-icon>
-                  Integrität prüfen
+                  Check Integrity
                 </ion-button>
 
                 <ion-list *ngIf="integrityIssues.length > 0" class="integrity-list">
@@ -517,7 +517,7 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
 
                 <ion-text color="medium">
                   <p>
-                    <strong>Komprimieren:</strong> Entfernt gelöschte Daten und reduziert die Datenbankgröße.<br>
+                    <strong>Compress:</strong> Removes deleted data and reduces database size.<br>
                     <strong>Export:</strong> Creates a JSON file with all stories and images.
                   </p>
                 </ion-text>

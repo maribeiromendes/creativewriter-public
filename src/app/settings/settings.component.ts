@@ -350,7 +350,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
                   <ion-select-option value="BLOCK_NONE">Nicht blockieren</ion-select-option>
                   <ion-select-option value="BLOCK_ONLY_HIGH">Nur hohe Risiken</ion-select-option>
                   <ion-select-option value="BLOCK_MEDIUM_AND_ABOVE">Mittlere und hohe Risiken</ion-select-option>
-                  <ion-select-option value="BLOCK_LOW_AND_ABOVE">Niedrige und höhere Risiken</ion-select-option>
+                  <ion-select-option value="BLOCK_LOW_AND_ABOVE">Low and higher risks</ion-select-option>
                 </ion-select>
               </ion-item>
 
@@ -364,7 +364,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
                   <ion-select-option value="BLOCK_NONE">Nicht blockieren</ion-select-option>
                   <ion-select-option value="BLOCK_ONLY_HIGH">Nur hohe Risiken</ion-select-option>
                   <ion-select-option value="BLOCK_MEDIUM_AND_ABOVE">Mittlere und hohe Risiken</ion-select-option>
-                  <ion-select-option value="BLOCK_LOW_AND_ABOVE">Niedrige und höhere Risiken</ion-select-option>
+                  <ion-select-option value="BLOCK_LOW_AND_ABOVE">Low and higher risks</ion-select-option>
                 </ion-select>
               </ion-item>
 
@@ -378,7 +378,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
                   <ion-select-option value="BLOCK_NONE">Nicht blockieren</ion-select-option>
                   <ion-select-option value="BLOCK_ONLY_HIGH">Nur hohe Risiken</ion-select-option>
                   <ion-select-option value="BLOCK_MEDIUM_AND_ABOVE">Mittlere und hohe Risiken</ion-select-option>
-                  <ion-select-option value="BLOCK_LOW_AND_ABOVE">Niedrige und höhere Risiken</ion-select-option>
+                  <ion-select-option value="BLOCK_LOW_AND_ABOVE">Low and higher risks</ion-select-option>
                 </ion-select>
               </ion-item>
 
@@ -392,7 +392,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
                   <ion-select-option value="BLOCK_NONE">Nicht blockieren</ion-select-option>
                   <ion-select-option value="BLOCK_ONLY_HIGH">Nur hohe Risiken</ion-select-option>
                   <ion-select-option value="BLOCK_MEDIUM_AND_ABOVE">Mittlere und hohe Risiken</ion-select-option>
-                  <ion-select-option value="BLOCK_LOW_AND_ABOVE">Niedrige und höhere Risiken</ion-select-option>
+                  <ion-select-option value="BLOCK_LOW_AND_ABOVE">Low and higher risks</ion-select-option>
                 </ion-select>
               </ion-item>
 
@@ -406,7 +406,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
                   <ion-select-option value="BLOCK_NONE">Nicht blockieren</ion-select-option>
                   <ion-select-option value="BLOCK_ONLY_HIGH">Nur hohe Risiken</ion-select-option>
                   <ion-select-option value="BLOCK_MEDIUM_AND_ABOVE">Mittlere und hohe Risiken</ion-select-option>
-                  <ion-select-option value="BLOCK_LOW_AND_ABOVE">Niedrige und höhere Risiken</ion-select-option>
+                  <ion-select-option value="BLOCK_LOW_AND_ABOVE">Low and higher risks</ion-select-option>
                 </ion-select>
               </ion-item>
             </div>
@@ -430,7 +430,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
             <div class="appearance-section">
               <h3>Textfarbe</h3>
               <p class="appearance-description">
-                Diese Farbe wird für den Text im Story-Editor und Beat AI-Input verwendet.
+                This color is used for text in the story editor and Beat AI input.
               </p>
               <app-color-picker 
                 [color]="settings.appearance.textColor"
@@ -592,7 +592,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
               <ion-label position="stacked">
                 Benutzerdefinierter Prompt
                 <p class="prompt-help">
-                  Verfügbare Platzhalter: {{ '{' }}maxWords{{ '}' }}, {{ '{' }}styleInstruction{{ '}' }}, {{ '{' }}genreInstruction{{ '}' }}, {{ '{' }}languageInstruction{{ '}' }}, {{ '{' }}customInstruction{{ '}' }}, {{ '{' }}sceneContent{{ '}' }}
+                  Available placeholders: {{ '{' }}maxWords{{ '}' }}, {{ '{' }}styleInstruction{{ '}' }}, {{ '{' }}genreInstruction{{ '}' }}, {{ '{' }}languageInstruction{{ '}' }}, {{ '{' }}customInstruction{{ '}' }}, {{ '{' }}sceneContent{{ '}' }}
                 </p>
               </ion-label>
               <ion-textarea
@@ -696,7 +696,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
               <ion-label position="stacked">
                 Benutzerdefinierter Prompt
                 <p class="prompt-help">
-                  Verfügbare Platzhalter: {{ '{' }}sceneTitle{{ '}' }}, {{ '{' }}sceneContent{{ '}' }}, {{ '{' }}customInstruction{{ '}' }}
+                  Available placeholders: {{ '{' }}sceneTitle{{ '}' }}, {{ '{' }}sceneContent{{ '}' }}, {{ '{' }}customInstruction{{ '}' }}
                 </p>
               </ion-label>
               <ion-textarea
@@ -1703,7 +1703,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
   }
 
   resetToDefaultPrompt(): void {
-    const defaultPrompt = 'Erstelle einen Titel für die folgende Szene. Der Titel soll bis zu {maxWords} Wörter lang sein und den Kern der Szene erfassen.\n\n{styleInstruction}\n{genreInstruction}\n{languageInstruction}{customInstruction}\n\nSzenencontent (nur diese eine Szene):\n{sceneContent}\n\nAntworte nur mit dem Titel, ohne weitere Erklärungen oder Anführungszeichen.';
+    const defaultPrompt = 'Create a title for the following scene. The title should be up to {maxWords} words long and capture the essence of the scene.\n\n{styleInstruction}\n{genreInstruction}\n{languageInstruction}{customInstruction}\n\nScene content (only this one scene):\n{sceneContent}\n\nRespond only with the title, without further explanations or quotes.';
     this.settings.sceneTitleGeneration.customPrompt = defaultPrompt;
     this.onSettingsChange();
   }
@@ -1713,7 +1713,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
   }
 
   resetToDefaultSummaryPrompt(): void {
-    const defaultPrompt = 'Erstelle eine Zusammenfassung der folgenden Szene:\n\nTitel: {sceneTitle}\n\nInhalt:\n{sceneContent}\n\nDie Zusammenfassung soll die wichtigsten Handlungspunkte und Charakterentwicklungen erfassen. Schreibe eine vollständige und umfassende Zusammenfassung mit mindestens 3-5 Sätzen.';
+    const defaultPrompt = 'Create a summary of the following scene:\n\nTitle: {sceneTitle}\n\nContent:\n{sceneContent}\n\nThe summary should capture the most important plot points and character developments. Write a complete and comprehensive summary with at least 3-5 sentences.';
     this.settings.sceneSummaryGeneration.customPrompt = defaultPrompt;
     this.onSettingsChange();
   }

@@ -539,11 +539,11 @@ export class VideoModalComponent implements OnInit, OnDestroy, OnChanges {
         this.cleanupUpload();
         this.isUploading = false;
       } else {
-        throw new Error('Fehler beim Verknüpfen von Bild und Video');
+        throw new Error('Error linking image and video');
       }
     } catch (error) {
-      console.error('Fehler beim Speichern des Videos:', error);
-      alert('Fehler beim Speichern des Videos. Bitte versuchen Sie es erneut.');
+      console.error('Error saving video:', error);
+      alert('Error saving video. Please try again.');
     } finally {
       this.isProcessing = false;
     }
@@ -569,8 +569,8 @@ export class VideoModalComponent implements OnInit, OnDestroy, OnChanges {
       this.currentVideo = null;
       this.hasVideo = false;
     } catch (error) {
-      console.error('Fehler beim Entfernen der Verknüpfung:', error);
-      alert('Fehler beim Entfernen der Verknüpfung.');
+      console.error('Error removing association:', error);
+      alert('Error removing association.');
     }
   }
 

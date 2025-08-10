@@ -115,7 +115,7 @@ export class VideoService {
       await db.remove(doc);
       return true;
     } catch (error) {
-      console.error('Fehler beim Löschen des Videos:', error);
+      console.error('Error deleting video:', error);
       return false;
     }
   }
@@ -204,7 +204,7 @@ export class VideoService {
       
       return true;
     } catch (error) {
-      console.error('Fehler beim Entfernen der Verknüpfung:', error);
+      console.error('Error removing association:', error);
       return false;
     }
   }

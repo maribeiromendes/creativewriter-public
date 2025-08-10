@@ -1369,7 +1369,7 @@ export class StoryEditorComponent implements OnInit, OnDestroy {
     // Auto-save mit optimiertem Debounce
     this.subscription.add(
       this.saveSubject.pipe(
-        debounceTime(3000) // Erhöht auf 3 Sekunden für weniger häufiges Speichern
+        debounceTime(3000) // Increased to 3 seconds for less frequent saving
       ).subscribe(() => {
         this.saveStory();
       })

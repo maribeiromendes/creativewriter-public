@@ -101,11 +101,11 @@ import { ImageCropperComponent, ImageCroppedEvent, ImageTransform, LoadedImage }
       <ion-toolbar>
         <ion-buttons slot="end">
           <ion-button (click)="dismiss()">
-            Abbrechen
+            Cancel
           </ion-button>
           <ion-button (click)="confirmCrop()" [strong]="true">
             <ion-icon name="checkmark-outline" slot="start"></ion-icon>
-            Zuschneiden
+            Crop
           </ion-button>
         </ion-buttons>
       </ion-toolbar>

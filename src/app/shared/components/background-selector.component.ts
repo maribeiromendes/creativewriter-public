@@ -384,8 +384,8 @@ export class BackgroundSelectorComponent implements OnInit, OnChanges {
   }
   
   deleteButtons = [
-    { text: 'Abbrechen', role: 'cancel' },
-    { text: 'Löschen', role: 'destructive', handler: () => this.deleteCustomBackground() }
+    { text: 'Cancel', role: 'cancel' },
+    { text: 'Delete', role: 'destructive', handler: () => this.deleteCustomBackground() }
   ];
 
   constructor() {

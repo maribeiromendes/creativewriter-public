@@ -102,7 +102,7 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
               <div *ngIf="searchQuery(); else normalView">
                 <ion-card>
                   <ion-card-header>
-                    <ion-card-title>Suchergebnisse für "{{ searchQuery() }}"</ion-card-title>
+                    <ion-card-title>Search results for "{{ searchQuery() }}"</ion-card-title>
                   </ion-card-header>
                   <ion-card-content>
                     <ion-grid>
@@ -210,8 +210,8 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
                 <ion-card>
                   <ion-card-content class="ion-text-center">
                     <ion-text color="medium">
-                      <h2>Wähle eine Kategorie</h2>
-                      <p>Wähle eine Kategorie aus der Sidebar, um die Einträge zu sehen.</p>
+                      <h2>Choose a category</h2>
+                      <p>Choose a category from the sidebar to see the entries.</p>
                     </ion-text>
                   </ion-card-content>
                 </ion-card>
@@ -332,7 +332,7 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
                 
                 <div class="form-group">
                   <ion-item lines="none" class="form-item">
-                    <ion-label position="stacked">Immer in Beat-Prompt inkludieren</ion-label>
+                    <ion-label position="stacked">Always include in beat prompt</ion-label>
                     <ion-toggle 
                       [(ngModel)]="editingEntry.alwaysInclude"
                       slot="end"
@@ -340,7 +340,7 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
                     </ion-toggle>
                   </ion-item>
                   <ion-note color="medium" style="padding: 0 16px; font-size: 0.9rem;">
-                    Wenn aktiviert, wird dieser Eintrag immer in den Beat-Prompt eingeschlossen, unabhängig von der Relevanz-Bewertung.
+                    When enabled, this entry will always be included in the beat prompt, regardless of relevance scoring.
                   </ion-note>
                 </div>
               </div>
@@ -348,7 +348,7 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
               <!-- Custom Fields Section -->
               <div class="form-section">
                 <div class="section-header">
-                  <h3 class="section-title">Benutzerdefinierte Felder</h3>
+                  <h3 class="section-title">Custom Fields</h3>
                   <ion-button 
                     size="small" 
                     fill="outline" 
@@ -452,11 +452,11 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
         <ng-template>
           <ion-header>
             <ion-toolbar>
-              <ion-title>Neue Kategorie</ion-title>
+              <ion-title>New Category</ion-title>
               <ion-buttons slot="end">
                 <ion-button (click)="addCategory()" color="primary">
                   <ion-icon name="save" slot="start"></ion-icon>
-                  Erstellen
+                  Create
                 </ion-button>
                 <ion-button (click)="showAddCategoryModal.set(false)">
                   <ion-icon name="close" slot="icon-only"></ion-icon>
@@ -1306,7 +1306,7 @@ export class CodexComponent implements OnInit, OnDestroy {
     try {
       // Create a new entry with default values
       const newEntry = {
-        title: 'Neuer Eintrag',
+        title: 'New Entry',
         content: '',
         tags: []
       };

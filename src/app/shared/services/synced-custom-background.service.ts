@@ -139,7 +139,7 @@ export class SyncedCustomBackgroundService {
       await this.loadCustomBackgrounds();
     } catch (error) {
       console.error('Error deleting background:', error);
-      throw new Error('Fehler beim Löschen des Hintergrunds');
+      throw new Error('Error deleting background');
     }
   }
 
@@ -318,7 +318,7 @@ export class SyncedCustomBackgroundService {
       }
     } catch (error) {
       console.error('Error clearing backgrounds:', error);
-      throw new Error('Fehler beim Löschen aller Hintergründe');
+      throw new Error('Error deleting all backgrounds');
     }
   }
 

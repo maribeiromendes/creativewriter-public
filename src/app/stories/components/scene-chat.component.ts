@@ -1169,7 +1169,7 @@ Strukturiere die Antwort klar nach Gegenständen getrennt.`
       console.error('Error adding to codex:', error);
       this.messages.push({
         role: 'assistant',
-        content: '❌ Fehler beim Hinzufügen zum Codex. Bitte versuche es erneut.',
+        content: '❌ Error adding to codex. Please try again.',
         timestamp: new Date()
       });
       this.scrollToBottom();

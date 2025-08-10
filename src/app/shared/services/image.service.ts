@@ -181,7 +181,7 @@ export class ImageService {
       await db.remove(doc);
       return true;
     } catch (error) {
-      console.error('Fehler beim Löschen des Bildes:', error);
+      console.error('Error deleting image:', error);
       return false;
     }
   }

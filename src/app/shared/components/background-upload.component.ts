@@ -334,8 +334,8 @@ export class BackgroundUploadComponent {
   
   // Alert buttons
   clearAllButtons = [
-    { text: 'Abbrechen', role: 'cancel' },
-    { text: 'Löschen', role: 'destructive', handler: () => this.clearAllBackgrounds() }
+    { text: 'Cancel', role: 'cancel' },
+    { text: 'Delete', role: 'destructive', handler: () => this.clearAllBackgrounds() }
   ];
 
   constructor() {
@@ -480,7 +480,7 @@ export class BackgroundUploadComponent {
       this.showSuccessToast('Alle Hintergründe gelöscht');
       this.clearSelection();
     } catch {
-      this.showErrorToast('Fehler beim Löschen');
+      this.showErrorToast('Error deleting');
     }
   }
 
