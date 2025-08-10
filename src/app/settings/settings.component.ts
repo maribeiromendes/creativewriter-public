@@ -72,13 +72,13 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
             <!-- Global Model Selection -->
         <ion-card>
           <ion-card-header>
-            <ion-card-title>AI Model Auswahl</ion-card-title>
+            <ion-card-title>AI Model Selection</ion-card-title>
           </ion-card-header>
           <ion-card-content>
             <div class="model-selection-wrapper">
               <div class="model-selection-container">
                 <div class="model-header">
-                  <ion-label>Globales Model</ion-label>
+                  <ion-label>Global Model</ion-label>
                   <ion-button 
                     size="small"
                     fill="outline"
@@ -136,7 +136,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
           </ion-card-header>
           <ion-card-content>
             <ion-item>
-              <ion-label>OpenRouter aktivieren</ion-label>
+              <ion-label>Enable OpenRouter</ion-label>
               <ion-toggle 
                 [(ngModel)]="settings.openRouter.enabled"
                 (ngModelChange)="onProviderToggle('openRouter')"
@@ -153,12 +153,12 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
                 [disabled]="!settings.openRouter.enabled"
                 label="API Key"
                 labelPlacement="stacked"
-                helperText="Ihren OpenRouter API Key finden Sie unter openrouter.ai/keys">
+                helperText="Find your OpenRouter API key at openrouter.ai/keys">
               </ion-input>
             </ion-item>
 
             <div class="model-info" [class.disabled]="!settings.openRouter.enabled">
-              <p class="info-text">Nutzen Sie die globale Model-Auswahl oben.</p>
+              <p class="info-text">Use the global model selection above.</p>
             </div>
 
             <div class="settings-row" [class.disabled]="!settings.openRouter.enabled">
@@ -255,7 +255,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
                     Click 'Load Models' to display available models.
                   </p>
                   <p *ngIf="!settings.replicate.enabled" class="info-text">
-                    Format: owner/model-name (z.B. meta/llama-2-70b-chat)
+                    Format: owner/model-name (e.g. meta/llama-2-70b-chat)
                   </p>
                 </div>
               </div>
@@ -299,12 +299,12 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
                 [disabled]="!settings.googleGemini.enabled"
                 label="API Key"
                 labelPlacement="stacked"
-                helperText="Ihren Google AI API Key finden Sie unter aistudio.google.com/app/apikey">
+                helperText="Find your Google AI API key at aistudio.google.com/app/apikey">
               </ion-input>
             </ion-item>
 
             <div class="model-info" [class.disabled]="!settings.googleGemini.enabled">
-              <p class="info-text">Nutzen Sie die globale Model-Auswahl oben.</p>
+              <p class="info-text">Use the global model selection above.</p>
             </div>
 
             <div class="settings-row" [class.disabled]="!settings.googleGemini.enabled">
@@ -347,37 +347,37 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
                   (ngModelChange)="onSettingsChange()"
                   interface="popover"
                   slot="end">
-                  <ion-select-option value="BLOCK_NONE">Nicht blockieren</ion-select-option>
-                  <ion-select-option value="BLOCK_ONLY_HIGH">Nur hohe Risiken</ion-select-option>
-                  <ion-select-option value="BLOCK_MEDIUM_AND_ABOVE">Mittlere und hohe Risiken</ion-select-option>
+                  <ion-select-option value="BLOCK_NONE">Don't Block</ion-select-option>
+                  <ion-select-option value="BLOCK_ONLY_HIGH">Only high risks</ion-select-option>
+                  <ion-select-option value="BLOCK_MEDIUM_AND_ABOVE">Medium and high risks</ion-select-option>
                   <ion-select-option value="BLOCK_LOW_AND_ABOVE">Low and higher risks</ion-select-option>
                 </ion-select>
               </ion-item>
 
               <ion-item>
-                <ion-label>Hassrede</ion-label>
+                <ion-label>Hate Speech</ion-label>
                 <ion-select
                   [(ngModel)]="settings.googleGemini.contentFilter.hateSpeech"
                   (ngModelChange)="onSettingsChange()"
                   interface="popover"
                   slot="end">
-                  <ion-select-option value="BLOCK_NONE">Nicht blockieren</ion-select-option>
-                  <ion-select-option value="BLOCK_ONLY_HIGH">Nur hohe Risiken</ion-select-option>
-                  <ion-select-option value="BLOCK_MEDIUM_AND_ABOVE">Mittlere und hohe Risiken</ion-select-option>
+                  <ion-select-option value="BLOCK_NONE">Don't Block</ion-select-option>
+                  <ion-select-option value="BLOCK_ONLY_HIGH">Only high risks</ion-select-option>
+                  <ion-select-option value="BLOCK_MEDIUM_AND_ABOVE">Medium and high risks</ion-select-option>
                   <ion-select-option value="BLOCK_LOW_AND_ABOVE">Low and higher risks</ion-select-option>
                 </ion-select>
               </ion-item>
 
               <ion-item>
-                <ion-label>Sexuell explizit</ion-label>
+                <ion-label>Sexually Explicit</ion-label>
                 <ion-select
                   [(ngModel)]="settings.googleGemini.contentFilter.sexuallyExplicit"
                   (ngModelChange)="onSettingsChange()"
                   interface="popover"
                   slot="end">
-                  <ion-select-option value="BLOCK_NONE">Nicht blockieren</ion-select-option>
-                  <ion-select-option value="BLOCK_ONLY_HIGH">Nur hohe Risiken</ion-select-option>
-                  <ion-select-option value="BLOCK_MEDIUM_AND_ABOVE">Mittlere und hohe Risiken</ion-select-option>
+                  <ion-select-option value="BLOCK_NONE">Don't Block</ion-select-option>
+                  <ion-select-option value="BLOCK_ONLY_HIGH">Only high risks</ion-select-option>
+                  <ion-select-option value="BLOCK_MEDIUM_AND_ABOVE">Medium and high risks</ion-select-option>
                   <ion-select-option value="BLOCK_LOW_AND_ABOVE">Low and higher risks</ion-select-option>
                 </ion-select>
               </ion-item>
@@ -389,9 +389,9 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
                   (ngModelChange)="onSettingsChange()"
                   interface="popover"
                   slot="end">
-                  <ion-select-option value="BLOCK_NONE">Nicht blockieren</ion-select-option>
-                  <ion-select-option value="BLOCK_ONLY_HIGH">Nur hohe Risiken</ion-select-option>
-                  <ion-select-option value="BLOCK_MEDIUM_AND_ABOVE">Mittlere und hohe Risiken</ion-select-option>
+                  <ion-select-option value="BLOCK_NONE">Don't Block</ion-select-option>
+                  <ion-select-option value="BLOCK_ONLY_HIGH">Only high risks</ion-select-option>
+                  <ion-select-option value="BLOCK_MEDIUM_AND_ABOVE">Medium and high risks</ion-select-option>
                   <ion-select-option value="BLOCK_LOW_AND_ABOVE">Low and higher risks</ion-select-option>
                 </ion-select>
               </ion-item>
@@ -403,9 +403,9 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
                   (ngModelChange)="onSettingsChange()"
                   interface="popover"
                   slot="end">
-                  <ion-select-option value="BLOCK_NONE">Nicht blockieren</ion-select-option>
-                  <ion-select-option value="BLOCK_ONLY_HIGH">Nur hohe Risiken</ion-select-option>
-                  <ion-select-option value="BLOCK_MEDIUM_AND_ABOVE">Mittlere und hohe Risiken</ion-select-option>
+                  <ion-select-option value="BLOCK_NONE">Don't Block</ion-select-option>
+                  <ion-select-option value="BLOCK_ONLY_HIGH">Only high risks</ion-select-option>
+                  <ion-select-option value="BLOCK_MEDIUM_AND_ABOVE">Medium and high risks</ion-select-option>
                   <ion-select-option value="BLOCK_LOW_AND_ABOVE">Low and higher risks</ion-select-option>
                 </ion-select>
               </ion-item>
@@ -1747,7 +1747,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
   }
 
   getModelDisplayName(modelId: string): string {
-    if (!modelId) return 'Globales Modell';
+    if (!modelId) return 'Global Model';
     
     // Find the model in available models to get its display name
     const model = this.combinedModels.find(m => m.id === modelId);
