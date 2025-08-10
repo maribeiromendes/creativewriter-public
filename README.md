@@ -25,6 +25,20 @@ Your support helps maintain and improve CreativeWriter for the community!
 
 CreativeWriter is a modern web-based writing tool designed for fiction authors who want to leverage AI technology to enhance their creative process. It combines traditional story structuring techniques with cutting-edge AI capabilities to help writers overcome creative blocks, develop rich narratives, and maintain consistency throughout their work.
 
+## 📸 Screenshots
+
+### Story Overview
+![Story Overview](docs/screenshots/story-overview.png)
+*Manage multiple stories with an intuitive dashboard*
+
+### Rich Text Editor
+![Editor View](docs/screenshots/editor-view.png)
+*Professional writing environment with story structure and codex integration*
+
+### AI-Powered Beat Assistant
+![Beat AI](docs/screenshots/beat-ai.png)
+*Get intelligent suggestions for plot development with context-aware AI*
+
 ## ✨ Features
 
 ### 📝 Story Management
