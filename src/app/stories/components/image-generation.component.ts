@@ -101,7 +101,7 @@ import { Subscription } from 'rxjs';
                   <ion-label position="stacked">{{ input.description }} *</ion-label>
                   <ion-textarea 
                     [(ngModel)]="parameters[input.name]" 
-                    [placeholder]="'Beschreibe das Bild, das du generieren möchtest...'"
+                    [placeholder]="'Describe the image you want to generate...'"
                     rows="3"
                     required>
                   </ion-textarea>
@@ -627,7 +627,7 @@ export class ImageGenerationComponent implements OnInit, OnDestroy {
           next: (job) => {
             this.isGenerating = false;
             if (job.status === 'completed') {
-              this.showToastMessage('Bild erfolgreich generiert!');
+              this.showToastMessage('Image generated successfully!');
             }
           },
           error: (error) => {
@@ -662,7 +662,7 @@ export class ImageGenerationComponent implements OnInit, OnDestroy {
 
   getStatusText(status: string): string {
     switch (status) {
-      case 'completed': return 'Fertig';
+      case 'completed': return 'Done';
       case 'failed': return 'Fehler';
       case 'processing': return 'Generiere';
       case 'pending': return 'Wartend';
@@ -696,7 +696,7 @@ export class ImageGenerationComponent implements OnInit, OnDestroy {
 
   clearHistory(): void {
     this.imageGenService.clearJobs();
-    this.showToastMessage('Verlauf gelöscht');
+    this.showToastMessage('History deleted');
   }
 
   goBack(): void {

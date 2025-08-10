@@ -50,13 +50,13 @@ export interface ImageInsertResult {
                 accept="image/*"
                 style="display: none;">
               <button class="upload-btn" (click)="fileInput.click()">
-                📁 Datei auswählen
+                📁 Select File
               </button>
-              <p class="upload-hint">oder Datei hier ablegen</p>
+              <p class="upload-hint">or drop file here</p>
             </div>
             
             <div *ngIf="uploadPreview" class="preview-section">
-              <img [src]="uploadPreview" alt="Vorschau">
+              <img [src]="uploadPreview" alt="Preview">
               <button class="remove-btn" (click)="removeUploadedImage()">✕</button>
             </div>
           </div>
@@ -67,11 +67,11 @@ export interface ImageInsertResult {
               type="url" 
               class="url-input"
               [(ngModel)]="imageUrl"
-              placeholder="https://example.com/bild.jpg"
+              placeholder="https://example.com/image.jpg"
               (input)="onUrlChange()">
             
             <div *ngIf="urlPreview" class="preview-section">
-              <img [src]="urlPreview" alt="Vorschau" (error)="onImageError()">
+              <img [src]="urlPreview" alt="Preview" (error)="onImageError()">
             </div>
           </div>
         </div>
@@ -79,11 +79,11 @@ export interface ImageInsertResult {
         <!-- Image Details -->
         <div class="image-details" *ngIf="uploadPreview || urlPreview">
           <label>
-            Alt-Text (für Barrierefreiheit):
+            Alt text (for accessibility):
             <input 
               type="text" 
               [(ngModel)]="altText"
-              placeholder="Beschreibung des Bildes">
+              placeholder="Description of the image">
           </label>
           
           <label>
@@ -97,7 +97,7 @@ export interface ImageInsertResult {
 
         <!-- Dialog Actions -->
         <div class="dialog-actions">
-          <button class="cancel-btn" (click)="cancel()">Abbrechen</button>
+          <button class="cancel-btn" (click)="cancel()">Cancel</button>
           <button 
             class="insert-btn" 
             [disabled]="!canInsert()"

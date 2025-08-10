@@ -30,11 +30,11 @@ interface BackgroundOption {
   ],
   template: `
     <div class="background-selector">
-      <h3>Hintergrund auswählen</h3>
+      <h3>Select Background</h3>
       
       <!-- Standard Backgrounds -->
       <div class="section-header">
-        <h4>Standard Hintergründe</h4>
+        <h4>Standard Backgrounds</h4>
       </div>
       
       <ion-grid>
@@ -49,7 +49,7 @@ interface BackgroundOption {
               <ion-card-content class="preview-card">
                 <div class="preview-container no-background">
                   <div class="no-bg-placeholder">
-                    <ion-text>Kein Hintergrund</ion-text>
+                    <ion-text>No Background</ion-text>
                   </div>
                 </div>
                 <div class="background-name">Standard</div>

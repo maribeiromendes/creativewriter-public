@@ -42,7 +42,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
             <ion-icon name="arrow-back" slot="icon-only"></ion-icon>
           </ion-button>
         </ion-buttons>
-        <ion-title>Einstellungen</ion-title>
+        <ion-title>Settings</ion-title>
         <ion-buttons slot="end">
           <ion-button fill="clear" color="medium" (click)="goToAILogs()" title="AI Request Logs">
             <ion-icon name="stats-chart" slot="start"></ion-icon>
@@ -50,7 +50,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
           </ion-button>
           <ion-chip [color]="hasUnsavedChanges ? 'warning' : 'success'">
             <ion-icon [name]="hasUnsavedChanges ? 'warning' : 'checkmark-circle'" slot="start"></ion-icon>
-            <ion-label>{{ hasUnsavedChanges ? 'Nicht gespeichert' : 'Gespeichert' }}</ion-label>
+            <ion-label>{{ hasUnsavedChanges ? 'Not saved' : 'Saved' }}</ion-label>
           </ion-chip>
         </ion-buttons>
       </ion-toolbar>
@@ -424,7 +424,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
           <div *ngSwitchCase="'appearance'">
             <ion-card>
           <ion-card-header>
-            <ion-card-title>Darstellung</ion-card-title>
+            <ion-card-title>Appearance</ion-card-title>
           </ion-card-header>
           <ion-card-content>
             <div class="appearance-section">
@@ -559,7 +559,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
                 </ng-select>
                 <div class="model-info-small">
                   <p *ngIf="!settings.sceneTitleGeneration.selectedModel" class="info-text">
-                    Kein Modell ausgewählt - das globale Modell wird verwendet
+                    No model selected - the global model will be used
                   </p>
                   <p *ngIf="settings.sceneTitleGeneration.selectedModel" class="info-text">
                     Specific model for scene titles: {{ getModelDisplayName(settings.sceneTitleGeneration.selectedModel) }}
@@ -663,7 +663,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
                 </ng-select>
                 <div class="model-info-small">
                   <p *ngIf="!settings.sceneSummaryGeneration.selectedModel" class="info-text">
-                    Kein Modell ausgewählt - das globale Modell wird verwendet
+                    No model selected - the global model will be used
                   </p>
                   <p *ngIf="settings.sceneSummaryGeneration.selectedModel" class="info-text">
                     Specific model for scene summary: {{ getModelDisplayName(settings.sceneSummaryGeneration.selectedModel) }}
@@ -1447,9 +1447,9 @@ export class SettingsComponent implements OnInit, OnDestroy {
   // Tab control
   selectedTab = 'models';
   tabItems: TabItem[] = [
-    { value: 'models', icon: 'cloud-outline', label: 'AI Modelle' },
-    { value: 'appearance', icon: 'color-palette-outline', label: 'Darstellung' },
-    { value: 'scene-title', icon: 'document-text-outline', label: 'Szenentitel' },
+    { value: 'models', icon: 'cloud-outline', label: 'AI Models' },
+    { value: 'appearance', icon: 'color-palette-outline', label: 'Appearance' },
+    { value: 'scene-title', icon: 'document-text-outline', label: 'Scene Titles' },
     { value: 'scene-summary', icon: 'list-outline', label: 'Scene Summary' }
   ];
 

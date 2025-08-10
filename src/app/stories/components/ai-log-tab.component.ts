@@ -75,11 +75,11 @@ import { Subscription } from 'rxjs';
             <p>
               <ion-chip color="medium" class="meta-chip">
                 <ion-icon name="document-text-outline"></ion-icon>
-                <ion-label>{{ log.wordCount }} Wörter</ion-label>
+                <ion-label>{{ log.wordCount }} words</ion-label>
               </ion-chip>
               <ion-chip color="medium" class="meta-chip">
                 <ion-icon name="code-slash-outline"></ion-icon>
-                <ion-label>{{ log.maxTokens }} Tokens</ion-label>
+                <ion-label>{{ log.maxTokens }} tokens</ion-label>
               </ion-chip>
               <ion-chip color="medium" class="meta-chip" *ngIf="log.duration">
                 <ion-icon name="time-outline"></ion-icon>
@@ -111,7 +111,7 @@ import { Subscription } from 'rxjs';
                 <ion-icon name="document-text-outline" slot="start"></ion-icon>
                 <ion-label>
                   <h3>Prompt</h3>
-                  <p>{{ log.prompt.length }} Zeichen</p>
+                  <p>{{ log.prompt.length }} characters</p>
                 </ion-label>
                 <ion-button 
                   fill="clear" 
@@ -133,7 +133,7 @@ import { Subscription } from 'rxjs';
                 <ion-icon name="checkmark-circle-outline" slot="start" color="success"></ion-icon>
                 <ion-label>
                   <h3>Response</h3>
-                  <p>{{ log.response.length }} Zeichen, {{ getWordCount(log.response) }} Wörter</p>
+                  <p>{{ log.response.length }} characters, {{ getWordCount(log.response) }} words</p>
                 </ion-label>
                 <ion-button 
                   fill="clear" 
@@ -155,7 +155,7 @@ import { Subscription } from 'rxjs';
                 <ion-icon name="warning-outline" slot="start" color="danger"></ion-icon>
                 <ion-label>
                   <h3>Error Details</h3>
-                  <p>{{ log.error.length }} Zeichen</p>
+                  <p>{{ log.error.length }} characters</p>
                 </ion-label>
               </ion-item>
               <div class="accordion-content" slot="content">
@@ -416,7 +416,7 @@ import { Subscription } from 'rxjs';
       <ion-card *ngIf="logs.length === 0" class="no-logs-card">
         <ion-card-content class="ion-text-center">
           <ion-text color="medium">
-            <p>Noch keine AI-Requests geloggt.</p>
+            <p>No AI requests logged yet.</p>
           </ion-text>
         </ion-card-content>
       </ion-card>
@@ -939,7 +939,7 @@ export class AILogTabComponent implements OnInit, OnDestroy {
   }
 
   clearLogs(): void {
-    if (confirm('Möchten Sie wirklich alle AI-Logs löschen?')) {
+    if (confirm('Do you really want to delete all AI logs?')) {
       this.loggerService.clearLogs();
       this.expandedLogs.clear();
     }

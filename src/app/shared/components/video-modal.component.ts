@@ -27,7 +27,7 @@ import { StoredVideo } from '../models/video.interface';
             preload="metadata"
             (loadedmetadata)="onVideoLoaded()"
             (error)="onVideoError()">
-            Ihr Browser unterstützt das Video-Element nicht.
+            Your browser does not support the video element.
           </video>
           
           <div class="video-info">
@@ -56,7 +56,7 @@ import { StoredVideo } from '../models/video.interface';
               accept="video/*"
               style="display: none;">
             <button class="upload-btn" (click)="fileInput.click()" [disabled]="isProcessing">
-              📹 Video auswählen
+              📹 Select Video
             </button>
             <p class="upload-hint">oder Video hier ablegen (max. 50MB)</p>
           </div>
@@ -67,7 +67,7 @@ import { StoredVideo } from '../models/video.interface';
               class="preview-video"
               controls
               preload="metadata">
-              Ihr Browser unterstützt das Video-Element nicht.
+              Your browser does not support the video element.
             </video>
             <button class="remove-preview-btn" (click)="removeUploadPreview()">✕</button>
           </div>
@@ -78,14 +78,14 @@ import { StoredVideo } from '../models/video.interface';
           </div>
 
           <div class="upload-actions" *ngIf="uploadPreview && !isProcessing">
-            <button class="cancel-upload-btn" (click)="cancelUpload()">Abbrechen</button>
-            <button class="save-btn" (click)="saveVideo()">Video speichern</button>
+            <button class="cancel-upload-btn" (click)="cancelUpload()">Cancel</button>
+            <button class="save-btn" (click)="saveVideo()">Save Video</button>
           </div>
         </div>
 
         <!-- Footer -->
         <div class="modal-footer" *ngIf="!isUploading && !uploadPreview">
-          <button class="close-footer-btn" (click)="closeModal()">Schließen</button>
+          <button class="close-footer-btn" (click)="closeModal()">Close</button>
         </div>
       </div>
     </div>

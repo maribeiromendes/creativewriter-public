@@ -28,7 +28,7 @@ import { SyncedCustomBackgroundService, CustomBackground } from '../services/syn
         <ion-card-header>
           <ion-card-title>
             <ion-icon name="cloud-upload-outline"></ion-icon>
-            Eigenen Hintergrund hochladen
+            Upload Custom Background
           </ion-card-title>
         </ion-card-header>
         
@@ -118,7 +118,7 @@ import { SyncedCustomBackgroundService, CustomBackground } from '../services/syn
           <!-- Success Message -->
           <div class="upload-success" *ngIf="uploadSuccess()">
             <ion-icon name="checkmark-circle-outline" color="success"></ion-icon>
-            <p>Hintergrund erfolgreich hochgeladen!</p>
+            <p>Background uploaded successfully!</p>
           </div>
 
           <!-- Error Message -->
@@ -151,7 +151,7 @@ import { SyncedCustomBackgroundService, CustomBackground } from '../services/syn
             (click)="showClearAlert = true"
             *ngIf="getBackgroundCount() > 0">
             <ion-icon name="trash-outline" slot="start"></ion-icon>
-            Alle löschen
+            Delete All
           </ion-button>
         </ion-card-content>
       </ion-card>
@@ -159,8 +159,8 @@ import { SyncedCustomBackgroundService, CustomBackground } from '../services/syn
       <!-- Clear All Alert -->
       <ion-alert
         [isOpen]="showClearAlert"
-        header="Alle Hintergründe löschen?"
-        message="Diese Aktion kann nicht rückgängig gemacht werden."
+        header="Delete All Backgrounds?"
+        message="This action cannot be undone."
 [buttons]="clearAllButtons"
         (didDismiss)="showClearAlert = false">
       </ion-alert>
@@ -434,7 +434,7 @@ export class BackgroundUploadComponent {
       this.backgroundUploaded.emit(result);
       
       // Show success toast
-      this.showSuccessToast('Hintergrund erfolgreich hochgeladen!');
+      this.showSuccessToast('Background uploaded successfully!');
       
       // Clear form after short delay
       setTimeout(() => {
