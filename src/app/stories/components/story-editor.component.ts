@@ -120,7 +120,7 @@ import { PDFExportService } from '../../shared/services/pdf-export.service';
                 <input 
                   type="text" 
                   class="title-input-native" 
-                  placeholder="Titel deiner Geschichte..." 
+                  placeholder="Title of your story..." 
                   [(ngModel)]="story.title"
                   (ngModelChange)="onStoryTitleChange()"
                 />
@@ -159,7 +159,7 @@ import { PDFExportService } from '../../shared/services/pdf-export.service';
                     <input 
                       type="text" 
                       class="scene-title-input-native" 
-                      placeholder="Szenen-Titel..." 
+                      placeholder="Scene title..." 
                       [(ngModel)]="activeScene.title"
                       (ngModelChange)="onSceneTitleChange()"
                     />

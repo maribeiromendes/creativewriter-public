@@ -84,7 +84,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
                     fill="outline"
                     (click)="loadCombinedModels()" 
                     [disabled]="(!settings.openRouter.enabled || !settings.openRouter.apiKey) && (!settings.googleGemini.enabled || !settings.googleGemini.apiKey) || loadingModels"
-                    title="Modelle laden">
+                    title="Load Models">
                     {{ loadingModels ? 'Loading...' : 'Load Models' }}
                   </ion-button>
                 </div>

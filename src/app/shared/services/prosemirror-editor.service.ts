@@ -761,11 +761,11 @@ export class ProseMirrorEditorService {
         console.error('Beat generation failed:', error);
         
         // Insert error message
-        this.appendContentAfterBeatNode(event.beatId, 'Fehler bei der Generierung. Bitte versuchen Sie es erneut.', true);
+        this.appendContentAfterBeatNode(event.beatId, 'Error during generation. Please try again.', true);
         
         this.updateBeatNode(event.beatId, { 
           isGenerating: false,
-          generatedContent: 'Fehler bei der Generierung. Bitte versuchen Sie es erneut.',
+          generatedContent: 'Error during generation. Please try again.',
           prompt: event.prompt || ''
         });
         

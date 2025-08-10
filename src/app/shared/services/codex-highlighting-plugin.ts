@@ -56,7 +56,7 @@ function findCodexMatches(doc: Node, codexEntries: CodexEntry[]): DecorationSet 
           decorations.push(
             Decoration.inline(from, to, {
               class: 'codex-highlight codex-title',
-              title: `${entry.title} (Titel)`,
+              title: `${entry.title} (Title)`,
               style: 'text-decoration: underline; text-decoration-style: dotted; text-decoration-color: #4dabf7; cursor: help;'
             })
           );

@@ -50,11 +50,11 @@ export class VideoService {
       // Return video ID for association
       return videoId;
     } catch (error) {
-      console.error('Fehler beim Hochladen des Videos:', error);
+      console.error('Error uploading video:', error);
       if (error instanceof Error) {
         throw error;
       }
-      throw new Error('Fehler beim Hochladen des Videos');
+      throw new Error('Error uploading video');
     }
   }
 
@@ -80,7 +80,7 @@ export class VideoService {
       // Sort in memory by createdAt descending
       return videos.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
     } catch (error) {
-      console.error('Fehler beim Laden der Videos:', error);
+      console.error('Error loading videos:', error);
       return [];
     }
   }
@@ -100,7 +100,7 @@ export class VideoService {
       if ((error as PouchDB.Core.Error).status === 404) {
         return null;
       }
-      console.error('Fehler beim Laden des Videos:', error);
+      console.error('Error loading video:', error);
       return null;
     }
   }
@@ -225,7 +225,7 @@ export class VideoService {
         }
       }
     } catch (error) {
-      console.error('Fehler beim Bereinigen der Videos:', error);
+      console.error('Error cleaning up videos:', error);
     }
   }
 
@@ -255,7 +255,7 @@ export class VideoService {
       };
       
       reader.onerror = () => {
-        reject(new Error('Fehler beim Lesen der Datei'));
+        reject(new Error('Error reading file'));
       };
       
       reader.readAsDataURL(file);

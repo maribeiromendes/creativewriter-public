@@ -77,12 +77,12 @@ export class GoogleGeminiApiService {
     const startTime = Date.now();
     
     if (!settings.googleGemini.enabled || !settings.googleGemini.apiKey) {
-      throw new Error('Google Gemini API ist nicht aktiviert oder API-Key fehlt');
+      throw new Error('Google Gemini API is not enabled or API key is missing');
     }
 
     const model = options.model || settings.googleGemini.model;
     if (!model) {
-      throw new Error('Kein AI-Modell ausgewählt');
+      throw new Error('No AI model selected');
     }
 
     const maxTokens = options.maxTokens || 500;
@@ -360,12 +360,12 @@ export class GoogleGeminiApiService {
     const startTime = Date.now();
     
     if (!settings.googleGemini.enabled || !settings.googleGemini.apiKey) {
-      throw new Error('Google Gemini API ist nicht aktiviert oder API-Key fehlt');
+      throw new Error('Google Gemini API is not enabled or API key is missing');
     }
 
     const model = options.model || settings.googleGemini.model;
     if (!model) {
-      throw new Error('Kein AI-Modell ausgewählt');
+      throw new Error('No AI model selected');
     }
 
     const maxTokens = options.maxTokens || 500;

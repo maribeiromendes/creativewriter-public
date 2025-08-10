@@ -1223,7 +1223,7 @@ export class StoryListComponent implements OnInit {
       return cleanContent.length > 150 ? cleanContent.substring(0, 150) + '...' : cleanContent;
     }
     
-    return 'Noch kein Inhalt...';
+    return 'No content yet...';
   }
 
   getWordCount(story: Story): number {

@@ -238,7 +238,7 @@ export interface StoryStatistics {
                   <ion-col size="4">
                     <div class="stat-item">
                       <div class="stat-value">{{ statistics.storageUsage.storyTextSizeFormatted }}</div>
-                      <div class="stat-label">Text-Inhalt</div>
+                      <div class="stat-label">Text Content</div>
                     </div>
                   </ion-col>
                   <ion-col size="4">

@@ -100,14 +100,14 @@ export const DEFAULT_SETTINGS: Settings = {
     includeGenre: false,
     temperature: 0.3,
     customInstruction: '',
-    customPrompt: 'Erstelle einen Titel für die folgende Szene. Der Titel soll bis zu {maxWords} Wörter lang sein und den Kern der Szene erfassen.\n\n{styleInstruction}\n{genreInstruction}\n{languageInstruction}{customInstruction}\n\nSzenencontent (nur diese eine Szene):\n{sceneContent}\n\nAntworte nur mit dem Titel, ohne weitere Erklärungen oder Anführungszeichen.',
+    customPrompt: 'Create a title for the following scene. The title should be up to {maxWords} words long and capture the essence of the scene.\n\n{styleInstruction}\n{genreInstruction}\n{languageInstruction}{customInstruction}\n\nScene content (only this one scene):\n{sceneContent}\n\nRespond only with the title, without further explanations or quotation marks.',
     useCustomPrompt: false,
     selectedModel: ''
   },
   sceneSummaryGeneration: {
     temperature: 0.7,
     customInstruction: '',
-    customPrompt: 'Erstelle eine Zusammenfassung der folgenden Szene:\n\nTitel: {sceneTitle}\n\nInhalt:\n{sceneContent}\n\nDie Zusammenfassung soll die wichtigsten Handlungspunkte und Charakterentwicklungen erfassen. Schreibe eine vollständige und umfassende Zusammenfassung mit mindestens 3-5 Sätzen.',
+    customPrompt: 'Create a summary of the following scene:\n\nTitle: {sceneTitle}\n\nContent:\n{sceneContent}\n\nThe summary should capture the most important plot points and character developments. Write a complete and comprehensive summary with at least 3-5 sentences.',
     useCustomPrompt: false,
     selectedModel: ''
   },

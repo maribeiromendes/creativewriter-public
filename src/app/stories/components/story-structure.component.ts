@@ -1422,19 +1422,19 @@ export class StoryStructureComponent implements OnInit, OnChanges, AfterViewInit
     let prompt: string;
     if (settings.sceneSummaryGeneration.useCustomPrompt) {
       prompt = settings.sceneSummaryGeneration.customPrompt
-        .replace(/{sceneTitle}/g, scene.title || 'Ohne Titel')
-        .replace(/{sceneContent}/g, sceneContent + (contentTruncated ? '\n\n[Hinweis: Der Inhalt wurde gekürzt, da er zu lang war]' : ''))
+        .replace(/{sceneTitle}/g, scene.title || 'Untitled')
+        .replace(/{sceneContent}/g, sceneContent + (contentTruncated ? '\n\n[Note: Content was truncated as it was too long]' : ''))
         .replace(/{customInstruction}/g, settings.sceneSummaryGeneration.customInstruction || '');
     } else {
       // Default prompt
-      prompt = `Erstelle eine Zusammenfassung der folgenden Szene:
+      prompt = `Create a summary of the following scene:
 
-Titel: ${scene.title || 'Ohne Titel'}
+Title: ${scene.title || 'Untitled'}
 
-Inhalt:
-${sceneContent}${contentTruncated ? '\n\n[Hinweis: Der Inhalt wurde gekürzt, da er zu lang war]' : ''}
+Content:
+${sceneContent}${contentTruncated ? '\n\n[Note: Content was truncated as it was too long]' : ''}
 
-Die Zusammenfassung soll die wichtigsten Handlungspunkte und Charakterentwicklungen erfassen. Schreibe eine vollständige und umfassende Zusammenfassung mit mindestens 3-5 Sätzen.`;
+The summary should capture the most important plot points and character developments. Write a complete and comprehensive summary with at least 3-5 sentences.`;
       
       // Add custom instruction if provided
       if (settings.sceneSummaryGeneration.customInstruction) {
@@ -1691,26 +1691,26 @@ Die Zusammenfassung soll die wichtigsten Handlungspunkte und Charakterentwicklun
     let styleInstruction = '';
     switch (titleSettings.style) {
       case 'descriptive':
-        styleInstruction = 'Der Titel soll beschreibend und atmosphärisch sein.';
+        styleInstruction = 'The title should be descriptive and atmospheric.';
         break;
       case 'action':
-        styleInstruction = 'Der Titel soll actionreich und dynamisch sein.';
+        styleInstruction = 'The title should be action-packed and dynamic.';
         break;
       case 'emotional':
-        styleInstruction = 'Der Titel soll die emotionale Stimmung der Szene widerspiegeln.';
+        styleInstruction = 'The title should reflect the emotional mood of the scene.';
         break;
       case 'concise':
       default:
-        styleInstruction = 'Der Titel soll knapp und prägnant sein.';
+        styleInstruction = 'The title should be concise and impactful.';
         break;
     }
     
     const languageInstruction = titleSettings.language === 'english' 
-      ? 'Antworte auf Englisch.' 
-      : 'Antworte auf Deutsch.';
+      ? 'Respond in English.' 
+      : 'Respond in German.';
     
     const genreInstruction = titleSettings.includeGenre 
-      ? 'Berücksichtige das Genre der Geschichte bei der Titelwahl.' 
+      ? 'Consider the genre of the story when choosing the title.' 
       : '';
     
     const customInstruction = titleSettings.customInstruction 
@@ -1731,16 +1731,16 @@ Die Zusammenfassung soll die wichtigsten Handlungspunkte und Charakterentwicklun
         .replace('{sceneContent}', sceneContent);
     } else {
       // Use default prompt template
-      prompt = `Erstelle einen Titel für die folgende Szene. Der Titel soll bis zu ${titleSettings.maxWords} Wörter lang sein und den Kern der Szene erfassen.
+      prompt = `Create a title for the following scene. The title should be up to ${titleSettings.maxWords} words long and capture the essence of the scene.
 
 ${styleInstruction}
 ${genreInstruction}
 ${languageInstruction}${customInstruction}
 
-Szenencontent (nur diese eine Szene):
+Scene content (only this one scene):
 ${sceneContent}
 
-Antworte nur mit dem Titel, ohne weitere Erklärungen oder Anführungszeichen.`;
+Respond only with the title, without further explanations or quotation marks.`;
     }
 
     // Choose API based on provider

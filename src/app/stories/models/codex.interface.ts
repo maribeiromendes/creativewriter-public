@@ -59,12 +59,12 @@ export const DEFAULT_CODEX_CATEGORIES: Partial<CodexCategory>[] = [
   },
   {
     title: 'Orte',
-    description: 'Schauplätze und Lokationen',
+    description: 'Locations and Settings',
     icon: '🏰',
     entries: []
   },
   {
-    title: 'Gegenstände',
+    title: 'Objects',
     description: 'Wichtige Objekte und Artefakte',
     icon: '⚔️',
     entries: []

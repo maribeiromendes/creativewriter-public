@@ -68,11 +68,11 @@ export class ImageService {
         imageId: imageId
       };
     } catch (error) {
-      console.error('Fehler beim Hochladen des Bildes:', error);
+      console.error('Error uploading image:', error);
       if (error instanceof Error) {
         throw error;
       }
-      throw new Error('Fehler beim Hochladen des Bildes');
+      throw new Error('Error uploading image');
     }
   }
 
@@ -116,11 +116,11 @@ export class ImageService {
       // Return data URL for immediate use
       return this.getImageDataUrl(storedImage);
     } catch (error) {
-      console.error('Fehler beim Hochladen des Bildes:', error);
+      console.error('Error uploading image:', error);
       if (error instanceof Error) {
         throw error;
       }
-      throw new Error('Fehler beim Hochladen des Bildes');
+      throw new Error('Error uploading image');
     }
   }
 
@@ -146,7 +146,7 @@ export class ImageService {
       // Sort in memory by createdAt descending
       return images.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
     } catch (error) {
-      console.error('Fehler beim Laden der Bilder:', error);
+      console.error('Error loading images:', error);
       return [];
     }
   }
@@ -166,7 +166,7 @@ export class ImageService {
       if ((error as PouchDB.Core.Error).status === 404) {
         return null;
       }
-      console.error('Fehler beim Laden des Bildes:', error);
+      console.error('Error loading image:', error);
       return null;
     }
   }

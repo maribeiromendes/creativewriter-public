@@ -243,10 +243,10 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
                 
                 <div class="form-group">
                   <ion-item lines="none" class="form-item">
-                    <ion-label position="stacked">Titel <span class="required">*</span></ion-label>
+                    <ion-label position="stacked">Title <span class="required">*</span></ion-label>
                     <ion-input 
                       [(ngModel)]="editingEntry.title" 
-                      placeholder="Titel eingeben..."
+                      placeholder="Enter title..."
                       type="text"
                       class="title-input">
                     </ion-input>
@@ -415,7 +415,7 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
                 
               <!-- Content Section -->
               <div class="form-section">
-                <h3 class="section-title">Inhalt</h3>
+                <h3 class="section-title">Content</h3>
                 
                 <div class="form-group">
                   <ion-item lines="none" class="form-item content-item">

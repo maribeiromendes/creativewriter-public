@@ -66,7 +66,7 @@ export class OpenRouterApiService {
 
     const model = options.model || settings.openRouter.model;
     if (!model) {
-      throw new Error('Kein AI-Modell ausgewählt');
+      throw new Error('No AI model selected');
     }
 
     const maxTokens = options.maxTokens || 500;
@@ -198,7 +198,7 @@ export class OpenRouterApiService {
 
     const model = options.model || settings.openRouter.model;
     if (!model) {
-      throw new Error('Kein AI-Modell ausgewählt');
+      throw new Error('No AI model selected');
     }
 
     const maxTokens = options.maxTokens || 500;

@@ -152,15 +152,15 @@ interface BackgroundOption {
       <!-- Empty state for custom backgrounds -->
       <div class="empty-custom-backgrounds" *ngIf="customBackgrounds().length === 0">
         <ion-text color="medium">
-          <p>Noch keine eigenen Hintergründe vorhanden.</p>
-          <p>Laden Sie über die Einstellungen eigene Bilder hoch.</p>
+          <p>No custom backgrounds available yet.</p>
+          <p>Upload your own images via the settings.</p>
         </ion-text>
       </div>
 
       <!-- Delete Confirmation Alert -->
       <ion-alert
         [isOpen]="showDeleteAlert"
-        header="Hintergrund löschen?"
+        header="Delete Background?"
         [message]="deleteMessage"
         [buttons]="deleteButtons"
         (didDismiss)="cancelDelete()"
@@ -380,7 +380,7 @@ export class BackgroundSelectorComponent implements OnInit, OnChanges {
   // Alert content
   get deleteMessage(): string {
     return this.backgroundToDelete ? 
-      `Möchten Sie "${this.backgroundToDelete.name}" wirklich löschen?` : '';
+      `Do you really want to delete "${this.backgroundToDelete.name}"?` : '';
   }
   
   deleteButtons = [

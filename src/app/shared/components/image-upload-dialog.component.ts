@@ -87,7 +87,7 @@ export interface ImageInsertResult {
           </label>
           
           <label>
-            Titel (optional):
+            Title (optional):
             <input 
               type="text" 
               [(ngModel)]="titleText"

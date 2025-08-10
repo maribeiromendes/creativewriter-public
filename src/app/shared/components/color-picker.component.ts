@@ -453,10 +453,10 @@ export class ColorPickerComponent implements OnInit {
     { name: 'Gelb', value: '#ffff00', contrast: 'dark' },
     { name: 'Weiß', value: '#ffffff', contrast: 'dark' },
     
-    // Entwickler-Farben
-    { name: 'Terminal Grün', value: '#00ff00', contrast: 'dark' },
-    { name: 'Warnung Orange', value: '#ff9800', contrast: 'dark' },
-    { name: 'Fehler Rot', value: '#ff5252', contrast: 'dark' },
+    // Developer Colors
+    { name: 'Terminal Green', value: '#00ff00', contrast: 'dark' },
+    { name: 'Warning Orange', value: '#ff9800', contrast: 'dark' },
+    { name: 'Error Red', value: '#ff5252', contrast: 'dark' },
     { name: 'Info Blau', value: '#2196f3', contrast: 'dark' }
   ];
 
