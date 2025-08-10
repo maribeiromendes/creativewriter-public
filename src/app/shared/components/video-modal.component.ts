@@ -13,8 +13,8 @@ import { StoredVideo } from '../models/video.interface';
       <div class="modal-content" (click)="$event.stopPropagation()" (keyup)="$event.stopPropagation()" tabindex="0">
         <!-- Header -->
         <div class="modal-header">
-          <h3>{{ hasVideo ? 'Video ansehen' : 'Video hinzufügen' }}</h3>
-          <button class="close-btn" (click)="closeModal()" aria-label="Schließen">✕</button>
+          <h3>{{ hasVideo ? 'View Video' : 'Add Video' }}</h3>
+          <button class="close-btn" (click)="closeModal()" aria-label="Close">✕</button>
         </div>
 
         <!-- Video Display Mode -->
@@ -37,7 +37,7 @@ import { StoredVideo } from '../models/video.interface';
 
           <div class="video-actions">
             <button class="replace-btn" (click)="startUpload()">Video ersetzen</button>
-            <button class="remove-btn" (click)="removeVideo()">Video entfernen</button>
+            <button class="remove-btn" (click)="removeVideo()">Remove Video</button>
           </div>
         </div>
 

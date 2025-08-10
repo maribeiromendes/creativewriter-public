@@ -297,7 +297,7 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
                   <div class="image-preview" *ngIf="editingEntry.imageUrl">
                     <img 
                       [src]="editingEntry.imageUrl" 
-                      alt="Vorschau"
+                      alt="Preview"
                       (error)="editingEntry.imageUrl = ''">
                   </div>
                 </div>

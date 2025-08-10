@@ -71,7 +71,7 @@ export interface StoryStatistics {
               slot="end" 
               fill="clear" 
               (click)="onClose()"
-              aria-label="Schließen"
+              aria-label="Close"
               class="close-button">
               <ion-icon name="close" slot="icon-only"></ion-icon>
             </ion-button>
@@ -99,7 +99,7 @@ export interface StoryStatistics {
                   <ion-col size="6">
                     <div class="stat-item">
                       <div class="stat-value">{{ statistics.totalWords | number }}</div>
-                      <div class="stat-label">Gesamtwörter</div>
+                      <div class="stat-label">Total Words</div>
                     </div>
                   </ion-col>
                   <ion-col size="6">
@@ -167,7 +167,7 @@ export interface StoryStatistics {
               <ion-item *ngIf="statistics.longestChapter" lines="none">
                 <ion-icon name="trending-up-outline" slot="start" color="success"></ion-icon>
                 <ion-label>
-                  <h3>Längstes Kapitel</h3>
+                  <h3>Longest Chapter</h3>
                   <p>{{ statistics.longestChapter.title }}</p>
                   <ion-chip color="success">{{ statistics.longestChapter.wordCount | number }} words</ion-chip>
                 </ion-label>
@@ -176,7 +176,7 @@ export interface StoryStatistics {
               <ion-item *ngIf="statistics.shortestChapter" lines="none">
                 <ion-icon name="trending-down-outline" slot="start" color="warning"></ion-icon>
                 <ion-label>
-                  <h3>Kürzestes Kapitel</h3>
+                  <h3>Shortest Chapter</h3>
                   <p>{{ statistics.shortestChapter.title }}</p>
                   <ion-chip color="warning">{{ statistics.shortestChapter.wordCount | number }} words</ion-chip>
                 </ion-label>
@@ -290,7 +290,7 @@ export interface StoryStatistics {
             </ion-card-header>
             <ion-card-content>
               <div class="progress-info">
-                <p>Basierend auf der aktuellen Länge:</p>
+                <p>Based on current length:</p>
                 <ion-grid>
                   <ion-row>
                     <ion-col size="4">
@@ -815,7 +815,7 @@ export class StoryStatsComponent implements OnInit, OnChanges {
     let message = `Detaillierte Speicher-Analyse:\n\n`;
     message += `Gesamtspeicher: ${breakdown.totalSizeFormatted}\n\n`;
     
-    message += `localStorage Einträge:\n`;
+    message += `localStorage entries:\n`;
     breakdown.items.forEach(item => {
       message += `• ${item.description}: ${item.sizeFormatted}\n`;
     });

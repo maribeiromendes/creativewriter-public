@@ -221,8 +221,8 @@ interface SceneContext {
               class="generate-btn primary"
               (click)="showPromptPreview(); $event.stopPropagation()"
               [disabled]="!currentPrompt.trim()"
-              title="Prompt-Vorschau anzeigen">
-              👁️ Vorschau
+              title="Show prompt preview">
+              👁️ Preview
             </button>
             <button 
               class="generate-btn secondary"

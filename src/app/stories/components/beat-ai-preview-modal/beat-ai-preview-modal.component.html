@@ -2,7 +2,7 @@
 <div class="modal-fixed" (click)="onBackdropClick($event)" (keydown.escape)="onClose()" tabindex="0">
   <div class="modal-content" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()" role="dialog" aria-modal="true">
     <div class="modal-header">
-      <h3>Prompt-Vorschau</h3>
+      <h3>Prompt Preview</h3>
       <button (click)="onClose()" class="close-btn">×</button>
     </div>
     <div class="modal-body">
@@ -14,8 +14,8 @@
       </code-editor>
     </div>
     <div class="modal-footer">
-      <button (click)="onClose()" class="btn-secondary">Schließen</button>
-      <button (click)="onGenerate()" class="btn-primary">Jetzt generieren</button>
+      <button (click)="onClose()" class="btn-secondary">Close</button>
+      <button (click)="onGenerate()" class="btn-primary">Generate now</button>
     </div>
   </div>
 </div>
