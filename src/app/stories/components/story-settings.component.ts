@@ -357,7 +357,7 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
 
                 <div *ngIf="orphanedImages.length === 0 && !isScanning" class="empty-state">
                   <ion-text color="medium">
-                    <p>Keine verwaisten Bilder gefunden oder noch nicht gescannt.</p>
+                    <p>No orphaned images found or not yet scanned.</p>
                   </ion-text>
                 </div>
               </ion-card-content>
@@ -366,11 +366,11 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
             <!-- Duplicate Images -->
             <ion-card class="settings-section">
               <ion-card-header>
-                <ion-card-title>Doppelte Bilder</ion-card-title>
+                <ion-card-title>Duplicate Images</ion-card-title>
               </ion-card-header>
               <ion-card-content>
                 <ion-text color="medium">
-                  <p>Identische Bilder mit verschiedenen IDs.</p>
+                  <p>Identical images with different IDs.</p>
                 </ion-text>
 
                 <div class="action-buttons">
@@ -438,7 +438,7 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
 
                 <div *ngIf="duplicateImages.length === 0 && !isScanning" class="empty-state">
                   <ion-text color="medium">
-                    <p>Keine Duplikate gefunden oder noch nicht gescannt.</p>
+                    <p>No duplicates found or not yet scanned.</p>
                   </ion-text>
                 </div>
               </ion-card-content>
@@ -489,7 +489,7 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
             <!-- Database Operations -->
             <ion-card class="settings-section">
               <ion-card-header>
-                <ion-card-title>Datenbank-Operationen</ion-card-title>
+                <ion-card-title>Database Operations</ion-card-title>
               </ion-card-header>
               <ion-card-content>
                 <div class="db-operations">
@@ -553,7 +553,7 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
       <ion-content *ngIf="!story">
         <div class="no-story">
           <ion-text color="medium">
-            <p>Geschichte nicht gefunden.</p>
+            <p>Story not found.</p>
           </ion-text>
         </div>
       </ion-content>
