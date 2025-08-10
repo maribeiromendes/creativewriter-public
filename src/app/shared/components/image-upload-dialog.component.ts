@@ -379,7 +379,7 @@ export class ImageUploadDialogComponent {
 
   private handleFile(file: File): void {
     if (!file.type.startsWith('image/')) {
-      alert('Bitte wählen Sie eine Bilddatei aus.');
+      alert('Please select an image file.');
       return;
     }
 
@@ -444,8 +444,8 @@ export class ImageUploadDialogComponent {
         imageId: imageId
       });
     } catch (error) {
-      console.error('Fehler beim Einfügen des Bildes:', error);
-      alert('Fehler beim Einfügen des Bildes. Bitte versuchen Sie es erneut.');
+      console.error('Error inserting image:', error);
+      alert('Error inserting image. Please try again.');
     }
   }
 

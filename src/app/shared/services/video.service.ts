@@ -146,7 +146,7 @@ export class VideoService {
       await db.put(association);
       return true;
     } catch (error) {
-      console.error('Fehler beim Verknüpfen von Bild und Video:', error);
+      console.error('Error linking image and video:', error);
       return false;
     }
   }
@@ -180,7 +180,7 @@ export class VideoService {
       
       return video;
     } catch (error) {
-      console.error('Fehler beim Laden des verknüpften Videos:', error);
+      console.error('Error loading linked video:', error);
       return null;
     }
   }

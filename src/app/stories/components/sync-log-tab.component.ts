@@ -272,7 +272,7 @@ export class SyncLogTabComponent implements OnInit, OnDestroy {
   }
 
   clearLogs(): void {
-    if (confirm('Möchten Sie wirklich alle Synchronisations-Logs löschen?')) {
+    if (confirm('Do you really want to delete all synchronization logs?')) {
       this.syncLoggerService.clearLogs();
       this.expandedLogs.clear();
     }

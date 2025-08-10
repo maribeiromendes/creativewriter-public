@@ -1115,7 +1115,7 @@ export class StoryListComponent implements OnInit {
   }
 
   logout(): void {
-    if (confirm('Möchten Sie sich wirklich abmelden? Lokale Änderungen bleiben erhalten.')) {
+    if (confirm('Do you really want to sign out? Local changes will be preserved.')) {
       this.authService.logout();
     }
   }
@@ -1202,7 +1202,7 @@ export class StoryListComponent implements OnInit {
 
   async deleteStory(event: Event, storyId: string): Promise<void> {
     event.stopPropagation();
-    if (confirm('Möchten Sie diese Geschichte wirklich löschen?')) {
+    if (confirm('Do you really want to delete this story?')) {
       await this.storyService.deleteStory(storyId);
       await this.loadStories();
     }

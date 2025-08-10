@@ -219,7 +219,7 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
             <!-- Database Statistics -->
             <ion-card class="settings-section">
               <ion-card-header>
-                <ion-card-title>Datenbank-Statistiken</ion-card-title>
+                <ion-card-title>Database Statistics</ion-card-title>
               </ion-card-header>
               <ion-card-content>
                 <ion-button
@@ -228,7 +228,7 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
                   (click)="loadDatabaseStats()"
                   [disabled]="isScanning">
                   <ion-icon name="stats-chart-outline" slot="start"></ion-icon>
-                  Statistiken laden
+                  Load Statistics
                 </ion-button>
 
                 <div *ngIf="databaseStats" class="stats-grid">
@@ -288,7 +288,7 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
             <!-- Orphaned Images -->
             <ion-card class="settings-section">
               <ion-card-header>
-                <ion-card-title>Verwaiste Bilder</ion-card-title>
+                <ion-card-title>Orphaned Images</ion-card-title>
               </ion-card-header>
               <ion-card-content>
                 <ion-text color="medium">
@@ -302,7 +302,7 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
                     (click)="scanOrphanedImages()"
                     [disabled]="isScanning">
                     <ion-icon name="scan-outline" slot="start"></ion-icon>
-                    Scannen
+                    Scan
                   </ion-button>
 
                   <ion-button
@@ -322,7 +322,7 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
                     (click)="deselectAllOrphanedImages()"
                     [disabled]="selectedOrphanedImages.size === 0">
                     <ion-icon name="square-outline" slot="start"></ion-icon>
-                    Auswahl aufheben
+                    Deselect All
                   </ion-button>
 
                   <ion-button
@@ -400,7 +400,7 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
                     (click)="deselectAllDuplicates()"
                     [disabled]="selectedDuplicates.size === 0">
                     <ion-icon name="square-outline" slot="start"></ion-icon>
-                    Auswahl aufheben
+                    Deselect All
                   </ion-button>
 
                   <ion-button
@@ -1222,7 +1222,7 @@ export class StorySettingsComponent implements OnInit {
       URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Error exporting database:', error);
-      alert('Fehler beim Export der Datenbank.');
+      alert('Error exporting database.');
     }
   }
 

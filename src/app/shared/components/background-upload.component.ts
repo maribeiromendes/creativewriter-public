@@ -91,7 +91,7 @@ import { SyncedCustomBackgroundService, CustomBackground } from '../services/syn
                 <ion-label position="stacked">Name (optional)</ion-label>
                 <ion-input 
                   [(ngModel)]="customName"
-                  placeholder="Automatischer Name wird verwendet"
+                  placeholder="Automatic name will be used"
                   maxlength="50">
                 </ion-input>
               </ion-item>
@@ -104,12 +104,12 @@ import { SyncedCustomBackgroundService, CustomBackground } from '../services/syn
                   (click)="uploadFile()"
                   [disabled]="isUploading() || !isUserLoggedIn()">
                   <ion-icon name="cloud-upload-outline" slot="start"></ion-icon>
-                  <span *ngIf="isUserLoggedIn()">Hochladen & Synchronisieren</span>
-                  <span *ngIf="!isUserLoggedIn()">Anmeldung erforderlich</span>
+                  <span *ngIf="isUserLoggedIn()">Upload & Sync</span>
+                  <span *ngIf="!isUserLoggedIn()">Login required</span>
                 </ion-button>
                 
                 <ion-text color="warning" *ngIf="!isUserLoggedIn()">
-                  <p><small>Sie müssen angemeldet sein, um eigene Hintergründe zu verwenden.</small></p>
+                  <p><small>You must be logged in to use custom backgrounds.</small></p>
                 </ion-text>
               </div>
             </div>

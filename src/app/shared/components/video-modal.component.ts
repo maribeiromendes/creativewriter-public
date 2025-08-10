@@ -36,7 +36,7 @@ import { StoredVideo } from '../models/video.interface';
           </div>
 
           <div class="video-actions">
-            <button class="replace-btn" (click)="startUpload()">Video ersetzen</button>
+            <button class="replace-btn" (click)="startUpload()">Replace Video</button>
             <button class="remove-btn" (click)="removeVideo()">Remove Video</button>
           </div>
         </div>
@@ -58,7 +58,7 @@ import { StoredVideo } from '../models/video.interface';
             <button class="upload-btn" (click)="fileInput.click()" [disabled]="isProcessing">
               📹 Select Video
             </button>
-            <p class="upload-hint">oder Video hier ablegen (max. 50MB)</p>
+            <p class="upload-hint">or drop video here (max. 50MB)</p>
           </div>
 
           <div *ngIf="uploadPreview" class="preview-section">
@@ -74,7 +74,7 @@ import { StoredVideo } from '../models/video.interface';
 
           <div *ngIf="isProcessing" class="processing-indicator">
             <div class="loading-spinner"></div>
-            <p>Video wird verarbeitet...</p>
+            <p>Processing video...</p>
           </div>
 
           <div class="upload-actions" *ngIf="uploadPreview && !isProcessing">
@@ -461,7 +461,7 @@ export class VideoModalComponent implements OnInit, OnDestroy, OnChanges {
       this.hasVideo = !!this.currentVideo;
       console.log('Found video for image:', !!this.currentVideo, this.currentVideo);
     } catch (error) {
-      console.error('Fehler beim Laden des Videos:', error);
+      console.error('Error loading video:', error);
       this.hasVideo = false;
     }
   }
@@ -497,12 +497,12 @@ export class VideoModalComponent implements OnInit, OnDestroy, OnChanges {
 
   private handleFile(file: File): void {
     if (!file.type.startsWith('video/')) {
-      alert('Bitte wählen Sie eine Videodatei aus.');
+      alert('Please select a video file.');
       return;
     }
 
     if (file.size > 50 * 1024 * 1024) { // 50MB limit
-      alert('Video ist zu groß. Maximale Größe: 50MB');
+      alert('Video is too large. Maximum size: 50MB');
       return;
     }
 
@@ -561,7 +561,7 @@ export class VideoModalComponent implements OnInit, OnDestroy, OnChanges {
   async removeVideo(): Promise<void> {
     if (!this.imageId || !this.currentVideo) return;
 
-    const confirmed = confirm('Möchten Sie die Verknüpfung zwischen Bild und Video wirklich entfernen?');
+    const confirmed = confirm('Do you really want to remove the link between image and video?');
     if (!confirmed) return;
 
     try {
@@ -586,8 +586,8 @@ export class VideoModalComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   onVideoError(): void {
-    console.error('Fehler beim Laden des Videos');
-    alert('Fehler beim Laden des Videos.');
+    console.error('Error loading video');
+    alert('Error loading video.');
   }
 
   private pauseVideo(): void {
