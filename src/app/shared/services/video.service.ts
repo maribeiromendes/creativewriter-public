@@ -33,19 +33,16 @@ export class VideoService {
       
       // Create video record
       const videoId = this.generateVideoId();
-      const storedVideo: StoredVideo = {
-        _id: `video_${videoId}`,
-        id: videoId,
+      const videoData = {
         name: file.name,
         base64Data,
         mimeType: file.type,
         size: file.size,
-        createdAt: new Date(),
-        type: 'video'
+        type: 'video' as const
       };
 
-      // Store in PouchDB
-      await this.storeVideo(storedVideo);
+      // Store in Firestore
+      const storedVideo = await this.databaseService.create<StoredVideo>('videos', videoData, videoId);
 
       // Return video ID for association
       return videoId;
@@ -63,22 +60,10 @@ export class VideoService {
    */
   async getAllVideos(): Promise<StoredVideo[]> {
     try {
-      const db = await this.databaseService.getDatabase();
-      const result = await db.find({
-        selector: { type: 'video' }
-        // Remove sort to avoid index issues - we'll sort in memory instead
+      return await this.databaseService.getAll<StoredVideo>('videos', {
+        where: [{ field: 'type', operator: '==', value: 'video' }],
+        orderBy: [{ field: 'createdAt', direction: 'desc' }]
       });
-      
-      const videos = result.docs.map((doc: unknown) => {
-        const typedDoc = doc as StoredVideo & { _id: string; _rev: string };
-        return {
-          ...typedDoc,
-          createdAt: new Date(typedDoc.createdAt)
-        };
-      }) as StoredVideo[];
-      
-      // Sort in memory by createdAt descending
-      return videos.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
     } catch (error) {
       console.error('Error loading videos:', error);
       return [];
@@ -90,16 +75,8 @@ export class VideoService {
    */
   async getVideo(id: string): Promise<StoredVideo | null> {
     try {
-      const db = await this.databaseService.getDatabase();
-      const doc = await db.get(`video_${id}`) as StoredVideo & { _id: string; _rev: string };
-      return {
-        ...doc,
-        createdAt: new Date(doc['createdAt'])
-      } as StoredVideo;
+      return await this.databaseService.get<StoredVideo>('videos', id);
     } catch (error) {
-      if ((error as PouchDB.Core.Error).status === 404) {
-        return null;
-      }
       console.error('Error loading video:', error);
       return null;
     }
@@ -110,9 +87,7 @@ export class VideoService {
    */
   async deleteVideo(id: string): Promise<boolean> {
     try {
-      const db = await this.databaseService.getDatabase();
-      const doc = await db.get(`video_${id}`);
-      await db.remove(doc);
+      await this.databaseService.delete('videos', id);
       return true;
     } catch (error) {
       console.error('Error deleting video:', error);
@@ -133,17 +108,13 @@ export class VideoService {
   async associateImageWithVideo(imageId: string, videoId: string): Promise<boolean> {
     try {
       const associationId = this.generateAssociationId();
-      const association: ImageVideoAssociation = {
-        _id: `association_${associationId}`,
-        id: associationId,
+      const associationData = {
         imageId,
         videoId,
-        createdAt: new Date(),
-        type: 'image-video-association'
+        type: 'image-video-association' as const
       };
 
-      const db = await this.databaseService.getDatabase();
-      await db.put(association);
+      await this.databaseService.create<ImageVideoAssociation>('associations', associationData, associationId);
       return true;
     } catch (error) {
       console.error('Error linking image and video:', error);
@@ -156,23 +127,22 @@ export class VideoService {
    */
   async getVideoForImage(imageId: string): Promise<StoredVideo | null> {
     try {
-      const db = await this.databaseService.getDatabase();
       console.log('Searching for video association for imageId:', imageId);
       
-      const result = await db.find({
-        selector: { 
-          type: 'image-video-association',
-          imageId: imageId
-        }
+      const associations = await this.databaseService.getAll<ImageVideoAssociation>('associations', {
+        where: [
+          { field: 'type', operator: '==', value: 'image-video-association' },
+          { field: 'imageId', operator: '==', value: imageId }
+        ]
       });
 
-      console.log('Found associations:', result.docs.length);
+      console.log('Found associations:', associations.length);
       
-      if (result.docs.length === 0) {
+      if (associations.length === 0) {
         return null;
       }
 
-      const association = result.docs[0] as ImageVideoAssociation;
+      const association = associations[0];
       console.log('Found association:', association);
       
       const video = await this.getVideo(association.videoId);
@@ -190,16 +160,16 @@ export class VideoService {
    */
   async removeImageVideoAssociation(imageId: string): Promise<boolean> {
     try {
-      const db = await this.databaseService.getDatabase();
-      const result = await db.find({
-        selector: { 
-          type: 'image-video-association',
-          imageId: imageId
-        }
+      const associations = await this.databaseService.getAll<ImageVideoAssociation>('associations', {
+        where: [
+          { field: 'type', operator: '==', value: 'image-video-association' },
+          { field: 'imageId', operator: '==', value: imageId }
+        ]
       });
 
-      for (const doc of result.docs) {
-        await db.remove(doc);
+      const associationIds = associations.map(assoc => assoc.id);
+      if (associationIds.length > 0) {
+        await this.databaseService.deleteMany('associations', associationIds);
       }
       
       return true;
@@ -262,25 +232,6 @@ export class VideoService {
     });
   }
 
-  private async storeVideo(video: StoredVideo): Promise<void> {
-    try {
-      const db = await this.databaseService.getDatabase();
-      await db.put(video);
-    } catch (error) {
-      if (error instanceof Error && (error.name === 'QuotaExceededError' || error.message.includes('storage quota'))) {
-        // Try to clean up space and retry
-        await this.cleanupVideos();
-        try {
-          const db = await this.databaseService.getDatabase();
-          await db.put(video);
-        } catch {
-          throw new Error('Nicht genügend Speicherplatz verfügbar. Versuchen Sie, alte Videos zu löschen.');
-        }
-      } else {
-        throw error;
-      }
-    }
-  }
 
   private generateVideoId(): string {
     return `vid_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;

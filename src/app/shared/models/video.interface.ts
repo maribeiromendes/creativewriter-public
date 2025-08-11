@@ -1,21 +1,17 @@
-export interface StoredVideo {
-  _id: string;
-  id: string;
+import { FirestoreDocument } from '../../core/services/firestore.service';
+
+export interface StoredVideo extends FirestoreDocument {
   name: string;
   base64Data: string;
   mimeType: string;
   size: number;
-  createdAt: Date;
   type: 'video';
   thumbnailUrl?: string; // Optional thumbnail for video preview
 }
 
-export interface ImageVideoAssociation {
-  _id: string;
-  id: string;
+export interface ImageVideoAssociation extends FirestoreDocument {
   imageId: string; // ID of the associated image
   videoId: string; // ID of the associated video
-  createdAt: Date;
   type: 'image-video-association';
 }
 
