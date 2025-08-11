@@ -70,6 +70,13 @@ CreativeWriter is a modern web-based writing tool designed for fiction authors w
 - **Character Consistency**: Maintain character voice and traits with AI assistance
 - **Custom Prompts**: Fine-tune AI behavior with customizable prompt templates
 
+#### How CreativeWriter Feeds Context to AI
+CreativeWriter uses a sophisticated context-building system when generating AI suggestions for beats. The system includes a standard prompt that defines the AI's role as a "creative writing assistant". Then it incorporates scene summaries (to reduce context size) from all previous scenes you've already written. You can either write the scene summary on your own, or let the AI create one for you. Additionally, you can choose to include the full text of specific scenes instead of the summary if you want; for example when you write a retrospective on a specific scene.
+
+After the "story context", it includes the "codex" - all of your characters, items, and lore. The final part is the particular task for the next beat with additional instructions.
+
+AI tends to "understand" XML-tags better than simple text as context structuring, so the system creates a pseudo-XML structure with this information in the prompt.
+
 ### 📚 Codex System
 - **Dynamic Knowledge Base**: Automatically track characters, locations, and plot elements
 - **Smart Context Awareness**: AI understands your story's universe
