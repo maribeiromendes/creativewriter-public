@@ -1,8 +1,30 @@
 import { Injectable, inject } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Observable, combineLatest } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { v4 as uuidv4 } from 'uuid';
 import { Codex, CodexCategory, CodexEntry, DEFAULT_CODEX_CATEGORIES } from '../models/codex.interface';
 import { DatabaseService } from '../../core/services/database.service';
+
+// Legacy interface for backward compatibility
+export interface LegacyCodex {
+  id: string;
+  storyId: string;
+  title: string;
+  categories: LegacyCodexCategory[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface LegacyCodexCategory {
+  id: string;
+  title: string;
+  description?: string;
+  icon?: string;
+  entries: CodexEntry[];
+  order: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 @Injectable({
   providedIn: 'root'
@@ -10,157 +32,18 @@ import { DatabaseService } from '../../core/services/database.service';
 export class CodexService {
   private databaseService = inject(DatabaseService);
 
-  private codexMap = new Map<string, Codex>();
-  private codexSubject = new BehaviorSubject<Map<string, Codex>>(new Map());
-  private db: PouchDB.Database | null = null;
-  private isInitialized = false;
+  private codexSubject = new BehaviorSubject<Map<string, LegacyCodex>>(new Map());
   
   codex$ = this.codexSubject.asObservable();
 
   constructor() {
-    this.initializeService();
-  }
-
-  private async initializeService(): Promise<void> {
-    try {
-      this.db = await this.databaseService.getDatabase();
-      await this.loadFromDatabase();
-      this.isInitialized = true;
-    } catch (error) {
-      console.error('Error initializing codex service:', error);
-      throw error;
-    }
-  }
-
-  private async waitForInitialization(): Promise<void> {
-    if (this.isInitialized) return;
-    
-    // Wait for initialization with timeout
-    const timeout = 5000;
-    const start = Date.now();
-    
-    while (!this.isInitialized && (Date.now() - start) < timeout) {
-      await new Promise(resolve => setTimeout(resolve, 100));
-    }
-    
-    if (!this.isInitialized) {
-      throw new Error('Codex service initialization timeout');
-    }
-  }
-
-
-  private async loadFromDatabase(): Promise<void> {
-    try {
-      const result = await this.db!.allDocs({
-        include_docs: true,
-        startkey: 'codex_',
-        endkey: 'codex_\ufff0'
-      });
-      
-      this.codexMap.clear();
-      
-      for (const row of result.rows) {
-        if (row.doc && (row.doc as { type?: string }).type === 'codex') {
-          const codex = this.deserializeCodex(row.doc);
-          this.codexMap.set(codex.storyId, codex);
-        }
-      }
-      
-      this.codexSubject.next(new Map(this.codexMap));
-    } catch (error) {
-      console.error('Error loading codex from database:', error);
-    }
-  }
-
-
-  private async saveToDatabase(codex: Codex, maxRetries = 3): Promise<void> {
-    try {
-      if (!this.isInitialized) {
-        await this.waitForInitialization();
-      }
-      
-      const docId = `codex_${codex.storyId}`;
-      
-      for (let attempt = 0; attempt < maxRetries; attempt++) {
-        try {
-          // Always get the latest version before updating
-          let docToUpdate: { _id: string; _rev?: string; [key: string]: unknown };
-          try {
-            docToUpdate = await this.db!.get(docId);
-          } catch (error: unknown) {
-            if (error && typeof error === 'object' && 'status' in error && (error as {status: number}).status === 404) {
-              // Document doesn't exist, create new one
-              docToUpdate = {
-                _id: docId,
-                type: 'codex'
-              };
-            } else {
-              throw error;
-            }
-          }
-          
-          // Merge with the latest document, preserving _rev
-          const updatedDoc = {
-            ...docToUpdate,
-            ...codex,
-            _id: docId,
-            type: 'codex',
-            _rev: docToUpdate._rev // Preserve revision
-          };
-          
-          await this.db!.put(updatedDoc);
-          
-          // Update local map and notify subscribers
-          this.codexMap.set(codex.storyId, codex);
-          this.codexSubject.next(new Map(this.codexMap));
-          
-          break; // Success, exit retry loop
-          
-        } catch (error: unknown) {
-          if ((error as PouchDB.Core.Error).status === 409 && attempt < maxRetries - 1) {
-            // Conflict error, retry after a short delay
-            console.warn(`Document conflict on attempt ${attempt + 1}, retrying...`);
-            await new Promise(resolve => setTimeout(resolve, 100 * Math.pow(2, attempt))); // Exponential backoff
-            // Continue to next iteration, which will reload the document
-          } else {
-            throw error;
-          }
-        }
-      }
-      
-    } catch (error) {
-      console.error('Error saving codex to database:', error);
-      throw error;
-    }
-  }
-
-
-  private deserializeCodex(codex: unknown): Codex {
-    const typedCodex = codex as Codex & { createdAt: string | Date; updatedAt: string | Date };
-    return {
-      ...typedCodex,
-      createdAt: new Date(typedCodex.createdAt),
-      updatedAt: new Date(typedCodex.updatedAt),
-      categories: typedCodex.categories.map((cat: CodexCategory & { createdAt: string | Date; updatedAt: string | Date }) => ({
-        ...cat,
-        createdAt: new Date(cat.createdAt),
-        updatedAt: new Date(cat.updatedAt),
-        entries: cat.entries.map((entry: CodexEntry & { createdAt: string | Date; updatedAt: string | Date }) => ({
-          ...entry,
-          createdAt: new Date(entry.createdAt),
-          updatedAt: new Date(entry.updatedAt)
-        }))
-      }))
-    };
+    // Initialize with empty state - data will be loaded on demand
   }
 
   // Create or get codex for a story
-  async getOrCreateCodex(storyId: string): Promise<Codex> {
-    if (!this.isInitialized) {
-      await this.waitForInitialization();
-    }
-    
-    let codex = this.codexMap.get(storyId);
+  async getOrCreateCodex(storyId: string): Promise<LegacyCodex> {
+    // First try to get existing codex
+    let codex = await this.getCodex(storyId);
     
     if (!codex) {
       codex = await this.createCodex(storyId);
@@ -170,352 +53,281 @@ export class CodexService {
   }
 
   // Create new codex with default categories
-  private async createCodex(storyId: string): Promise<Codex> {
+  private async createCodex(storyId: string): Promise<LegacyCodex> {
     const now = new Date();
-    const codex: Codex = {
-      id: uuidv4(),
+    
+    // Create the codex document
+    const codexData = {
       storyId,
-      title: `Codex for Story ${storyId}`,
-      categories: DEFAULT_CODEX_CATEGORIES.map((cat: Partial<CodexCategory>, index: number) => ({
-        id: uuidv4(),
+      title: `Codex for Story ${storyId}`
+    };
+    
+    const codex = await this.databaseService.create<Codex>('codex', codexData, `codex_${storyId}`);
+    
+    // Create default categories
+    const categories: CodexCategory[] = [];
+    for (let index = 0; index < DEFAULT_CODEX_CATEGORIES.length; index++) {
+      const cat = DEFAULT_CODEX_CATEGORIES[index];
+      const categoryData = {
+        storyId,
         title: cat.title!,
         description: cat.description,
         icon: cat.icon,
-        order: index,
+        order: index
+      };
+      
+      const category = await this.databaseService.create<CodexCategory>(
+        'codexCategories', 
+        categoryData, 
+        `category_${storyId}_${uuidv4()}`
+      );
+      categories.push(category);
+    }
+
+    // Build legacy format
+    const legacyCodex: LegacyCodex = {
+      id: codex.id,
+      storyId: codex.storyId,
+      title: codex.title,
+      categories: categories.map(cat => ({
+        id: cat.id,
+        title: cat.title,
+        description: cat.description,
+        icon: cat.icon,
         entries: [],
-        createdAt: now,
-        updatedAt: now
+        order: cat.order,
+        createdAt: cat.createdAt || new Date(),
+        updatedAt: cat.updatedAt || new Date()
       })),
-      createdAt: now,
-      updatedAt: now
+      createdAt: codex.createdAt || new Date(),
+      updatedAt: codex.updatedAt || new Date()
     };
 
-    await this.saveToDatabase(codex);
-    return codex;
+    this.updateCodexCache(storyId, legacyCodex);
+    return legacyCodex;
   }
 
-  // Get codex by story ID
-  getCodex(storyId: string): Codex | undefined {
-    return this.codexMap.get(storyId);
+  // Get codex by story ID with full data
+  async getCodex(storyId: string): Promise<LegacyCodex | null> {
+    try {
+      // Get codex document
+      const codex = await this.databaseService.get<Codex>('codex', `codex_${storyId}`);
+      if (!codex) return null;
+
+      // Get categories for this story
+      const categories = await this.databaseService.getAll<CodexCategory>('codexCategories', {
+        where: [{ field: 'storyId', operator: '==', value: storyId }],
+        orderBy: [{ field: 'order', direction: 'asc' }]
+      });
+
+      // Get entries for this story
+      const entries = await this.databaseService.getAll<CodexEntry>('codexEntries', {
+        where: [{ field: 'storyId', operator: '==', value: storyId }],
+        orderBy: [{ field: 'order', direction: 'asc' }]
+      });
+
+      // Build legacy format with nested structure
+      const legacyCodex: LegacyCodex = {
+        id: codex.id,
+        storyId: codex.storyId,
+        title: codex.title,
+        categories: categories.map(cat => ({
+          id: cat.id,
+          title: cat.title,
+          description: cat.description,
+          icon: cat.icon,
+          entries: entries.filter(entry => entry.categoryId === cat.id),
+          order: cat.order,
+          createdAt: cat.createdAt || new Date(),
+          updatedAt: cat.updatedAt || new Date()
+        })),
+        createdAt: codex.createdAt || new Date(),
+        updatedAt: codex.updatedAt || new Date()
+      };
+
+      this.updateCodexCache(storyId, legacyCodex);
+      return legacyCodex;
+    } catch (error) {
+      console.error('Error getting codex:', error);
+      return null;
+    }
+  }
+
+  // Synchronous getter for cached data
+  getCachedCodex(storyId: string): LegacyCodex | undefined {
+    return this.codexSubject.value.get(storyId);
   }
 
   // Add category
-  async addCategory(storyId: string, category: Partial<CodexCategory>): Promise<CodexCategory> {
-    const codex = await this.getOrCreateCodex(storyId);
-    const now = new Date();
-    
-    const newCategory: CodexCategory = {
-      id: uuidv4(),
+  async addCategory(storyId: string, category: Partial<CodexCategory>): Promise<LegacyCodexCategory> {
+    // Get current categories to determine order
+    const categories = await this.databaseService.getAll<CodexCategory>('codexCategories', {
+      where: [{ field: 'storyId', operator: '==', value: storyId }]
+    });
+
+    const categoryData = {
+      storyId,
       title: category.title || 'New Category',
       description: category.description,
       icon: category.icon,
-      order: codex.categories.length,
-      entries: [],
-      createdAt: now,
-      updatedAt: now
+      order: categories.length
     };
 
-    // Create new codex instance with updated categories
-    const updatedCodex: Codex = {
-      ...codex,
-      categories: [...codex.categories, newCategory],
-      updatedAt: now
+    const newCategory = await this.databaseService.create<CodexCategory>(
+      'codexCategories',
+      categoryData,
+      `category_${storyId}_${uuidv4()}`
+    );
+
+    // Refresh cache
+    await this.refreshCodexCache(storyId);
+
+    return {
+      id: newCategory.id,
+      title: newCategory.title,
+      description: newCategory.description,
+      icon: newCategory.icon,
+      entries: [],
+      order: newCategory.order,
+      createdAt: newCategory.createdAt || new Date(),
+      updatedAt: newCategory.updatedAt || new Date()
     };
-    
-    await this.saveToDatabase(updatedCodex);
-    return newCategory;
   }
 
   // Update category
   async updateCategory(storyId: string, categoryId: string, updates: Partial<CodexCategory>): Promise<void> {
-    const codex = this.codexMap.get(storyId);
-    if (!codex) return;
-
-    const category = codex.categories.find((c: CodexCategory) => c.id === categoryId);
-    if (!category) return;
-
-    Object.assign(category, updates, { updatedAt: new Date() });
-    codex.updatedAt = new Date();
-    
-    await this.saveToDatabase(codex);
+    await this.databaseService.update<CodexCategory>('codexCategories', categoryId, updates);
+    await this.refreshCodexCache(storyId);
   }
 
   // Delete category
   async deleteCategory(storyId: string, categoryId: string): Promise<void> {
-    const codex = this.codexMap.get(storyId);
-    if (!codex) return;
+    // Delete all entries in the category first
+    const entries = await this.databaseService.getAll<CodexEntry>('codexEntries', {
+      where: [
+        { field: 'storyId', operator: '==', value: storyId },
+        { field: 'categoryId', operator: '==', value: categoryId }
+      ]
+    });
 
-    const now = new Date();
-    
-    // Create new codex with filtered categories
-    const updatedCodex: Codex = {
-      ...codex,
-      categories: codex.categories.filter((c: CodexCategory) => c.id !== categoryId),
-      updatedAt: now
-    };
-    
-    await this.saveToDatabase(updatedCodex);
+    if (entries.length > 0) {
+      const entryIds = entries.map(entry => entry.id);
+      await this.databaseService.deleteMany('codexEntries', entryIds);
+    }
+
+    // Delete the category
+    await this.databaseService.delete('codexCategories', categoryId);
+    await this.refreshCodexCache(storyId);
   }
 
   // Add entry to category
   async addEntry(storyId: string, categoryId: string, entry: Partial<CodexEntry>): Promise<CodexEntry> {
-    // Always get the latest version from database to avoid conflicts
-    const codex = await this.getOrCreateCodex(storyId);
-    
-    // Refresh codex from database before modification
-    try {
-      if (!this.isInitialized) {
-        await this.waitForInitialization();
-      }
-      
-      const docId = `codex_${storyId}`;
-      const latestDoc = await this.db!.get(docId);
-      const latestCodex = this.deserializeCodex(latestDoc);
-      
-      const category = latestCodex.categories.find((c: CodexCategory) => c.id === categoryId);
-      
-      if (!category) {
-        throw new Error('Category not found');
-      }
+    // Get current entries in category to determine order
+    const entries = await this.databaseService.getAll<CodexEntry>('codexEntries', {
+      where: [
+        { field: 'storyId', operator: '==', value: storyId },
+        { field: 'categoryId', operator: '==', value: categoryId }
+      ]
+    });
 
-      const now = new Date();
-      const newEntry: CodexEntry = {
-        id: uuidv4(),
-        categoryId,
-        title: entry.title || 'New Entry',
-        content: entry.content || '',
-        tags: entry.tags || [],
-        imageUrl: entry.imageUrl,
-        metadata: entry.metadata || {},
-        customFields: entry.customFields || [],
-        order: category.entries.length,
-        createdAt: now,
-        updatedAt: now
-      };
+    const entryData = {
+      categoryId,
+      storyId,
+      title: entry.title || 'New Entry',
+      content: entry.content || '',
+      tags: entry.tags || [],
+      imageUrl: entry.imageUrl,
+      metadata: entry.metadata || {},
+      customFields: entry.customFields || [],
+      storyRole: entry.storyRole,
+      alwaysInclude: entry.alwaysInclude,
+      order: entries.length
+    };
 
-      // Create new category with updated entries
-      const updatedCategory: CodexCategory = {
-        ...category,
-        entries: [...category.entries, newEntry],
-        updatedAt: now
-      };
-      
-      // Create new codex with updated category
-      const updatedCodex: Codex = {
-        ...latestCodex,
-        categories: latestCodex.categories.map(c => c.id === categoryId ? updatedCategory : c),
-        updatedAt: now
-      };
-      
-      await this.saveToDatabase(updatedCodex);
-      return newEntry;
-      
-    } catch (error: unknown) {
-      if ((error as PouchDB.Core.Error).status === 404) {
-        // Fallback to original logic if document doesn't exist
-        const category = codex.categories.find((c: CodexCategory) => c.id === categoryId);
-        
-        if (!category) {
-          throw new Error('Category not found');
-        }
+    const newEntry = await this.databaseService.create<CodexEntry>(
+      'codexEntries',
+      entryData,
+      `entry_${storyId}_${uuidv4()}`
+    );
 
-        const now = new Date();
-        const newEntry: CodexEntry = {
-          id: uuidv4(),
-          categoryId,
-          title: entry.title || 'New Entry',
-          content: entry.content || '',
-          tags: entry.tags || [],
-          imageUrl: entry.imageUrl,
-          metadata: entry.metadata || {},
-          customFields: entry.customFields || [],
-          order: category.entries.length,
-          createdAt: now,
-          updatedAt: now
-        };
-
-        const updatedCategory: CodexCategory = {
-          ...category,
-          entries: [...category.entries, newEntry],
-          updatedAt: now
-        };
-        
-        const updatedCodex: Codex = {
-          ...codex,
-          categories: codex.categories.map(c => c.id === categoryId ? updatedCategory : c),
-          updatedAt: now
-        };
-        
-        await this.saveToDatabase(updatedCodex);
-        return newEntry;
-      } else {
-        throw error;
-      }
-    }
+    await this.refreshCodexCache(storyId);
+    return newEntry;
   }
 
   // Update entry
   async updateEntry(storyId: string, categoryId: string, entryId: string, updates: Partial<CodexEntry>): Promise<void> {
-    // Always get the latest version from database
-    try {
-      if (!this.isInitialized) {
-        await this.waitForInitialization();
-      }
-      
-      const docId = `codex_${storyId}`;
-      const latestDoc = await this.db!.get(docId);
-      const codex = this.deserializeCodex(latestDoc);
-
-      const category = codex.categories.find((c: CodexCategory) => c.id === categoryId);
-      if (!category) return;
-
-      const entryIndex = category.entries.findIndex((e: CodexEntry) => e.id === entryId);
-      if (entryIndex === -1) return;
-
-      const now = new Date();
-      
-      // Create updated entry
-      const updatedEntry = {
-        ...category.entries[entryIndex],
-        ...updates,
-        updatedAt: now
-      };
-      
-      // Create new category with updated entry
-      const updatedCategory: CodexCategory = {
-        ...category,
-        entries: category.entries.map((e, index) => index === entryIndex ? updatedEntry : e),
-        updatedAt: now
-      };
-      
-      // Create new codex with updated category
-      const updatedCodex: Codex = {
-        ...codex,
-        categories: codex.categories.map(c => c.id === categoryId ? updatedCategory : c),
-        updatedAt: now
-      };
-      
-      await this.saveToDatabase(updatedCodex);
-    } catch (error) {
-      console.error('Error updating entry:', error);
-      throw error;
-    }
+    await this.databaseService.update<CodexEntry>('codexEntries', entryId, updates);
+    await this.refreshCodexCache(storyId);
   }
 
   // Delete entry
   async deleteEntry(storyId: string, categoryId: string, entryId: string): Promise<void> {
-    // Always get the latest version from database
-    try {
-      if (!this.isInitialized) {
-        await this.waitForInitialization();
-      }
-      
-      const docId = `codex_${storyId}`;
-      const latestDoc = await this.db!.get(docId);
-      const codex = this.deserializeCodex(latestDoc);
-
-      const category = codex.categories.find((c: CodexCategory) => c.id === categoryId);
-      if (!category) return;
-
-      const now = new Date();
-      
-      // Create new category with filtered entries
-      const updatedCategory: CodexCategory = {
-        ...category,
-        entries: category.entries.filter((e: CodexEntry) => e.id !== entryId),
-        updatedAt: now
-      };
-      
-      // Create new codex with updated category
-      const updatedCodex: Codex = {
-        ...codex,
-        categories: codex.categories.map(c => c.id === categoryId ? updatedCategory : c),
-        updatedAt: now
-      };
-      
-      await this.saveToDatabase(updatedCodex);
-    } catch (error) {
-      console.error('Error deleting entry:', error);
-      throw error;
-    }
+    await this.databaseService.delete('codexEntries', entryId);
+    await this.refreshCodexCache(storyId);
   }
 
   // Reorder categories
   async reorderCategories(storyId: string, categoryIds: string[]): Promise<void> {
-    const codex = this.codexMap.get(storyId);
-    if (!codex) return;
+    const updates = categoryIds.map((id, index) => ({
+      id,
+      data: { order: index }
+    }));
 
-    const reorderedCategories = categoryIds
-      .map((id, index) => {
-        const category = codex.categories.find((c: CodexCategory) => c.id === id);
-        if (category) {
-          category.order = index;
-        }
-        return category;
-      })
-      .filter(Boolean) as CodexCategory[];
-
-    codex.categories = reorderedCategories;
-    codex.updatedAt = new Date();
-    
-    await this.saveToDatabase(codex);
+    await this.databaseService.updateMany<CodexCategory>('codexCategories', updates);
+    await this.refreshCodexCache(storyId);
   }
 
   // Reorder entries within a category
   async reorderEntries(storyId: string, categoryId: string, entryIds: string[]): Promise<void> {
-    const codex = this.codexMap.get(storyId);
-    if (!codex) return;
+    const updates = entryIds.map((id, index) => ({
+      id,
+      data: { order: index }
+    }));
 
-    const category = codex.categories.find((c: CodexCategory) => c.id === categoryId);
-    if (!category) return;
-
-    const reorderedEntries = entryIds
-      .map((id, index) => {
-        const entry = category.entries.find((e: CodexEntry) => e.id === id);
-        if (entry) {
-          entry.order = index;
-        }
-        return entry;
-      })
-      .filter(Boolean) as CodexEntry[];
-
-    category.entries = reorderedEntries;
-    category.updatedAt = new Date();
-    codex.updatedAt = new Date();
-    
-    await this.saveToDatabase(codex);
+    await this.databaseService.updateMany<CodexEntry>('codexEntries', updates);
+    await this.refreshCodexCache(storyId);
   }
 
   // Delete entire codex for a story
   async deleteCodex(storyId: string): Promise<void> {
     try {
-      if (!this.isInitialized) {
-        await this.waitForInitialization();
+      // Delete all entries
+      const entries = await this.databaseService.getAll<CodexEntry>('codexEntries', {
+        where: [{ field: 'storyId', operator: '==', value: storyId }]
+      });
+
+      if (entries.length > 0) {
+        const entryIds = entries.map(entry => entry.id);
+        await this.databaseService.deleteMany('codexEntries', entryIds);
       }
-      
-      const docId = `codex_${storyId}`;
-      
-      try {
-        const doc = await this.db!.get(docId);
-        await this.db!.remove(doc);
-      } catch (error: unknown) {
-        if ((error as PouchDB.Core.Error).status !== 404) {
-          throw error;
-        }
+
+      // Delete all categories
+      const categories = await this.databaseService.getAll<CodexCategory>('codexCategories', {
+        where: [{ field: 'storyId', operator: '==', value: storyId }]
+      });
+
+      if (categories.length > 0) {
+        const categoryIds = categories.map(cat => cat.id);
+        await this.databaseService.deleteMany('codexCategories', categoryIds);
       }
-      
-      this.codexMap.delete(storyId);
-      this.codexSubject.next(new Map(this.codexMap));
-      
+
+      // Delete the codex itself
+      await this.databaseService.delete('codex', `codex_${storyId}`);
+
+      // Remove from cache
+      const currentCodexMap = this.codexSubject.value;
+      currentCodexMap.delete(storyId);
+      this.codexSubject.next(new Map(currentCodexMap));
+
     } catch (error) {
-      console.error('Error deleting codex from database:', error);
+      console.error('Error deleting codex:', error);
       throw error;
     }
   }
 
   // Search entries across all categories
   searchEntries(storyId: string, query: string): CodexEntry[] {
-    const codex = this.codexMap.get(storyId);
+    const codex = this.getCachedCodex(storyId);
     if (!codex) return [];
 
     const lowerQuery = query.toLowerCase();
@@ -535,7 +347,7 @@ export class CodexService {
 
   // Get all codex entries for a story (for Beat AI prompts)
   getAllCodexEntries(storyId: string): { category: string; entries: CodexEntry[]; icon?: string }[] {
-    const codex = this.codexMap.get(storyId);
+    const codex = this.getCachedCodex(storyId);
     if (!codex) return [];
 
     return codex.categories
@@ -550,5 +362,19 @@ export class CodexService {
         const categoryB = codex.categories.find(c => c.title === b.category);
         return (categoryA?.order || 0) - (categoryB?.order || 0);
       });
+  }
+
+  // Utility methods
+  private updateCodexCache(storyId: string, codex: LegacyCodex): void {
+    const currentCodexMap = this.codexSubject.value;
+    currentCodexMap.set(storyId, codex);
+    this.codexSubject.next(new Map(currentCodexMap));
+  }
+
+  private async refreshCodexCache(storyId: string): Promise<void> {
+    const codex = await this.getCodex(storyId);
+    if (codex) {
+      this.updateCodexCache(storyId, codex);
+    }
   }
 }

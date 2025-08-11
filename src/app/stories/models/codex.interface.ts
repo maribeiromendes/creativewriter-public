@@ -1,6 +1,8 @@
-export interface CodexEntry {
-  id: string;
+import { FirestoreDocument } from '../../core/services/firestore.service';
+
+export interface CodexEntry extends FirestoreDocument {
   categoryId: string;
+  storyId: string; // Add storyId for easier querying
   title: string;
   content: string;
   tags?: string[];
@@ -10,8 +12,6 @@ export interface CodexEntry {
   storyRole?: StoryRole | '';
   alwaysInclude?: boolean;
   order: number;
-  createdAt: Date;
-  updatedAt: Date;
 }
 
 export type StoryRole = 'Protagonist' | 'Supporting Character' | 'Antagonist' | 'Love Interest' | 'Background Character';
@@ -30,49 +30,38 @@ export interface CustomField {
   value: string;
 }
 
-export interface CodexCategory {
-  id: string;
+export interface CodexCategory extends FirestoreDocument {
+  storyId: string; // Add storyId for easier querying
   title: string;
   description?: string;
   icon?: string;
-  entries: CodexEntry[];
   order: number;
-  createdAt: Date;
-  updatedAt: Date;
 }
 
-export interface Codex {
-  id: string;
+export interface Codex extends FirestoreDocument {
   storyId: string;
   title: string;
-  categories: CodexCategory[];
-  createdAt: Date;
-  updatedAt: Date;
 }
 
 export const DEFAULT_CODEX_CATEGORIES: Partial<CodexCategory>[] = [
   {
     title: 'Characters',
     description: 'Main characters and supporting characters of the story',
-    icon: '👤',
-    entries: []
+    icon: '👤'
   },
   {
     title: 'Locations',
     description: 'Places and settings in the story',
-    icon: '🏰',
-    entries: []
+    icon: '🏰'
   },
   {
     title: 'Objects',
     description: 'Important objects and artifacts',
-    icon: '⚔️',
-    entries: []
+    icon: '⚔️'
   },
   {
     title: 'Notes',
     description: 'General notes and ideas',
-    icon: '📝',
-    entries: []
+    icon: '📝'
   }
 ];

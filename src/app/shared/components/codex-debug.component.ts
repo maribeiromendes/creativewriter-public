@@ -1,7 +1,7 @@
 import { Component, Input, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { CodexService } from '../../stories/services/codex.service';
-import { CodexEntry, Codex } from '../../stories/models/codex.interface';
+import { CodexService, LegacyCodex } from '../../stories/services/codex.service';
+import { CodexEntry } from '../../stories/models/codex.interface';
 
 @Component({
   selector: 'app-codex-debug',
@@ -70,7 +70,7 @@ export class CodexDebugComponent implements OnInit {
     }
   }
 
-  private extractAllEntries(codex: Codex): CodexEntry[] {
+  private extractAllEntries(codex: LegacyCodex): CodexEntry[] {
     const entries: CodexEntry[] = [];
     
     if (codex.categories) {

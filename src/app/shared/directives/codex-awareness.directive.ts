@@ -1,7 +1,7 @@
 import { Directive, ElementRef, Input, OnDestroy, OnInit, Renderer2, OnChanges, SimpleChanges, inject } from '@angular/core';
 import { Subscription, BehaviorSubject, debounceTime, distinctUntilChanged } from 'rxjs';
-import { CodexService } from '../../stories/services/codex.service';
-import { CodexEntry, Codex } from '../../stories/models/codex.interface';
+import { CodexService, LegacyCodex } from '../../stories/services/codex.service';
+import { CodexEntry } from '../../stories/models/codex.interface';
 
 @Directive({
   selector: '[appCodexAwareness]',
@@ -147,7 +147,7 @@ export class CodexAwarenessDirective implements OnInit, OnDestroy, OnChanges {
     }
   }
 
-  private extractAllEntries(codex: Codex): CodexEntry[] {
+  private extractAllEntries(codex: LegacyCodex): CodexEntry[] {
     const entries: CodexEntry[] = [];
     
     if (codex.categories) {

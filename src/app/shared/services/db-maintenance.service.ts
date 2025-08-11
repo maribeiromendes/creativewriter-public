@@ -129,7 +129,7 @@ export class DbMaintenanceService {
             id: image.id,
             name: image.name,
             size: image.size,
-            createdAt: image.createdAt,
+            createdAt: image.createdAt || new Date(),
             base64Data: image.base64Data,
             mimeType: image.mimeType
           });
@@ -160,18 +160,17 @@ export class DbMaintenanceService {
       const allVideos = await this.videoService.getAllVideos();
       this.updateProgress('orphaned-video-scan', 30, `${allVideos.length} videos found`);
 
-      // Get all image-video associations
-      const db = await this.databaseService.getDatabase();
-      const associationsResult = await db.find({
-        selector: { type: 'image-video-association' }
+      // Get all image-video associations using Firestore
+      const associationsResult = await this.databaseService.getAll('associations', {
+        where: [{ field: 'type', operator: '==', value: 'image-video-association' }]
       });
       
-      this.updateProgress('orphaned-video-scan', 60, `${associationsResult.docs.length} associations found`);
+      this.updateProgress('orphaned-video-scan', 60, `${associationsResult.length} associations found`);
 
       // Extract video IDs that are associated with images
       const associatedVideoIds = new Set<string>();
-      associationsResult.docs.forEach((doc: unknown) => {
-        const assoc = doc as ImageVideoAssociation & { _id: string; _rev: string };
+      associationsResult.forEach((doc: any) => {
+        const assoc = doc as ImageVideoAssociation;
         if (assoc.videoId) {
           associatedVideoIds.add(assoc.videoId);
         }
@@ -187,7 +186,7 @@ export class DbMaintenanceService {
             id: video.id,
             name: video.name,
             size: video.size,
-            createdAt: video.createdAt,
+            createdAt: video.createdAt || new Date(),
             base64Data: video.base64Data,
             mimeType: video.mimeType
           });
@@ -254,31 +253,27 @@ export class DbMaintenanceService {
   }
 
   /**
-   * Compacts the PouchDB database to reduce size
+   * Firestore handles compaction automatically - this method is kept for compatibility
    */
   async compactDatabase(): Promise<{ sizeBefore: number; sizeAfter: number; saved: number }> {
-    this.updateProgress('compact', 0, 'Analyzing database size...');
+    this.updateProgress('compact', 0, 'Analyzing database...');
     
     try {
-      const db = await this.databaseService.getDatabase();
-      
-      // Get size before compaction (estimate)
-      const infoBefore = await db.info();
-      const sizeBefore = infoBefore.doc_count;
+      // Get current database stats as estimate
+      const stats = await this.getDatabaseStats();
+      const sizeBefore = stats.totalImages + stats.totalVideos + stats.totalStories;
 
-      this.updateProgress('compact', 30, 'Compressing database...');
+      this.updateProgress('compact', 30, 'Firestore handles compaction automatically...');
       
-      // Compact database
-      await db.compact();
-
-      this.updateProgress('compact', 80, 'Analyzing new database size...');
+      // Firestore manages compaction internally - no action needed
       
-      // Get size after compaction
-      const infoAfter = await db.info();
-      const sizeAfter = infoAfter.doc_count;
-      const saved = sizeBefore - sizeAfter;
+      this.updateProgress('compact', 80, 'Database analysis complete...');
+      
+      // Firestore manages compaction automatically
+      const sizeAfter = sizeBefore; // No actual compaction performed
+      const saved = 0; // Firestore handles this automatically
 
-      this.updateProgress('compact', 100, `Compression complete. ${saved} documents removed`);
+      this.updateProgress('compact', 100, 'Firestore manages compaction automatically');
       
       return {
         sizeBefore,
@@ -286,8 +281,8 @@ export class DbMaintenanceService {
         saved
       };
     } catch (error) {
-      console.error('Error compacting database:', error);
-      this.updateProgress('compact', 0, 'Error compacting database');
+      console.error('Error analyzing database:', error);
+      this.updateProgress('compact', 0, 'Error analyzing database');
       throw error;
     }
   }
@@ -320,7 +315,7 @@ export class DbMaintenanceService {
       for (const [, images] of base64Map) {
         if (images.length > 1) {
           const [original, ...duplicateImages] = images.sort((a, b) => 
-            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+            new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime()
           );
           
           duplicates.push({

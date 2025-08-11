@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { StoryService } from '../../stories/services/story.service';
 import { CodexService } from '../../stories/services/codex.service';
-import { Story, Chapter, Scene } from '../../stories/models/story.interface';
+import { Story, Chapter, Scene, DEFAULT_STORY_SETTINGS } from '../../stories/models/story.interface';
 import { CodexEntry } from '../../stories/models/codex.interface';
 import JSZip from 'jszip';
 import * as yaml from 'js-yaml';
@@ -440,6 +440,7 @@ export class NovelCrafterImportService {
       const codexEntry: CodexEntry = {
         id: this.generateId(),
         categoryId: '', // Will be set when creating categories
+        storyId: '', // Will be set when importing
         title: (parsedYaml as Record<string, unknown>)['name'] as string || 'Unnamed Entry',
         content: markdownContent,
         tags: Array.isArray((parsedYaml as Record<string, unknown>)['tags']) ? (parsedYaml as Record<string, unknown>)['tags'] as string[] : [],
@@ -498,13 +499,16 @@ export class NovelCrafterImportService {
   }
 
   async importToStory(importResult: NovelCrafterImportResult): Promise<string> {
-    // Create the story
-    const newStory = await this.storyService.createStory();
+    // Create the story with imported data
+    const storyData = {
+      title: importResult.story.title,
+      chapters: importResult.story.chapters,
+      settings: DEFAULT_STORY_SETTINGS,
+      wordCountGoal: 0,
+      description: 'Imported from NovelCrafter'
+    };
     
-    // Update story with imported data
-    newStory.title = importResult.story.title;
-    newStory.chapters = importResult.story.chapters;
-    await this.storyService.updateStory(newStory);
+    const newStory = await this.storyService.createStory(storyData);
     
     const storyId = newStory.id;
 

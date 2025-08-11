@@ -1,7 +1,7 @@
 import { Directive, ElementRef, Input, OnDestroy, OnInit, Renderer2, inject } from '@angular/core';
 import { Subscription, debounceTime, distinctUntilChanged, fromEvent } from 'rxjs';
-import { CodexService } from '../../stories/services/codex.service';
-import { CodexEntry, Codex } from '../../stories/models/codex.interface';
+import { CodexService, LegacyCodex } from '../../stories/services/codex.service';
+import { CodexEntry } from '../../stories/models/codex.interface';
 
 interface HTMLTextAreaElementWithOverlay extends HTMLTextAreaElement {
   __codexOverlay?: HTMLElement;
@@ -62,7 +62,7 @@ export class SimpleCodexAwarenessDirective implements OnInit, OnDestroy {
     );
   }
 
-  private extractAllEntries(codex: Codex): CodexEntry[] {
+  private extractAllEntries(codex: LegacyCodex): CodexEntry[] {
     const entries: CodexEntry[] = [];
     
     if (codex.categories) {

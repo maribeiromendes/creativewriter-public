@@ -53,7 +53,7 @@ export class StoryService {
     });
   }
 
-  async createStory(story: Omit<Story, 'createdAt' | 'updatedAt'>): Promise<Story> {
+  async createStory(story: Omit<Story, 'id' | 'createdAt' | 'updatedAt'>): Promise<Story> {
     try {
       const storyData = {
         ...story,
@@ -62,7 +62,7 @@ export class StoryService {
         order: story.order || 0
       };
       
-      const created = await this.databaseService.create<StoryDoc>('stories', storyData, story.id);
+      const created = await this.databaseService.create<StoryDoc>('stories', storyData);
       return this.convertFromFirestore(created);
     } catch (error) {
       console.error('Error creating story:', error);
@@ -277,5 +277,47 @@ export class StoryService {
 
   getStorySceneCount(story: Story): number {
     return story.chapters?.reduce((total, chapter) => total + (chapter.scenes?.length || 0), 0) || 0;
+  }
+
+  // Additional missing methods for backward compatibility
+
+  async getScene(storyId: string, chapterId: string, sceneId: string): Promise<Scene | null> {
+    try {
+      const story = await this.getStoryById(storyId);
+      if (!story) return null;
+
+      const chapter = story.chapters?.find(c => c.id === chapterId);
+      if (!chapter) return null;
+
+      return chapter.scenes?.find(s => s.id === sceneId) || null;
+    } catch (error) {
+      console.error('Error getting scene:', error);
+      return null;
+    }
+  }
+
+  async reorderStories(stories: Story[]): Promise<void> {
+    try {
+      // Update the order property for each story
+      const updates = stories.map((story, index) => ({
+        id: story.id,
+        data: { order: index }
+      }));
+
+      await this.databaseService.updateMany<StoryDoc>('stories', updates);
+    } catch (error) {
+      console.error('Error reordering stories:', error);
+      throw error;
+    }
+  }
+
+  formatChapterDisplay(chapter: Chapter): string {
+    return `${chapter.title}${chapter.scenes?.length ? ` (${chapter.scenes.length} scenes)` : ''}`;
+  }
+
+  formatSceneDisplay(chapter: Chapter, scene: Scene): string {
+    const chapterIndex = 1; // Could be calculated based on position in story
+    const sceneIndex = chapter.scenes?.findIndex(s => s.id === scene.id) || 0;
+    return `Chapter ${chapterIndex}, Scene ${sceneIndex + 1}: ${scene.title}`;
   }
 }

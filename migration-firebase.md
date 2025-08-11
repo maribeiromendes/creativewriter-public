@@ -18,8 +18,69 @@
     *   I will read `src/app/core/services/database.service.ts` to understand its public API.
     *   I will then replace the PouchDB implementation within this service with calls to the new `firestore.service.ts`, ensuring the public methods of `database.service.ts` remain the same to minimize impact on other services.
 7.  **Update Dependent Services (One by One):**
-    *   I will identify all services that use `database.service.ts`.
-    *   I will then update each of these services one at a time, ensuring they work correctly with the new Firestore-backed `database.service.ts`.
+    
+    **Status: IN PROGRESS** - The following services need to be updated to work with Firestore instead of PouchDB:
+
+    **Completed Services:**
+    - ✅ `story.service.ts` - Completely rewritten to use Firestore CRUD operations
+    - ✅ `database.service.ts` - Migrated to use Firestore as backend with compatibility layer
+    - ✅ `auth.service.ts` - Updated User interface to include `uid` property for Firebase compatibility
+
+    **Services Requiring Updates:**
+    
+    **(A) Services using PouchDB-specific methods that need Firestore equivalents:**
+    
+    - `src/app/shared/services/image.service.ts`
+      - **Methods to update:** `db.find()`, `db.get()`, `db.put()`, `db.remove()`
+      - **Plan:** Replace with `databaseService.getAll()`, `databaseService.get()`, `databaseService.create()/update()`, `databaseService.delete()`
+      - **Collection:** `images`
+    
+    - `src/app/shared/services/video.service.ts` 
+      - **Methods to update:** `db.find()`, `db.get()`, `db.put()`, `db.remove()`
+      - **Plan:** Replace with Firestore equivalents for video storage
+      - **Collection:** `videos`
+    
+    - `src/app/stories/services/codex.service.ts`
+      - **Methods to update:** `db.put()`, `db.get()`, `db.remove()`, `db.find()`
+      - **Plan:** Migrate to use `databaseService` methods for codex entries
+      - **Collection:** `codex`
+    
+    - `src/app/shared/services/db-maintenance.service.ts`
+      - **Methods to update:** `db.find()`, `db.info()`, `db.compact()`
+      - **Plan:** Replace `find()` with `getAll()`, remove `info()` and `compact()` (not needed in Firestore)
+    
+    - `src/app/shared/services/novelcrafter-import.service.ts`
+      - **Methods to update:** `storyService.createStory()` method signature
+      - **Plan:** Update to provide required story object parameter
+    
+    **(B) Components with missing method calls:**
+    
+    - `src/app/stories/components/story-editor.component.ts`
+      - **Missing methods:** `storyService.getScene()`
+      - **Plan:** Add `getScene()` method to story service or use existing scene access patterns
+    
+    - `src/app/stories/components/story-list.component.ts`
+      - **Missing methods:** `storyService.reorderStories()`, updated `createStory()` signature
+      - **Plan:** Add `reorderStories()` method and fix `createStory()` calls with proper parameters
+    
+    - `src/app/stories/components/story-structure.component.ts`
+      - **Missing methods:** `addChapter()`, `addScene()`, `formatChapterDisplay()`, `formatSceneDisplay()`
+      - **Plan:** Fix method signatures and add missing display formatting methods
+    
+    - `src/app/shared/components/ai-rewrite-modal.component.ts`
+      - **Missing methods:** `storyService.getStory()` (already added as legacy method)
+      - **Status:** ✅ Fixed with legacy compatibility method
+    
+    - `src/app/shared/services/beat-ai.service.ts`
+      - **Missing methods:** `storyService.getStory()` (already added as legacy method)
+      - **Status:** ✅ Fixed with legacy compatibility method
+
+    **Migration Strategy:**
+    1. **Service-by-Service Approach:** Update each service individually to minimize disruption
+    2. **Maintain Compatibility:** Keep existing method signatures where possible
+    3. **Add Missing Methods:** Implement missing methods in story service with proper Firestore operations
+    4. **Test Incrementally:** Verify each service works after migration before moving to the next
+    5. **Clean Up:** Remove PouchDB-specific code after all services are migrated
 
 ### Phase 2: Implement Firebase Authentication
 
