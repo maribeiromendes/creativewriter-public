@@ -34,7 +34,7 @@ interface ColorPreset {
 
       <!-- Preset Colors -->
       <div class="preset-colors">
-        <h4>Vordefinierte Farben</h4>
+        <h4>Predefined Colors</h4>
         <div class="color-grid">
           <button
             *ngFor="let preset of colorPresets"
@@ -50,7 +50,7 @@ interface ColorPreset {
 
       <!-- Custom Color Section -->
       <div class="custom-color-section">
-        <h4>Benutzerdefinierte Farbe</h4>
+        <h4>Custom Color</h4>
         
         <!-- Color Sliders -->
         <div class="color-controls">
@@ -133,10 +133,10 @@ interface ColorPreset {
       <div class="accessibility-info">
         <div class="contrast-preview">
           <div class="contrast-sample dark-bg" [style.color]="currentColor">
-            Text auf dunklem Hintergrund
+            Text on dark background
           </div>
           <div class="contrast-sample light-bg" [style.color]="currentColor">
-            Text auf hellem Hintergrund
+            Text on light background
           </div>
         </div>
       </div>
@@ -439,7 +439,7 @@ export class ColorPickerComponent implements OnInit {
     { name: 'Mittelgrau', value: '#a0a0a0', contrast: 'dark' },
     { name: 'Dunkelgrau', value: '#808080', contrast: 'dark' },
     
-    // Pastellfarben (gut lesbar auf dunklem Hintergrund)
+    // Pastel colors (readable on dark background)
     { name: 'Pastellblau', value: '#a8c7ff', contrast: 'dark' },
     { name: 'Pastellgrün', value: '#a8f0a8', contrast: 'dark' },
     { name: 'Pastellgelb', value: '#f0f0a8', contrast: 'dark' },
@@ -453,10 +453,10 @@ export class ColorPickerComponent implements OnInit {
     { name: 'Gelb', value: '#ffff00', contrast: 'dark' },
     { name: 'Weiß', value: '#ffffff', contrast: 'dark' },
     
-    // Entwickler-Farben
-    { name: 'Terminal Grün', value: '#00ff00', contrast: 'dark' },
-    { name: 'Warnung Orange', value: '#ff9800', contrast: 'dark' },
-    { name: 'Fehler Rot', value: '#ff5252', contrast: 'dark' },
+    // Developer Colors
+    { name: 'Terminal Green', value: '#00ff00', contrast: 'dark' },
+    { name: 'Warning Orange', value: '#ff9800', contrast: 'dark' },
+    { name: 'Error Red', value: '#ff5252', contrast: 'dark' },
     { name: 'Info Blau', value: '#2196f3', contrast: 'dark' }
   ];
 

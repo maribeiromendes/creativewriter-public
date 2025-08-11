@@ -43,7 +43,7 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
       
       <ng-template #searchToolbar>
         <ion-searchbar
-          placeholder="Nach Titel, Inhalt oder Tags suchen..."
+          placeholder="Search by title, content, or tags..."
           [(ngModel)]="searchQuery"
           (ionInput)="onSearch()"
           debounce="300">
@@ -58,7 +58,7 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
             <ion-col size="12" size-md="3" class="categories-sidebar">
               <ion-card>
                 <ion-card-header>
-                  <ion-card-title>Kategorien</ion-card-title>
+                  <ion-card-title>Categories</ion-card-title>
                 </ion-card-header>
                 <ion-card-content>
                   <ion-list>
@@ -70,7 +70,7 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
                       <ion-icon [name]="getDefaultIcon()" slot="start"></ion-icon>
                       <ion-label>
                         <h3>{{ category.icon }} {{ category.title }}</h3>
-                        <p>{{ category.entries.length }} Einträge</p>
+                        <p>{{ category.entries.length }} entries</p>
                       </ion-label>
                       <ion-button 
                         fill="clear" 
@@ -84,11 +84,11 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
                       <ion-list *ngIf="categoryMenuId() === category.id" class="category-menu">
                         <ion-item button (click)="editCategory()">
                           <ion-icon name="create" slot="start"></ion-icon>
-                          <ion-label>Bearbeiten</ion-label>
+                          <ion-label>Edit</ion-label>
                         </ion-item>
                         <ion-item button (click)="deleteCategory(category.id)" color="danger">
                           <ion-icon name="trash" slot="start"></ion-icon>
-                          <ion-label>Löschen</ion-label>
+                          <ion-label>Delete</ion-label>
                         </ion-item>
                       </ion-list>
                     </ion-item>
@@ -102,7 +102,7 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
               <div *ngIf="searchQuery(); else normalView">
                 <ion-card>
                   <ion-card-header>
-                    <ion-card-title>Suchergebnisse für "{{ searchQuery() }}"</ion-card-title>
+                    <ion-card-title>Search results for "{{ searchQuery() }}"</ion-card-title>
                   </ion-card-header>
                   <ion-card-content>
                     <ion-grid>
@@ -122,7 +122,7 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
                                 </ion-chip>
                                 <ion-chip *ngIf="entry.alwaysInclude" color="warning">
                                   <ion-icon name="star"></ion-icon>
-                                  <ion-label>Immer inkludiert</ion-label>
+                                  <ion-label>Always included</ion-label>
                                 </ion-chip>
                                 <ion-chip *ngIf="entry.metadata?.['storyRole']" color="success">
                                   <ion-icon name="person"></ion-icon>
@@ -158,7 +158,7 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
                           size="small" 
                           (click)="createNewEntry()">
                           <ion-icon name="add" slot="start"></ion-icon>
-                          Eintrag hinzufügen
+                          Add Entry
                         </ion-button>
                       </div>
                     </ion-card-header>
@@ -181,7 +181,7 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
                                 <div class="entry-meta">
                                   <ion-chip *ngIf="entry.alwaysInclude" color="warning">
                                     <ion-icon name="star"></ion-icon>
-                                    <ion-label>Immer inkludiert</ion-label>
+                                    <ion-label>Always included</ion-label>
                                   </ion-chip>
                                   <ion-chip *ngIf="entry.metadata?.['storyRole']" color="success">
                                     <ion-icon name="person"></ion-icon>
@@ -210,8 +210,8 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
                 <ion-card>
                   <ion-card-content class="ion-text-center">
                     <ion-text color="medium">
-                      <h2>Wähle eine Kategorie</h2>
-                      <p>Wähle eine Kategorie aus der Sidebar, um die Einträge zu sehen.</p>
+                      <h2>Choose a category</h2>
+                      <p>Choose a category from the sidebar to see the entries.</p>
                     </ion-text>
                   </ion-card-content>
                 </ion-card>
@@ -226,7 +226,7 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
         <ng-template>
           <ion-header>
             <ion-toolbar color="primary">
-              <ion-title>{{ editingEntry.title || 'Eintrag bearbeiten' }}</ion-title>
+              <ion-title>{{ editingEntry.title || 'Edit Entry' }}</ion-title>
               <ion-buttons slot="end">
                 <ion-button (click)="closeEntryModal()">
                   <ion-icon name="close" slot="icon-only"></ion-icon>
@@ -239,14 +239,14 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
             <div class="modal-form-container">
               <!-- Basic Information Section -->
               <div class="form-section">
-                <h3 class="section-title">Grundinformationen</h3>
+                <h3 class="section-title">Basic Information</h3>
                 
                 <div class="form-group">
                   <ion-item lines="none" class="form-item">
-                    <ion-label position="stacked">Titel <span class="required">*</span></ion-label>
+                    <ion-label position="stacked">Title <span class="required">*</span></ion-label>
                     <ion-input 
                       [(ngModel)]="editingEntry.title" 
-                      placeholder="Titel eingeben..."
+                      placeholder="Enter title..."
                       type="text"
                       class="title-input">
                     </ion-input>
@@ -260,12 +260,12 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
                     <ion-input 
                       [(ngModel)]="tagInput" 
                       (ionBlur)="parseAndAddTags()"
-                      placeholder="Tags eingeben (kommagetrennt)..."
+                      placeholder="Enter tags (comma-separated)..."
                       class="tag-input">
                     </ion-input>
                   </ion-item>
                   <ion-note class="tag-help-text">
-                    Tags zur Identifizierung in Beat-AI (z.B. Kampf, Romanze, Konflikt)
+                    Tags for identification in Beat-AI (e.g. Combat, Romance, Conflict)
                   </ion-note>
                   <div class="tags-container" *ngIf="editingEntry.tags?.length">
                     <ion-chip 
@@ -282,14 +282,14 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
 
               <!-- Media Section -->
               <div class="form-section" *ngIf="editingEntry.imageUrl || !editingEntry.imageUrl">
-                <h3 class="section-title">Medien</h3>
+                <h3 class="section-title">Media</h3>
                 
                 <div class="form-group">
                   <ion-item lines="none" class="form-item">
-                    <ion-label position="stacked">Bild URL</ion-label>
+                    <ion-label position="stacked">Image URL</ion-label>
                     <ion-input 
                       [(ngModel)]="editingEntry.imageUrl" 
-                      placeholder="https://beispiel.com/bild.jpg"
+                      placeholder="https://example.com/image.jpg"
                       type="url"
                       class="url-input">
                     </ion-input>
@@ -297,7 +297,7 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
                   <div class="image-preview" *ngIf="editingEntry.imageUrl">
                     <img 
                       [src]="editingEntry.imageUrl" 
-                      alt="Vorschau"
+                      alt="Preview"
                       (error)="editingEntry.imageUrl = ''">
                   </div>
                 </div>
@@ -305,17 +305,17 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
                 
               <!-- Story Role Section -->
               <div class="form-section" *ngIf="isCharacterEntry()">
-                <h3 class="section-title">Story-Einstellungen</h3>
+                <h3 class="section-title">Story Settings</h3>
                 
                 <div class="form-group">
                   <ion-item lines="none" class="form-item">
-                    <ion-label position="stacked">Story-Rolle</ion-label>
+                    <ion-label position="stacked">Story Role</ion-label>
                     <ion-select 
                       [(ngModel)]="editingEntry.storyRole"
-                      placeholder="Rolle auswählen..."
+                      placeholder="Select role..."
                       interface="popover"
                       class="role-select">
-                      <ion-select-option value="">Keine Rolle</ion-select-option>
+                      <ion-select-option value="">No Role</ion-select-option>
                       <ion-select-option 
                         *ngFor="let role of storyRoles" 
                         [value]="role.value">
@@ -328,11 +328,11 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
               
               <!-- Always Include Section -->
               <div class="form-section">
-                <h3 class="section-title">AI-Einstellungen</h3>
+                <h3 class="section-title">AI Settings</h3>
                 
                 <div class="form-group">
                   <ion-item lines="none" class="form-item">
-                    <ion-label position="stacked">Immer in Beat-Prompt inkludieren</ion-label>
+                    <ion-label position="stacked">Always include in beat prompt</ion-label>
                     <ion-toggle 
                       [(ngModel)]="editingEntry.alwaysInclude"
                       slot="end"
@@ -340,7 +340,7 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
                     </ion-toggle>
                   </ion-item>
                   <ion-note color="medium" style="padding: 0 16px; font-size: 0.9rem;">
-                    Wenn aktiviert, wird dieser Eintrag immer in den Beat-Prompt eingeschlossen, unabhängig von der Relevanz-Bewertung.
+                    When enabled, this entry will always be included in the beat prompt, regardless of relevance scoring.
                   </ion-note>
                 </div>
               </div>
@@ -348,7 +348,7 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
               <!-- Custom Fields Section -->
               <div class="form-section">
                 <div class="section-header">
-                  <h3 class="section-title">Benutzerdefinierte Felder</h3>
+                  <h3 class="section-title">Custom Fields</h3>
                   <ion-button 
                     size="small" 
                     fill="outline" 
@@ -356,7 +356,7 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
                     [disabled]="!newCustomFieldName.trim()"
                     (click)="addCustomField()">
                     <ion-icon name="add" slot="start"></ion-icon>
-                    Feld hinzufügen
+                    Add Field
                   </ion-button>
                 </div>
                   
@@ -365,10 +365,10 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
                   <div *ngFor="let field of editingEntry.customFields" class="custom-field-item">
                     <div class="custom-field-header">
                       <ion-item lines="none" class="form-item field-name-item">
-                        <ion-label position="stacked">Feldname</ion-label>
+                        <ion-label position="stacked">Field Name</ion-label>
                         <ion-input 
                           [(ngModel)]="field.name" 
-                          placeholder="Feldname eingeben...">
+                          placeholder="Enter field name...">
                         </ion-input>
                       </ion-item>
                       <ion-button 
@@ -381,12 +381,14 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
                       </ion-button>
                     </div>
                     <ion-item lines="none" class="form-item">
-                      <ion-label position="stacked">Feldwert</ion-label>
+                      <ion-label position="stacked">Field Value</ion-label>
                       <ion-textarea 
                         [(ngModel)]="field.value" 
-                        placeholder="Feldwert eingeben..."
+                        placeholder="Enter field value..."
                         rows="3"
-                        autoGrow="true">
+                        [autoGrow]="true"
+                        class="scrollable-textarea"
+                        (ionInput)="onTextareaInput($event)">
                       </ion-textarea>
                     </ion-item>
                   </div>
@@ -394,19 +396,21 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
                   <!-- Add new custom field form -->
                   <div class="new-custom-field">
                     <ion-item lines="none" class="form-item">
-                      <ion-label position="stacked">Neuer Feldname</ion-label>
+                      <ion-label position="stacked">New Field Name</ion-label>
                       <ion-input 
                         [(ngModel)]="newCustomFieldName" 
-                        placeholder="Feldname eingeben...">
+                        placeholder="Enter field name...">
                       </ion-input>
                     </ion-item>
                     <ion-item lines="none" class="form-item">
-                      <ion-label position="stacked">Feldwert</ion-label>
+                      <ion-label position="stacked">Field Value</ion-label>
                       <ion-textarea 
                         [(ngModel)]="newCustomFieldValue" 
-                        placeholder="Feldwert eingeben..."
+                        placeholder="Enter field value..."
                         rows="3"
-                        autoGrow="true">
+                        [autoGrow]="true"
+                        class="scrollable-textarea"
+                        (ionInput)="onTextareaInput($event)">
                       </ion-textarea>
                     </ion-item>
                   </div>
@@ -415,17 +419,18 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
                 
               <!-- Content Section -->
               <div class="form-section">
-                <h3 class="section-title">Inhalt</h3>
+                <h3 class="section-title">Content</h3>
                 
                 <div class="form-group">
                   <ion-item lines="none" class="form-item content-item">
-                    <ion-label position="stacked">Beschreibung</ion-label>
+                    <ion-label position="stacked">Description</ion-label>
                     <ion-textarea 
                       [(ngModel)]="editingEntry.content" 
-                      placeholder="Beschreibung, Details, Notizen..."
+                      placeholder="Description, details, notes..."
                       rows="8"
-                      autoGrow="true"
-                      class="content-textarea">
+                      [autoGrow]="true"
+                      class="content-textarea scrollable-textarea"
+                      (ionInput)="onTextareaInput($event)">
                     </ion-textarea>
                   </ion-item>
                 </div>
@@ -435,11 +440,11 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
               <div class="modal-actions">
                 <ion-button (click)="deleteEntry()" fill="outline" color="danger" size="default">
                   <ion-icon name="trash" slot="start"></ion-icon>
-                  Löschen
+                  Delete
                 </ion-button>
                 <ion-button (click)="saveEntry()" color="primary" size="default">
                   <ion-icon name="save" slot="start"></ion-icon>
-                  Speichern
+                  Save
                 </ion-button>
               </div>
             </div>
@@ -452,11 +457,11 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
         <ng-template>
           <ion-header>
             <ion-toolbar>
-              <ion-title>Neue Kategorie</ion-title>
+              <ion-title>New Category</ion-title>
               <ion-buttons slot="end">
                 <ion-button (click)="addCategory()" color="primary">
                   <ion-icon name="save" slot="start"></ion-icon>
-                  Erstellen
+                  Create
                 </ion-button>
                 <ion-button (click)="showAddCategoryModal.set(false)">
                   <ion-icon name="close" slot="icon-only"></ion-icon>
@@ -469,10 +474,10 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
             <ion-card>
               <ion-card-content>
                 <ion-item>
-                  <ion-label position="stacked">Kategorie Name</ion-label>
+                  <ion-label position="stacked">Category Name</ion-label>
                   <ion-input 
                     [(ngModel)]="newCategory.title" 
-                    placeholder="Kategorie Name"
+                    placeholder="Category Name"
                     type="text">
                   </ion-input>
                 </ion-item>
@@ -488,11 +493,14 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
                 </ion-item>
                 
                 <ion-item>
-                  <ion-label position="stacked">Beschreibung (optional)</ion-label>
+                  <ion-label position="stacked">Description (optional)</ion-label>
                   <ion-textarea 
                     [(ngModel)]="newCategory.description" 
-                    placeholder="Beschreibung..."
-                    rows="3">
+                    placeholder="Description..."
+                    rows="3"
+                    [autoGrow]="true"
+                    class="scrollable-textarea"
+                    (ionInput)="onTextareaInput($event)">
                   </ion-textarea>
                 </ion-item>
               </ion-card-content>
@@ -764,11 +772,30 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
     /* Entry Modal Styling */
     .entry-modal {
       --width: 90vw;
-      --max-width: 800px;
-      --height: 90vh;
+      --max-width: 900px;
+      --height: 92vh;
       --border-radius: 16px;
       --background: linear-gradient(135deg, rgba(20, 20, 20, 0.95) 0%, rgba(15, 15, 15, 0.95) 100%);
-      backdrop-filter: blur(20px);
+      backdrop-filter: blur(20px) saturate(120%);
+      --box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    }
+    
+    .entry-modal ion-header {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .entry-modal ion-toolbar {
+      --background: linear-gradient(135deg, rgba(20, 20, 20, 0.3) 0%, rgba(15, 15, 15, 0.3) 100%);
+      --border-width: 0;
+      --padding-start: 20px;
+      --padding-end: 20px;
+      --min-height: 64px;
+    }
+    
+    .entry-modal ion-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      letter-spacing: 0.5px;
     }
     
     .entry-modal ion-content {
@@ -777,8 +804,9 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
 
     @media (max-width: 768px) {
       .entry-modal {
-        --width: 95vw;
-        --height: 95vh;
+        --width: 100vw;
+        --height: 100vh;
+        --border-radius: 0;
       }
     }
 
@@ -792,50 +820,64 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
     .modal-form-container {
       padding: 0;
       max-width: none;
+      background: transparent;
     }
 
     /* Form Sections */
     .form-section {
-      background: var(--ion-background-color);
-      margin: 0;
-      padding: 4px;
-      border-bottom: 1px solid var(--ion-color-step-150);
+      background: linear-gradient(135deg, rgba(20, 20, 20, 0.3) 0%, rgba(15, 15, 15, 0.3) 100%);
+      margin: 16px;
+      padding: 20px;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(8px) saturate(120%);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+      transition: all 0.3s ease;
+    }
+    
+    .form-section:hover {
+      background: linear-gradient(135deg, rgba(25, 25, 25, 0.4) 0%, rgba(20, 20, 20, 0.4) 100%);
+      border-color: rgba(71, 118, 230, 0.3);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
     }
 
     .form-section:last-of-type {
-      border-bottom: none;
+      margin-bottom: 100px; /* Space for sticky action buttons */
     }
 
     .section-title {
-      margin: 0 0 4px 0;
-      font-size: 1rem;
+      margin: 0 0 16px 0;
+      font-size: 1.1rem;
       font-weight: 600;
-      color: var(--ion-color-primary);
+      color: #f8f9fa;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
     }
 
     .section-title::before {
       content: '';
       width: 4px;
-      height: 20px;
-      background: var(--ion-color-primary);
+      height: 24px;
+      background: linear-gradient(135deg, #4776E6 0%, #8E54E9 100%);
       border-radius: 2px;
+      box-shadow: 0 0 8px rgba(71, 118, 230, 0.4);
     }
 
     .section-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 4px;
+      margin-bottom: 16px;
       flex-wrap: wrap;
       gap: 12px;
     }
 
     /* Form Groups and Items */
     .form-group {
-      margin-bottom: 4px;
+      margin-bottom: 20px;
     }
 
     .form-group:last-child {
@@ -843,7 +885,7 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
     }
 
     .form-item {
-      --background: var(--ion-item-background);
+      --background: transparent;
       --border-color: transparent;
       --border-width: 0;
       --border-style: none;
@@ -858,29 +900,41 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
 
     .form-item ion-label {
       font-weight: 500;
-      color: var(--ion-text-color);
-      margin-bottom: 4px;
-      opacity: 0.8;
+      color: #e0e0e0;
+      margin-bottom: 8px;
+      font-size: 0.95rem;
+      letter-spacing: 0.3px;
     }
 
     .form-item ion-input,
     .form-item ion-textarea,
     .form-item ion-select {
-      --background: var(--ion-background-color);
+      --background: rgba(0, 0, 0, 0.2);
       --padding-start: 16px;
       --padding-end: 16px;
-      --padding-top: 12px;
-      --padding-bottom: 12px;
-      font-size: 0.9rem;
-      border: 1px solid var(--ion-color-step-200);
+      --padding-top: 14px;
+      --padding-bottom: 14px;
+      font-size: 0.95rem;
+      border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 8px;
       margin-top: 8px;
+      color: #f8f9fa;
+      transition: all 0.3s ease;
+    }
+    
+    .form-item ion-input:hover,
+    .form-item ion-textarea:hover,
+    .form-item ion-select:hover {
+      --background: rgba(0, 0, 0, 0.3);
+      border-color: rgba(255, 255, 255, 0.15);
     }
     
     .form-item ion-input:focus,
     .form-item ion-textarea:focus,
     .form-item ion-select:focus {
-      border-color: var(--ion-color-primary);
+      --background: rgba(0, 0, 0, 0.3);
+      border-color: rgba(71, 118, 230, 0.5);
+      box-shadow: 0 0 0 2px rgba(71, 118, 230, 0.15);
     }
 
     .required {
@@ -908,39 +962,50 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
     .tags-container {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
+      gap: 10px;
       margin-top: 12px;
-      padding: 12px 16px;
-      background: var(--ion-item-background);
-      border: 1px solid var(--ion-color-step-200);
+      padding: 14px 16px;
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 8px;
-      min-height: 50px;
+      min-height: 56px;
       align-items: flex-start;
       align-content: flex-start;
+      transition: all 0.3s ease;
+    }
+    
+    .tags-container:hover {
+      background: rgba(0, 0, 0, 0.3);
+      border-color: rgba(255, 255, 255, 0.15);
     }
 
     .tag-help-text {
       display: block;
       margin-top: 8px;
-      margin-left: 16px;
-      font-size: 0.875rem;
-      color: var(--ion-color-medium);
-      font-style: italic;
+      margin-left: 4px;
+      font-size: 0.85rem;
+      color: rgba(255, 255, 255, 0.5);
+      font-style: normal;
+      letter-spacing: 0.2px;
     }
 
     .tag-chip {
-      --background: var(--ion-color-primary-tint);
-      --color: var(--ion-color-primary-contrast);
+      --background: linear-gradient(135deg, rgba(71, 118, 230, 0.2) 0%, rgba(143, 84, 233, 0.2) 100%);
+      --color: #8bb4f8;
+      border: 1px solid rgba(71, 118, 230, 0.3);
       cursor: pointer;
       transition: all 0.2s ease;
       font-size: 0.875rem;
       height: 32px;
+      border-radius: 16px;
+      backdrop-filter: blur(10px);
     }
 
     .tag-chip:hover {
-      --background: var(--ion-color-primary);
-      transform: translateY(-1px);
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      --background: linear-gradient(135deg, rgba(71, 118, 230, 0.3) 0%, rgba(143, 84, 233, 0.3) 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(71, 118, 230, 0.2);
+      border-color: rgba(71, 118, 230, 0.5);
     }
 
     .tag-chip ion-icon {
@@ -952,46 +1017,61 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
 
     .tag-chip:hover ion-icon {
       opacity: 1;
+      color: #ff4444;
     }
 
     /* Image Preview */
     .image-preview {
       margin-top: 12px;
-      padding: 12px 16px;
-      background: var(--ion-item-background);
-      border: 1px solid var(--ion-color-step-200);
+      padding: 16px;
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 8px;
       text-align: center;
+      transition: all 0.3s ease;
+    }
+    
+    .image-preview:hover {
+      background: rgba(0, 0, 0, 0.3);
+      border-color: rgba(255, 255, 255, 0.15);
     }
 
     .image-preview img {
       max-width: 100%;
-      max-height: 200px;
+      max-height: 240px;
       height: auto;
-      border-radius: 8px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     /* Custom Fields Styling */
     .custom-fields-container {
       display: flex;
       flex-direction: column;
-      gap: 20px;
+      gap: 16px;
     }
 
     .custom-field-item {
-      background: var(--ion-item-background);
-      border: 1px solid var(--ion-color-step-200);
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 8px;
       padding: 16px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s ease;
+    }
+    
+    .custom-field-item:hover {
+      background: rgba(0, 0, 0, 0.3);
+      border-color: rgba(71, 118, 230, 0.3);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
 
     .custom-field-header {
       display: flex;
       align-items: flex-end;
       gap: 12px;
-      margin-bottom: 4px;
+      margin-bottom: 12px;
     }
 
     .field-name-item {
@@ -1002,42 +1082,82 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
     .remove-field-btn {
       --padding-start: 8px;
       --padding-end: 8px;
+      --color: #ff6b6b;
       height: 40px;
       margin-bottom: 0;
+      transition: all 0.2s ease;
+    }
+    
+    .remove-field-btn:hover {
+      --color: #ff4444;
+      transform: scale(1.1);
     }
 
     .new-custom-field {
-      background: var(--ion-color-step-50);
-      border: 2px dashed var(--ion-color-step-300);
+      background: rgba(71, 118, 230, 0.05);
+      border: 2px dashed rgba(71, 118, 230, 0.2);
       border-radius: 8px;
       padding: 16px;
-      transition: all 0.2s ease;
+      transition: all 0.3s ease;
     }
 
     .new-custom-field:hover {
-      border-color: var(--ion-color-primary);
-      background: var(--ion-color-primary-tint);
+      border-color: rgba(71, 118, 230, 0.3);
+      background: rgba(71, 118, 230, 0.1);
+      box-shadow: 0 2px 8px rgba(71, 118, 230, 0.1);
     }
 
     /* Modal Actions */
     .modal-actions {
       display: flex;
-      justify-content: flex-end;
+      justify-content: space-between;
       align-items: center;
-      gap: 12px;
-      padding: 4px;
-      background: var(--ion-toolbar-background);
-      border-top: 1px solid var(--ion-color-step-200);
+      gap: 16px;
+      padding: 20px 24px;
+      background: linear-gradient(135deg, rgba(20, 20, 20, 0.95) 0%, rgba(15, 15, 15, 0.95) 100%);
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
       position: sticky;
       bottom: 0;
       z-index: 10;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 -2px 16px rgba(0, 0, 0, 0.3);
     }
 
     .modal-actions ion-button {
-      --padding-start: 20px;
-      --padding-end: 20px;
-      --height: 44px;
-      font-weight: 500;
+      --padding-start: 24px;
+      --padding-end: 24px;
+      --height: 48px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      letter-spacing: 0.5px;
+      --border-radius: 12px;
+      transition: all 0.3s ease;
+    }
+    
+    .modal-actions ion-button[color="danger"] {
+      --background: rgba(255, 67, 67, 0.1);
+      --color: #ff6b6b;
+      --border-width: 1px;
+      --border-style: solid;
+      --border-color: rgba(255, 67, 67, 0.3);
+    }
+    
+    .modal-actions ion-button[color="danger"]:hover {
+      --background: rgba(255, 67, 67, 0.2);
+      --border-color: rgba(255, 67, 67, 0.5);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(255, 67, 67, 0.2);
+    }
+    
+    .modal-actions ion-button[color="primary"] {
+      --background: linear-gradient(135deg, #4776E6 0%, #8E54E9 100%);
+      --color: white;
+      box-shadow: 0 4px 12px rgba(71, 118, 230, 0.3);
+    }
+    
+    .modal-actions ion-button[color="primary"]:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(71, 118, 230, 0.4);
     }
 
     /* Responsive adjustments */
@@ -1087,42 +1207,61 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
       pointer-events: none;
     }
 
-    /* Dark mode specific adjustments */
-    @media (prefers-color-scheme: dark) {
-      .form-section {
-        background: var(--ion-background-color);
-      }
-      
-      .form-item ion-input,
-      .form-item ion-textarea,
-      .form-item ion-select {
-        --background: var(--ion-item-background);
-        border-color: var(--ion-color-step-300);
-      }
-      
-      .tags-container {
-        background: var(--ion-item-background);
-        border-color: var(--ion-color-step-300);
-      }
-      
-      .image-preview {
-        background: var(--ion-item-background);
-        border-color: var(--ion-color-step-300);
-      }
-      
-      .custom-field-item {
-        background: var(--ion-item-background);
-        border-color: var(--ion-color-step-300);
-      }
-      
-      .new-custom-field {
-        background: var(--ion-color-step-100);
-        border-color: var(--ion-color-step-400);
-      }
-      
-      .new-custom-field:hover {
-        background: var(--ion-color-primary-shade);
-      }
+    /* Scrollable textarea improvements */
+    .scrollable-textarea {
+      min-height: 60px;
+      max-height: 300px;
+      --padding-start: 12px;
+      --padding-end: 12px;
+      --padding-top: 12px;
+      --padding-bottom: 12px;
+      resize: vertical;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--ion-color-medium) transparent;
+    }
+
+    .scrollable-textarea::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .scrollable-textarea::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .scrollable-textarea::-webkit-scrollbar-thumb {
+      background: var(--ion-color-medium);
+      border-radius: 3px;
+    }
+
+    .scrollable-textarea::-webkit-scrollbar-thumb:hover {
+      background: var(--ion-color-medium-shade);
+    }
+
+    /* Enhanced content textarea */
+    .content-textarea {
+      min-height: 120px;
+      max-height: 400px;
+    }
+
+    /* Toggle styling */
+    .form-item ion-toggle {
+      --background: rgba(255, 255, 255, 0.1);
+      --background-checked: linear-gradient(135deg, #4776E6 0%, #8E54E9 100%);
+      --handle-background: #ffffff;
+      --handle-background-checked: #ffffff;
+      --handle-box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      padding-top: 12px;
+      padding-bottom: 12px;
+    }
+
+    /* Dark mode is already the default theme - these styles are applied by default */
+    .scrollable-textarea::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .scrollable-textarea::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.3);
     }
   `]
 })
@@ -1284,7 +1423,7 @@ export class CodexComponent implements OnInit, OnDestroy {
     const storyId = this.storyId();
     if (!storyId) return;
 
-    if (confirm('Kategorie und alle Einträge löschen?')) {
+    if (confirm('Delete category and all entries?')) {
       try {
         await this.codexService.deleteCategory(storyId, categoryId);
         if (this.selectedCategoryId() === categoryId) {
@@ -1306,7 +1445,7 @@ export class CodexComponent implements OnInit, OnDestroy {
     try {
       // Create a new entry with default values
       const newEntry = {
-        title: 'Neuer Eintrag',
+        title: 'New Entry',
         content: '',
         tags: []
       };
@@ -1356,7 +1495,7 @@ export class CodexComponent implements OnInit, OnDestroy {
     const entry = this.selectedEntry();
     if (!storyId || !entry) return;
 
-    if (confirm('Eintrag löschen?')) {
+    if (confirm('Delete entry?')) {
       try {
         await this.codexService.deleteEntry(storyId, entry.categoryId, entry.id);
         this.closeEntryModal();
@@ -1437,7 +1576,7 @@ export class CodexComponent implements OnInit, OnDestroy {
 
   isCharacterEntry(): boolean {
     const category = this.selectedCategory();
-    return category?.title === 'Charaktere' || false;
+    return category?.title === 'Characters' || false;
   }
 
   addCustomField() {
@@ -1487,11 +1626,26 @@ export class CodexComponent implements OnInit, OnDestroy {
     this.router.navigate(['/stories/editor', this.storyId()]);
   }
 
+  onTextareaInput(event: CustomEvent) {
+    // Fix for autoGrow scroll-to-top issue
+    setTimeout(() => {
+      const target = event.target as HTMLIonTextareaElement;
+      if (target && typeof target.getInputElement === 'function') {
+        target.getInputElement().then((textArea: HTMLTextAreaElement) => {
+          if (textArea) {
+            textArea.style.scrollBehavior = 'smooth';
+            textArea.scrollTop = textArea.scrollHeight;
+          }
+        });
+      }
+    }, 0);
+  }
+
   private initializeHeaderActions(): void {
     this.headerActions = [
       {
         icon: 'add',
-        label: 'Kategorie',
+        label: 'Category',
         action: () => this.showAddCategoryModal.set(true),
         showOnMobile: true,
         showOnDesktop: true

@@ -514,12 +514,12 @@ export class NovelCrafterImportService {
     // Map categories
     const categoryMapping: Record<string, string> = {};
     
-    // Characters -> Charaktere
+    // Characters -> Characters
     if (importResult.codexEntries.characters.length > 0) {
-      let charCategory = codex.categories.find(c => c.title === 'Charaktere');
+      let charCategory = codex.categories.find(c => c.title === 'Characters');
       if (!charCategory) {
         charCategory = await this.codexService.addCategory(storyId, {
-          title: 'Charaktere',
+          title: 'Characters',
           icon: '👤',
           description: 'Imported characters from NovelCrafter'
         });
@@ -527,12 +527,12 @@ export class NovelCrafterImportService {
       categoryMapping['characters'] = charCategory.id;
     }
 
-    // Locations -> Orte
+    // Locations -> Locations
     if (importResult.codexEntries.locations.length > 0) {
-      let locCategory = codex.categories.find(c => c.title === 'Orte');
+      let locCategory = codex.categories.find(c => c.title === 'Locations');
       if (!locCategory) {
         locCategory = await this.codexService.addCategory(storyId, {
-          title: 'Orte',
+          title: 'Locations',
           icon: '🏰',
           description: 'Imported locations from NovelCrafter'
         });
@@ -540,12 +540,12 @@ export class NovelCrafterImportService {
       categoryMapping['locations'] = locCategory.id;
     }
 
-    // Objects -> Gegenstände
+    // Objects -> Objects
     if (importResult.codexEntries.objects.length > 0) {
-      let objCategory = codex.categories.find(c => c.title === 'Gegenstände');
+      let objCategory = codex.categories.find(c => c.title === 'Objects');
       if (!objCategory) {
         objCategory = await this.codexService.addCategory(storyId, {
-          title: 'Gegenstände',
+          title: 'Objects',
           icon: '⚔️',
           description: 'Imported objects from NovelCrafter'
         });
@@ -553,12 +553,12 @@ export class NovelCrafterImportService {
       categoryMapping['objects'] = objCategory.id;
     }
 
-    // Other -> Notizen
+    // Other -> Notes
     if (importResult.codexEntries.other.length > 0) {
-      let noteCategory = codex.categories.find(c => c.title === 'Notizen');
+      let noteCategory = codex.categories.find(c => c.title === 'Notes');
       if (!noteCategory) {
         noteCategory = await this.codexService.addCategory(storyId, {
-          title: 'Notizen',
+          title: 'Notes',
           icon: '📝',
           description: 'Imported notes from NovelCrafter'
         });

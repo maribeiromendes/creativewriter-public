@@ -67,7 +67,7 @@ interface PresetPrompt {
   template: `
     <div class="ion-page">
       <app-header 
-        title="Szenen-Chat" 
+        title="Scene Chat" 
         [showBackButton]="true"
         [backAction]="goBack.bind(this)"
         [rightActions]="headerActions"
@@ -83,7 +83,7 @@ interface PresetPrompt {
                      bindValue="id"
                      [clearable]="false"
                      [searchable]="true"
-                     placeholder="Modell auswählen..."
+                     placeholder="Select model..."
                      class="model-select"
                      appendTo="body">
             <ng-template ng-option-tmp let-item="item">
@@ -103,7 +103,7 @@ interface PresetPrompt {
       <ion-content class="chat-content" [scrollEvents]="true">
         <div class="context-chips" *ngIf="selectedScenes.length > 0 || includeStoryOutline">
           <ion-chip *ngIf="includeStoryOutline" color="success">
-            <ion-label>Geschichte-Überblick</ion-label>
+            <ion-label>Story Overview</ion-label>
             <ion-icon 
               name="close-outline" 
               (click)="includeStoryOutline = false">
@@ -147,7 +147,7 @@ interface PresetPrompt {
                   color="primary"
                   (click)="addToCodex(message)">
                   <ion-icon name="add-outline" slot="start"></ion-icon>
-                  Zum Codex hinzufügen
+                  Add to Codex
                 </ion-button>
               </div>
             </div>
@@ -175,7 +175,7 @@ interface PresetPrompt {
           <ion-textarea
             #messageInput
             [(ngModel)]="currentMessage"
-            placeholder="Stelle eine Frage zu deiner Szene..."
+            placeholder="Ask a question about your scene..."
             [autoGrow]="true"
             [rows]="1"
             (keydown.enter)="onEnterKey($any($event))"
@@ -199,7 +199,7 @@ interface PresetPrompt {
       <ng-template>
         <ion-header>
           <ion-toolbar>
-            <ion-title>Szenen als Kontext hinzufügen</ion-title>
+            <ion-title>Add Scenes as Context</ion-title>
             <ion-buttons slot="end">
               <ion-button (click)="showSceneSelector = false">
                 <ion-icon name="close-outline" slot="icon-only"></ion-icon>
@@ -210,7 +210,7 @@ interface PresetPrompt {
         <ion-content>
           <ion-searchbar 
             [(ngModel)]="sceneSearchTerm" 
-            placeholder="Szene suchen..."
+            placeholder="Search scenes..."
             animated="true">
           </ion-searchbar>
           
@@ -243,7 +243,7 @@ interface PresetPrompt {
       <ng-template>
         <ion-header>
           <ion-toolbar>
-            <ion-title>Vorgefertigte Prompts</ion-title>
+            <ion-title>Predefined Prompts</ion-title>
             <ion-buttons slot="end">
               <ion-button (click)="showPresetPrompts = false">
                 <ion-icon name="close-outline" slot="icon-only"></ion-icon>
@@ -797,7 +797,7 @@ export class SceneChatComponent implements OnInit, OnDestroy {
       // Add initial system message
       this.messages.push({
         role: 'assistant',
-        content: 'Hallo! Ich bin dein KI-Assistent für diese Szene. Ich arbeite ausschließlich mit dem Kontext der ausgewählten Szenen. Du kannst mir Fragen stellen, um Charaktere zu extrahieren, Details zu analysieren oder Ideen zu entwickeln.',
+        content: 'Hello! I am your AI assistant for this scene. I work exclusively with the context of selected scenes. You can ask me questions to extract characters, analyze details, or develop ideas.',
         timestamp: new Date()
       });
     }
@@ -848,16 +848,16 @@ export class SceneChatComponent implements OnInit, OnDestroy {
       // Always use direct AI calls without system prompt or codex
       let contextText = '';
       if (storyOutline) {
-        contextText += `Geschichte-Überblick:\n${storyOutline}\n\n`;
+        contextText += `Story Overview:\n${storyOutline}\n\n`;
       }
       if (sceneContext) {
-        contextText += `Szenen-Text:\n${sceneContext}\n\n`;
+        contextText += `Scene Text:\n${sceneContext}\n\n`;
       }
       
       // Add chat history context (exclude initial system message and preset prompts)
       const chatHistory = this.buildChatHistory();
       if (chatHistory) {
-        contextText += `Bisheriger Chat-Verlauf:\n${chatHistory}\n\n`;
+        contextText += `Previous chat history:\n${chatHistory}\n\n`;
       }
       
       // Build prompt based on type
@@ -866,7 +866,7 @@ export class SceneChatComponent implements OnInit, OnDestroy {
         prompt = `${contextText}${userMessage}`;
       } else {
         // For normal chat, just add the user's question
-        prompt = `${contextText}Frage des Nutzers: ${userMessage}\n\nBitte antworte hilfreich und kreativ auf die Frage basierend auf dem gegebenen Kontext und dem bisherigen Gespräch.`;
+        prompt = `${contextText}User Question: ${userMessage}\n\nPlease answer helpfully and creatively based on the given context and previous conversation.`;
       }
       
       // Call AI directly without the beat generation template
@@ -1059,30 +1059,30 @@ export class SceneChatComponent implements OnInit, OnDestroy {
     this.presetPrompts = [
       {
         id: 'extract-characters',
-        title: 'Charaktere extrahieren',
-        description: 'Extrahiere alle Charaktere aus den ausgewählten Szenen',
+        title: 'Extract Characters',
+        description: 'Extract all characters from selected scenes',
         extractionType: 'characters',
         icon: 'person-outline',
-        prompt: `Bitte analysiere die folgenden Szenen und extrahiere alle Charaktere. Für jeden Charakter gib folgende Informationen an:
+        prompt: `Please analyze the following scenes and extract all characters. For each character provide the following information:
 
-**Name:** [Charaktername]
-**Rolle:** [Hauptcharakter/Nebencharakter/Hintergrundcharakter]
-**Beschreibung:** [Physische Beschreibung, Persönlichkeit, wichtige Eigenschaften]
-**Beziehungen:** [Beziehungen zu anderen Charakteren]
-**Motivation:** [Was treibt den Charakter an]
+**Name:** [Character name]
+**Role:** [Main character/Supporting character/Background character]
+**Description:** [Physical description, personality, important traits]
+**Relationships:** [Relationships to other characters]
+**Motivation:** [What drives the character]
 
-Strukturiere die Antwort klar nach Charakteren getrennt.`
+Structure the answer clearly separated by characters.`
       },
       {
         id: 'extract-locations',
-        title: 'Orte extrahieren',
-        description: 'Extrahiere alle Schauplätze und Orte aus den Szenen',
+        title: 'Extract Locations',
+        description: 'Extract all locations and places from scenes',
         extractionType: 'locations',
         icon: 'location-outline',
-        prompt: `Bitte analysiere die folgenden Szenen und extrahiere alle Orte und Schauplätze. Für jeden Ort gib folgende Informationen an:
+        prompt: `Please analyze the following scenes and extract all places and locations. For each location provide the following information:
 
-**Name:** [Ortsname]
-**Typ:** [Stadt, Gebäude, Raum, Landschaft, etc.]
+**Name:** [Location name]
+**Type:** [City, Building, Room, Landscape, etc.]
 **Beschreibung:** [Physische Beschreibung, Atmosphäre, wichtige Details]
 **Bedeutung:** [Warum ist dieser Ort wichtig für die Geschichte]
 **Stimmung:** [Welche Stimmung/Atmosphäre herrscht hier]
@@ -1091,14 +1091,14 @@ Strukturiere die Antwort klar nach Orten getrennt.`
       },
       {
         id: 'extract-objects',
-        title: 'Gegenstände extrahieren',
-        description: 'Extrahiere wichtige Objekte und Gegenstände',
+        title: 'Extract Objects',
+        description: 'Extract important objects and items',
         extractionType: 'objects',
         icon: 'cube-outline',
-        prompt: `Bitte analysiere die folgenden Szenen und extrahiere alle wichtigen Gegenstände und Objekte. Für jeden Gegenstand gib folgende Informationen an:
+        prompt: `Please analyze the following scenes and extract all important items and objects. For each object provide the following information:
 
-**Name:** [Objektname]
-**Typ:** [Waffe, Werkzeug, Schmuck, Dokument, etc.]
+**Name:** [Object name]
+**Type:** [Weapon, Tool, Jewelry, Document, etc.]
 **Beschreibung:** [Physische Beschreibung, Material, Aussehen]
 **Bedeutung:** [Warum ist dieser Gegenstand wichtig]
 **Besitzer:** [Wem gehört der Gegenstand]
@@ -1169,7 +1169,7 @@ Strukturiere die Antwort klar nach Gegenständen getrennt.`
       console.error('Error adding to codex:', error);
       this.messages.push({
         role: 'assistant',
-        content: '❌ Fehler beim Hinzufügen zum Codex. Bitte versuche es erneut.',
+        content: '❌ Error adding to codex. Please try again.',
         timestamp: new Date()
       });
       this.scrollToBottom();
@@ -1178,19 +1178,19 @@ Strukturiere die Antwort klar nach Gegenständen getrennt.`
 
   private getExtractionTypeLabel(type: 'characters' | 'locations' | 'objects'): string {
     switch (type) {
-      case 'characters': return 'Charaktere';
-      case 'locations': return 'Orte';
-      case 'objects': return 'Gegenstände';
-      default: return 'Einträge';
+      case 'characters': return 'Characters';
+      case 'locations': return 'Locations';
+      case 'objects': return 'Objects';
+      default: return 'Entries';
     }
   }
 
   private getCategoryName(extractionType: 'characters' | 'locations' | 'objects'): string {
     switch (extractionType) {
-      case 'characters': return 'Charaktere';
-      case 'locations': return 'Orte';
-      case 'objects': return 'Gegenstände';
-      default: return 'Notizen';
+      case 'characters': return 'Characters';
+      case 'locations': return 'Locations';
+      case 'objects': return 'Objects';
+      default: return 'Notes';
     }
   }
 
@@ -1593,7 +1593,7 @@ Strukturiere die Antwort klar nach Gegenständen getrennt.`
     // Filter out system messages, preset prompts, and the current message being processed
     const relevantMessages = this.messages.filter(message => {
       // Skip initial system message
-      if (message.content.includes('Hallo! Ich bin dein KI-Assistent')) {
+      if (message.content.includes('Hello! I am your AI assistant')) {
         return false;
       }
       // Skip preset prompt messages (they have extractionType but we want to keep extraction results)

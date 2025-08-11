@@ -32,20 +32,20 @@ import { Subscription } from 'rxjs';
   template: `
     <div class="story-structure" role="navigation" aria-label="Story structure">
       <div class="structure-header">
-        <h2>Struktur</h2>
+        <h2>Structure</h2>
         <ion-button 
           fill="clear" 
           size="small"
           class="close-button"
           (click)="onCloseSidebar()"
-          aria-label="Sidebar schließen">
+          aria-label="Close sidebar">
           <ion-icon name="close" slot="icon-only"></ion-icon>
         </ion-button>
       </div>
       
       <ion-content class="structure-content" [scrollEvents]="true">
         <div id="add-chapter-help" class="sr-only">
-          Fügt ein neues Kapitel zur Geschichte hinzu
+          Adds a new chapter to the story
         </div>
         
         <div class="structure-actions">
@@ -55,13 +55,13 @@ import { Subscription } from 'rxjs';
             color="primary" 
             class="add-chapter-btn" 
             (click)="addChapter()"
-            aria-label="Neues Kapitel hinzufügen">
+            aria-label="Add new chapter">
             <ion-icon name="add" slot="start" [attr.aria-hidden]="true"></ion-icon>
-            Neues Kapitel
+            New Chapter
           </ion-button>
         </div>
         
-        <ion-list class="chapters-list" role="tree" aria-label="Kapitel und Szenen">
+        <ion-list class="chapters-list" role="tree" aria-label="Chapters and Scenes">
           <div *ngFor="let chapter of story.chapters; trackBy: trackChapter" 
                class="chapter-item">
             
@@ -74,7 +74,7 @@ import { Subscription } from 'rxjs';
               role="treeitem"
               tabindex="0"
               [attr.aria-expanded]="expandedChapters.has(chapter.id)"
-              [attr.aria-label]="'Kapitel: ' + (chapter.title || 'Ohne Titel') + '. ' + (expandedChapters.has(chapter.id) ? 'Eingeklappt' : 'Ausgeklappt')">
+              [attr.aria-label]="'Chapter: ' + (chapter.title || 'Untitled') + '. ' + (expandedChapters.has(chapter.id) ? 'Collapsed' : 'Expanded')">
               <ion-icon 
                 [name]="expandedChapters.has(chapter.id) ? 'chevron-down' : 'chevron-forward'" 
                 slot="start" 
@@ -89,8 +89,8 @@ import { Subscription } from 'rxjs';
                   (ionBlur)="updateChapter(chapter)"
                   (click)="$event.stopPropagation()"
                   class="chapter-title-input"
-                  placeholder="Kapitel Titel"
-                  [attr.aria-label]="'Kapitel Titel bearbeiten'"
+                  placeholder="Chapter Title"
+                  [attr.aria-label]="'Edit chapter title'"
                 ></ion-input>
               </div>
               <ion-button 
@@ -98,12 +98,12 @@ import { Subscription } from 'rxjs';
                 color="danger" 
                 slot="end" 
                 (click)="deleteChapter(chapter.id, $event)"
-                [attr.aria-label]="'Kapitel löschen: ' + (chapter.title || 'Ohne Titel')">
+                [attr.aria-label]="'Delete chapter: ' + (chapter.title || 'Untitled')">
                 <ion-icon name="trash" slot="icon-only" [attr.aria-hidden]="true"></ion-icon>
               </ion-button>
             </ion-item>
             
-            <div class="scenes-list" *ngIf="expandedChapters.has(chapter.id)" role="group" [attr.aria-label]="'Szenen in Kapitel: ' + (chapter.title || 'Ohne Titel')">
+            <div class="scenes-list" *ngIf="expandedChapters.has(chapter.id)" role="group" [attr.aria-label]="'Scenes in chapter: ' + (chapter.title || 'Untitled')">
               <ion-list role="none">
                 <ng-container *ngFor="let scene of chapter.scenes; trackBy: trackScene">
                   <ion-item 
@@ -116,7 +116,7 @@ import { Subscription } from 'rxjs';
                     role="treeitem"
                     tabindex="0"
                     [attr.aria-selected]="isActiveScene(chapter.id, scene.id)"
-                    [attr.aria-label]="'Szene: ' + (scene.title || 'Ohne Titel') + '. ' + (getWordCount(scene.content)) + ' Wörter' + (isActiveScene(chapter.id, scene.id) ? '. Aktuell ausgewählt' : '')">
+                    [attr.aria-label]="'Scene: ' + (scene.title || 'Untitled') + '. ' + (getWordCount(scene.content)) + ' words' + (isActiveScene(chapter.id, scene.id) ? '. Currently selected' : '')">
                     
                     <div class="scene-content">
                       <!-- First line: Scene title with AI button -->
@@ -127,11 +127,11 @@ import { Subscription } from 'rxjs';
                             *ngIf="!isEditingTitle.has(scene.id)"
                             class="scene-title-display"
                             (click)="startEditingTitle(scene.id, $event)"
-                            [attr.aria-label]="'Szenen Titel: ' + (scene.title || 'Ohne Titel') + '. Klicken zum Bearbeiten.'"
+                            [attr.aria-label]="'Scene title: ' + (scene.title || 'Untitled') + '. Click to edit.'"
                             tabindex="0"
                             (keydown.enter)="startEditingTitle(scene.id, $event)"
                             (keydown.space)="startEditingTitle(scene.id, $event)">
-                            {{ scene.title || 'Szenen Titel' }}
+                            {{ scene.title || 'Scene Title' }}
                           </div>
                           <ion-input 
                             *ngIf="isEditingTitle.has(scene.id)"
@@ -141,9 +141,9 @@ import { Subscription } from 'rxjs';
                             (keydown.escape)="cancelEditingTitle(scene)"
                             (click)="$event.stopPropagation()"
                             class="scene-title-input-edit"
-                            placeholder="Szenen Titel"
+                            placeholder="Scene Title"
                             fill="clear"
-                            [attr.aria-label]="'Szenen Titel bearbeiten'"
+                            [attr.aria-label]="'Edit scene title'"
                             #titleInput
                           ></ion-input>
                         </div>
@@ -155,7 +155,7 @@ import { Subscription } from 'rxjs';
                           (click)="generateSceneTitle(chapter.id, scene.id, $event)"
                           [disabled]="isGeneratingTitle.has(scene.id) || !selectedModel || !scene.content.trim()"
                           class="ai-title-btn"
-                          [attr.aria-label]="isGeneratingTitle.has(scene.id) ? 'Titel wird generiert...' : 'AI-Titel für Szene generieren'"
+                          [attr.aria-label]="isGeneratingTitle.has(scene.id) ? 'Title is being generated...' : 'Generate AI title for scene'"
                           (touchstart)="$event.stopPropagation()"
                           (touchend)="$event.stopPropagation()">
                           <ion-icon 
@@ -169,7 +169,7 @@ import { Subscription } from 'rxjs';
                       <!-- Second line: Word count and action buttons -->
                       <div class="scene-actions-row">
                         <ion-badge color="medium" class="word-count-badge">
-                          {{ getWordCount(scene.content) }} Wörter
+                          {{ getWordCount(scene.content) }} words
                         </ion-badge>
                         
                         <div class="action-buttons">
@@ -179,7 +179,7 @@ import { Subscription } from 'rxjs';
                             [color]="scene.summary ? 'success' : 'medium'"
                             (click)="toggleSceneDetails(scene.id, $event)"
                             class="expand-scene-btn"
-                            [attr.aria-label]="'Szenen-Details ' + (expandedScenes.has(scene.id) ? 'einklappen' : 'ausklappen')"
+                            [attr.aria-label]="'Scene details ' + (expandedScenes.has(scene.id) ? 'collapse' : 'expand')"
                             [attr.aria-expanded]="expandedScenes.has(scene.id)"
                             (touchstart)="$event.stopPropagation()"
                             (touchend)="$event.stopPropagation()">
@@ -196,7 +196,7 @@ import { Subscription } from 'rxjs';
                             size="small"
                             color="danger" 
                             (click)="deleteScene(chapter.id, scene.id, $event)"
-                            [attr.aria-label]="'Szene löschen: ' + (scene.title || 'Ohne Titel')"
+                            [attr.aria-label]="'Delete scene: ' + (scene.title || 'Untitled')"
                             (touchstart)="$event.stopPropagation()"
                             (touchend)="$event.stopPropagation()">
                             <ion-icon name="trash" slot="icon-only" [attr.aria-hidden]="true"></ion-icon>
@@ -209,7 +209,7 @@ import { Subscription } from 'rxjs';
                   <div class="scene-details" *ngIf="expandedScenes.has(scene.id)">
                     <div class="scene-summary-section">
                       <div class="summary-header">
-                        <span>Zusammenfassung</span>
+                        <span>Summary</span>
                         <div class="summary-buttons">
                           <ion-button 
                             size="small"
@@ -217,7 +217,7 @@ import { Subscription } from 'rxjs';
                             [color]="isGeneratingSummary.has(scene.id) ? 'medium' : 'success'"
                             (click)="generateSceneSummary(chapter.id, scene.id)"
                             [disabled]="isGeneratingSummary.has(scene.id) || !selectedModel || !scene.content.trim()"
-                            [attr.aria-label]="isGeneratingSummary.has(scene.id) ? 'Zusammenfassung wird generiert...' : 'AI-Zusammenfassung für Szene generieren'"
+                            [attr.aria-label]="isGeneratingSummary.has(scene.id) ? 'Summary is being generated...' : 'Generate AI summary for scene'"
                             (touchstart)="$event.stopPropagation()"
                             (touchend)="$event.stopPropagation()">
                             <ion-icon 
@@ -232,7 +232,7 @@ import { Subscription } from 'rxjs';
                             fill="solid"
                             color="danger"
                             (click)="deleteSceneSummary(chapter.id, scene.id)"
-                            [attr.aria-label]="'Zusammenfassung für Szene löschen'"
+                            [attr.aria-label]="'Delete summary for scene'"
                             (touchstart)="$event.stopPropagation()"
                             (touchend)="$event.stopPropagation()">
                             <ion-icon 
@@ -249,7 +249,7 @@ import { Subscription } from 'rxjs';
                         placeholder="AI-Modell wählen..."
                         interface="popover"
                         class="model-select"
-                        aria-label="AI-Modell für Zusammenfassung auswählen"
+                        aria-label="Select AI model for summary"
 >
                         <ion-select-option *ngFor="let model of availableModels" [value]="model.id">
                           {{ model.label }}
@@ -262,11 +262,11 @@ import { Subscription } from 'rxjs';
                         (ionBlur)="updateSceneSummary(chapter.id, scene.id, scene.summary || '')"
                         (ionInput)="autoResizeTextarea($event)"
                         [attr.data-scene-id]="scene.id"
-                        placeholder="Hier wird die AI-generierte Zusammenfassung der Szene angezeigt..."
+                        placeholder="AI-generated scene summary will be displayed here..."
                         class="summary-textarea"
                         [rows]="2"
                         [autoGrow]="false"
-                        [attr.aria-label]="'Zusammenfassung für Szene: ' + (scene.title || 'Ohne Titel')">
+                        [attr.aria-label]="'Summary for scene: ' + (scene.title || 'Untitled')">
                       </ion-textarea>
                       
                       <ion-chip *ngIf="scene.summaryGeneratedAt" color="medium" class="summary-info">
@@ -284,9 +284,9 @@ import { Subscription } from 'rxjs';
                 color="primary" 
                 class="add-scene-btn" 
                 (click)="addScene(chapter.id)"
-                [attr.aria-label]="'Neue Szene zu Kapitel hinzufügen: ' + (chapter.title || 'Ohne Titel')">
+                [attr.aria-label]="'Add new scene to chapter: ' + (chapter.title || 'Untitled')">
                 <ion-icon name="add" slot="start" [attr.aria-hidden]="true"></ion-icon>
-                Neue Szene
+                New Scene
               </ion-button>
             </div>
           </div>
@@ -1292,11 +1292,11 @@ export class StoryStructureComponent implements OnInit, OnChanges, AfterViewInit
   async deleteChapter(chapterId: string, event: Event): Promise<void> {
     event.stopPropagation();
     if (this.story.chapters.length <= 1) {
-      alert('Eine Geschichte muss mindestens ein Kapitel haben.');
+      alert('A story must have at least one chapter.');
       return;
     }
     
-    if (confirm('Kapitel wirklich löschen? Alle Szenen gehen verloren.')) {
+    if (confirm('Really delete chapter? All scenes will be lost.')) {
       await this.storyService.deleteChapter(this.story.id, chapterId);
       const updatedStory = await this.storyService.getStory(this.story.id);
       if (updatedStory) {
@@ -1330,11 +1330,11 @@ export class StoryStructureComponent implements OnInit, OnChanges, AfterViewInit
     event.stopPropagation();
     const chapter = this.story.chapters.find(c => c.id === chapterId);
     if (chapter && chapter.scenes.length <= 1) {
-      alert('Ein Kapitel muss mindestens eine Szene haben.');
+      alert('A chapter must have at least one scene.');
       return;
     }
     
-    if (confirm('Szene wirklich löschen?')) {
+    if (confirm('Really delete scene?')) {
       await this.storyService.deleteScene(this.story.id, chapterId, sceneId);
       const updatedStory = await this.storyService.getStory(this.story.id);
       if (updatedStory) {
@@ -1389,7 +1389,7 @@ export class StoryStructureComponent implements OnInit, OnChanges, AfterViewInit
     const googleGeminiAvailable = settings.googleGemini.enabled && settings.googleGemini.apiKey;
     
     if (!openRouterAvailable && !googleGeminiAvailable) {
-      alert('Kein AI API konfiguriert. Bitte konfigurieren Sie OpenRouter oder Google Gemini in den Einstellungen.');
+      alert('No AI API configured. Please configure OpenRouter or Google Gemini in settings.');
       return;
     }
     
@@ -1401,7 +1401,7 @@ export class StoryStructureComponent implements OnInit, OnChanges, AfterViewInit
       if (this.isGeneratingSummary.has(sceneId)) {
         this.isGeneratingSummary.delete(sceneId);
         this.cdr.detectChanges();
-        alert('Die Zusammenfassungs-Generierung dauert zu lange. Bitte versuchen Sie es erneut.');
+        alert('Summary generation is taking too long. Please try again.');
       }
     }, 30000); // 30 second timeout
     
@@ -1422,19 +1422,19 @@ export class StoryStructureComponent implements OnInit, OnChanges, AfterViewInit
     let prompt: string;
     if (settings.sceneSummaryGeneration.useCustomPrompt) {
       prompt = settings.sceneSummaryGeneration.customPrompt
-        .replace(/{sceneTitle}/g, scene.title || 'Ohne Titel')
-        .replace(/{sceneContent}/g, sceneContent + (contentTruncated ? '\n\n[Hinweis: Der Inhalt wurde gekürzt, da er zu lang war]' : ''))
+        .replace(/{sceneTitle}/g, scene.title || 'Untitled')
+        .replace(/{sceneContent}/g, sceneContent + (contentTruncated ? '\n\n[Note: Content was truncated as it was too long]' : ''))
         .replace(/{customInstruction}/g, settings.sceneSummaryGeneration.customInstruction || '');
     } else {
       // Default prompt
-      prompt = `Erstelle eine Zusammenfassung der folgenden Szene:
+      prompt = `Create a summary of the following scene:
 
-Titel: ${scene.title || 'Ohne Titel'}
+Title: ${scene.title || 'Untitled'}
 
-Inhalt:
-${sceneContent}${contentTruncated ? '\n\n[Hinweis: Der Inhalt wurde gekürzt, da er zu lang war]' : ''}
+Content:
+${sceneContent}${contentTruncated ? '\n\n[Note: Content was truncated as it was too long]' : ''}
 
-Die Zusammenfassung soll die wichtigsten Handlungspunkte und Charakterentwicklungen erfassen. Schreibe eine vollständige und umfassende Zusammenfassung mit mindestens 3-5 Sätzen.`;
+The summary should capture the most important plot points and character developments. Write a complete and comprehensive summary with at least 3-5 sentences.`;
       
       // Add custom instruction if provided
       if (settings.sceneSummaryGeneration.customInstruction) {
@@ -1526,7 +1526,7 @@ Die Zusammenfassung soll die wichtigsten Handlungspunkte und Charakterentwicklun
           console.error('Error generating scene summary:', error);
           clearTimeout(timeoutId); // Clear timeout on error
           
-          const errorMessage = 'Fehler beim Generieren der Zusammenfassung.';
+          const errorMessage = 'Error generating summary.';
           alert(errorMessage);
           this.isGeneratingSummary.delete(sceneId);
           this.cdr.detectChanges(); // Force change detection
@@ -1592,7 +1592,7 @@ Die Zusammenfassung soll die wichtigsten Handlungspunkte und Charakterentwicklun
         console.error('Error generating scene summary:', error);
         clearTimeout(timeoutId); // Clear timeout on error
         
-        let errorMessage = 'Fehler beim Generieren der Zusammenfassung.';
+        let errorMessage = 'Error generating summary.';
         
         // Check for specific error types
         if (error.status === 400) {
@@ -1639,7 +1639,7 @@ Die Zusammenfassung soll die wichtigsten Handlungspunkte und Charakterentwicklun
     const googleGeminiAvailable = settings.googleGemini.enabled && settings.googleGemini.apiKey;
     
     if (!openRouterAvailable && !googleGeminiAvailable) {
-      alert('Kein AI API konfiguriert. Bitte konfigurieren Sie OpenRouter oder Google Gemini in den Einstellungen.');
+      alert('No AI API configured. Please configure OpenRouter or Google Gemini in settings.');
       return;
     }
     
@@ -1672,7 +1672,7 @@ Die Zusammenfassung soll die wichtigsten Handlungspunkte und Charakterentwicklun
       if (this.isGeneratingTitle.has(sceneId)) {
         this.isGeneratingTitle.delete(sceneId);
         this.cdr.detectChanges();
-        alert('Die Titel-Generierung dauert zu lange. Bitte versuchen Sie es erneut.');
+        alert('Title generation is taking too long. Please try again.');
       }
     }, 30000); // 30 second timeout
     
@@ -1691,26 +1691,26 @@ Die Zusammenfassung soll die wichtigsten Handlungspunkte und Charakterentwicklun
     let styleInstruction = '';
     switch (titleSettings.style) {
       case 'descriptive':
-        styleInstruction = 'Der Titel soll beschreibend und atmosphärisch sein.';
+        styleInstruction = 'The title should be descriptive and atmospheric.';
         break;
       case 'action':
-        styleInstruction = 'Der Titel soll actionreich und dynamisch sein.';
+        styleInstruction = 'The title should be action-packed and dynamic.';
         break;
       case 'emotional':
-        styleInstruction = 'Der Titel soll die emotionale Stimmung der Szene widerspiegeln.';
+        styleInstruction = 'The title should reflect the emotional mood of the scene.';
         break;
       case 'concise':
       default:
-        styleInstruction = 'Der Titel soll knapp und prägnant sein.';
+        styleInstruction = 'The title should be concise and impactful.';
         break;
     }
     
     const languageInstruction = titleSettings.language === 'english' 
-      ? 'Antworte auf Englisch.' 
-      : 'Antworte auf Deutsch.';
+      ? 'Respond in English.' 
+      : 'Respond in German.';
     
     const genreInstruction = titleSettings.includeGenre 
-      ? 'Berücksichtige das Genre der Geschichte bei der Titelwahl.' 
+      ? 'Consider the genre of the story when choosing the title.' 
       : '';
     
     const customInstruction = titleSettings.customInstruction 
@@ -1731,16 +1731,16 @@ Die Zusammenfassung soll die wichtigsten Handlungspunkte und Charakterentwicklun
         .replace('{sceneContent}', sceneContent);
     } else {
       // Use default prompt template
-      prompt = `Erstelle einen Titel für die folgende Szene. Der Titel soll bis zu ${titleSettings.maxWords} Wörter lang sein und den Kern der Szene erfassen.
+      prompt = `Create a title for the following scene. The title should be up to ${titleSettings.maxWords} words long and capture the essence of the scene.
 
 ${styleInstruction}
 ${genreInstruction}
 ${languageInstruction}${customInstruction}
 
-Szenencontent (nur diese eine Szene):
+Scene content (only this one scene):
 ${sceneContent}
 
-Antworte nur mit dem Titel, ohne weitere Erklärungen oder Anführungszeichen.`;
+Respond only with the title, without further explanations or quotation marks.`;
     }
 
     // Choose API based on provider
@@ -1779,7 +1779,7 @@ Antworte nur mit dem Titel, ohne weitere Erklärungen oder Anführungszeichen.`;
           console.error('Error generating scene title:', error);
           clearTimeout(timeoutId); // Clear timeout on error
           
-          const errorMessage = 'Fehler beim Generieren des Titels.';
+          const errorMessage = 'Error generating title.';
           alert(errorMessage);
           this.isGeneratingTitle.delete(sceneId);
           this.cdr.detectChanges(); // Force change detection
@@ -1817,7 +1817,7 @@ Antworte nur mit dem Titel, ohne weitere Erklärungen oder Anführungszeichen.`;
         console.error('Error generating scene title:', error);
         clearTimeout(timeoutId); // Clear timeout on error
         
-        let errorMessage = 'Fehler beim Generieren des Titels.';
+        let errorMessage = 'Error generating title.';
         
         // Check for specific error types
         if (error.status === 400) {
@@ -1855,7 +1855,7 @@ Antworte nur mit dem Titel, ohne weitere Erklärungen oder Anführungszeichen.`;
   }
   
   async deleteSceneSummary(chapterId: string, sceneId: string): Promise<void> {
-    if (confirm('Möchten Sie die Zusammenfassung wirklich löschen?')) {
+    if (confirm('Do you really want to delete the summary?')) {
       const chapter = this.story.chapters.find(c => c.id === chapterId);
       const scene = chapter?.scenes.find(s => s.id === sceneId);
       if (scene) {

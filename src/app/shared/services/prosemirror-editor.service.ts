@@ -761,11 +761,11 @@ export class ProseMirrorEditorService {
         console.error('Beat generation failed:', error);
         
         // Insert error message
-        this.appendContentAfterBeatNode(event.beatId, 'Fehler bei der Generierung. Bitte versuchen Sie es erneut.', true);
+        this.appendContentAfterBeatNode(event.beatId, 'Error during generation. Please try again.', true);
         
         this.updateBeatNode(event.beatId, { 
           isGenerating: false,
-          generatedContent: 'Fehler bei der Generierung. Bitte versuchen Sie es erneut.',
+          generatedContent: 'Error during generation. Please try again.',
           prompt: event.prompt || ''
         });
         
@@ -1607,7 +1607,7 @@ export class ProseMirrorEditorService {
     
     // Add AI rewrite option if text is selected
     if (hasSelection && selectedText.trim()) {
-      const aiRewriteItem = this.createContextMenuItem('Mit KI neu formulieren', () => {
+      const aiRewriteItem = this.createContextMenuItem('Rewrite with AI', () => {
         this.openAIRewriteModal(view, selectedText, from, to);
         this.hideContextMenu();
       });
@@ -1616,7 +1616,7 @@ export class ProseMirrorEditorService {
     
     // Add empty paragraphs removal option if empty paragraphs exist
     if (hasEmptyParagraphs) {
-      const removeEmptyItem = this.createContextMenuItem('Leere Absätze entfernen', () => {
+      const removeEmptyItem = this.createContextMenuItem('Remove empty paragraphs', () => {
         this.removeEmptyParagraphs(view);
         this.hideContextMenu();
       });

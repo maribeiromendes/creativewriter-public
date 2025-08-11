@@ -46,11 +46,11 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
               <ion-icon name="arrow-back" slot="icon-only"></ion-icon>
             </ion-button>
           </ion-buttons>
-          <ion-title>Story-Einstellungen</ion-title>
+          <ion-title>Story Settings</ion-title>
           <ion-buttons slot="end">
             <ion-chip [color]="hasUnsavedChanges ? 'warning' : 'success'">
               <ion-icon [name]="hasUnsavedChanges ? 'warning-outline' : 'checkmark-circle-outline'"></ion-icon>
-              <ion-label>{{ hasUnsavedChanges ? 'Nicht gespeichert' : 'Gespeichert' }}</ion-label>
+              <ion-label>{{ hasUnsavedChanges ? 'Not saved' : 'Saved' }}</ion-label>
             </ion-chip>
           </ion-buttons>
         </ion-toolbar>
@@ -71,11 +71,11 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
             <div *ngSwitchCase="'general'">
             <ion-card class="story-info-card">
               <ion-card-header>
-                <ion-card-title>{{ story.title || 'Unbenannte Geschichte' }}</ion-card-title>
+                <ion-card-title>{{ story.title || 'Untitled Story' }}</ion-card-title>
               </ion-card-header>
               <ion-card-content>
                 <ion-note>
-                  Erstellt: {{ story.createdAt | date:'short' }} | Zuletzt bearbeitet: {{ story.updatedAt | date:'short' }}
+                  Created: {{ story.createdAt | date:'short' }} | Last edited: {{ story.updatedAt | date:'short' }}
                 </ion-note>
               </ion-card-content>
             </ion-card>
@@ -85,11 +85,11 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
           <div *ngSwitchCase="'cover-image'">
             <ion-card class="settings-section">
               <ion-card-header>
-                <ion-card-title>Cover-Bild</ion-card-title>
+                <ion-card-title>Cover Image</ion-card-title>
               </ion-card-header>
               <ion-card-content>
                 <ion-text color="medium">
-                  <p>Setzen Sie ein Cover-Bild für Ihre Geschichte. Das Bild wird in der Story-Liste und im Editor-Header angezeigt.</p>
+                  <p>Set a cover image for your story. The image will be displayed in the story list and editor header.</p>
                 </ion-text>
                 
                 <app-image-upload
@@ -111,7 +111,7 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
               </ion-card-header>
               <ion-card-content>
                 <ion-text color="medium">
-                  <p>Diese Nachricht definiert den Kontext und die Persönlichkeit des AI-Assistenten für diese Geschichte.</p>
+                  <p>This message defines the context and personality of the AI assistant for this story.</p>
                 </ion-text>
                 <ion-textarea
                   [(ngModel)]="settings.systemMessage"
@@ -131,7 +131,7 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
               </ion-card-header>
               <ion-card-content>
                 <ion-text color="medium">
-                  <p>XML-Template für Beat-Generierung im Messages-Format. Verfügbare Platzhalter:</p>
+                  <p>XML template for beat generation in messages format. Available placeholders:</p>
                 </ion-text>
                 
                 <div class="template-placeholders">
@@ -161,7 +161,7 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
                 <ion-item *ngIf="!settings.beatGenerationTemplate.includes('{prompt}')" class="template-warning">
                   <ion-icon name="warning-outline" color="warning" slot="start"></ion-icon>
                   <ion-label color="warning">
-                    Das Template sollte {{ '{prompt}' }} enthalten, um den Benutzer-Prompt einzufügen.
+                    The template should contain {{ '{prompt}' }} to insert the user prompt.
                   </ion-label>
                 </ion-item>
               </ion-card-content>
@@ -172,11 +172,11 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
           <div *ngSwitchCase="'beat-config'">
             <ion-card class="settings-section">
               <ion-card-header>
-                <ion-card-title>Beat AI Konfiguration</ion-card-title>
+                <ion-card-title>Beat AI Configuration</ion-card-title>
               </ion-card-header>
               <ion-card-content>
                 <ion-text color="medium">
-                  <p>Konfiguration für die Beat AI Generierung.</p>
+                  <p>Configuration for Beat AI generation.</p>
                 </ion-text>
                 
                 <ion-item class="setting-item">
@@ -186,15 +186,15 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
                     slot="start">
                   </ion-checkbox>
                   <ion-label>
-                    <h3>Vollständigen Story-Kontext verwenden</h3>
-                    <p>Wenn aktiviert, wird der vollständige Text aller Szenen als Kontext verwendet. Andernfalls werden nur Zusammenfassungen verwendet (falls verfügbar).</p>
+                    <h3>Use Complete Story Context</h3>
+                    <p>When enabled, the complete text of all scenes is used as context. Otherwise, only summaries are used (if available).</p>
                   </ion-label>
                 </ion-item>
 
                 <ion-item class="radio-section">
                   <ion-label>
                     <h3>Beat Anweisung</h3>
-                    <p>Standardanweisung für die Beat AI Generierung.</p>
+                    <p>Default instruction for Beat AI generation.</p>
                   </ion-label>
                 </ion-item>
                 
@@ -203,11 +203,11 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
                   (ionChange)="onSettingsChange()">
                   <ion-item>
                     <ion-radio slot="start" value="continue"></ion-radio>
-                    <ion-label>Setze die Geschichte fort</ion-label>
+                    <ion-label>Continue the story</ion-label>
                   </ion-item>
                   <ion-item>
                     <ion-radio slot="start" value="stay"></ion-radio>
-                    <ion-label>Bleibe im Moment</ion-label>
+                    <ion-label>Stay in the moment</ion-label>
                   </ion-item>
                 </ion-radio-group>
               </ion-card-content>
@@ -219,7 +219,7 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
             <!-- Database Statistics -->
             <ion-card class="settings-section">
               <ion-card-header>
-                <ion-card-title>Datenbank-Statistiken</ion-card-title>
+                <ion-card-title>Database Statistics</ion-card-title>
               </ion-card-header>
               <ion-card-content>
                 <ion-button
@@ -228,7 +228,7 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
                   (click)="loadDatabaseStats()"
                   [disabled]="isScanning">
                   <ion-icon name="stats-chart-outline" slot="start"></ion-icon>
-                  Statistiken laden
+                  Load Statistics
                 </ion-button>
 
                 <div *ngIf="databaseStats" class="stats-grid">
@@ -239,7 +239,7 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
                           <ion-text color="primary">
                             <h3>{{ databaseStats.totalStories }}</h3>
                           </ion-text>
-                          <ion-note>Geschichten</ion-note>
+                          <ion-note>Stories</ion-note>
                         </div>
                       </ion-col>
                       <ion-col size="6" size-md="3">
@@ -263,7 +263,7 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
                           <ion-text color="medium">
                             <h3>{{ formatBytes(databaseStats.databaseSizeEstimate) }}</h3>
                           </ion-text>
-                          <ion-note>Gesamtgröße (ca.)</ion-note>
+                          <ion-note>Total size (approx.)</ion-note>
                         </div>
                       </ion-col>
                     </ion-row>
@@ -288,11 +288,11 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
             <!-- Orphaned Images -->
             <ion-card class="settings-section">
               <ion-card-header>
-                <ion-card-title>Verwaiste Bilder</ion-card-title>
+                <ion-card-title>Orphaned Images</ion-card-title>
               </ion-card-header>
               <ion-card-content>
                 <ion-text color="medium">
-                  <p>Bilder, die nicht mehr in Geschichten verwendet werden.</p>
+                  <p>Images that are no longer used in stories.</p>
                 </ion-text>
 
                 <div class="action-buttons">
@@ -302,7 +302,7 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
                     (click)="scanOrphanedImages()"
                     [disabled]="isScanning">
                     <ion-icon name="scan-outline" slot="start"></ion-icon>
-                    Scannen
+                    Scan
                   </ion-button>
 
                   <ion-button
@@ -312,7 +312,7 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
                     (click)="selectAllOrphanedImages()"
                     [disabled]="orphanedImages.length === 0">
                     <ion-icon name="checkbox-outline" slot="start"></ion-icon>
-                    Alle auswählen
+                    Select All
                   </ion-button>
 
                   <ion-button
@@ -322,7 +322,7 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
                     (click)="deselectAllOrphanedImages()"
                     [disabled]="selectedOrphanedImages.size === 0">
                     <ion-icon name="square-outline" slot="start"></ion-icon>
-                    Auswahl aufheben
+                    Deselect All
                   </ion-button>
 
                   <ion-button
@@ -332,7 +332,7 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
                     (click)="deleteSelectedOrphanedImages()"
                     [disabled]="selectedOrphanedImages.size === 0 || isScanning">
                     <ion-icon name="trash-outline" slot="start"></ion-icon>
-                    Löschen ({{ selectedOrphanedImages.size }})
+                    Delete ({{ selectedOrphanedImages.size }})
                   </ion-button>
                 </div>
 
@@ -357,7 +357,7 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
 
                 <div *ngIf="orphanedImages.length === 0 && !isScanning" class="empty-state">
                   <ion-text color="medium">
-                    <p>Keine verwaisten Bilder gefunden oder noch nicht gescannt.</p>
+                    <p>No orphaned images found or not yet scanned.</p>
                   </ion-text>
                 </div>
               </ion-card-content>
@@ -366,11 +366,11 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
             <!-- Duplicate Images -->
             <ion-card class="settings-section">
               <ion-card-header>
-                <ion-card-title>Doppelte Bilder</ion-card-title>
+                <ion-card-title>Duplicate Images</ion-card-title>
               </ion-card-header>
               <ion-card-content>
                 <ion-text color="medium">
-                  <p>Identische Bilder mit verschiedenen IDs.</p>
+                  <p>Identical images with different IDs.</p>
                 </ion-text>
 
                 <div class="action-buttons">
@@ -390,7 +390,7 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
                     (click)="selectAllDuplicates()"
                     [disabled]="duplicateImages.length === 0">
                     <ion-icon name="checkbox-outline" slot="start"></ion-icon>
-                    Alle auswählen
+                    Select All
                   </ion-button>
 
                   <ion-button
@@ -400,7 +400,7 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
                     (click)="deselectAllDuplicates()"
                     [disabled]="selectedDuplicates.size === 0">
                     <ion-icon name="square-outline" slot="start"></ion-icon>
-                    Auswahl aufheben
+                    Deselect All
                   </ion-button>
 
                   <ion-button
@@ -410,7 +410,7 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
                     (click)="deleteSelectedDuplicates()"
                     [disabled]="selectedDuplicates.size === 0 || isScanning">
                     <ion-icon name="trash-outline" slot="start"></ion-icon>
-                    Duplikate löschen ({{ selectedDuplicates.size }})
+                    Delete Duplicates ({{ selectedDuplicates.size }})
                   </ion-button>
                 </div>
 
@@ -438,7 +438,7 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
 
                 <div *ngIf="duplicateImages.length === 0 && !isScanning" class="empty-state">
                   <ion-text color="medium">
-                    <p>Keine Duplikate gefunden oder noch nicht gescannt.</p>
+                    <p>No duplicates found or not yet scanned.</p>
                   </ion-text>
                 </div>
               </ion-card-content>
@@ -447,11 +447,11 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
             <!-- Story Integrity -->
             <ion-card class="settings-section">
               <ion-card-header>
-                <ion-card-title>Story-Integrität</ion-card-title>
+                <ion-card-title>Story Integrity</ion-card-title>
               </ion-card-header>
               <ion-card-content>
                 <ion-text color="medium">
-                  <p>Überprüfung auf beschädigte oder unvollständige Geschichten.</p>
+                  <p>Check for damaged or incomplete stories.</p>
                 </ion-text>
 
                 <ion-button
@@ -460,7 +460,7 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
                   (click)="checkIntegrity()"
                   [disabled]="isScanning">
                   <ion-icon name="search-outline" slot="start"></ion-icon>
-                  Integrität prüfen
+                  Check Integrity
                 </ion-button>
 
                 <ion-list *ngIf="integrityIssues.length > 0" class="integrity-list">
@@ -480,7 +480,7 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
 
                 <div *ngIf="integrityIssues.length === 0 && !isScanning" class="empty-state">
                   <ion-text color="success">
-                    <p>Alle Geschichten sind intakt oder noch nicht geprüft.</p>
+                    <p>All stories are intact or not yet checked.</p>
                   </ion-text>
                 </div>
               </ion-card-content>
@@ -489,7 +489,7 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
             <!-- Database Operations -->
             <ion-card class="settings-section">
               <ion-card-header>
-                <ion-card-title>Datenbank-Operationen</ion-card-title>
+                <ion-card-title>Database Operations</ion-card-title>
               </ion-card-header>
               <ion-card-content>
                 <div class="db-operations">
@@ -511,14 +511,14 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
                     [disabled]="isScanning"
                     class="operation-button">
                     <ion-icon name="download-outline" slot="start"></ion-icon>
-                    Vollständigen Export erstellen
+                    Create Complete Export
                   </ion-button>
                 </div>
 
                 <ion-text color="medium">
                   <p>
-                    <strong>Komprimieren:</strong> Entfernt gelöschte Daten und reduziert die Datenbankgröße.<br>
-                    <strong>Export:</strong> Erstellt eine JSON-Datei mit allen Geschichten und Bildern.
+                    <strong>Compress:</strong> Removes deleted data and reduces database size.<br>
+                    <strong>Export:</strong> Creates a JSON file with all stories and images.
                   </p>
                 </ion-text>
               </ion-card-content>
@@ -535,7 +535,7 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
           [disabled]="!hasUnsavedChanges"
           class="save-button">
           <ion-icon name="save-outline" slot="start"></ion-icon>
-          Einstellungen speichern
+          Save Settings
         </ion-button>
         
         <ion-button 
@@ -545,7 +545,7 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
           (click)="resetToDefaults()"
           class="reset-button">
           <ion-icon name="refresh-outline" slot="start"></ion-icon>
-          Auf Standard zurücksetzen
+          Reset to Default
         </ion-button>
         </div>
       </ion-content>
@@ -553,7 +553,7 @@ import { ImageUploadComponent, ImageUploadResult } from '../../shared/components
       <ion-content *ngIf="!story">
         <div class="no-story">
           <ion-text color="medium">
-            <p>Geschichte nicht gefunden.</p>
+            <p>Story not found.</p>
           </ion-text>
         </div>
       </ion-content>
@@ -1012,11 +1012,11 @@ export class StorySettingsComponent implements OnInit {
   private originalSettings!: StorySettings;
   selectedTab = 'general';
   tabItems: TabItem[] = [
-    { value: 'general', icon: 'information-circle-outline', label: 'Allgemein' },
-    { value: 'cover-image', icon: 'image-outline', label: 'Cover-Bild' },
+    { value: 'general', icon: 'information-circle-outline', label: 'General' },
+    { value: 'cover-image', icon: 'image-outline', label: 'Cover Image' },
     { value: 'ai-system', icon: 'chatbox-outline', label: 'AI System' },
     { value: 'beat-config', icon: 'settings-outline', label: 'Beat Config' },
-    { value: 'db-maintenance', icon: 'server-outline', label: 'DB-Wartung' }
+    { value: 'db-maintenance', icon: 'server-outline', label: 'DB Maintenance' }
   ];
   
   placeholders = [
@@ -1096,7 +1096,7 @@ export class StorySettingsComponent implements OnInit {
   }
 
   resetToDefaults(): void {
-    if (confirm('Möchten Sie die Einstellungen wirklich auf die Standardwerte zurücksetzen?')) {
+    if (confirm('Do you really want to reset the settings to default values?')) {
       this.settings = { ...DEFAULT_STORY_SETTINGS };
       this.onSettingsChange();
     }
@@ -1104,7 +1104,7 @@ export class StorySettingsComponent implements OnInit {
 
   goBack(): void {
     if (this.hasUnsavedChanges) {
-      if (confirm('Sie haben ungespeicherte Änderungen. Möchten Sie die Seite wirklich verlassen?')) {
+      if (confirm('You have unsaved changes. Do you really want to leave the page?')) {
         this.navigateBack();
       }
     } else {
@@ -1156,14 +1156,14 @@ export class StorySettingsComponent implements OnInit {
   }
 
   async compactDatabase(): Promise<void> {
-    if (confirm('Möchten Sie die Datenbank wirklich komprimieren? Dies kann einige Zeit dauern.')) {
+    if (confirm('Do you really want to compress the database? This may take some time.')) {
       try {
         const result = await this.dbMaintenanceService.compactDatabase();
-        alert(`Komprimierung erfolgreich! ${result.saved} Dokumente entfernt.`);
+        alert(`Compression successful! ${result.saved} documents removed.`);
         await this.loadDatabaseStats(); // Refresh stats
       } catch (error) {
         console.error('Error compacting database:', error);
-        alert('Fehler bei der Datenbankkompress.');
+        alert('Error during database compression.');
       }
     }
   }
@@ -1172,15 +1172,15 @@ export class StorySettingsComponent implements OnInit {
     const selectedIds = Array.from(this.selectedOrphanedImages);
     if (selectedIds.length === 0) return;
 
-    if (confirm(`Möchten Sie ${selectedIds.length} verwaiste Bilder wirklich löschen?`)) {
+    if (confirm(`Do you really want to delete ${selectedIds.length} orphaned images?`)) {
       try {
         const deletedCount = await this.dbMaintenanceService.deleteOrphanedImages(selectedIds);
-        alert(`${deletedCount} Bilder erfolgreich gelöscht.`);
+        alert(`${deletedCount} images successfully deleted.`);
         await this.scanOrphanedImages(); // Refresh list
         await this.loadDatabaseStats(); // Refresh stats
       } catch (error) {
         console.error('Error deleting orphaned images:', error);
-        alert('Fehler beim Löschen der Bilder.');
+        alert('Error deleting images.');
       }
     }
   }
@@ -1194,15 +1194,15 @@ export class StorySettingsComponent implements OnInit {
 
     const totalToDelete = selectedDuplicates.reduce((sum, dup) => sum + dup.duplicateIds.length, 0);
     
-    if (confirm(`Möchten Sie ${totalToDelete} Duplikate wirklich löschen?`)) {
+    if (confirm(`Do you really want to delete ${totalToDelete} duplicates?`)) {
       try {
         const deletedCount = await this.dbMaintenanceService.deleteDuplicateImages(selectedDuplicates);
-        alert(`${deletedCount} Duplikate erfolgreich gelöscht.`);
+        alert(`${deletedCount} duplicates successfully deleted.`);
         await this.scanDuplicateImages(); // Refresh list
         await this.loadDatabaseStats(); // Refresh stats
       } catch (error) {
         console.error('Error deleting duplicates:', error);
-        alert('Fehler beim Löschen der Duplikate.');
+        alert('Error deleting duplicates.');
       }
     }
   }
@@ -1222,7 +1222,7 @@ export class StorySettingsComponent implements OnInit {
       URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Error exporting database:', error);
-      alert('Fehler beim Export der Datenbank.');
+      alert('Error exporting database.');
     }
   }
 

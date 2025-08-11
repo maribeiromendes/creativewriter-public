@@ -83,16 +83,16 @@ export class DbMaintenanceService {
    * Finds all orphaned images that are not referenced in any story content
    */
   async findOrphanedImages(): Promise<OrphanedImage[]> {
-    this.updateProgress('orphaned-scan', 0, 'Lade alle Bilder...');
+    this.updateProgress('orphaned-scan', 0, 'Loading all images...');
     
     try {
       // Get all images from database
       const allImages = await this.imageService.getAllImages();
-      this.updateProgress('orphaned-scan', 20, `${allImages.length} Bilder gefunden`);
+      this.updateProgress('orphaned-scan', 20, `${allImages.length} images found`);
 
       // Get all stories
       const allStories = await this.storyService.getAllStories();
-      this.updateProgress('orphaned-scan', 40, `${allStories.length} Geschichten gefunden`);
+      this.updateProgress('orphaned-scan', 40, `${allStories.length} stories found`);
 
       // Extract all base64 image data from story content
       const usedImageData = new Set<string>();
@@ -114,10 +114,10 @@ export class DbMaintenanceService {
         }
         processedStories++;
         this.updateProgress('orphaned-scan', 40 + (processedStories / allStories.length) * 40, 
-          `Verarbeite Geschichte ${processedStories}/${allStories.length}`);
+          `Processing story ${processedStories}/${allStories.length}`);
       }
 
-      this.updateProgress('orphaned-scan', 80, 'Analysiere verwaiste Bilder...');
+      this.updateProgress('orphaned-scan', 80, 'Analyzing orphaned images...');
 
       // Find orphaned images by checking if their base64 data is used
       const orphanedImages: OrphanedImage[] = [];
@@ -136,15 +136,15 @@ export class DbMaintenanceService {
         }
         processedImages++;
         this.updateProgress('orphaned-scan', 80 + (processedImages / allImages.length) * 20, 
-          `Analysiere Bild ${processedImages}/${allImages.length}`);
+          `Analyzing image ${processedImages}/${allImages.length}`);
       }
 
-      this.updateProgress('orphaned-scan', 100, `${orphanedImages.length} verwaiste Bilder gefunden`);
+      this.updateProgress('orphaned-scan', 100, `${orphanedImages.length} orphaned images found`);
       
       return orphanedImages;
     } catch (error) {
       console.error('Error finding orphaned images:', error);
-      this.updateProgress('orphaned-scan', 0, 'Fehler beim Scannen der verwaisten Bilder');
+      this.updateProgress('orphaned-scan', 0, 'Error scanning orphaned images');
       throw error;
     }
   }
@@ -153,12 +153,12 @@ export class DbMaintenanceService {
    * Finds all orphaned videos that are not associated with any images
    */
   async findOrphanedVideos(): Promise<OrphanedVideo[]> {
-    this.updateProgress('orphaned-video-scan', 0, 'Lade alle Videos...');
+    this.updateProgress('orphaned-video-scan', 0, 'Loading all videos...');
     
     try {
       // Get all videos from database
       const allVideos = await this.videoService.getAllVideos();
-      this.updateProgress('orphaned-video-scan', 30, `${allVideos.length} Videos gefunden`);
+      this.updateProgress('orphaned-video-scan', 30, `${allVideos.length} videos found`);
 
       // Get all image-video associations
       const db = await this.databaseService.getDatabase();
@@ -166,7 +166,7 @@ export class DbMaintenanceService {
         selector: { type: 'image-video-association' }
       });
       
-      this.updateProgress('orphaned-video-scan', 60, `${associationsResult.docs.length} Verknüpfungen gefunden`);
+      this.updateProgress('orphaned-video-scan', 60, `${associationsResult.docs.length} associations found`);
 
       // Extract video IDs that are associated with images
       const associatedVideoIds = new Set<string>();
@@ -194,15 +194,15 @@ export class DbMaintenanceService {
         }
         processedVideos++;
         this.updateProgress('orphaned-video-scan', 60 + (processedVideos / allVideos.length) * 40, 
-          `Analysiere Video ${processedVideos}/${allVideos.length}`);
+          `Analyzing video ${processedVideos}/${allVideos.length}`);
       }
 
-      this.updateProgress('orphaned-video-scan', 100, `${orphanedVideos.length} verwaiste Videos gefunden`);
+      this.updateProgress('orphaned-video-scan', 100, `${orphanedVideos.length} orphaned videos found`);
       
       return orphanedVideos;
     } catch (error) {
       console.error('Error finding orphaned videos:', error);
-      this.updateProgress('orphaned-video-scan', 0, 'Fehler beim Scannen der verwaisten Videos');
+      this.updateProgress('orphaned-video-scan', 0, 'Error scanning orphaned videos');
       throw error;
     }
   }
@@ -211,7 +211,7 @@ export class DbMaintenanceService {
    * Deletes orphaned images by their IDs
    */
   async deleteOrphanedImages(imageIds: string[]): Promise<number> {
-    this.updateProgress('delete-images', 0, `Lösche ${imageIds.length} Bilder...`);
+    this.updateProgress('delete-images', 0, `Deleting ${imageIds.length} images...`);
     
     let deletedCount = 0;
     
@@ -220,13 +220,13 @@ export class DbMaintenanceService {
         await this.imageService.deleteImage(imageIds[i]);
         deletedCount++;
         this.updateProgress('delete-images', ((i + 1) / imageIds.length) * 100, 
-          `Gelöscht: ${deletedCount}/${imageIds.length}`);
+          `Deleted: ${deletedCount}/${imageIds.length}`);
       } catch (error) {
         console.error(`Failed to delete image ${imageIds[i]}:`, error);
       }
     }
 
-    this.updateProgress('delete-images', 100, `${deletedCount} Bilder erfolgreich gelöscht`);
+    this.updateProgress('delete-images', 100, `${deletedCount} images successfully deleted`);
     return deletedCount;
   }
 
@@ -234,7 +234,7 @@ export class DbMaintenanceService {
    * Deletes orphaned videos by their IDs
    */
   async deleteOrphanedVideos(videoIds: string[]): Promise<number> {
-    this.updateProgress('delete-videos', 0, `Lösche ${videoIds.length} Videos...`);
+    this.updateProgress('delete-videos', 0, `Deleting ${videoIds.length} videos...`);
     
     let deletedCount = 0;
     
@@ -243,13 +243,13 @@ export class DbMaintenanceService {
         await this.videoService.deleteVideo(videoIds[i]);
         deletedCount++;
         this.updateProgress('delete-videos', ((i + 1) / videoIds.length) * 100, 
-          `Gelöscht: ${deletedCount}/${videoIds.length}`);
+          `Deleted: ${deletedCount}/${videoIds.length}`);
       } catch (error) {
         console.error(`Failed to delete video ${videoIds[i]}:`, error);
       }
     }
 
-    this.updateProgress('delete-videos', 100, `${deletedCount} Videos erfolgreich gelöscht`);
+    this.updateProgress('delete-videos', 100, `${deletedCount} videos successfully deleted`);
     return deletedCount;
   }
 
@@ -257,7 +257,7 @@ export class DbMaintenanceService {
    * Compacts the PouchDB database to reduce size
    */
   async compactDatabase(): Promise<{ sizeBefore: number; sizeAfter: number; saved: number }> {
-    this.updateProgress('compact', 0, 'Analysiere Datenbankgröße...');
+    this.updateProgress('compact', 0, 'Analyzing database size...');
     
     try {
       const db = await this.databaseService.getDatabase();
@@ -266,19 +266,19 @@ export class DbMaintenanceService {
       const infoBefore = await db.info();
       const sizeBefore = infoBefore.doc_count;
 
-      this.updateProgress('compact', 30, 'Komprimiere Datenbank...');
+      this.updateProgress('compact', 30, 'Compressing database...');
       
       // Compact database
       await db.compact();
 
-      this.updateProgress('compact', 80, 'Analysiere neue Datenbankgröße...');
+      this.updateProgress('compact', 80, 'Analyzing new database size...');
       
       // Get size after compaction
       const infoAfter = await db.info();
       const sizeAfter = infoAfter.doc_count;
       const saved = sizeBefore - sizeAfter;
 
-      this.updateProgress('compact', 100, `Komprimierung abgeschlossen. ${saved} Dokumente entfernt`);
+      this.updateProgress('compact', 100, `Compression complete. ${saved} documents removed`);
       
       return {
         sizeBefore,
@@ -287,7 +287,7 @@ export class DbMaintenanceService {
       };
     } catch (error) {
       console.error('Error compacting database:', error);
-      this.updateProgress('compact', 0, 'Fehler bei der Datenbankkomparimierung');
+      this.updateProgress('compact', 0, 'Error compacting database');
       throw error;
     }
   }
@@ -296,17 +296,17 @@ export class DbMaintenanceService {
    * Finds duplicate images based on base64 content
    */
   async findDuplicateImages(): Promise<DuplicateImage[]> {
-    this.updateProgress('duplicates', 0, 'Lade alle Bilder...');
+    this.updateProgress('duplicates', 0, 'Loading all images...');
     
     try {
       const allImages = await this.imageService.getAllImages();
-      this.updateProgress('duplicates', 30, `${allImages.length} Bilder geladen`);
+      this.updateProgress('duplicates', 30, `${allImages.length} images loaded`);
 
       const duplicates: DuplicateImage[] = [];
       const base64Map = new Map<string, StoredImage[]>();
 
       // Group images by base64 content
-      this.updateProgress('duplicates', 50, 'Gruppiere Bilder nach Inhalt...');
+      this.updateProgress('duplicates', 50, 'Grouping images by content...');
       
       for (const image of allImages) {
         const existing = base64Map.get(image.base64Data) || [];
@@ -315,7 +315,7 @@ export class DbMaintenanceService {
       }
 
       // Find duplicates
-      this.updateProgress('duplicates', 80, 'Identifiziere Duplikate...');
+      this.updateProgress('duplicates', 80, 'Identifying duplicates...');
       
       for (const [, images] of base64Map) {
         if (images.length > 1) {
@@ -333,12 +333,12 @@ export class DbMaintenanceService {
         }
       }
 
-      this.updateProgress('duplicates', 100, `${duplicates.length} Duplikate gefunden`);
+      this.updateProgress('duplicates', 100, `${duplicates.length} duplicates found`);
       
       return duplicates;
     } catch (error) {
       console.error('Error finding duplicate images:', error);
-      this.updateProgress('duplicates', 0, 'Fehler beim Suchen von Duplikaten');
+      this.updateProgress('duplicates', 0, 'Error finding duplicates');
       throw error;
     }
   }
@@ -347,7 +347,7 @@ export class DbMaintenanceService {
    * Deletes duplicate images, keeping only the original
    */
   async deleteDuplicateImages(duplicates: DuplicateImage[]): Promise<number> {
-    this.updateProgress('delete-duplicates', 0, 'Lösche Duplikate...');
+    this.updateProgress('delete-duplicates', 0, 'Deleting duplicates...');
     
     let deletedCount = 0;
     const totalToDelete = duplicates.reduce((sum, dup) => sum + dup.duplicateIds.length, 0);
@@ -358,14 +358,14 @@ export class DbMaintenanceService {
           await this.imageService.deleteImage(duplicateId);
           deletedCount++;
           this.updateProgress('delete-duplicates', (deletedCount / totalToDelete) * 100, 
-            `Gelöscht: ${deletedCount}/${totalToDelete}`);
+            `Deleted: ${deletedCount}/${totalToDelete}`);
         } catch (error) {
           console.error(`Failed to delete duplicate image ${duplicateId}:`, error);
         }
       }
     }
 
-    this.updateProgress('delete-duplicates', 100, `${deletedCount} Duplikate gelöscht`);
+    this.updateProgress('delete-duplicates', 100, `${deletedCount} duplicates deleted`);
     return deletedCount;
   }
 
@@ -373,11 +373,11 @@ export class DbMaintenanceService {
    * Checks story integrity and finds issues
    */
   async checkStoryIntegrity(): Promise<IntegrityIssue[]> {
-    this.updateProgress('integrity', 0, 'Lade alle Geschichten...');
+    this.updateProgress('integrity', 0, 'Loading all stories...');
     
     try {
       const allStories = await this.storyService.getAllStories();
-      this.updateProgress('integrity', 20, `${allStories.length} Geschichten geladen`);
+      this.updateProgress('integrity', 20, `${allStories.length} stories loaded`);
 
       const issues: IntegrityIssue[] = [];
       let processedCount = 0;
@@ -388,8 +388,8 @@ export class DbMaintenanceService {
           issues.push({
             type: 'missing_chapters',
             storyId: story.id,
-            storyTitle: story.title || 'Unbenannte Geschichte',
-            description: 'Geschichte hat keine Kapitel',
+            storyTitle: story.title || 'Untitled Story',
+            description: 'Story has no chapters',
             severity: 'high'
           });
         } else {
@@ -399,8 +399,8 @@ export class DbMaintenanceService {
               issues.push({
                 type: 'missing_scenes',
                 storyId: story.id,
-                storyTitle: story.title || 'Unbenannte Geschichte',
-                description: `Kapitel "${chapter.title}" hat keine Szenen`,
+                storyTitle: story.title || 'Untitled Story',
+                description: `Chapter "${chapter.title}" has no scenes`,
                 severity: 'medium'
               });
             }
@@ -412,23 +412,23 @@ export class DbMaintenanceService {
           issues.push({
             type: 'corrupt_data',
             storyId: story.id || 'unknown',
-            storyTitle: story.title || 'Unbenannte Geschichte',
-            description: 'Geschichte hat fehlende oder korrupte Metadaten',
+            storyTitle: story.title || 'Untitled Story',
+            description: 'Story has missing or corrupt metadata',
             severity: 'high'
           });
         }
 
         processedCount++;
         this.updateProgress('integrity', 20 + (processedCount / allStories.length) * 80, 
-          `Überprüfe Geschichte ${processedCount}/${allStories.length}`);
+          `Checking story ${processedCount}/${allStories.length}`);
       }
 
-      this.updateProgress('integrity', 100, `${issues.length} Integritätsprobleme gefunden`);
+      this.updateProgress('integrity', 100, `${issues.length} integrity issues found`);
       
       return issues;
     } catch (error) {
       console.error('Error checking story integrity:', error);
-      this.updateProgress('integrity', 0, 'Fehler bei der Integritätsprüfung');
+      this.updateProgress('integrity', 0, 'Error checking integrity');
       throw error;
     }
   }
@@ -437,7 +437,7 @@ export class DbMaintenanceService {
    * Gets database statistics
    */
   async getDatabaseStats(): Promise<DatabaseStats> {
-    this.updateProgress('stats', 0, 'Sammle Statistiken...');
+    this.updateProgress('stats', 0, 'Collecting statistics...');
     
     try {
       const [allImages, allVideos, allStories, orphanedImages, orphanedVideos] = await Promise.all([
@@ -448,7 +448,7 @@ export class DbMaintenanceService {
         this.findOrphanedVideos()
       ]);
 
-      this.updateProgress('stats', 40, 'Zähle Bilder in Stories...');
+      this.updateProgress('stats', 40, 'Counting images in stories...');
 
       // Count images embedded in story content
       let embeddedImageCount = 0;
@@ -471,7 +471,7 @@ export class DbMaintenanceService {
         }
       }
 
-      this.updateProgress('stats', 80, 'Berechne Größen...');
+      this.updateProgress('stats', 80, 'Calculating sizes...');
 
       // Calculate total images: standalone images + embedded images
       const totalImages = allImages.length + embeddedImageCount;
@@ -501,12 +501,12 @@ export class DbMaintenanceService {
         databaseSizeEstimate
       };
 
-      this.updateProgress('stats', 100, 'Statistiken erstellt');
+      this.updateProgress('stats', 100, 'Statistics created');
       
       return stats;
     } catch (error) {
       console.error('Error getting database stats:', error);
-      this.updateProgress('stats', 0, 'Fehler beim Sammeln der Statistiken');
+      this.updateProgress('stats', 0, 'Error collecting statistics');
       throw error;
     }
   }
@@ -515,7 +515,7 @@ export class DbMaintenanceService {
    * Exports complete database as JSON
    */
   async exportDatabase(): Promise<string> {
-    this.updateProgress('export', 0, 'Sammle alle Daten...');
+    this.updateProgress('export', 0, 'Collecting all data...');
     
     try {
       const [allStories, allImages] = await Promise.all([
@@ -523,7 +523,7 @@ export class DbMaintenanceService {
         this.imageService.getAllImages()
       ]);
 
-      this.updateProgress('export', 70, 'Erstelle Export...');
+      this.updateProgress('export', 70, 'Creating export...');
 
       const exportData = {
         exportDate: new Date().toISOString(),
@@ -532,12 +532,12 @@ export class DbMaintenanceService {
         images: allImages
       };
 
-      this.updateProgress('export', 100, 'Export erstellt');
+      this.updateProgress('export', 100, 'Export created');
       
       return JSON.stringify(exportData, null, 2);
     } catch (error) {
       console.error('Error exporting database:', error);
-      this.updateProgress('export', 0, 'Fehler beim Export');
+      this.updateProgress('export', 0, 'Error creating export');
       throw error;
     }
   }

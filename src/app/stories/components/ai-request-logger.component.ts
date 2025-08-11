@@ -85,7 +85,7 @@ import { Subscription } from 'rxjs';
               <p>
                 <ion-chip color="medium" class="meta-chip">
                   <ion-icon name="document-text-outline"></ion-icon>
-                  <ion-label>{{ log.wordCount }} Wörter</ion-label>
+                  <ion-label>{{ log.wordCount }} words</ion-label>
                 </ion-chip>
                 <ion-chip color="medium" class="meta-chip">
                   <ion-icon name="code-slash-outline"></ion-icon>
@@ -121,7 +121,7 @@ import { Subscription } from 'rxjs';
                   <ion-icon name="document-text-outline" slot="start"></ion-icon>
                   <ion-label>
                     <h3>Prompt</h3>
-                    <p>{{ log.prompt.length }} Zeichen</p>
+                    <p>{{ log.prompt.length }} characters</p>
                   </ion-label>
                 </ion-item>
                 <div class="accordion-content" slot="content">
@@ -135,7 +135,7 @@ import { Subscription } from 'rxjs';
                   <ion-icon name="checkmark-circle-outline" slot="start" color="success"></ion-icon>
                   <ion-label>
                     <h3>Response</h3>
-                    <p>{{ log.response.length }} Zeichen, {{ getWordCount(log.response) }} Wörter</p>
+                    <p>{{ log.response.length }} characters, {{ getWordCount(log.response) }} words</p>
                   </ion-label>
                 </ion-item>
                 <div class="accordion-content" slot="content">
@@ -149,7 +149,7 @@ import { Subscription } from 'rxjs';
                   <ion-icon name="warning-outline" slot="start" color="danger"></ion-icon>
                   <ion-label>
                     <h3>Error Details</h3>
-                    <p>{{ log.error.length }} Zeichen</p>
+                    <p>{{ log.error.length }} characters</p>
                   </ion-label>
                 </ion-item>
                 <div class="accordion-content" slot="content">
@@ -302,7 +302,7 @@ import { Subscription } from 'rxjs';
         <ion-card *ngIf="logs.length === 0" class="no-logs-card">
           <ion-card-content class="ion-text-center">
             <ion-text color="medium">
-              <p>Noch keine AI-Requests geloggt.</p>
+              <p>No AI requests logged yet.</p>
             </ion-text>
           </ion-card-content>
         </ion-card>
@@ -721,7 +721,7 @@ export class AIRequestLoggerComponent implements OnInit, OnDestroy {
   }
 
   clearLogs(): void {
-    if (confirm('Möchten Sie wirklich alle Logs löschen?')) {
+    if (confirm('Do you really want to delete all logs?')) {
       this.loggerService.clearLogs();
       this.expandedLogs.clear();
     }
@@ -732,15 +732,15 @@ export class AIRequestLoggerComponent implements OnInit, OnDestroy {
     const diff = now.getTime() - date.getTime();
     
     if (diff < 60000) { // Less than 1 minute
-      return 'Gerade eben';
+      return 'Just now';
     } else if (diff < 3600000) { // Less than 1 hour
       const minutes = Math.floor(diff / 60000);
-      return `Vor ${minutes} ${minutes === 1 ? 'Minute' : 'Minuten'}`;
+      return `${minutes} ${minutes === 1 ? 'minute' : 'minutes'} ago`;
     } else if (diff < 86400000) { // Less than 1 day
       const hours = Math.floor(diff / 3600000);
-      return `Vor ${hours} ${hours === 1 ? 'Stunde' : 'Stunden'}`;
+      return `${hours} ${hours === 1 ? 'hour' : 'hours'} ago`;
     } else {
-      return date.toLocaleString('de-DE');
+      return date.toLocaleString('en-US');
     }
   }
 

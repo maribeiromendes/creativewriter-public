@@ -71,7 +71,7 @@ export class SyncedCustomBackgroundService {
 
     const currentUser = this.authService.getCurrentUser();
     if (!currentUser) {
-      throw new Error('Sie müssen angemeldet sein, um eigene Hintergründe hochzuladen.');
+      throw new Error('You must be logged in to upload custom backgrounds.');
     }
 
     // Convert file to base64
@@ -123,7 +123,7 @@ export class SyncedCustomBackgroundService {
       const currentUser = this.authService.getCurrentUser();
       const typedDoc = doc as CustomBackground;
       if (!currentUser || typedDoc.createdBy !== currentUser.username) {
-        throw new Error('Sie können nur eigene Hintergründe löschen.');
+        throw new Error('You can only delete your own backgrounds.');
       }
       
       await db.remove(doc);
@@ -139,7 +139,7 @@ export class SyncedCustomBackgroundService {
       await this.loadCustomBackgrounds();
     } catch (error) {
       console.error('Error deleting background:', error);
-      throw new Error('Fehler beim Löschen des Hintergrunds');
+      throw new Error('Error deleting background');
     }
   }
 
@@ -318,7 +318,7 @@ export class SyncedCustomBackgroundService {
       }
     } catch (error) {
       console.error('Error clearing backgrounds:', error);
-      throw new Error('Fehler beim Löschen aller Hintergründe');
+      throw new Error('Error deleting all backgrounds');
     }
   }
 

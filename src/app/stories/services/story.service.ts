@@ -117,12 +117,12 @@ export class StoryService {
     
     const firstChapter: Chapter = {
       id: this.generateId(),
-      title: 'Kapitel 1',
+      title: 'Chapter 1',
       order: 1,
       chapterNumber: 1,
       scenes: [{
         id: this.generateId(),
-        title: 'Szene 1',
+        title: 'Scene 1',
         content: '',
         order: 1,
         sceneNumber: 1,
@@ -238,12 +238,12 @@ export class StoryService {
     if (story.content && !story.chapters) {
       const firstChapter: Chapter = {
         id: this.generateId(),
-        title: 'Kapitel 1',
+        title: 'Chapter 1',
         order: 1,
         chapterNumber: 1,
         scenes: [{
           id: this.generateId(),
-          title: 'Szene 1',
+          title: 'Scene 1',
           content: story.content,
           order: 1,
           sceneNumber: 1,
@@ -289,12 +289,12 @@ export class StoryService {
     const chapterNumber = story.chapters.length + 1;
     const newChapter: Chapter = {
       id: this.generateId(),
-      title: title || `Kapitel ${chapterNumber}`,
+      title: title || `Chapter ${chapterNumber}`,
       order: chapterNumber,
       chapterNumber: chapterNumber,
       scenes: [{
         id: this.generateId(),
-        title: 'Szene 1',
+        title: 'Scene 1',
         content: '',
         order: 1,
         sceneNumber: 1,
@@ -356,7 +356,7 @@ export class StoryService {
     const sceneNumber = chapter.scenes.length + 1;
     const newScene: Scene = {
       id: this.generateId(),
-      title: title || `Szene ${sceneNumber}`,
+      title: title || `Scene ${sceneNumber}`,
       content: '',
       order: sceneNumber,
       sceneNumber: sceneNumber,

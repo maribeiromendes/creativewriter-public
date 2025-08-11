@@ -64,14 +64,14 @@ export interface StoryStatistics {
             <ion-title>
               <div class="modal-title">
                 <ion-icon name="stats-chart-outline"></ion-icon>
-                Story Statistiken
+                Story Statistics
               </div>
             </ion-title>
             <ion-button 
               slot="end" 
               fill="clear" 
               (click)="onClose()"
-              aria-label="Schließen"
+              aria-label="Close"
               class="close-button">
               <ion-icon name="close" slot="icon-only"></ion-icon>
             </ion-button>
@@ -90,7 +90,7 @@ export interface StoryStatistics {
             <ion-card-header>
               <ion-card-title>
                 <ion-icon name="stats-chart-outline"></ion-icon>
-                Übersicht
+                Overview
               </ion-card-title>
             </ion-card-header>
             <ion-card-content>
@@ -99,13 +99,13 @@ export interface StoryStatistics {
                   <ion-col size="6">
                     <div class="stat-item">
                       <div class="stat-value">{{ statistics.totalWords | number }}</div>
-                      <div class="stat-label">Gesamtwörter</div>
+                      <div class="stat-label">Total Words</div>
                     </div>
                   </ion-col>
                   <ion-col size="6">
                     <div class="stat-item">
                       <div class="stat-value">{{ statistics.totalChapters }}</div>
-                      <div class="stat-label">Kapitel</div>
+                      <div class="stat-label">Chapters</div>
                     </div>
                   </ion-col>
                 </ion-row>
@@ -113,13 +113,13 @@ export interface StoryStatistics {
                   <ion-col size="6">
                     <div class="stat-item">
                       <div class="stat-value">{{ statistics.totalScenes }}</div>
-                      <div class="stat-label">Szenen</div>
+                      <div class="stat-label">Scenes</div>
                     </div>
                   </ion-col>
                   <ion-col size="6">
                     <div class="stat-item">
                       <div class="stat-value">{{ getEstimatedReadingTime() }}</div>
-                      <div class="stat-label">Lesezeit (Min.)</div>
+                      <div class="stat-label">Reading Time (Min.)</div>
                     </div>
                   </ion-col>
                 </ion-row>
@@ -132,7 +132,7 @@ export interface StoryStatistics {
             <ion-card-header>
               <ion-card-title>
                 <ion-icon name="trending-up-outline"></ion-icon>
-                Durchschnittswerte
+                Average Values
               </ion-card-title>
             </ion-card-header>
             <ion-card-content>
@@ -141,13 +141,13 @@ export interface StoryStatistics {
                   <ion-col size="6">
                     <div class="stat-item">
                       <div class="stat-value">{{ statistics.averageWordsPerChapter | number:'1.0-0' }}</div>
-                      <div class="stat-label">Wörter pro Kapitel</div>
+                      <div class="stat-label">Words per Chapter</div>
                     </div>
                   </ion-col>
                   <ion-col size="6">
                     <div class="stat-item">
                       <div class="stat-value">{{ statistics.averageWordsPerScene | number:'1.0-0' }}</div>
-                      <div class="stat-label">Wörter pro Szene</div>
+                      <div class="stat-label">Words per Scene</div>
                     </div>
                   </ion-col>
                 </ion-row>
@@ -160,25 +160,25 @@ export interface StoryStatistics {
             <ion-card-header>
               <ion-card-title>
                 <ion-icon name="layers-outline"></ion-icon>
-                Kapitel-Extremwerte
+                Chapter Extremes
               </ion-card-title>
             </ion-card-header>
             <ion-card-content>
               <ion-item *ngIf="statistics.longestChapter" lines="none">
                 <ion-icon name="trending-up-outline" slot="start" color="success"></ion-icon>
                 <ion-label>
-                  <h3>Längstes Kapitel</h3>
+                  <h3>Longest Chapter</h3>
                   <p>{{ statistics.longestChapter.title }}</p>
-                  <ion-chip color="success">{{ statistics.longestChapter.wordCount | number }} Wörter</ion-chip>
+                  <ion-chip color="success">{{ statistics.longestChapter.wordCount | number }} words</ion-chip>
                 </ion-label>
               </ion-item>
               
               <ion-item *ngIf="statistics.shortestChapter" lines="none">
                 <ion-icon name="trending-down-outline" slot="start" color="warning"></ion-icon>
                 <ion-label>
-                  <h3>Kürzestes Kapitel</h3>
+                  <h3>Shortest Chapter</h3>
                   <p>{{ statistics.shortestChapter.title }}</p>
-                  <ion-chip color="warning">{{ statistics.shortestChapter.wordCount | number }} Wörter</ion-chip>
+                  <ion-chip color="warning">{{ statistics.shortestChapter.wordCount | number }} words</ion-chip>
                 </ion-label>
               </ion-item>
             </ion-card-content>
@@ -189,7 +189,7 @@ export interface StoryStatistics {
             <ion-card-header>
               <ion-card-title>
                 <ion-icon name="book-outline"></ion-icon>
-                Kapitel Details
+                Chapter Details
               </ion-card-title>
             </ion-card-header>
             <ion-card-content>
@@ -197,13 +197,13 @@ export interface StoryStatistics {
                 <ion-item *ngFor="let chapter of statistics.chapterCounts; trackBy: trackChapter" lines="inset">
                   <ion-label>
                     <h3>{{ chapter.chapterTitle }}</h3>
-                    <p>{{ chapter.sceneCount }} Szenen • Ø {{ chapter.averageWordsPerScene | number:'1.0-0' }} Wörter/Szene</p>
+                    <p>{{ chapter.sceneCount }} scenes • Ø {{ chapter.averageWordsPerScene | number:'1.0-0' }} words/scene</p>
                   </ion-label>
                   <ion-chip 
                     slot="end" 
                     [color]="getChapterChipColor(chapter.wordCount)"
                     class="word-count-chip">
-                    {{ chapter.wordCount | number }} Wörter
+                    {{ chapter.wordCount | number }} words
                   </ion-chip>
                 </ion-item>
               </ion-list>
@@ -215,7 +215,7 @@ export interface StoryStatistics {
             <ion-card-header>
               <ion-card-title>
                 <ion-icon name="server-outline"></ion-icon>
-                Speicherverbrauch
+                Storage Usage
               </ion-card-title>
             </ion-card-header>
             <ion-card-content>
@@ -224,13 +224,13 @@ export interface StoryStatistics {
                   <ion-col size="6">
                     <div class="stat-item">
                       <div class="stat-value">{{ statistics.storageUsage.storySizeFormatted }}</div>
-                      <div class="stat-label">Diese Story (Total)</div>
+                      <div class="stat-label">This Story (Total)</div>
                     </div>
                   </ion-col>
                   <ion-col size="6">
                     <div class="stat-item">
                       <div class="stat-value">{{ statistics.storageUsage.totalLocalStorageFormatted }}</div>
-                      <div class="stat-label">Gesamt localStorage</div>
+                      <div class="stat-label">Total localStorage</div>
                     </div>
                   </ion-col>
                 </ion-row>
@@ -238,19 +238,19 @@ export interface StoryStatistics {
                   <ion-col size="4">
                     <div class="stat-item">
                       <div class="stat-value">{{ statistics.storageUsage.storyTextSizeFormatted }}</div>
-                      <div class="stat-label">Text-Inhalt</div>
+                      <div class="stat-label">Text Content</div>
                     </div>
                   </ion-col>
                   <ion-col size="4">
                     <div class="stat-item">
                       <div class="stat-value">{{ statistics.storageUsage.storyImageSizeFormatted }}</div>
-                      <div class="stat-label">Bilder</div>
+                      <div class="stat-label">Images</div>
                     </div>
                   </ion-col>
                   <ion-col size="4">
                     <div class="stat-item">
                       <div class="stat-value">{{ statistics.storageUsage.storyImageCount }}</div>
-                      <div class="stat-label">Bilder-Anzahl</div>
+                      <div class="stat-label">Image Count</div>
                     </div>
                   </ion-col>
                 </ion-row>
@@ -260,7 +260,7 @@ export interface StoryStatistics {
                       <div class="storage-bar">
                         <div class="storage-fill" [style.width.%]="statistics.storageUsage.percentageUsed"></div>
                       </div>
-                      <div class="storage-percentage">{{ statistics.storageUsage.percentageUsed }}% des localStorage belegt</div>
+                      <div class="storage-percentage">{{ statistics.storageUsage.percentageUsed }}% of localStorage used</div>
                     </div>
                   </ion-col>
                 </ion-row>
@@ -272,7 +272,7 @@ export interface StoryStatistics {
                       (click)="toggleDetailedBreakdown()"
                       class="breakdown-toggle">
                       <ion-icon name="analytics-outline" slot="start"></ion-icon>
-                      Detaillierte Speicher-Analyse
+                      Detailed Storage Analysis
                     </ion-button>
                   </ion-col>
                 </ion-row>
@@ -285,30 +285,30 @@ export interface StoryStatistics {
             <ion-card-header>
               <ion-card-title>
                 <ion-icon name="time-outline"></ion-icon>
-                Fortschritt
+                Progress
               </ion-card-title>
             </ion-card-header>
             <ion-card-content>
               <div class="progress-info">
-                <p>Basierend auf der aktuellen Länge:</p>
+                <p>Based on current length:</p>
                 <ion-grid>
                   <ion-row>
                     <ion-col size="4">
                       <div class="progress-item">
                         <div class="progress-value">{{ getNovellaStatus() }}</div>
-                        <div class="progress-label">Novelle</div>
+                        <div class="progress-label">Novella</div>
                       </div>
                     </ion-col>
                     <ion-col size="4">
                       <div class="progress-item">
                         <div class="progress-value">{{ getNovelStatus() }}</div>
-                        <div class="progress-label">Roman</div>
+                        <div class="progress-label">Novel</div>
                       </div>
                     </ion-col>
                     <ion-col size="4">
                       <div class="progress-item">
                         <div class="progress-value">{{ getEpicStatus() }}</div>
-                        <div class="progress-label">Epos</div>
+                        <div class="progress-label">Epic</div>
                       </div>
                     </ion-col>
                   </ion-row>
@@ -320,7 +320,7 @@ export interface StoryStatistics {
           </div>
           
           <div class="loading-state" *ngIf="!statistics">
-            <p>Statistiken werden berechnet...</p>
+            <p>Calculating statistics...</p>
           </div>
           
         </ion-content>
@@ -812,18 +812,18 @@ export class StoryStatsComponent implements OnInit, OnChanges {
     // For now, just show an alert with detailed info
     const breakdown = this.storyStatsService.getDetailedStorageBreakdown();
     
-    let message = `Detaillierte Speicher-Analyse:\n\n`;
-    message += `Gesamtspeicher: ${breakdown.totalSizeFormatted}\n\n`;
+    let message = `Detailed Storage Analysis:\n\n`;
+    message += `Total Storage: ${breakdown.totalSizeFormatted}\n\n`;
     
-    message += `localStorage Einträge:\n`;
+    message += `localStorage entries:\n`;
     breakdown.items.forEach(item => {
       message += `• ${item.description}: ${item.sizeFormatted}\n`;
     });
     
     if (breakdown.storiesBreakdown.length > 0) {
-      message += `\nStories Einzeln:\n`;
+      message += `\nStories Individual:\n`;
       breakdown.storiesBreakdown.forEach(story => {
-        message += `• ${story.title}: ${story.sizeFormatted} (${story.textSizeFormatted} Text + ${story.imageSizeFormatted} Bilder [${story.imageCount}x])\n`;
+        message += `• ${story.title}: ${story.sizeFormatted} (${story.textSizeFormatted} Text + ${story.imageSizeFormatted} Images [${story.imageCount}x])\n`;
       });
     }
     

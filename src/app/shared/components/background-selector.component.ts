@@ -30,11 +30,11 @@ interface BackgroundOption {
   ],
   template: `
     <div class="background-selector">
-      <h3>Hintergrund auswählen</h3>
+      <h3>Select Background</h3>
       
       <!-- Standard Backgrounds -->
       <div class="section-header">
-        <h4>Standard Hintergründe</h4>
+        <h4>Standard Backgrounds</h4>
       </div>
       
       <ion-grid>
@@ -49,7 +49,7 @@ interface BackgroundOption {
               <ion-card-content class="preview-card">
                 <div class="preview-container no-background">
                   <div class="no-bg-placeholder">
-                    <ion-text>Kein Hintergrund</ion-text>
+                    <ion-text>No Background</ion-text>
                   </div>
                 </div>
                 <div class="background-name">Standard</div>
@@ -97,9 +97,9 @@ interface BackgroundOption {
 
       <!-- Custom Backgrounds Section -->
       <div class="section-header" *ngIf="customBackgrounds().length > 0">
-        <h4>Meine Hintergründe</h4>
+        <h4>My Backgrounds</h4>
         <ion-text color="medium">
-          <small>{{ customBackgrounds().length }} eigene Hintergründe</small>
+          <small>{{ customBackgrounds().length }} custom backgrounds</small>
         </ion-text>
       </div>
       
@@ -152,15 +152,15 @@ interface BackgroundOption {
       <!-- Empty state for custom backgrounds -->
       <div class="empty-custom-backgrounds" *ngIf="customBackgrounds().length === 0">
         <ion-text color="medium">
-          <p>Noch keine eigenen Hintergründe vorhanden.</p>
-          <p>Laden Sie über die Einstellungen eigene Bilder hoch.</p>
+          <p>No custom backgrounds available yet.</p>
+          <p>Upload your own images via the settings.</p>
         </ion-text>
       </div>
 
       <!-- Delete Confirmation Alert -->
       <ion-alert
         [isOpen]="showDeleteAlert"
-        header="Hintergrund löschen?"
+        header="Delete Background?"
         [message]="deleteMessage"
         [buttons]="deleteButtons"
         (didDismiss)="cancelDelete()"
@@ -380,12 +380,12 @@ export class BackgroundSelectorComponent implements OnInit, OnChanges {
   // Alert content
   get deleteMessage(): string {
     return this.backgroundToDelete ? 
-      `Möchten Sie "${this.backgroundToDelete.name}" wirklich löschen?` : '';
+      `Do you really want to delete "${this.backgroundToDelete.name}"?` : '';
   }
   
   deleteButtons = [
-    { text: 'Abbrechen', role: 'cancel' },
-    { text: 'Löschen', role: 'destructive', handler: () => this.deleteCustomBackground() }
+    { text: 'Cancel', role: 'cancel' },
+    { text: 'Delete', role: 'destructive', handler: () => this.deleteCustomBackground() }
   ];
 
   constructor() {

@@ -58,8 +58,8 @@ interface SceneContext {
       <!-- Context Selection -->
       <div class="context-section">
         <ion-label>
-          <h3>Kontext für KI-Umformulierung</h3>
-          <p>Wählen Sie den Kontext aus, den die KI bei der Umformulierung berücksichtigen soll.</p>
+          <h3>Context for AI Reformulation</h3>
+          <p>Select the context that the AI should consider during reformulation.</p>
         </ion-label>
         
         <div class="context-controls">
@@ -69,7 +69,7 @@ interface SceneContext {
             [color]="includeStoryOutline ? 'primary' : 'medium'"
             (click)="includeStoryOutline = !includeStoryOutline">
             <ion-icon name="reader-outline" slot="start"></ion-icon>
-            Geschichts-Überblick
+            Story Overview
           </ion-button>
           
           <ion-button 
@@ -78,14 +78,14 @@ interface SceneContext {
             color="medium"
             (click)="showSceneSelector = true">
             <ion-icon name="add-outline" slot="start"></ion-icon>
-            Szenen hinzufügen
+            Add Scenes
           </ion-button>
         </div>
 
         <!-- Context Chips -->
         <div class="context-chips" *ngIf="selectedScenes.length > 0 || includeStoryOutline">
           <ion-chip *ngIf="includeStoryOutline" color="success">
-            <ion-label>Geschichts-Überblick</ion-label>
+            <ion-label>Story Overview</ion-label>
             <ion-icon 
               name="close-outline" 
               (click)="includeStoryOutline = false">
@@ -109,10 +109,10 @@ interface SceneContext {
 
       <!-- Custom Prompt -->
       <ion-item>
-        <ion-label position="stacked">Zusätzlicher Prompt (optional)</ion-label>
+        <ion-label position="stacked">Additional Prompt (optional)</ion-label>
         <ion-textarea
           [(ngModel)]="customPrompt"
-          placeholder="z.B. 'Mache es formeller', 'Schreibe es emotionaler', 'Kürze es'"
+          placeholder="e.g. 'Make it more formal', 'Write it more emotionally', 'Shorten it'"
           [autoGrow]="true"
           [maxlength]="500"
           [counter]="true">
@@ -165,7 +165,7 @@ interface SceneContext {
             color="primary"
             (click)="rewriteText()">
             <ion-icon name="refresh-outline" slot="start"></ion-icon>
-            Erneut versuchen
+            Try Again
           </ion-button>
 
           <ion-button 
@@ -174,7 +174,7 @@ interface SceneContext {
             color="medium"
             (click)="copyToClipboard()">
             <ion-icon name="copy-outline" slot="start"></ion-icon>
-            Kopieren
+            Copy
           </ion-button>
         </div>
 
@@ -194,7 +194,7 @@ interface SceneContext {
       <ng-template>
         <ion-header>
           <ion-toolbar>
-            <ion-title>Szenen als Kontext hinzufügen</ion-title>
+            <ion-title>Add Scenes as Context</ion-title>
             <ion-buttons slot="end">
               <ion-button (click)="showSceneSelector = false">
                 <ion-icon name="close-outline" slot="icon-only"></ion-icon>
@@ -397,10 +397,10 @@ export class AIRewriteModalComponent implements OnInit {
   
 
   quickPrompts = [
-    'Mache es formeller',
-    'Mache es lockerer',
-    'Kürze es',
-    'Erweitere es',
+    'Make it more formal',
+    'Make it more casual',
+    'Shorten it',
+    'Expand it',
     'Emotionaler schreiben',
     'Sachlicher schreiben',
     'Verbessere die Grammatik',
@@ -482,7 +482,7 @@ export class AIRewriteModalComponent implements OnInit {
           this.rewrittenText = accumulatedResponse;
         },
         complete: () => {
-          this.rewrittenText = accumulatedResponse || 'Fehler beim Generieren des Textes.';
+          this.rewrittenText = accumulatedResponse || 'Error generating text.';
           this.isRewriting = false;
         },
         error: (error) => {

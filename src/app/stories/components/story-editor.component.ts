@@ -78,7 +78,7 @@ import { PDFExportService } from '../../shared/services/pdf-export.service';
               <div class="cover-thumbnail" *ngIf="story?.coverImage" 
                    tabindex="0"
                    role="button"
-                   [attr.aria-label]="'Cover-Bild anzeigen: ' + (story.title || 'Unbenannte Geschichte')"
+                   [attr.aria-label]="'Show cover image: ' + (story.title || 'Untitled Story')"
                    (click)="openCoverPopover($event)"
                    (keydown.enter)="openCoverPopover($event)"
                    (keydown.space)="openCoverPopover($event)">
@@ -97,11 +97,11 @@ import { PDFExportService } from '../../shared/services/pdf-export.service';
             <div class="status-detail">
               <ion-chip [color]="hasUnsavedChanges ? 'warning' : 'success'" class="full-status">
                 <ion-icon [name]="hasUnsavedChanges ? 'save-outline' : 'checkmark-circle-outline'"></ion-icon>
-                <ion-label>{{ hasUnsavedChanges ? 'Nicht gespeichert' : 'Gespeichert' }}</ion-label>
+                <ion-label>{{ hasUnsavedChanges ? 'Not saved' : 'Saved' }}</ion-label>
               </ion-chip>
               <ion-chip color="medium" class="full-status">
                 <ion-icon name="stats-chart-outline"></ion-icon>
-                <ion-label>{{ wordCount }} Wörter</ion-label>
+                <ion-label>{{ wordCount }} words</ion-label>
               </ion-chip>
               <app-version-tooltip *ngIf="versionService.getVersionSync()">
                 <ion-chip color="medium" class="full-status">
@@ -120,7 +120,7 @@ import { PDFExportService } from '../../shared/services/pdf-export.service';
                 <input 
                   type="text" 
                   class="title-input-native" 
-                  placeholder="Titel deiner Geschichte..." 
+                  placeholder="Title of your story..." 
                   [(ngModel)]="story.title"
                   (ngModelChange)="onStoryTitleChange()"
                 />
@@ -134,9 +134,9 @@ import { PDFExportService } from '../../shared/services/pdf-export.service';
                       (click)="navigateToPreviousScene()"
                       [disabled]="!hasPreviousScene()"
                       class="nav-button prev-button"
-                      [attr.aria-label]="'Zur vorherigen Szene'">
+                      [attr.aria-label]="'To previous scene'">
                       <ion-icon name="chevron-back" slot="start"></ion-icon>
-                      Vorherige Szene
+                      Previous Scene
                     </ion-button>
                     
                     
@@ -146,8 +146,8 @@ import { PDFExportService } from '../../shared/services/pdf-export.service';
                       (click)="navigateToNextScene()"
                       [disabled]="!hasNextScene()"
                       class="nav-button next-button"
-                      [attr.aria-label]="'Zur nächsten Szene'">
-                      Nächste Szene
+                      [attr.aria-label]="'To next scene'">
+                      Next Scene
                       <ion-icon name="chevron-forward" slot="end"></ion-icon>
                     </ion-button>
                   </div>
@@ -159,7 +159,7 @@ import { PDFExportService } from '../../shared/services/pdf-export.service';
                     <input 
                       type="text" 
                       class="scene-title-input-native" 
-                      placeholder="Szenen-Titel..." 
+                      placeholder="Scene title..." 
                       [(ngModel)]="activeScene.title"
                       (ngModelChange)="onSceneTitleChange()"
                     />
@@ -181,9 +181,9 @@ import { PDFExportService } from '../../shared/services/pdf-export.service';
                       (click)="navigateToPreviousScene()"
                       [disabled]="!hasPreviousScene()"
                       class="nav-button prev-button"
-                      [attr.aria-label]="'Zur vorherigen Szene'">
+                      [attr.aria-label]="'To previous scene'">
                       <ion-icon name="chevron-back" slot="start"></ion-icon>
-                      Vorherige Szene
+                      Previous Scene
                     </ion-button>
                     
                     <ion-button 
@@ -192,15 +192,15 @@ import { PDFExportService } from '../../shared/services/pdf-export.service';
                       (click)="navigateToNextScene()"
                       [disabled]="!hasNextScene()"
                       class="nav-button next-button"
-                      [attr.aria-label]="'Zur nächsten Szene'">
-                      Nächste Szene
+                      [attr.aria-label]="'To next scene'">
+                      Next Scene
                       <ion-icon name="chevron-forward" slot="end"></ion-icon>
                     </ion-button>
                   </div>
                 </div>
                 
                 <div class="no-scene" *ngIf="!activeScene">
-                  <p>Wähle eine Szene aus der Struktur, um zu beginnen.</p>
+                  <p>Select a scene from the structure to begin.</p>
                 </div>
               </div>
             </div>
@@ -1369,7 +1369,7 @@ export class StoryEditorComponent implements OnInit, OnDestroy {
     // Auto-save mit optimiertem Debounce
     this.subscription.add(
       this.saveSubject.pipe(
-        debounceTime(3000) // Erhöht auf 3 Sekunden für weniger häufiges Speichern
+        debounceTime(3000) // Increased to 3 seconds for less frequent saving
       ).subscribe(() => {
         this.saveStory();
       })
@@ -1600,7 +1600,7 @@ export class StoryEditorComponent implements OnInit, OnDestroy {
     this.rightActions = [
       {
         icon: this.hasUnsavedChanges ? 'save-outline' : 'checkmark-circle-outline',
-        chipContent: this.hasUnsavedChanges ? 'Nicht gespeichert' : 'Gespeichert',
+        chipContent: this.hasUnsavedChanges ? 'Not saved' : 'Saved',
         chipColor: this.hasUnsavedChanges ? 'warning' : 'success',
         action: () => { /* No action needed for save status indicator */ },
         showOnMobile: false,
@@ -1637,12 +1637,12 @@ export class StoryEditorComponent implements OnInit, OnDestroy {
       },
       {
         icon: 'settings-outline',
-        label: 'Story Einstellungen',
+        label: 'Story Settings',
         action: () => this.goToSettings()
       },
       {
         icon: 'chatbubbles-outline',
-        label: 'Szenen Chat',
+        label: 'Scene Chat',
         action: () => this.goToSceneChat()
       },
       {
@@ -1652,7 +1652,7 @@ export class StoryEditorComponent implements OnInit, OnDestroy {
       },
       {
         icon: 'images',
-        label: 'Bildgenerierung',
+        label: 'Image Generation',
         action: () => this.headerNavService.goToImageGeneration()
       }
     ];
@@ -1663,7 +1663,7 @@ export class StoryEditorComponent implements OnInit, OnDestroy {
     if (this.rightActions.length >= 2) {
       // Update save status chip
       this.rightActions[0].icon = this.hasUnsavedChanges ? 'save-outline' : 'checkmark-circle-outline';
-      this.rightActions[0].chipContent = this.hasUnsavedChanges ? 'Nicht gespeichert' : 'Gespeichert';
+      this.rightActions[0].chipContent = this.hasUnsavedChanges ? 'Not saved' : 'Saved';
       this.rightActions[0].chipColor = this.hasUnsavedChanges ? 'warning' : 'success';
       
       // Update word count chip
@@ -1991,7 +1991,7 @@ export class StoryEditorComponent implements OnInit, OnDestroy {
     this.editorView = this.proseMirrorService.createEditor(
       this.editorContainer.nativeElement,
       {
-        placeholder: 'Hier beginnt deine Szene...',
+        placeholder: 'Your scene begins here...',
         onUpdate: (signal: string) => {
           // Content changed - get it only when needed
           if (signal === '__content_changed__' && this.editorView) {

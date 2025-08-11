@@ -321,39 +321,39 @@ export class CodexRelevanceDemoComponent {
     },
     {
       id: 'loc-1',
-      title: 'Das verlassene Schloss',
+      title: 'The Abandoned Castle',
       category: 'location',
-      content: 'Ein mittelalterliches Schloss in den bayerischen Alpen, seit 200 Jahren unbewohnt. Geheimnisvolle Atmosphäre.',
-      aliases: ['Schloss', 'Die Burg', 'Schloss Falkenstein'],
-      keywords: ['mittelalterlich', 'Alpen', 'verlassen', 'geheimnisvoll'],
+      content: 'A medieval castle in the Bavarian Alps, uninhabited for 200 years. Mysterious atmosphere.',
+      aliases: ['Castle', 'The Fortress', 'Falkenstein Castle'],
+      keywords: ['medieval', 'Alps', 'abandoned', 'mysterious'],
       importance: 'major',
       globalInclude: false
     },
     {
       id: 'obj-1',
-      title: 'Das magische Amulett',
+      title: 'The Magic Amulet',
       category: 'object',
-      content: 'Ein goldenes Amulett mit eingravierten Runen. Soll magische Kräfte besitzen.',
-      aliases: ['Amulett', 'Der Talisman', 'Das goldene Amulett'],
-      keywords: ['magisch', 'Gold', 'Runen', 'Kraft'],
+      content: 'A golden amulet with engraved runes. Said to possess magical powers.',
+      aliases: ['Amulet', 'The Talisman', 'The Golden Amulet'],
+      keywords: ['magic', 'gold', 'runes', 'power'],
       importance: 'major',
       globalInclude: false
     },
     {
       id: 'char-3',
-      title: 'Die Dorfbewohner',
+      title: 'The Villagers',
       category: 'character',
-      content: 'Die abergläubischen Bewohner des nahegelegenen Dorfes, die das Schloss meiden.',
-      aliases: ['Dorfleute', 'Die Einheimischen'],
-      keywords: ['Dorf', 'Aberglaube', 'Angst'],
+      content: 'The superstitious inhabitants of the nearby village who avoid the castle.',
+      aliases: ['Village Folk', 'The Locals'],
+      keywords: ['village', 'superstition', 'fear'],
       importance: 'background',
       globalInclude: false
     }
   ];
   
-  testContext = 'Emma betritt vorsichtig das verlassene Schloss. Die schwere Holztür knarrt, als sie sie aufschiebt. Im Inneren ist es dunkel und staubig. Sie denkt an die Warnung der Dorfbewohner zurück, aber ihre Neugier auf das Amulett ist stärker.';
+  testContext = 'Emma carefully enters the abandoned castle. The heavy wooden door creaks as she pushes it open. Inside it is dark and dusty. She thinks back to the villagers\' warning, but her curiosity about the amulet is stronger.';
   
-  testPrompt = 'Beschreibe Emmas Gefühle und Gedanken, während sie das Schloss erkundet';
+  testPrompt = 'Describe Emma\'s feelings and thoughts as she explores the castle';
   
   relevanceScores: Record<string, RelevanceScore> = {};
   selectedEntries: CodexEntry[] | null = null;

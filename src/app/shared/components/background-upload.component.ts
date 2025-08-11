@@ -28,7 +28,7 @@ import { SyncedCustomBackgroundService, CustomBackground } from '../services/syn
         <ion-card-header>
           <ion-card-title>
             <ion-icon name="cloud-upload-outline"></ion-icon>
-            Eigenen Hintergrund hochladen
+            Upload Custom Background
           </ion-card-title>
         </ion-card-header>
         
@@ -54,7 +54,7 @@ import { SyncedCustomBackgroundService, CustomBackground } from '../services/syn
             
             <div class="upload-content" *ngIf="!selectedFile() && !isUploading()">
               <ion-icon name="image-outline" class="upload-icon"></ion-icon>
-              <p>Klicken oder Datei hierher ziehen</p>
+              <p>Click or drag file here</p>
               <small>PNG, JPG, JPEG, WebP (max. 5MB)</small>
             </div>
             
@@ -91,7 +91,7 @@ import { SyncedCustomBackgroundService, CustomBackground } from '../services/syn
                 <ion-label position="stacked">Name (optional)</ion-label>
                 <ion-input 
                   [(ngModel)]="customName"
-                  placeholder="Automatischer Name wird verwendet"
+                  placeholder="Automatic name will be used"
                   maxlength="50">
                 </ion-input>
               </ion-item>
@@ -104,12 +104,12 @@ import { SyncedCustomBackgroundService, CustomBackground } from '../services/syn
                   (click)="uploadFile()"
                   [disabled]="isUploading() || !isUserLoggedIn()">
                   <ion-icon name="cloud-upload-outline" slot="start"></ion-icon>
-                  <span *ngIf="isUserLoggedIn()">Hochladen & Synchronisieren</span>
-                  <span *ngIf="!isUserLoggedIn()">Anmeldung erforderlich</span>
+                  <span *ngIf="isUserLoggedIn()">Upload & Sync</span>
+                  <span *ngIf="!isUserLoggedIn()">Login required</span>
                 </ion-button>
                 
                 <ion-text color="warning" *ngIf="!isUserLoggedIn()">
-                  <p><small>Sie müssen angemeldet sein, um eigene Hintergründe zu verwenden.</small></p>
+                  <p><small>You must be logged in to use custom backgrounds.</small></p>
                 </ion-text>
               </div>
             </div>
@@ -118,7 +118,7 @@ import { SyncedCustomBackgroundService, CustomBackground } from '../services/syn
           <!-- Success Message -->
           <div class="upload-success" *ngIf="uploadSuccess()">
             <ion-icon name="checkmark-circle-outline" color="success"></ion-icon>
-            <p>Hintergrund erfolgreich hochgeladen!</p>
+            <p>Background uploaded successfully!</p>
           </div>
 
           <!-- Error Message -->
@@ -135,9 +135,9 @@ import { SyncedCustomBackgroundService, CustomBackground } from '../services/syn
         <ion-card-content>
           <div class="storage-stats">
             <ion-text color="medium" *ngIf="isUserLoggedIn()">
-              <p>Speicher: {{ formatFileSize(getTotalStorage()) }} belegt</p>
-              <p>{{ getUserBackgroundCount() }} eigene Hintergründe</p>
-              <p>Synchronisiert als: {{ getCurrentUser()?.displayName }}</p>
+              <p>Storage: {{ formatFileSize(getTotalStorage()) }} used</p>
+              <p>{{ getUserBackgroundCount() }} custom backgrounds</p>
+              <p>Synced as: {{ getCurrentUser()?.displayName }}</p>
             </ion-text>
             <ion-text color="medium" *ngIf="!isUserLoggedIn()">
               <p>Melden Sie sich an für geräteübergreifende Synchronisation</p>
@@ -151,7 +151,7 @@ import { SyncedCustomBackgroundService, CustomBackground } from '../services/syn
             (click)="showClearAlert = true"
             *ngIf="getBackgroundCount() > 0">
             <ion-icon name="trash-outline" slot="start"></ion-icon>
-            Alle löschen
+            Delete All
           </ion-button>
         </ion-card-content>
       </ion-card>
@@ -159,8 +159,8 @@ import { SyncedCustomBackgroundService, CustomBackground } from '../services/syn
       <!-- Clear All Alert -->
       <ion-alert
         [isOpen]="showClearAlert"
-        header="Alle Hintergründe löschen?"
-        message="Diese Aktion kann nicht rückgängig gemacht werden."
+        header="Delete All Backgrounds?"
+        message="This action cannot be undone."
 [buttons]="clearAllButtons"
         (didDismiss)="showClearAlert = false">
       </ion-alert>
@@ -334,8 +334,8 @@ export class BackgroundUploadComponent {
   
   // Alert buttons
   clearAllButtons = [
-    { text: 'Abbrechen', role: 'cancel' },
-    { text: 'Löschen', role: 'destructive', handler: () => this.clearAllBackgrounds() }
+    { text: 'Cancel', role: 'cancel' },
+    { text: 'Delete', role: 'destructive', handler: () => this.clearAllBackgrounds() }
   ];
 
   constructor() {
@@ -434,7 +434,7 @@ export class BackgroundUploadComponent {
       this.backgroundUploaded.emit(result);
       
       // Show success toast
-      this.showSuccessToast('Hintergrund erfolgreich hochgeladen!');
+      this.showSuccessToast('Background uploaded successfully!');
       
       // Clear form after short delay
       setTimeout(() => {
@@ -480,7 +480,7 @@ export class BackgroundUploadComponent {
       this.showSuccessToast('Alle Hintergründe gelöscht');
       this.clearSelection();
     } catch {
-      this.showErrorToast('Fehler beim Löschen');
+      this.showErrorToast('Error deleting');
     }
   }
 

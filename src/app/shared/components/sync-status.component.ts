@@ -12,10 +12,10 @@ import { DatabaseService, SyncStatus } from '../../core/services/database.servic
       <span class="sync-icon">{{ syncIcon }}</span>
       <span class="sync-text">{{ syncText }}</span>
       <div class="sync-actions" *ngIf="showActions">
-        <button (click)="forcePush()" [disabled]="!canSync" title="Push lokale Änderungen">
+        <button (click)="forcePush()" [disabled]="!canSync" title="Push local changes">
           ↗️ Push
         </button>
-        <button (click)="forcePull()" [disabled]="!canSync" title="Pull Remote-Änderungen">
+        <button (click)="forcePull()" [disabled]="!canSync" title="Pull remote changes">
           ↙️ Pull
         </button>
       </div>
@@ -174,24 +174,24 @@ export class SyncStatusComponent implements OnInit, OnDestroy {
       // Truncate long error messages and provide meaningful short text
       const errorText = this.syncStatus.error;
       if (errorText.includes('not reachable') || errorText.includes('connection')) {
-        return 'DB nicht erreichbar';
+        return 'DB not reachable';
       }
       if (errorText.includes('timeout')) {
-        return 'Verbindung timeout';
+        return 'Connection timeout';
       }
       if (errorText.includes('auth')) {
-        return 'Anmeldung fehlgeschlagen';
+        return 'Login failed';
       }
       // Generic truncation for other errors
-      return errorText.length > 30 ? `Fehler: ${errorText.substring(0, 27)}...` : `Fehler: ${errorText}`;
+      return errorText.length > 30 ? `Error: ${errorText.substring(0, 27)}...` : `Error: ${errorText}`;
     }
-    if (this.syncStatus.isSync) return 'Synchronisiert...';
+    if (this.syncStatus.isSync) return 'Syncing...';
     if (!this.syncStatus.isOnline) return 'Offline';
     
     const lastSync = this.syncStatus.lastSync;
     if (lastSync) {
       const timeAgo = this.getTimeAgo(lastSync);
-      return `Synchron (${timeAgo})`;
+      return `Synced (${timeAgo})`;
     }
     
     return 'Online';
@@ -206,14 +206,14 @@ export class SyncStatusComponent implements OnInit, OnDestroy {
     const diffMs = now.getTime() - date.getTime();
     const diffMin = Math.floor(diffMs / 60000);
     
-    if (diffMin < 1) return 'gerade eben';
-    if (diffMin < 60) return `vor ${diffMin}m`;
+    if (diffMin < 1) return 'just now';
+    if (diffMin < 60) return `${diffMin}m ago`;
     
     const diffHours = Math.floor(diffMin / 60);
-    if (diffHours < 24) return `vor ${diffHours}h`;
+    if (diffHours < 24) return `${diffHours}h ago`;
     
     const diffDays = Math.floor(diffHours / 24);
-    return `vor ${diffDays}d`;
+    return `${diffDays}d ago`;
   }
 
   async forcePush() {

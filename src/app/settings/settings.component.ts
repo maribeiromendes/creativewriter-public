@@ -42,7 +42,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
             <ion-icon name="arrow-back" slot="icon-only"></ion-icon>
           </ion-button>
         </ion-buttons>
-        <ion-title>Einstellungen</ion-title>
+        <ion-title>Settings</ion-title>
         <ion-buttons slot="end">
           <ion-button fill="clear" color="medium" (click)="goToAILogs()" title="AI Request Logs">
             <ion-icon name="stats-chart" slot="start"></ion-icon>
@@ -50,7 +50,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
           </ion-button>
           <ion-chip [color]="hasUnsavedChanges ? 'warning' : 'success'">
             <ion-icon [name]="hasUnsavedChanges ? 'warning' : 'checkmark-circle'" slot="start"></ion-icon>
-            <ion-label>{{ hasUnsavedChanges ? 'Nicht gespeichert' : 'Gespeichert' }}</ion-label>
+            <ion-label>{{ hasUnsavedChanges ? 'Not saved' : 'Saved' }}</ion-label>
           </ion-chip>
         </ion-buttons>
       </ion-toolbar>
@@ -72,20 +72,20 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
             <!-- Global Model Selection -->
         <ion-card>
           <ion-card-header>
-            <ion-card-title>AI Model Auswahl</ion-card-title>
+            <ion-card-title>AI Model Selection</ion-card-title>
           </ion-card-header>
           <ion-card-content>
             <div class="model-selection-wrapper">
               <div class="model-selection-container">
                 <div class="model-header">
-                  <ion-label>Globales Model</ion-label>
+                  <ion-label>Global Model</ion-label>
                   <ion-button 
                     size="small"
                     fill="outline"
                     (click)="loadCombinedModels()" 
                     [disabled]="(!settings.openRouter.enabled || !settings.openRouter.apiKey) && (!settings.googleGemini.enabled || !settings.googleGemini.apiKey) || loadingModels"
-                    title="Modelle laden">
-                    {{ loadingModels ? 'Laden...' : 'Modelle laden' }}
+                    title="Load Models">
+                    {{ loadingModels ? 'Loading...' : 'Load Models' }}
                   </ion-button>
                 </div>
                 <ng-select [(ngModel)]="settings.selectedModel"
@@ -95,7 +95,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
                            [searchable]="true"
                            [clearable]="true"
                            [disabled]="(!settings.openRouter.enabled || !settings.openRouter.apiKey) && (!settings.googleGemini.enabled || !settings.googleGemini.apiKey)"
-                           placeholder="Modell auswählen oder suchen..."
+                           placeholder="Select or search model..."
                            (ngModelChange)="onGlobalModelChange()"
                            [loading]="loadingModels"
                            [virtualScroll]="true"
@@ -118,10 +118,10 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
                 <div class="model-info">
                   <p *ngIf="modelLoadError" class="error-text">{{ modelLoadError }}</p>
                   <p *ngIf="!modelLoadError && combinedModels.length > 0" class="info-text">
-                    {{ combinedModels.length }} Modelle verfügbar. Preise in EUR pro 1M Tokens.
+                    {{ combinedModels.length }} models available. Prices in EUR per 1M tokens.
                   </p>
                   <p *ngIf="!modelLoadError && combinedModels.length === 0 && (settings.openRouter.enabled || settings.googleGemini.enabled)" class="info-text">
-                    Klicken Sie "Modelle laden" um verfügbare Modelle anzuzeigen.
+                    Click 'Load Models' to display available models.
                   </p>
                 </div>
               </div>
@@ -136,7 +136,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
           </ion-card-header>
           <ion-card-content>
             <ion-item>
-              <ion-label>OpenRouter aktivieren</ion-label>
+              <ion-label>Enable OpenRouter</ion-label>
               <ion-toggle 
                 [(ngModel)]="settings.openRouter.enabled"
                 (ngModelChange)="onProviderToggle('openRouter')"
@@ -153,12 +153,12 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
                 [disabled]="!settings.openRouter.enabled"
                 label="API Key"
                 labelPlacement="stacked"
-                helperText="Ihren OpenRouter API Key finden Sie unter openrouter.ai/keys">
+                helperText="Find your OpenRouter API key at openrouter.ai/keys">
               </ion-input>
             </ion-item>
 
             <div class="model-info" [class.disabled]="!settings.openRouter.enabled">
-              <p class="info-text">Nutzen Sie die globale Model-Auswahl oben.</p>
+              <p class="info-text">Use the global model selection above.</p>
             </div>
 
             <div class="settings-row" [class.disabled]="!settings.openRouter.enabled">
@@ -199,7 +199,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
           </ion-card-header>
           <ion-card-content>
             <ion-item>
-              <ion-label>Replicate aktivieren</ion-label>
+              <ion-label>Enable Replicate</ion-label>
               <ion-toggle 
                 [(ngModel)]="settings.replicate.enabled"
                 (ngModelChange)="onProviderToggle('replicate')"
@@ -216,7 +216,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
                 [disabled]="!settings.replicate.enabled"
                 label="API Key"
                 labelPlacement="stacked"
-                helperText="Ihren Replicate API Key finden Sie unter replicate.com/account/api-tokens">
+                helperText="Find your Replicate API key at replicate.com/account/api-tokens">
               </ion-input>
             </ion-item>
 
@@ -230,7 +230,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
                     (click)="loadModels()" 
                     [disabled]="!settings.replicate.enabled || !settings.replicate.apiKey || loadingModels"
                     title="Modelle von Replicate laden">
-                    {{ loadingModels ? 'Laden...' : 'Modelle laden' }}
+                    {{ loadingModels ? 'Loading...' : 'Load Models' }}
                   </ion-button>
                 </div>
                 <ng-select [(ngModel)]="settings.replicate.model"
@@ -240,7 +240,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
                            [searchable]="true"
                            [clearable]="true"
                            [disabled]="!settings.replicate.enabled"
-                           placeholder="Modell auswählen oder suchen..."
+                           placeholder="Select or search model..."
                            (ngModelChange)="onSettingsChange()"
                            [loading]="loadingModels"
                            [virtualScroll]="true"
@@ -249,13 +249,13 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
                 <div class="model-info">
                   <p *ngIf="modelLoadError" class="error-text">{{ modelLoadError }}</p>
                   <p *ngIf="!modelLoadError && replicateModels.length > 0" class="info-text">
-                    {{ replicateModels.length }} Modelle verfügbar. Preise geschätzt in EUR pro 1M Tokens.
+                    {{ replicateModels.length }} models available. Estimated prices in EUR per 1M tokens.
                   </p>
                   <p *ngIf="!modelLoadError && replicateModels.length === 0 && settings.replicate.enabled" class="info-text">
-                    Klicken Sie "Modelle laden" um verfügbare Modelle anzuzeigen.
+                    Click 'Load Models' to display available models.
                   </p>
                   <p *ngIf="!settings.replicate.enabled" class="info-text">
-                    Format: owner/model-name (z.B. meta/llama-2-70b-chat)
+                    Format: owner/model-name (e.g. meta/llama-2-70b-chat)
                   </p>
                 </div>
               </div>
@@ -266,7 +266,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
                 type="text"
                 [(ngModel)]="settings.replicate.version"
                 (ngModelChange)="onSettingsChange()"
-                placeholder="Lassen Sie leer für die neueste Version"
+                placeholder="Leave empty for latest version"
                 [disabled]="!settings.replicate.enabled"
                 label="Version (optional)"
                 labelPlacement="stacked">
@@ -282,7 +282,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
           </ion-card-header>
           <ion-card-content>
             <ion-item>
-              <ion-label>Google Gemini aktivieren</ion-label>
+              <ion-label>Enable Google Gemini</ion-label>
               <ion-toggle 
                 [(ngModel)]="settings.googleGemini.enabled"
                 (ngModelChange)="onProviderToggle('googleGemini')"
@@ -299,12 +299,12 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
                 [disabled]="!settings.googleGemini.enabled"
                 label="API Key"
                 labelPlacement="stacked"
-                helperText="Ihren Google AI API Key finden Sie unter aistudio.google.com/app/apikey">
+                helperText="Find your Google AI API key at aistudio.google.com/app/apikey">
               </ion-input>
             </ion-item>
 
             <div class="model-info" [class.disabled]="!settings.googleGemini.enabled">
-              <p class="info-text">Nutzen Sie die globale Model-Auswahl oben.</p>
+              <p class="info-text">Use the global model selection above.</p>
             </div>
 
             <div class="settings-row" [class.disabled]="!settings.googleGemini.enabled">
@@ -338,82 +338,82 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
 
             <!-- Content Filter Settings -->
             <div *ngIf="settings.googleGemini.enabled" class="content-filter-section">
-              <h4 class="section-title">Content Filter Einstellungen</h4>
+              <h4 class="section-title">Content Filter Settings</h4>
               
               <ion-item>
-                <ion-label>Belästigung</ion-label>
+                <ion-label>Harassment</ion-label>
                 <ion-select
                   [(ngModel)]="settings.googleGemini.contentFilter.harassment"
                   (ngModelChange)="onSettingsChange()"
                   interface="popover"
                   slot="end">
-                  <ion-select-option value="BLOCK_NONE">Nicht blockieren</ion-select-option>
-                  <ion-select-option value="BLOCK_ONLY_HIGH">Nur hohe Risiken</ion-select-option>
-                  <ion-select-option value="BLOCK_MEDIUM_AND_ABOVE">Mittlere und hohe Risiken</ion-select-option>
-                  <ion-select-option value="BLOCK_LOW_AND_ABOVE">Niedrige und höhere Risiken</ion-select-option>
+                  <ion-select-option value="BLOCK_NONE">Don't Block</ion-select-option>
+                  <ion-select-option value="BLOCK_ONLY_HIGH">Only high risks</ion-select-option>
+                  <ion-select-option value="BLOCK_MEDIUM_AND_ABOVE">Medium and high risks</ion-select-option>
+                  <ion-select-option value="BLOCK_LOW_AND_ABOVE">Low and higher risks</ion-select-option>
                 </ion-select>
               </ion-item>
 
               <ion-item>
-                <ion-label>Hassrede</ion-label>
+                <ion-label>Hate Speech</ion-label>
                 <ion-select
                   [(ngModel)]="settings.googleGemini.contentFilter.hateSpeech"
                   (ngModelChange)="onSettingsChange()"
                   interface="popover"
                   slot="end">
-                  <ion-select-option value="BLOCK_NONE">Nicht blockieren</ion-select-option>
-                  <ion-select-option value="BLOCK_ONLY_HIGH">Nur hohe Risiken</ion-select-option>
-                  <ion-select-option value="BLOCK_MEDIUM_AND_ABOVE">Mittlere und hohe Risiken</ion-select-option>
-                  <ion-select-option value="BLOCK_LOW_AND_ABOVE">Niedrige und höhere Risiken</ion-select-option>
+                  <ion-select-option value="BLOCK_NONE">Don't Block</ion-select-option>
+                  <ion-select-option value="BLOCK_ONLY_HIGH">Only high risks</ion-select-option>
+                  <ion-select-option value="BLOCK_MEDIUM_AND_ABOVE">Medium and high risks</ion-select-option>
+                  <ion-select-option value="BLOCK_LOW_AND_ABOVE">Low and higher risks</ion-select-option>
                 </ion-select>
               </ion-item>
 
               <ion-item>
-                <ion-label>Sexuell explizit</ion-label>
+                <ion-label>Sexually Explicit</ion-label>
                 <ion-select
                   [(ngModel)]="settings.googleGemini.contentFilter.sexuallyExplicit"
                   (ngModelChange)="onSettingsChange()"
                   interface="popover"
                   slot="end">
-                  <ion-select-option value="BLOCK_NONE">Nicht blockieren</ion-select-option>
-                  <ion-select-option value="BLOCK_ONLY_HIGH">Nur hohe Risiken</ion-select-option>
-                  <ion-select-option value="BLOCK_MEDIUM_AND_ABOVE">Mittlere und hohe Risiken</ion-select-option>
-                  <ion-select-option value="BLOCK_LOW_AND_ABOVE">Niedrige und höhere Risiken</ion-select-option>
+                  <ion-select-option value="BLOCK_NONE">Don't Block</ion-select-option>
+                  <ion-select-option value="BLOCK_ONLY_HIGH">Only high risks</ion-select-option>
+                  <ion-select-option value="BLOCK_MEDIUM_AND_ABOVE">Medium and high risks</ion-select-option>
+                  <ion-select-option value="BLOCK_LOW_AND_ABOVE">Low and higher risks</ion-select-option>
                 </ion-select>
               </ion-item>
 
               <ion-item>
-                <ion-label>Gefährlicher Inhalt</ion-label>
+                <ion-label>Dangerous Content</ion-label>
                 <ion-select
                   [(ngModel)]="settings.googleGemini.contentFilter.dangerousContent"
                   (ngModelChange)="onSettingsChange()"
                   interface="popover"
                   slot="end">
-                  <ion-select-option value="BLOCK_NONE">Nicht blockieren</ion-select-option>
-                  <ion-select-option value="BLOCK_ONLY_HIGH">Nur hohe Risiken</ion-select-option>
-                  <ion-select-option value="BLOCK_MEDIUM_AND_ABOVE">Mittlere und hohe Risiken</ion-select-option>
-                  <ion-select-option value="BLOCK_LOW_AND_ABOVE">Niedrige und höhere Risiken</ion-select-option>
+                  <ion-select-option value="BLOCK_NONE">Don't Block</ion-select-option>
+                  <ion-select-option value="BLOCK_ONLY_HIGH">Only high risks</ion-select-option>
+                  <ion-select-option value="BLOCK_MEDIUM_AND_ABOVE">Medium and high risks</ion-select-option>
+                  <ion-select-option value="BLOCK_LOW_AND_ABOVE">Low and higher risks</ion-select-option>
                 </ion-select>
               </ion-item>
 
               <ion-item>
-                <ion-label>Bürgerliche Integrität</ion-label>
+                <ion-label>Civic Integrity</ion-label>
                 <ion-select
                   [(ngModel)]="settings.googleGemini.contentFilter.civicIntegrity"
                   (ngModelChange)="onSettingsChange()"
                   interface="popover"
                   slot="end">
-                  <ion-select-option value="BLOCK_NONE">Nicht blockieren</ion-select-option>
-                  <ion-select-option value="BLOCK_ONLY_HIGH">Nur hohe Risiken</ion-select-option>
-                  <ion-select-option value="BLOCK_MEDIUM_AND_ABOVE">Mittlere und hohe Risiken</ion-select-option>
-                  <ion-select-option value="BLOCK_LOW_AND_ABOVE">Niedrige und höhere Risiken</ion-select-option>
+                  <ion-select-option value="BLOCK_NONE">Don't Block</ion-select-option>
+                  <ion-select-option value="BLOCK_ONLY_HIGH">Only high risks</ion-select-option>
+                  <ion-select-option value="BLOCK_MEDIUM_AND_ABOVE">Medium and high risks</ion-select-option>
+                  <ion-select-option value="BLOCK_LOW_AND_ABOVE">Low and higher risks</ion-select-option>
                 </ion-select>
               </ion-item>
             </div>
 
             <div class="model-info" *ngIf="settings.googleGemini.enabled">
               <p class="info-text">
-                <strong>Content Filter:</strong> Konfigurierbare Sicherheitseinstellungen für verschiedene Inhaltskategorien.
+                <strong>Content Filter:</strong> Configurable safety settings for different content categories.
               </p>
             </div>
           </ion-card-content>
@@ -424,13 +424,13 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
           <div *ngSwitchCase="'appearance'">
             <ion-card>
           <ion-card-header>
-            <ion-card-title>Darstellung</ion-card-title>
+            <ion-card-title>Appearance</ion-card-title>
           </ion-card-header>
           <ion-card-content>
             <div class="appearance-section">
-              <h3>Textfarbe</h3>
+              <h3>Text Color</h3>
               <p class="appearance-description">
-                Diese Farbe wird für den Text im Story-Editor und Beat AI-Input verwendet.
+                This color is used for text in the story editor and Beat AI input.
               </p>
               <app-color-picker 
                 [color]="settings.appearance.textColor"
@@ -458,11 +458,11 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
           <div *ngSwitchCase="'scene-title'">
             <ion-card>
           <ion-card-header>
-            <ion-card-title>Szenentitel-Generierung</ion-card-title>
+            <ion-card-title>Scene Title Generation</ion-card-title>
           </ion-card-header>
           <ion-card-content>
             <ion-item>
-              <ion-label>Maximale Wortanzahl</ion-label>
+              <ion-label>Maximum Word Count</ion-label>
               <ion-range
                 [(ngModel)]="settings.sceneTitleGeneration.maxWords"
                 (ngModelChange)="onSettingsChange()"
@@ -478,33 +478,33 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
             </ion-item>
 
             <ion-item>
-              <ion-label>Stil</ion-label>
+              <ion-label>Style</ion-label>
               <ion-select
                 [(ngModel)]="settings.sceneTitleGeneration.style"
                 (ngModelChange)="onSettingsChange()"
                 interface="popover"
                 slot="end">
-                <ion-select-option value="concise">Knapp</ion-select-option>
-                <ion-select-option value="descriptive">Beschreibend</ion-select-option>
-                <ion-select-option value="action">Actionreich</ion-select-option>
+                <ion-select-option value="concise">Concise</ion-select-option>
+                <ion-select-option value="descriptive">Descriptive</ion-select-option>
+                <ion-select-option value="action">Action-packed</ion-select-option>
                 <ion-select-option value="emotional">Emotional</ion-select-option>
               </ion-select>
             </ion-item>
 
             <ion-item>
-              <ion-label>Sprache</ion-label>
+              <ion-label>Language</ion-label>
               <ion-select
                 [(ngModel)]="settings.sceneTitleGeneration.language"
                 (ngModelChange)="onSettingsChange()"
                 interface="popover"
                 slot="end">
-                <ion-select-option value="german">Deutsch</ion-select-option>
-                <ion-select-option value="english">Englisch</ion-select-option>
+                <ion-select-option value="german">German</ion-select-option>
+                <ion-select-option value="english">English</ion-select-option>
               </ion-select>
             </ion-item>
 
             <ion-item>
-              <ion-label>Genre berücksichtigen</ion-label>
+              <ion-label>Consider Genre</ion-label>
               <ion-toggle
                 [(ngModel)]="settings.sceneTitleGeneration.includeGenre"
                 (ngModelChange)="onSettingsChange()"
@@ -513,7 +513,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
             </ion-item>
 
             <ion-item>
-              <ion-label>Kreativität (Temperature)</ion-label>
+              <ion-label>Creativity (Temperature)</ion-label>
               <ion-range
                 [(ngModel)]="settings.sceneTitleGeneration.temperature"
                 (ngModelChange)="onSettingsChange()"
@@ -528,7 +528,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
             </ion-item>
             
             <ion-item>
-              <ion-label position="stacked">AI-Modell für Szenentitel</ion-label>
+              <ion-label position="stacked">AI Model for Scene Titles</ion-label>
               <div class="model-selection-container">
                 <ng-select [(ngModel)]="settings.sceneTitleGeneration.selectedModel"
                            [items]="combinedModels"
@@ -537,7 +537,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
                            [searchable]="true"
                            [clearable]="true"
                            [disabled]="(!settings.openRouter.enabled || !settings.openRouter.apiKey) && (!settings.googleGemini.enabled || !settings.googleGemini.apiKey)"
-                           placeholder="Modell auswählen (leer = globales Modell verwenden)"
+                           placeholder="Select model (empty = use global model)"
                            (ngModelChange)="onSceneTitleModelChange()"
                            [loading]="loadingModels"
                            [virtualScroll]="true"
@@ -559,28 +559,28 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
                 </ng-select>
                 <div class="model-info-small">
                   <p *ngIf="!settings.sceneTitleGeneration.selectedModel" class="info-text">
-                    Kein Modell ausgewählt - das globale Modell wird verwendet
+                    No model selected - the global model will be used
                   </p>
                   <p *ngIf="settings.sceneTitleGeneration.selectedModel" class="info-text">
-                    Spezifisches Modell für Szenentitel: {{ getModelDisplayName(settings.sceneTitleGeneration.selectedModel) }}
+                    Specific model for scene titles: {{ getModelDisplayName(settings.sceneTitleGeneration.selectedModel) }}
                   </p>
                 </div>
               </div>
             </ion-item>
 
             <ion-item>
-              <ion-label position="stacked">Zusätzliche Anweisungen (optional)</ion-label>
+              <ion-label position="stacked">Additional Instructions (optional)</ion-label>
               <ion-textarea
                 [(ngModel)]="settings.sceneTitleGeneration.customInstruction"
                 (ngModelChange)="onSettingsChange()"
-                placeholder="z.B. 'Verwende keine Artikel' oder 'Fokussiere auf Emotionen'"
+                placeholder="e.g. 'Don't use articles' or 'Focus on emotions'"
                 rows="3"
                 auto-grow="true">
               </ion-textarea>
             </ion-item>
             
             <ion-item>
-              <ion-label>Benutzerdefinierten Prompt verwenden</ion-label>
+              <ion-label>Use Custom Prompt</ion-label>
               <ion-toggle
                 [(ngModel)]="settings.sceneTitleGeneration.useCustomPrompt"
                 (ngModelChange)="onSettingsChange()"
@@ -590,15 +590,15 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
             
             <ion-item *ngIf="settings.sceneTitleGeneration.useCustomPrompt">
               <ion-label position="stacked">
-                Benutzerdefinierter Prompt
+                Custom Prompt
                 <p class="prompt-help">
-                  Verfügbare Platzhalter: {{ '{' }}maxWords{{ '}' }}, {{ '{' }}styleInstruction{{ '}' }}, {{ '{' }}genreInstruction{{ '}' }}, {{ '{' }}languageInstruction{{ '}' }}, {{ '{' }}customInstruction{{ '}' }}, {{ '{' }}sceneContent{{ '}' }}
+                  Available placeholders: {{ '{' }}maxWords{{ '}' }}, {{ '{' }}styleInstruction{{ '}' }}, {{ '{' }}genreInstruction{{ '}' }}, {{ '{' }}languageInstruction{{ '}' }}, {{ '{' }}customInstruction{{ '}' }}, {{ '{' }}sceneContent{{ '}' }}
                 </p>
               </ion-label>
               <ion-textarea
                 [(ngModel)]="settings.sceneTitleGeneration.customPrompt"
                 (ngModelChange)="onSettingsChange()"
-                placeholder="Erstelle einen kurzen Titel für die folgende Szene..."
+                placeholder="Create a short title for the following scene..."
                 rows="8"
                 auto-grow="true">
               </ion-textarea>
@@ -606,7 +606,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
             
             <ion-item *ngIf="settings.sceneTitleGeneration.useCustomPrompt">
               <ion-button fill="outline" size="small" (click)="resetToDefaultPrompt()">
-                Standard-Prompt wiederherstellen
+                Restore Default Prompt
               </ion-button>
             </ion-item>
           </ion-card-content>
@@ -617,11 +617,11 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
           <div *ngSwitchCase="'scene-summary'">
             <ion-card>
           <ion-card-header>
-            <ion-card-title>Szenen-Zusammenfassung</ion-card-title>
+            <ion-card-title>Scene Summary</ion-card-title>
           </ion-card-header>
           <ion-card-content>
             <ion-item>
-              <ion-label>Kreativität (Temperature)</ion-label>
+              <ion-label>Creativity (Temperature)</ion-label>
               <ion-range
                 [(ngModel)]="settings.sceneSummaryGeneration.temperature"
                 (ngModelChange)="onSettingsChange()"
@@ -636,7 +636,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
             </ion-item>
 
             <ion-item>
-              <ion-label position="stacked">AI-Modell für Szenen-Zusammenfassung</ion-label>
+              <ion-label position="stacked">AI Model for Scene Summary</ion-label>
               <div class="model-selection-container">
                 <ng-select [(ngModel)]="settings.sceneSummaryGeneration.selectedModel"
                            [items]="combinedModels"
@@ -645,7 +645,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
                            [searchable]="true"
                            [clearable]="true"
                            [disabled]="(!settings.openRouter.enabled || !settings.openRouter.apiKey) && (!settings.googleGemini.enabled || !settings.googleGemini.apiKey)"
-                           placeholder="Modell auswählen (leer = globales Modell verwenden)"
+                           placeholder="Select model (empty = use global model)"
                            (ngModelChange)="onSceneSummaryModelChange()"
                            [loading]="loadingModels"
                            [virtualScroll]="true"
@@ -663,28 +663,28 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
                 </ng-select>
                 <div class="model-info-small">
                   <p *ngIf="!settings.sceneSummaryGeneration.selectedModel" class="info-text">
-                    Kein Modell ausgewählt - das globale Modell wird verwendet
+                    No model selected - the global model will be used
                   </p>
                   <p *ngIf="settings.sceneSummaryGeneration.selectedModel" class="info-text">
-                    Spezifisches Modell für Szenen-Zusammenfassung: {{ getModelDisplayName(settings.sceneSummaryGeneration.selectedModel) }}
+                    Specific model for scene summary: {{ getModelDisplayName(settings.sceneSummaryGeneration.selectedModel) }}
                   </p>
                 </div>
               </div>
             </ion-item>
 
             <ion-item>
-              <ion-label position="stacked">Zusätzliche Anweisungen (optional)</ion-label>
+              <ion-label position="stacked">Additional Instructions (optional)</ion-label>
               <ion-textarea
                 [(ngModel)]="settings.sceneSummaryGeneration.customInstruction"
                 (ngModelChange)="onSettingsChange()"
-                placeholder="z.B. 'Fokussiere auf emotionale Aspekte' oder 'Erwähne wichtige Objekte'"
+                placeholder="e.g. 'Focus on emotional aspects' or 'Mention important objects'"
                 rows="3"
                 auto-grow="true">
               </ion-textarea>
             </ion-item>
 
             <ion-item>
-              <ion-label>Benutzerdefinierten Prompt verwenden</ion-label>
+              <ion-label>Use Custom Prompt</ion-label>
               <ion-toggle
                 [(ngModel)]="settings.sceneSummaryGeneration.useCustomPrompt"
                 (ngModelChange)="onSettingsChange()"
@@ -694,15 +694,15 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
             
             <ion-item *ngIf="settings.sceneSummaryGeneration.useCustomPrompt">
               <ion-label position="stacked">
-                Benutzerdefinierter Prompt
+                Custom Prompt
                 <p class="prompt-help">
-                  Verfügbare Platzhalter: {{ '{' }}sceneTitle{{ '}' }}, {{ '{' }}sceneContent{{ '}' }}, {{ '{' }}customInstruction{{ '}' }}
+                  Available placeholders: {{ '{' }}sceneTitle{{ '}' }}, {{ '{' }}sceneContent{{ '}' }}, {{ '{' }}customInstruction{{ '}' }}
                 </p>
               </ion-label>
               <ion-textarea
                 [(ngModel)]="settings.sceneSummaryGeneration.customPrompt"
                 (ngModelChange)="onSettingsChange()"
-                placeholder="Erstelle eine Zusammenfassung der folgenden Szene..."
+                placeholder="Create a summary of the following scene..."
                 rows="8"
                 auto-grow="true">
               </ion-textarea>
@@ -710,7 +710,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
             
             <ion-item *ngIf="settings.sceneSummaryGeneration.useCustomPrompt">
               <ion-button fill="outline" size="small" (click)="resetToDefaultSummaryPrompt()">
-                Standard-Prompt wiederherstellen
+                Restore Default Prompt
               </ion-button>
             </ion-item>
           </ion-card-content>
@@ -721,10 +721,10 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
         <!-- Actions -->
         <div class="settings-actions">
           <ion-button expand="block" color="primary" (click)="saveSettings()" [disabled]="!hasUnsavedChanges">
-            Einstellungen speichern
+            Save Settings
           </ion-button>
           <ion-button expand="block" fill="outline" color="medium" (click)="resetSettings()">
-            Auf Standard zurücksetzen
+            Reset to Default
           </ion-button>
         </div>
       </app-settings-content>
@@ -1447,10 +1447,10 @@ export class SettingsComponent implements OnInit, OnDestroy {
   // Tab control
   selectedTab = 'models';
   tabItems: TabItem[] = [
-    { value: 'models', icon: 'cloud-outline', label: 'AI Modelle' },
-    { value: 'appearance', icon: 'color-palette-outline', label: 'Darstellung' },
-    { value: 'scene-title', icon: 'document-text-outline', label: 'Szenentitel' },
-    { value: 'scene-summary', icon: 'list-outline', label: 'Szenen-Zusammenfassung' }
+    { value: 'models', icon: 'cloud-outline', label: 'AI Models' },
+    { value: 'appearance', icon: 'color-palette-outline', label: 'Appearance' },
+    { value: 'scene-title', icon: 'document-text-outline', label: 'Scene Titles' },
+    { value: 'scene-summary', icon: 'list-outline', label: 'Scene Summary' }
   ];
 
   constructor() {
@@ -1534,7 +1534,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
   }
 
   resetSettings(): void {
-    if (confirm('Sind Sie sicher, dass Sie alle Einstellungen auf die Standardwerte zurücksetzen möchten?')) {
+    if (confirm('Are you sure you want to reset all settings to default values?')) {
       this.settingsService.clearSettings();
       // Clear preview background
       this.backgroundService.clearPreviewBackground();
@@ -1547,7 +1547,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
       next: () => { /* Do nothing - models are loaded */ },
       error: (error) => {
         console.error('Failed to load models:', error);
-        this.modelLoadError = 'Fehler beim Laden der Modelle. Überprüfen Sie Ihre API-Keys und Internetverbindung.';
+        this.modelLoadError = 'Error loading models. Check your API keys and internet connection.';
       }
     });
   }
@@ -1645,7 +1645,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
   goBack(): void {
     if (this.hasUnsavedChanges) {
-      if (confirm('Sie haben ungespeicherte Änderungen. Möchten Sie die Seite wirklich verlassen?')) {
+      if (confirm('You have unsaved changes. Do you really want to leave the page?')) {
         // Clear preview background since we're discarding changes
         this.backgroundService.clearPreviewBackground();
         this.router.navigate(['/']);
@@ -1659,7 +1659,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
   goToAILogs(): void {
     if (this.hasUnsavedChanges) {
-      if (confirm('Sie haben ungespeicherte Änderungen. Möchten Sie die Seite wirklich verlassen?')) {
+      if (confirm('You have unsaved changes. Do you really want to leave the page?')) {
         // Clear preview background since we're discarding changes
         this.backgroundService.clearPreviewBackground();
         this.router.navigate(['/logs']);
@@ -1680,7 +1680,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         console.error('Failed to load combined models:', error);
-        this.modelLoadError = 'Fehler beim Laden der Modelle. Überprüfen Sie Ihre API-Keys und Internetverbindung.';
+        this.modelLoadError = 'Error loading models. Check your API keys and internet connection.';
       }
     });
   }
@@ -1703,7 +1703,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
   }
 
   resetToDefaultPrompt(): void {
-    const defaultPrompt = 'Erstelle einen Titel für die folgende Szene. Der Titel soll bis zu {maxWords} Wörter lang sein und den Kern der Szene erfassen.\n\n{styleInstruction}\n{genreInstruction}\n{languageInstruction}{customInstruction}\n\nSzenencontent (nur diese eine Szene):\n{sceneContent}\n\nAntworte nur mit dem Titel, ohne weitere Erklärungen oder Anführungszeichen.';
+    const defaultPrompt = 'Create a title for the following scene. The title should be up to {maxWords} words long and capture the essence of the scene.\n\n{styleInstruction}\n{genreInstruction}\n{languageInstruction}{customInstruction}\n\nScene content (only this one scene):\n{sceneContent}\n\nRespond only with the title, without further explanations or quotes.';
     this.settings.sceneTitleGeneration.customPrompt = defaultPrompt;
     this.onSettingsChange();
   }
@@ -1713,7 +1713,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
   }
 
   resetToDefaultSummaryPrompt(): void {
-    const defaultPrompt = 'Erstelle eine Zusammenfassung der folgenden Szene:\n\nTitel: {sceneTitle}\n\nInhalt:\n{sceneContent}\n\nDie Zusammenfassung soll die wichtigsten Handlungspunkte und Charakterentwicklungen erfassen. Schreibe eine vollständige und umfassende Zusammenfassung mit mindestens 3-5 Sätzen.';
+    const defaultPrompt = 'Create a summary of the following scene:\n\nTitle: {sceneTitle}\n\nContent:\n{sceneContent}\n\nThe summary should capture the most important plot points and character developments. Write a complete and comprehensive summary with at least 3-5 sentences.';
     this.settings.sceneSummaryGeneration.customPrompt = defaultPrompt;
     this.onSettingsChange();
   }
@@ -1747,7 +1747,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
   }
 
   getModelDisplayName(modelId: string): string {
-    if (!modelId) return 'Globales Modell';
+    if (!modelId) return 'Global Model';
     
     // Find the model in available models to get its display name
     const model = this.combinedModels.find(m => m.id === modelId);

@@ -57,12 +57,12 @@ export class HeaderNavigationService {
       },
       {
         icon: 'settings',
-        label: 'Einstellungen',
+        label: 'Settings',
         action: () => this.goToSettings()
       },
       {
         icon: 'images',
-        label: 'Bildgenerierung',
+        label: 'Image Generation',
         action: () => this.goToImageGeneration()
       },
       {

@@ -53,7 +53,7 @@ interface SceneContext {
               *ngIf="beatData.isEditing || !beatData.prompt" 
               class="action-btn context-btn"
               (click)="showSceneSelector = true; $event.stopPropagation()"
-              title="Kontext auswählen">
+              title="Select context">
               <ion-icon name="add-outline"></ion-icon>
             </button>
             <button 
@@ -61,28 +61,28 @@ interface SceneContext {
               class="action-btn outline-btn"
               [class.active]="includeStoryOutline"
               (click)="includeStoryOutline = !includeStoryOutline; $event.stopPropagation()"
-              title="Geschichte-Überblick ein-/ausschließen">
+              title="Include/exclude story overview">
               <ion-icon name="reader-outline"></ion-icon>
             </button>
             <button 
               *ngIf="!beatData.isEditing && beatData.prompt" 
               class="action-btn edit-btn"
               (click)="startEditing(); $event.stopPropagation()"
-              title="Prompt bearbeiten">
+              title="Edit prompt">
               <ion-icon name="create-outline"></ion-icon>
             </button>
             <button 
               *ngIf="beatData.generatedContent && !beatData.isGenerating" 
               class="action-btn regenerate-btn"
               (click)="regenerateContent(); $event.stopPropagation()"
-              title="Neu generieren">
+              title="Regenerate">
               <ion-icon name="refresh-outline"></ion-icon>
             </button>
             <button 
               *ngIf="beatData.generatedContent && !beatData.isGenerating" 
               class="action-btn delete-btn"
               (click)="deleteContentAfterBeat(); $event.stopPropagation()"
-              title="Text nach diesem Beat löschen">
+              title="Delete text after this beat">
               <ion-icon name="trash-outline"></ion-icon>
             </button>
           </div>
@@ -91,7 +91,7 @@ interface SceneContext {
         <!-- Context Chips -->
         <div class="context-chips" *ngIf="selectedScenes.length > 0 || includeStoryOutline">
           <ion-chip *ngIf="includeStoryOutline" color="success">
-            <ion-label>Geschichte-Überblick</ion-label>
+            <ion-label>Story Overview</ion-label>
             <ion-icon 
               name="close-outline" 
               (click)="includeStoryOutline = false; $event.stopPropagation()">
@@ -122,7 +122,7 @@ interface SceneContext {
                            bindValue="value"
                            [clearable]="false"
                            [searchable]="false"
-                           placeholder="Beat-Typ wählen..."
+                           placeholder="Choose beat type..."
                            class="model-select"
                            appendTo="body"
                            (change)="onBeatTypeChange()">
@@ -141,7 +141,7 @@ interface SceneContext {
                            bindValue="value"
                            [clearable]="false"
                            [searchable]="false"
-                           placeholder="Wortanzahl wählen..."
+                           placeholder="Choose word count..."
                            class="model-select"
                            appendTo="body"
                            (change)="onWordCountChange()">
@@ -177,7 +177,7 @@ interface SceneContext {
                            bindValue="id"
                            [clearable]="false"
                            [searchable]="true"
-                           placeholder="Modell auswählen..."
+                           placeholder="Select model..."
                            class="model-select"
                            appendTo="body"
                            (change)="onModelChange()">
@@ -188,7 +188,7 @@ interface SceneContext {
                       <button class="favorite-toggle"
                               (click)="toggleFavorite($event, item)"
                               [class.is-favorite]="isFavorite(item.id)"
-                              title="Als Favorit markieren">
+                              title="Mark as favorite">
                         ⭐
                       </button>
                     </div>
@@ -200,7 +200,7 @@ interface SceneContext {
                       <button class="favorite-toggle"
                               (click)="toggleFavorite($event, item)"
                               [class.is-favorite]="isFavorite(item.id)"
-                              title="Als Favorit markieren">
+                              title="Mark as favorite">
                         ⭐
                       </button>
                     </div>
@@ -215,14 +215,14 @@ interface SceneContext {
               class="generate-btn primary"
               (click)="generateContent(); $event.stopPropagation()"
               [disabled]="!currentPrompt.trim() || beatData.isGenerating || !selectedModel">
-              Generieren
+              Generate
             </button>
             <button 
               class="generate-btn primary"
               (click)="showPromptPreview(); $event.stopPropagation()"
               [disabled]="!currentPrompt.trim()"
-              title="Prompt-Vorschau anzeigen">
-              👁️ Vorschau
+              title="Show prompt preview">
+              👁️ Preview
             </button>
             <button 
               class="generate-btn secondary"
@@ -235,7 +235,7 @@ interface SceneContext {
               *ngIf="beatData.prompt && beatData.isEditing"
               class="cancel-btn"
               (click)="cancelEditing(); $event.stopPropagation()">
-              Abbrechen
+              Cancel
             </button>
           </div>
         </div>
@@ -264,8 +264,8 @@ interface SceneContext {
         <button 
           class="stop-btn"
           (click)="stopGeneration(); $event.stopPropagation()"
-          title="Generierung stoppen">
-          ⏹️ Stoppen
+          title="Stop generation">
+          ⏹️ Stop
         </button>
       </div>
     </div>
@@ -276,7 +276,7 @@ interface SceneContext {
       <ng-template>
         <ion-header>
           <ion-toolbar>
-            <ion-title>Szenen als Kontext hinzufügen</ion-title>
+            <ion-title>Add Scenes as Context</ion-title>
             <ion-buttons slot="end">
               <ion-button (click)="showSceneSelector = false">
                 <ion-icon name="close-outline" slot="icon-only"></ion-icon>
@@ -1272,28 +1272,28 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
   favoriteModels: ModelOption[] = [];
   selectedBeatType: 'story' | 'scene' = 'story';
   beatTypeOptions = [
-    { value: 'story', label: 'StoryBeat', description: 'Mit vollständigem Story-Kontext' },
+    { value: 'story', label: 'StoryBeat', description: 'With complete story context' },
     { value: 'scene', label: 'SceneBeat', description: 'Ohne Szenen-Zusammenfassungen' }
   ];
   wordCountOptions = [
-    { value: 20, label: '~20 Wörter' },
-    { value: 50, label: '~50 Wörter' },
-    { value: 100, label: '~100 Wörter' },
-    { value: 200, label: '~200 Wörter' },
-    { value: 400, label: '~400 Wörter' },
-    { value: 600, label: '~600 Wörter' },
-    { value: 800, label: '~800 Wörter' },
-    { value: 1000, label: '~1.000 Wörter' },
-    { value: 1500, label: '~1.500 Wörter' },
-    { value: 2000, label: '~2.000 Wörter' },
-    { value: 3000, label: '~3.000 Wörter' },
-    { value: 5000, label: '~5.000 Wörter' },
-    { value: 8000, label: '~8.000 Wörter' },
-    { value: 10000, label: '~10.000 Wörter' },
-    { value: 12000, label: '~12.000 Wörter' },
-    { value: 'custom', label: 'Eigene Anzahl...' }
+    { value: 20, label: '~20 words' },
+    { value: 50, label: '~50 words' },
+    { value: 100, label: '~100 words' },
+    { value: 200, label: '~200 words' },
+    { value: 400, label: '~400 words' },
+    { value: 600, label: '~600 words' },
+    { value: 800, label: '~800 words' },
+    { value: 1000, label: '~1,000 words' },
+    { value: 1500, label: '~1,500 words' },
+    { value: 2000, label: '~2,000 words' },
+    { value: 3000, label: '~3,000 words' },
+    { value: 5000, label: '~5,000 words' },
+    { value: 8000, label: '~8,000 words' },
+    { value: 10000, label: '~10,000 words' },
+    { value: 12000, label: '~12,000 words' },
+    { value: 'custom', label: 'Custom amount...' }
   ];
-  copyButtonText = 'Kopieren';
+  copyButtonText = 'Copy';
   
   // Context selection properties
   story: Story | null = null;
@@ -1399,7 +1399,7 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
     if (!this.promptInput || this.editorView) return;
 
     const config: SimpleEditorConfig = {
-      placeholder: 'Beschreibe den Beat, den die AI generieren soll...',
+      placeholder: 'Describe the beat that the AI should generate...',
       onUpdate: (content: string) => {
         this.currentPrompt = content;
         this.onPromptChange();
@@ -1533,7 +1533,7 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
   }
   
   deleteContentAfterBeat(): void {
-    if (confirm('Möchten Sie wirklich den gesamten Text nach diesem Beat löschen? Diese Aktion kann nicht rückgängig gemacht werden.')) {
+    if (confirm('Do you really want to delete all text after this beat? This action cannot be undone.')) {
       this.promptSubmit.emit({
         beatId: this.beatData.id,
         action: 'deleteAfter',
@@ -2134,7 +2134,7 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
       // Brief visual feedback
       this.copyButtonText = 'Kopiert!';
       setTimeout(() => {
-        this.copyButtonText = 'Kopieren';
+        this.copyButtonText = 'Copy';
       }, 1500);
     } catch (err) {
       console.error('Failed to copy text: ', err);
@@ -2158,7 +2158,7 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
       if (successful) {
         this.copyButtonText = 'Kopiert!';
         setTimeout(() => {
-          this.copyButtonText = 'Kopieren';
+          this.copyButtonText = 'Copy';
         }, 1500);
       }
     } catch (err) {

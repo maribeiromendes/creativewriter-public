@@ -42,7 +42,7 @@ import { Subscription } from 'rxjs';
               <ion-icon name="arrow-back" slot="icon-only"></ion-icon>
             </ion-button>
           </ion-buttons>
-          <ion-title>Bildgenerierung</ion-title>
+          <ion-title>Image Generation</ion-title>
           <ion-buttons slot="end">
             <ion-button (click)="clearHistory()">
               <ion-icon name="refresh-outline" slot="icon-only"></ion-icon>
@@ -101,7 +101,7 @@ import { Subscription } from 'rxjs';
                   <ion-label position="stacked">{{ input.description }} *</ion-label>
                   <ion-textarea 
                     [(ngModel)]="parameters[input.name]" 
-                    [placeholder]="'Beschreibe das Bild, das du generieren möchtest...'"
+                    [placeholder]="'Describe the image you want to generate...'"
                     rows="3"
                     required>
                   </ion-textarea>
@@ -152,10 +152,10 @@ import { Subscription } from 'rxjs';
                 (click)="generateImage()"
                 [disabled]="isGenerating || !parameters['prompt']">
                 <ion-icon name="image-outline" slot="start"></ion-icon>
-                <span *ngIf="!isGenerating">Bild Generieren</span>
+                <span *ngIf="!isGenerating">Generate Image</span>
                 <span *ngIf="isGenerating">
                   <ion-spinner name="crescent"></ion-spinner>
-                  Generiere...
+                  Generating...
                 </span>
               </ion-button>
             </ion-card-content>
@@ -166,7 +166,7 @@ import { Subscription } from 'rxjs';
             <ion-card-header>
               <ion-card-title>
                 <ion-icon name="time-outline"></ion-icon>
-                Verlauf
+                History
               </ion-card-title>
             </ion-card-header>
             <ion-card-content>
@@ -193,7 +193,7 @@ import { Subscription } from 'rxjs';
                       <!-- Multiple images gallery -->
                       <div class="job-images" *ngIf="job.imageUrls && job.imageUrls.length > 1">
                         <div class="images-header">
-                          <span class="image-count">{{ job.imageUrls.length }} Bilder generiert</span>
+                          <span class="image-count">{{ job.imageUrls.length }} images generated</span>
                         </div>
                         <div class="images-grid">
                           <div 
@@ -202,7 +202,7 @@ import { Subscription } from 'rxjs';
                           >
                             <ion-img 
                               [src]="imageUrl" 
-                              [alt]="job.prompt + ' - Bild ' + (i + 1)"
+                              [alt]="job.prompt + ' - Image ' + (i + 1)"
                               (click)="viewImage(imageUrl)"
                               class="thumbnail-image">
                             </ion-img>
@@ -627,7 +627,7 @@ export class ImageGenerationComponent implements OnInit, OnDestroy {
           next: (job) => {
             this.isGenerating = false;
             if (job.status === 'completed') {
-              this.showToastMessage('Bild erfolgreich generiert!');
+              this.showToastMessage('Image generated successfully!');
             }
           },
           error: (error) => {
@@ -662,9 +662,9 @@ export class ImageGenerationComponent implements OnInit, OnDestroy {
 
   getStatusText(status: string): string {
     switch (status) {
-      case 'completed': return 'Fertig';
+      case 'completed': return 'Done';
       case 'failed': return 'Fehler';
-      case 'processing': return 'Generiere';
+      case 'processing': return 'Generating';
       case 'pending': return 'Wartend';
       default: return status;
     }
@@ -696,7 +696,7 @@ export class ImageGenerationComponent implements OnInit, OnDestroy {
 
   clearHistory(): void {
     this.imageGenService.clearJobs();
-    this.showToastMessage('Verlauf gelöscht');
+    this.showToastMessage('History deleted');
   }
 
   goBack(): void {

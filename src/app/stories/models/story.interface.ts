@@ -24,7 +24,7 @@ export interface StorySettings {
   systemMessage: string;
   beatGenerationTemplate: string; // Advanced template for beat generation
   useFullStoryContext: boolean; // true = full story, false = summaries only
-  beatInstruction: 'continue' | 'stay'; // continue = "Setze die Geschichte fort", stay = "Bleibe im Moment"
+  beatInstruction: 'continue' | 'stay'; // continue = "Continue the story", stay = "Stay in the moment"
 }
 
 export interface Story {
@@ -44,7 +44,7 @@ export interface Story {
 }
 
 export const DEFAULT_STORY_SETTINGS: StorySettings = {
-  systemMessage: 'Du bist ein kreativer Schreibassistent, der beim Verfassen von Geschichten hilft. Behalte den Stil und Ton der bisherigen Geschichte bei.',
+  systemMessage: 'You are a creative writing assistant that helps with writing stories. Maintain the style and tone of the existing story.',
   beatGenerationTemplate: `<messages>
 <message role="system">{systemMessage}</message>
 <message role="user">You are continuing a story. Here is the context:

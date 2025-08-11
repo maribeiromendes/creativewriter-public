@@ -53,7 +53,7 @@ export class AuthService {
         .substring(0, 20);
 
       if (!sanitizedUsername) {
-        reject(new Error('Ungültiger Benutzername'));
+        reject(new Error('Invalid username'));
         return;
       }
 

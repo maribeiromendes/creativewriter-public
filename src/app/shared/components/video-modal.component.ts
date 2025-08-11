@@ -13,8 +13,8 @@ import { StoredVideo } from '../models/video.interface';
       <div class="modal-content" (click)="$event.stopPropagation()" (keyup)="$event.stopPropagation()" tabindex="0">
         <!-- Header -->
         <div class="modal-header">
-          <h3>{{ hasVideo ? 'Video ansehen' : 'Video hinzufügen' }}</h3>
-          <button class="close-btn" (click)="closeModal()" aria-label="Schließen">✕</button>
+          <h3>{{ hasVideo ? 'View Video' : 'Add Video' }}</h3>
+          <button class="close-btn" (click)="closeModal()" aria-label="Close">✕</button>
         </div>
 
         <!-- Video Display Mode -->
@@ -27,7 +27,7 @@ import { StoredVideo } from '../models/video.interface';
             preload="metadata"
             (loadedmetadata)="onVideoLoaded()"
             (error)="onVideoError()">
-            Ihr Browser unterstützt das Video-Element nicht.
+            Your browser does not support the video element.
           </video>
           
           <div class="video-info">
@@ -36,8 +36,8 @@ import { StoredVideo } from '../models/video.interface';
           </div>
 
           <div class="video-actions">
-            <button class="replace-btn" (click)="startUpload()">Video ersetzen</button>
-            <button class="remove-btn" (click)="removeVideo()">Video entfernen</button>
+            <button class="replace-btn" (click)="startUpload()">Replace Video</button>
+            <button class="remove-btn" (click)="removeVideo()">Remove Video</button>
           </div>
         </div>
 
@@ -56,9 +56,9 @@ import { StoredVideo } from '../models/video.interface';
               accept="video/*"
               style="display: none;">
             <button class="upload-btn" (click)="fileInput.click()" [disabled]="isProcessing">
-              📹 Video auswählen
+              📹 Select Video
             </button>
-            <p class="upload-hint">oder Video hier ablegen (max. 50MB)</p>
+            <p class="upload-hint">or drop video here (max. 50MB)</p>
           </div>
 
           <div *ngIf="uploadPreview" class="preview-section">
@@ -67,25 +67,25 @@ import { StoredVideo } from '../models/video.interface';
               class="preview-video"
               controls
               preload="metadata">
-              Ihr Browser unterstützt das Video-Element nicht.
+              Your browser does not support the video element.
             </video>
             <button class="remove-preview-btn" (click)="removeUploadPreview()">✕</button>
           </div>
 
           <div *ngIf="isProcessing" class="processing-indicator">
             <div class="loading-spinner"></div>
-            <p>Video wird verarbeitet...</p>
+            <p>Processing video...</p>
           </div>
 
           <div class="upload-actions" *ngIf="uploadPreview && !isProcessing">
-            <button class="cancel-upload-btn" (click)="cancelUpload()">Abbrechen</button>
-            <button class="save-btn" (click)="saveVideo()">Video speichern</button>
+            <button class="cancel-upload-btn" (click)="cancelUpload()">Cancel</button>
+            <button class="save-btn" (click)="saveVideo()">Save Video</button>
           </div>
         </div>
 
         <!-- Footer -->
         <div class="modal-footer" *ngIf="!isUploading && !uploadPreview">
-          <button class="close-footer-btn" (click)="closeModal()">Schließen</button>
+          <button class="close-footer-btn" (click)="closeModal()">Close</button>
         </div>
       </div>
     </div>
@@ -461,7 +461,7 @@ export class VideoModalComponent implements OnInit, OnDestroy, OnChanges {
       this.hasVideo = !!this.currentVideo;
       console.log('Found video for image:', !!this.currentVideo, this.currentVideo);
     } catch (error) {
-      console.error('Fehler beim Laden des Videos:', error);
+      console.error('Error loading video:', error);
       this.hasVideo = false;
     }
   }
@@ -497,12 +497,12 @@ export class VideoModalComponent implements OnInit, OnDestroy, OnChanges {
 
   private handleFile(file: File): void {
     if (!file.type.startsWith('video/')) {
-      alert('Bitte wählen Sie eine Videodatei aus.');
+      alert('Please select a video file.');
       return;
     }
 
     if (file.size > 50 * 1024 * 1024) { // 50MB limit
-      alert('Video ist zu groß. Maximale Größe: 50MB');
+      alert('Video is too large. Maximum size: 50MB');
       return;
     }
 
@@ -539,11 +539,11 @@ export class VideoModalComponent implements OnInit, OnDestroy, OnChanges {
         this.cleanupUpload();
         this.isUploading = false;
       } else {
-        throw new Error('Fehler beim Verknüpfen von Bild und Video');
+        throw new Error('Error linking image and video');
       }
     } catch (error) {
-      console.error('Fehler beim Speichern des Videos:', error);
-      alert('Fehler beim Speichern des Videos. Bitte versuchen Sie es erneut.');
+      console.error('Error saving video:', error);
+      alert('Error saving video. Please try again.');
     } finally {
       this.isProcessing = false;
     }
@@ -561,7 +561,7 @@ export class VideoModalComponent implements OnInit, OnDestroy, OnChanges {
   async removeVideo(): Promise<void> {
     if (!this.imageId || !this.currentVideo) return;
 
-    const confirmed = confirm('Möchten Sie die Verknüpfung zwischen Bild und Video wirklich entfernen?');
+    const confirmed = confirm('Do you really want to remove the link between image and video?');
     if (!confirmed) return;
 
     try {
@@ -569,8 +569,8 @@ export class VideoModalComponent implements OnInit, OnDestroy, OnChanges {
       this.currentVideo = null;
       this.hasVideo = false;
     } catch (error) {
-      console.error('Fehler beim Entfernen der Verknüpfung:', error);
-      alert('Fehler beim Entfernen der Verknüpfung.');
+      console.error('Error removing association:', error);
+      alert('Error removing association.');
     }
   }
 
@@ -586,8 +586,8 @@ export class VideoModalComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   onVideoError(): void {
-    console.error('Fehler beim Laden des Videos');
-    alert('Fehler beim Laden des Videos.');
+    console.error('Error loading video');
+    alert('Error loading video.');
   }
 
   private pauseVideo(): void {

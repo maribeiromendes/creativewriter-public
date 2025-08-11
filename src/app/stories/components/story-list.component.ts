@@ -30,7 +30,7 @@ import { VersionService } from '../../core/services/version.service';
   ],
   template: `
     <app-header
-      title="Meine Geschichten"
+      title="My Stories"
       [showBurgerMenu]="true"
       [burgerMenuItems]="burgerMenuItems"
       [burgerMenuFooterContent]="burgerMenuFooter"
@@ -52,7 +52,7 @@ import { VersionService } from '../../core/services/version.service';
         <div *ngIf="currentUser">
           <app-sync-status [showActions]="true" class="full-sync-status"></app-sync-status>
           <ion-button fill="clear" color="danger" (click)="logout()" class="logout-button">
-            Abmelden
+            Sign Out
           </ion-button>
         </div>
         <div class="version-info">
@@ -70,7 +70,7 @@ import { VersionService } from '../../core/services/version.service';
       <div class="app-branding">
         <h1 class="app-title">
           <span class="app-name">Creative Writer</span>
-          <span class="app-tagline">Deine Geschichten, deine Welt</span>
+          <span class="app-tagline">Your Stories, Your World</span>
         </h1>
         <div class="brand-decoration"></div>
       </div>
@@ -78,7 +78,7 @@ import { VersionService } from '../../core/services/version.service';
       <div class="action-buttons">
         <ion-button expand="block" size="default" color="primary" (click)="createNewStory()">
           <ion-icon name="add" slot="start"></ion-icon>
-          Neue Geschichte schreiben
+          Write New Story
         </ion-button>
         <ion-button expand="block" size="default" fill="outline" color="medium" (click)="importNovelCrafter()">
           <ion-icon name="download" slot="start"></ion-icon>
@@ -86,7 +86,7 @@ import { VersionService } from '../../core/services/version.service';
         </ion-button>
         <ion-button expand="block" size="default" fill="outline" color="secondary" (click)="goToImageGeneration()">
           <ion-icon name="images" slot="start"></ion-icon>
-          Bildgenerierung
+          Image Generation
         </ion-button>
       </div>
       
@@ -116,7 +116,7 @@ import { VersionService } from '../../core/services/version.service';
                           (click)="$event.stopPropagation()">
                 <ion-icon name="reorder-three" slot="icon-only"></ion-icon>
               </ion-button>
-              <ion-card-title>{{ story.title || 'Unbenannte Geschichte' }}</ion-card-title>
+              <ion-card-title>{{ story.title || 'Untitled Story' }}</ion-card-title>
               <ion-button fill="clear" size="small" color="danger" (click)="deleteStory($event, story.id)">
                 <ion-icon name="trash" slot="icon-only"></ion-icon>
               </ion-button>
@@ -126,7 +126,7 @@ import { VersionService } from '../../core/services/version.service';
             <p class="story-preview">{{ getStoryPreview(story) }}</p>
             <div class="story-chips">
               <ion-chip color="medium">
-                <span>{{ getWordCount(story) }} Wörter</span>
+                <span>{{ getWordCount(story) }} words</span>
               </ion-chip>
               <ion-chip color="medium">
                 <span>{{ story.updatedAt | date:'short' }}</span>
@@ -138,7 +138,7 @@ import { VersionService } from '../../core/services/version.service';
       
       <ng-template #noStories>
         <div class="no-stories">
-          <p>Noch keine Geschichten vorhanden.</p>
+          <p>No stories available yet.</p>
           <p>Beginne mit dem Schreiben deiner ersten Geschichte!</p>
         </div>
       </ng-template>
@@ -154,7 +154,7 @@ import { VersionService } from '../../core/services/version.service';
         <div class="mobile-fab-menu" *ngIf="fabMenuOpen">
           <button class="mobile-fab-option" (click)="createNewStory()">
             <ion-icon name="create"></ion-icon>
-            <span>Neue Geschichte</span>
+            <span>New Story</span>
           </button>
           <button class="mobile-fab-option" (click)="importNovelCrafter()">
             <ion-icon name="download"></ion-icon>
@@ -162,7 +162,7 @@ import { VersionService } from '../../core/services/version.service';
           </button>
           <button class="mobile-fab-option" (click)="goToImageGeneration()">
             <ion-icon name="images"></ion-icon>
-            <span>Bilder</span>
+            <span>Images</span>
           </button>
         </div>
       </div>
@@ -1115,7 +1115,7 @@ export class StoryListComponent implements OnInit {
   }
 
   logout(): void {
-    if (confirm('Möchten Sie sich wirklich abmelden? Lokale Änderungen bleiben erhalten.')) {
+    if (confirm('Do you really want to sign out? Local changes will be preserved.')) {
       this.authService.logout();
     }
   }
@@ -1202,7 +1202,7 @@ export class StoryListComponent implements OnInit {
 
   async deleteStory(event: Event, storyId: string): Promise<void> {
     event.stopPropagation();
-    if (confirm('Möchten Sie diese Geschichte wirklich löschen?')) {
+    if (confirm('Do you really want to delete this story?')) {
       await this.storyService.deleteStory(storyId);
       await this.loadStories();
     }
@@ -1223,7 +1223,7 @@ export class StoryListComponent implements OnInit {
       return cleanContent.length > 150 ? cleanContent.substring(0, 150) + '...' : cleanContent;
     }
     
-    return 'Noch kein Inhalt...';
+    return 'No content yet...';
   }
 
   getWordCount(story: Story): number {
