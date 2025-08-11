@@ -114,7 +114,7 @@ CreativeWriter is built with modern web technologies:
 
 2. **Download docker-compose.yml**
    ```bash
-   curl -O https://raw.githubusercontent.com/MarcoDroll/creativewriter2/main/docker-compose.yml
+   curl -O https://raw.githubusercontent.com/MarcoDroll/creativewriter-public/main/docker-compose.yml
    ```
 
 3. **Start the application**
@@ -187,7 +187,7 @@ The application uses PouchDB for local storage with optional CouchDB sync:
 Simply download and run:
 ```bash
 mkdir creativewriter && cd creativewriter
-curl -O https://raw.githubusercontent.com/MarcoDroll/creativewriter2/main/docker-compose.yml
+curl -O https://raw.githubusercontent.com/MarcoDroll/creativewriter-public/main/docker-compose.yml
 docker compose up -d
 ```
 Then configure your AI API keys in Settings after accessing the app at http://localhost:3080.
@@ -198,13 +198,13 @@ Run multiple isolated instances on the same host:
 ```bash
 # Instance 1 - Personal Writing
 mkdir writer-personal && cd writer-personal
-curl -O https://raw.githubusercontent.com/MarcoDroll/creativewriter2/main/docker-compose.yml
+curl -O https://raw.githubusercontent.com/MarcoDroll/creativewriter-public/main/docker-compose.yml
 echo "PORT=3080" > .env
 docker compose -p writer-personal up -d
 
 # Instance 2 - Work Projects (different directory)
 mkdir ../writer-work && cd ../writer-work
-curl -O https://raw.githubusercontent.com/MarcoDroll/creativewriter2/main/docker-compose.yml
+curl -O https://raw.githubusercontent.com/MarcoDroll/creativewriter-public/main/docker-compose.yml
 echo "PORT=3081" > .env
 docker compose -p writer-work up -d
 ```
