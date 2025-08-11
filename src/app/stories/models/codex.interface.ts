@@ -14,14 +14,14 @@ export interface CodexEntry {
   updatedAt: Date;
 }
 
-export type StoryRole = 'Protagonist' | 'Nebencharakter' | 'Antagonist' | 'Love-Interest' | 'Hintergrundcharakter';
+export type StoryRole = 'Protagonist' | 'Supporting Character' | 'Antagonist' | 'Love Interest' | 'Background Character';
 
 export const STORY_ROLES: { value: StoryRole; label: string }[] = [
   { value: 'Protagonist', label: 'Protagonist' },
-  { value: 'Nebencharakter', label: 'Nebencharakter' },
+  { value: 'Supporting Character', label: 'Supporting Character' },
   { value: 'Antagonist', label: 'Antagonist' },
-  { value: 'Love-Interest', label: 'Love-Interest' },
-  { value: 'Hintergrundcharakter', label: 'Hintergrundcharakter' }
+  { value: 'Love Interest', label: 'Love Interest' },
+  { value: 'Background Character', label: 'Background Character' }
 ];
 
 export interface CustomField {
@@ -52,26 +52,26 @@ export interface Codex {
 
 export const DEFAULT_CODEX_CATEGORIES: Partial<CodexCategory>[] = [
   {
-    title: 'Charaktere',
-    description: 'Hauptfiguren und Nebenfiguren der Geschichte',
+    title: 'Characters',
+    description: 'Main characters and supporting characters of the story',
     icon: '👤',
     entries: []
   },
   {
-    title: 'Orte',
-    description: 'Locations and Settings',
+    title: 'Locations',
+    description: 'Places and settings in the story',
     icon: '🏰',
     entries: []
   },
   {
     title: 'Objects',
-    description: 'Wichtige Objekte und Artefakte',
+    description: 'Important objects and artifacts',
     icon: '⚔️',
     entries: []
   },
   {
-    title: 'Notizen',
-    description: 'Allgemeine Notizen und Ideen',
+    title: 'Notes',
+    description: 'General notes and ideas',
     icon: '📝',
     entries: []
   }

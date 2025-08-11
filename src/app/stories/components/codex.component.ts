@@ -122,7 +122,7 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
                                 </ion-chip>
                                 <ion-chip *ngIf="entry.alwaysInclude" color="warning">
                                   <ion-icon name="star"></ion-icon>
-                                  <ion-label>Immer inkludiert</ion-label>
+                                  <ion-label>Always included</ion-label>
                                 </ion-chip>
                                 <ion-chip *ngIf="entry.metadata?.['storyRole']" color="success">
                                   <ion-icon name="person"></ion-icon>
@@ -181,7 +181,7 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
                                 <div class="entry-meta">
                                   <ion-chip *ngIf="entry.alwaysInclude" color="warning">
                                     <ion-icon name="star"></ion-icon>
-                                    <ion-label>Immer inkludiert</ion-label>
+                                    <ion-label>Always included</ion-label>
                                   </ion-chip>
                                   <ion-chip *ngIf="entry.metadata?.['storyRole']" color="success">
                                     <ion-icon name="person"></ion-icon>
@@ -239,7 +239,7 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
             <div class="modal-form-container">
               <!-- Basic Information Section -->
               <div class="form-section">
-                <h3 class="section-title">Grundinformationen</h3>
+                <h3 class="section-title">Basic Information</h3>
                 
                 <div class="form-group">
                   <ion-item lines="none" class="form-item">
@@ -260,12 +260,12 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
                     <ion-input 
                       [(ngModel)]="tagInput" 
                       (ionBlur)="parseAndAddTags()"
-                      placeholder="Tags eingeben (kommagetrennt)..."
+                      placeholder="Enter tags (comma-separated)..."
                       class="tag-input">
                     </ion-input>
                   </ion-item>
                   <ion-note class="tag-help-text">
-                    Tags zur Identifizierung in Beat-AI (z.B. Kampf, Romanze, Konflikt)
+                    Tags for identification in Beat-AI (e.g. Combat, Romance, Conflict)
                   </ion-note>
                   <div class="tags-container" *ngIf="editingEntry.tags?.length">
                     <ion-chip 
@@ -282,14 +282,14 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
 
               <!-- Media Section -->
               <div class="form-section" *ngIf="editingEntry.imageUrl || !editingEntry.imageUrl">
-                <h3 class="section-title">Medien</h3>
+                <h3 class="section-title">Media</h3>
                 
                 <div class="form-group">
                   <ion-item lines="none" class="form-item">
-                    <ion-label position="stacked">Bild URL</ion-label>
+                    <ion-label position="stacked">Image URL</ion-label>
                     <ion-input 
                       [(ngModel)]="editingEntry.imageUrl" 
-                      placeholder="https://beispiel.com/bild.jpg"
+                      placeholder="https://example.com/image.jpg"
                       type="url"
                       class="url-input">
                     </ion-input>
@@ -305,11 +305,11 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
                 
               <!-- Story Role Section -->
               <div class="form-section" *ngIf="isCharacterEntry()">
-                <h3 class="section-title">Story-Einstellungen</h3>
+                <h3 class="section-title">Story Settings</h3>
                 
                 <div class="form-group">
                   <ion-item lines="none" class="form-item">
-                    <ion-label position="stacked">Story-Rolle</ion-label>
+                    <ion-label position="stacked">Story Role</ion-label>
                     <ion-select 
                       [(ngModel)]="editingEntry.storyRole"
                       placeholder="Select role..."
@@ -328,7 +328,7 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
               
               <!-- Always Include Section -->
               <div class="form-section">
-                <h3 class="section-title">AI-Einstellungen</h3>
+                <h3 class="section-title">AI Settings</h3>
                 
                 <div class="form-group">
                   <ion-item lines="none" class="form-item">
@@ -365,10 +365,10 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
                   <div *ngFor="let field of editingEntry.customFields" class="custom-field-item">
                     <div class="custom-field-header">
                       <ion-item lines="none" class="form-item field-name-item">
-                        <ion-label position="stacked">Feldname</ion-label>
+                        <ion-label position="stacked">Field Name</ion-label>
                         <ion-input 
                           [(ngModel)]="field.name" 
-                          placeholder="Feldname eingeben...">
+                          placeholder="Enter field name...">
                         </ion-input>
                       </ion-item>
                       <ion-button 
@@ -381,10 +381,10 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
                       </ion-button>
                     </div>
                     <ion-item lines="none" class="form-item">
-                      <ion-label position="stacked">Feldwert</ion-label>
+                      <ion-label position="stacked">Field Value</ion-label>
                       <ion-textarea 
                         [(ngModel)]="field.value" 
-                        placeholder="Feldwert eingeben..."
+                        placeholder="Enter field value..."
                         rows="3"
                         [autoGrow]="true"
                         class="scrollable-textarea"
@@ -399,14 +399,14 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
                       <ion-label position="stacked">New Field Name</ion-label>
                       <ion-input 
                         [(ngModel)]="newCustomFieldName" 
-                        placeholder="Feldname eingeben...">
+                        placeholder="Enter field name...">
                       </ion-input>
                     </ion-item>
                     <ion-item lines="none" class="form-item">
-                      <ion-label position="stacked">Feldwert</ion-label>
+                      <ion-label position="stacked">Field Value</ion-label>
                       <ion-textarea 
                         [(ngModel)]="newCustomFieldValue" 
-                        placeholder="Feldwert eingeben..."
+                        placeholder="Enter field value..."
                         rows="3"
                         [autoGrow]="true"
                         class="scrollable-textarea"
@@ -423,10 +423,10 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
                 
                 <div class="form-group">
                   <ion-item lines="none" class="form-item content-item">
-                    <ion-label position="stacked">Beschreibung</ion-label>
+                    <ion-label position="stacked">Description</ion-label>
                     <ion-textarea 
                       [(ngModel)]="editingEntry.content" 
-                      placeholder="Beschreibung, Details, Notizen..."
+                      placeholder="Description, details, notes..."
                       rows="8"
                       [autoGrow]="true"
                       class="content-textarea scrollable-textarea"
@@ -474,10 +474,10 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
             <ion-card>
               <ion-card-content>
                 <ion-item>
-                  <ion-label position="stacked">Kategorie Name</ion-label>
+                  <ion-label position="stacked">Category Name</ion-label>
                   <ion-input 
                     [(ngModel)]="newCategory.title" 
-                    placeholder="Kategorie Name"
+                    placeholder="Category Name"
                     type="text">
                   </ion-input>
                 </ion-item>
@@ -493,10 +493,10 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
                 </ion-item>
                 
                 <ion-item>
-                  <ion-label position="stacked">Beschreibung (optional)</ion-label>
+                  <ion-label position="stacked">Description (optional)</ion-label>
                   <ion-textarea 
                     [(ngModel)]="newCategory.description" 
-                    placeholder="Beschreibung..."
+                    placeholder="Description..."
                     rows="3"
                     [autoGrow]="true"
                     class="scrollable-textarea"
@@ -1576,7 +1576,7 @@ export class CodexComponent implements OnInit, OnDestroy {
 
   isCharacterEntry(): boolean {
     const category = this.selectedCategory();
-    return category?.title === 'Charaktere' || false;
+    return category?.title === 'Characters' || false;
   }
 
   addCustomField() {
@@ -1645,7 +1645,7 @@ export class CodexComponent implements OnInit, OnDestroy {
     this.headerActions = [
       {
         icon: 'add',
-        label: 'Kategorie',
+        label: 'Category',
         action: () => this.showAddCategoryModal.set(true),
         showOnMobile: true,
         showOnDesktop: true

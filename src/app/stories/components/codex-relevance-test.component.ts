@@ -205,10 +205,10 @@ export class CodexRelevanceTestComponent implements OnInit {
     
     for (const categoryData of allCodexEntries) {
       const categoryMap: Record<string, 'character' | 'location' | 'object' | 'lore' | 'other'> = {
-        'Charaktere': 'character',
-        'Orte': 'location', 
-        'Gegenstände': 'object',
-        'Notizen': 'other',
+        'Characters': 'character',
+        'Locations': 'location', 
+        'Objects': 'object',
+        'Notes': 'other',
         'Lore': 'lore'
       };
       

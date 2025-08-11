@@ -309,11 +309,11 @@ export class CodexRelevanceService {
     let formatted = '## Relevante Informationen aus dem Codex:\n\n';
 
     const categoryLabels = {
-      character: 'Charaktere',
-      location: 'Orte',
-      object: 'Objekte',
-      lore: 'Hintergrund',
-      other: 'Sonstiges'
+      character: 'Characters',
+      location: 'Locations',
+      object: 'Objects',
+      lore: 'Background',
+      other: 'Other'
     };
 
     for (const [category, categoryEntries] of Object.entries(grouped)) {

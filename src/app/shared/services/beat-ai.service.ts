@@ -367,7 +367,7 @@ export class BeatAIService {
               relevantEntries
             );
             
-            // Always include all Notizen entries (check multiple possible names)
+            // Always include all Notes entries (check multiple possible names)
             const notizenKeywords = ['notizen', 'notes', 'note'];
             const notizenCategory = allCodexEntries.find(cat => 
               notizenKeywords.some(keyword => 
@@ -377,14 +377,14 @@ export class BeatAIService {
             
             if (notizenCategory && notizenCategory.entries.length > 0) {
               // Check if this category already exists in filtered entries
-              const existingNotizenIndex = filteredCodexEntries.findIndex(cat => 
+              const existingNotesIndex = filteredCodexEntries.findIndex(cat => 
                 cat.category === notizenCategory.category
               );
-              if (existingNotizenIndex >= 0) {
-                // Replace with full Notizen category (ensure all entries are included)
-                filteredCodexEntries[existingNotizenIndex] = notizenCategory;
+              if (existingNotesIndex >= 0) {
+                // Replace with full Notes category (ensure all entries are included)
+                filteredCodexEntries[existingNotesIndex] = notizenCategory;
               } else {
-                // Add full Notizen category
+                // Add full Notes category
                 filteredCodexEntries.push(notizenCategory);
               }
             }
@@ -409,7 +409,7 @@ export class BeatAIService {
                 }
                 
                 // Add story role for characters
-                if (entry.metadata?.['storyRole'] && categoryData.category === 'Charaktere') {
+                if (entry.metadata?.['storyRole'] && categoryData.category === 'Characters') {
                   entryXml += ` storyRole="${this.escapeXml(entry.metadata['storyRole'])}"`;
                 }
                 
@@ -630,10 +630,10 @@ export class BeatAIService {
 
   private getCategoryXmlType(category: string): string {
     const mapping: Record<string, string> = {
-      'Charaktere': 'character',
-      'Orte': 'location',
-      'Gegenstände': 'item',
-      'Notizen': 'other'
+      'Characters': 'character',
+      'Locations': 'location',
+      'Objects': 'item',
+      'Notes': 'other'
     };
     return mapping[category] || 'other';
   }
@@ -661,7 +661,7 @@ export class BeatAIService {
   private findProtagonist(codexEntries: { category: string; entries: CodexEntry[]; icon?: string }[]): string | null {
     // Look for character entries with storyRole "Protagonist"
     for (const categoryData of codexEntries) {
-      if (categoryData.category === 'Charaktere') {
+      if (categoryData.category === 'Characters') {
         for (const entry of categoryData.entries) {
           const storyRole = entry.metadata?.['storyRole'];
           if (storyRole === 'Protagonist') {
@@ -678,10 +678,10 @@ export class BeatAIService {
     
     for (const categoryData of codexEntries) {
       const categoryMap: Record<string, 'character' | 'location' | 'object' | 'lore' | 'other'> = {
-        'Charaktere': 'character',
-        'Orte': 'location',
-        'Gegenstände': 'object',
-        'Notizen': 'other',
+        'Characters': 'character',
+        'Locations': 'location',
+        'Objects': 'object',
+        'Notes': 'other',
         'Lore': 'lore'
       };
       
