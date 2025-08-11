@@ -24,12 +24,10 @@ export class ModelService {
 
   private openRouterModelsSubject = new BehaviorSubject<ModelOption[]>([]);
   private replicateModelsSubject = new BehaviorSubject<ModelOption[]>([]);
-  private geminiModelsSubject = new BehaviorSubject<ModelOption[]>([]);
   private loadingSubject = new BehaviorSubject<boolean>(false);
 
   public openRouterModels$ = this.openRouterModelsSubject.asObservable();
   public replicateModels$ = this.replicateModelsSubject.asObservable();
-  public geminiModels$ = this.geminiModelsSubject.asObservable();
   public loading$ = this.loadingSubject.asObservable();
 
   loadOpenRouterModels(): Observable<ModelOption[]> {
@@ -92,66 +90,11 @@ export class ModelService {
       );
   }
 
-  loadGeminiModels(): Observable<ModelOption[]> {
-    const settings = this.settingsService.getSettings();
-    
-    if (!settings.googleGemini.enabled || !settings.googleGemini.apiKey) {
-      return of([]);
-    }
 
-    this.loadingSubject.next(true);
-
-    // Gemini models are predefined since the API doesn't provide a models list endpoint
-    const predefinedModels: ModelOption[] = [
-      {
-        id: 'gemini-2.5-flash',
-        label: 'Gemini 2.5 Flash',
-        description: 'Google\'s fastest and most cost-effective model with multimodal capabilities',
-        costInputEur: '0.07 €',
-        costOutputEur: '0.21 €',
-        contextLength: 1000000,
-        provider: 'gemini'
-      },
-      {
-        id: 'gemini-2.5-pro',
-        label: 'Gemini 2.5 Pro',
-        description: 'Google\'s most capable model with advanced reasoning and multimodal capabilities',
-        costInputEur: '3.50 €',
-        costOutputEur: '10.50 €',
-        contextLength: 2000000,
-        provider: 'gemini'
-      },
-      {
-        id: 'gemini-1.5-flash',
-        label: 'Gemini 1.5 Flash',
-        description: 'Fast and efficient model with good performance for most tasks',
-        costInputEur: '0.07 €',
-        costOutputEur: '0.21 €',
-        contextLength: 1000000,
-        provider: 'gemini'
-      },
-      {
-        id: 'gemini-1.5-pro',
-        label: 'Gemini 1.5 Pro',
-        description: 'Advanced model with superior reasoning capabilities',
-        costInputEur: '3.50 €',
-        costOutputEur: '10.50 €',
-        contextLength: 2000000,
-        provider: 'gemini'
-      }
-    ];
-
-    this.geminiModelsSubject.next(predefinedModels);
-    this.loadingSubject.next(false);
-    
-    return of(predefinedModels);
-  }
-
-  loadAllModels(): Observable<{ openRouter: ModelOption[], replicate: ModelOption[], gemini: ModelOption[] }> {
+  loadAllModels(): Observable<{ openRouter: ModelOption[], replicate: ModelOption[] }> {
     return forkJoin({
       openRouter: this.loadOpenRouterModels(),
-      replicate: this.loadReplicateModels(),
-      gemini: this.loadGeminiModels()
+      replicate: this.loadReplicateModels()
     });
   }
 
@@ -180,7 +123,6 @@ export class ModelService {
           if (lowerLabel.includes('claude')) return 1;
           if (lowerLabel.includes('gpt-4')) return 2;
           if (lowerLabel.includes('gpt-3.5')) return 3;
-          if (lowerLabel.includes('gemini')) return 4;
           if (lowerLabel.includes('llama')) return 5;
           return 10;
         };
@@ -266,9 +208,6 @@ export class ModelService {
     return this.replicateModelsSubject.value;
   }
 
-  getCurrentGeminiModels(): ModelOption[] {
-    return this.geminiModelsSubject.value;
-  }
 
   /**
    * Get available models based on the currently active API
@@ -276,9 +215,7 @@ export class ModelService {
   getAvailableModels(): Observable<ModelOption[]> {
     const settings = this.settingsService.getSettings();
     
-    if (settings.googleGemini.enabled && settings.googleGemini.apiKey) {
-      return this.loadGeminiModels();
-    } else if (settings.openRouter.enabled && settings.openRouter.apiKey) {
+    if (settings.openRouter.enabled && settings.openRouter.apiKey) {
       return this.loadOpenRouterModels();
     } else if (settings.replicate.enabled && settings.replicate.apiKey) {
       return this.loadReplicateModels();
@@ -288,7 +225,7 @@ export class ModelService {
   }
 
   /**
-   * Get combined models from both OpenRouter and Gemini APIs
+   * Get combined models from all enabled APIs
    */
   getCombinedModels(): Observable<ModelOption[]> {
     const settings = this.settingsService.getSettings();
@@ -298,8 +235,8 @@ export class ModelService {
       modelsToLoad.push(this.loadOpenRouterModels());
     }
     
-    if (settings.googleGemini.enabled && settings.googleGemini.apiKey) {
-      modelsToLoad.push(this.loadGeminiModels());
+    if (settings.replicate.enabled && settings.replicate.apiKey) {
+      modelsToLoad.push(this.loadReplicateModels());
     }
     
     if (modelsToLoad.length === 0) {
@@ -326,9 +263,7 @@ export class ModelService {
   getCurrentAvailableModels(): ModelOption[] {
     const settings = this.settingsService.getSettings();
     
-    if (settings.googleGemini.enabled && settings.googleGemini.apiKey) {
-      return this.getCurrentGeminiModels();
-    } else if (settings.openRouter.enabled && settings.openRouter.apiKey) {
+    if (settings.openRouter.enabled && settings.openRouter.apiKey) {
       return this.getCurrentOpenRouterModels();
     } else if (settings.replicate.enabled && settings.replicate.apiKey) {
       return this.getCurrentReplicateModels();
@@ -338,7 +273,7 @@ export class ModelService {
   }
 
   /**
-   * Get currently loaded combined models from both APIs
+   * Get currently loaded combined models from all enabled APIs
    */
   getCurrentCombinedModels(): ModelOption[] {
     const settings = this.settingsService.getSettings();
@@ -352,12 +287,12 @@ export class ModelService {
       allModels.push(...openRouterModels);
     }
     
-    if (settings.googleGemini.enabled && settings.googleGemini.apiKey) {
-      const geminiModels = this.getCurrentGeminiModels().map(model => ({
+    if (settings.replicate.enabled && settings.replicate.apiKey) {
+      const replicateModels = this.getCurrentReplicateModels().map(model => ({
         ...model,
-        id: `gemini:${model.id}`
+        id: `replicate:${model.id}`
       }));
-      allModels.push(...geminiModels);
+      allModels.push(...replicateModels);
     }
     
     return allModels;
