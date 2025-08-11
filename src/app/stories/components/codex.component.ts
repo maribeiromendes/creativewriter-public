@@ -225,7 +225,7 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
       <ion-modal [isOpen]="!!selectedEntry()" (didDismiss)="closeEntryModal()" class="entry-modal">
         <ng-template>
           <ion-header>
-            <ion-toolbar color="primary">
+            <ion-toolbar>
               <ion-title>{{ editingEntry.title || 'Edit Entry' }}</ion-title>
               <ion-buttons slot="end">
                 <ion-button (click)="closeEntryModal()">
@@ -453,7 +453,7 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
       </ion-modal>
 
       <!-- Add Category Modal -->
-      <ion-modal [isOpen]="showAddCategoryModal()" (didDismiss)="showAddCategoryModal.set(false)">
+      <ion-modal [isOpen]="showAddCategoryModal()" (didDismiss)="showAddCategoryModal.set(false)" class="category-modal">
         <ng-template>
           <ion-header>
             <ion-toolbar>
@@ -780,22 +780,37 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
       --box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
     }
     
+    .entry-modal::part(backdrop) {
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(8px);
+    }
+    
     .entry-modal ion-header {
+      background: transparent !important;
+      --background: transparent !important;
       border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px) saturate(120%);
     }
     
     .entry-modal ion-toolbar {
-      --background: linear-gradient(135deg, rgba(20, 20, 20, 0.3) 0%, rgba(15, 15, 15, 0.3) 100%);
+      --background: transparent !important;
+      background: linear-gradient(135deg, rgba(20, 20, 20, 0.6) 0%, rgba(15, 15, 15, 0.6) 100%) !important;
       --border-width: 0;
       --padding-start: 20px;
       --padding-end: 20px;
       --min-height: 64px;
+      --color: #f8f9fa;
     }
     
     .entry-modal ion-title {
       font-size: 1.2rem;
       font-weight: 600;
       letter-spacing: 0.5px;
+      color: #f8f9fa !important;
+    }
+    
+    .entry-modal ion-button {
+      --color: #f8f9fa;
     }
     
     .entry-modal ion-content {
@@ -1262,6 +1277,54 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
 
     .scrollable-textarea::-webkit-scrollbar-thumb:hover {
       background: rgba(255, 255, 255, 0.3);
+    }
+
+    /* Category Modal Styling - same as entry modal */
+    .category-modal {
+      --width: 90vw;
+      --max-width: 600px;
+      --height: auto;
+      --border-radius: 16px;
+      --background: linear-gradient(135deg, rgba(20, 20, 20, 0.95) 0%, rgba(15, 15, 15, 0.95) 100%);
+      backdrop-filter: blur(20px) saturate(120%);
+      --box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    }
+    
+    .category-modal::part(backdrop) {
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(8px);
+    }
+    
+    .category-modal ion-header {
+      background: transparent !important;
+      --background: transparent !important;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px) saturate(120%);
+    }
+    
+    .category-modal ion-toolbar {
+      --background: transparent !important;
+      background: linear-gradient(135deg, rgba(20, 20, 20, 0.6) 0%, rgba(15, 15, 15, 0.6) 100%) !important;
+      --border-width: 0;
+      --padding-start: 20px;
+      --padding-end: 20px;
+      --min-height: 64px;
+      --color: #f8f9fa;
+    }
+    
+    .category-modal ion-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      color: #f8f9fa !important;
+    }
+    
+    .category-modal ion-button {
+      --color: #f8f9fa;
+    }
+    
+    .category-modal ion-content {
+      --background: transparent;
     }
   `]
 })
