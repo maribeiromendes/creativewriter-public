@@ -3,7 +3,6 @@ version: '3.8'
 services:
   nginx:
     image: ghcr.io/marcodroll/creativewriter2-nginx:latest
-    # container_name removed - Docker Compose will use project name prefix
     restart: unless-stopped
     ports:
       - "${PORT:-3080}:80"  # Port can be overridden via .env, defaults to 3080
@@ -17,7 +16,6 @@ services:
 
   creativewriter:
     image: ghcr.io/marcodroll/creativewriter2:latest
-    # container_name removed
     restart: unless-stopped
     # No ports exposed directly - only through nginx
     environment:
@@ -31,7 +29,6 @@ services:
 
   couchdb:
     image: couchdb:3.3
-    # container_name removed
     restart: unless-stopped
     # No ports exposed directly - only through nginx
     environment:
@@ -57,7 +54,6 @@ services:
 
   gemini-proxy:
     image: ghcr.io/marcodroll/creativewriter2-gemini-proxy:latest
-    # container_name removed
     restart: unless-stopped
     environment:
       - PORT=3002
