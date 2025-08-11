@@ -1,8 +1,7 @@
 import { Injectable, inject } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, from } from 'rxjs';
 import { AuthService, User } from './auth.service';
-
-declare const PouchDB: new(name: string, options?: PouchDB.Configuration.DatabaseConfiguration) => PouchDB.Database;
+import { FirestoreService, FirestoreDocument, QueryOptions } from './firestore.service';
 
 export interface SyncStatus {
   isOnline: boolean;
@@ -16,11 +15,9 @@ export interface SyncStatus {
 })
 export class DatabaseService {
   private readonly authService = inject(AuthService);
+  private readonly firestoreService = inject(FirestoreService);
   
-  private db: PouchDB.Database | null = null;
-  private remoteDb: PouchDB.Database | null = null;
-  private syncHandler: PouchDB.Replication.Sync<Record<string, unknown>> | null = null;
-  private initializationPromise: Promise<void> | null = null;
+  private currentUser: User | null = null;
   private syncStatusSubject = new BehaviorSubject<SyncStatus>({
     isOnline: navigator.onLine,
     isSync: false
@@ -29,17 +26,14 @@ export class DatabaseService {
   public syncStatus$: Observable<SyncStatus> = this.syncStatusSubject.asObservable();
 
   constructor() {
-    // PouchDB is loaded globally from CDN
-    if (typeof PouchDB === 'undefined') {
-      throw new Error('PouchDB is not loaded. Please check index.html');
-    }
-    
-    // Initialize with default database (will be updated when user logs in)
-    this.initializationPromise = this.initializeDatabase('creative-writer-stories');
-    
-    // Subscribe to user changes to switch databases
+    // Subscribe to user changes
     this.authService.currentUser$.subscribe(user => {
-      this.handleUserChange(user);
+      this.currentUser = user;
+      this.updateSyncStatus({ 
+        isOnline: navigator.onLine, 
+        isSync: false,
+        lastSync: new Date()
+      });
     });
 
     // Setup online/offline detection
@@ -47,171 +41,12 @@ export class DatabaseService {
     window.addEventListener('offline', () => this.updateOnlineStatus(false));
   }
 
-  private async initializeDatabase(dbName: string): Promise<void> {
-    
-    // Stop sync first
-    await this.stopSync();
-    
-    // Close existing database safely
-    if (this.db) {
-      try {
-        await this.db.close();
-      } catch (error) {
-        console.warn('Error closing database:', error);
-      }
+  // Get user-specific collection name
+  private getCollectionName(baseCollection: string): string {
+    if (this.currentUser?.uid) {
+      return `users/${this.currentUser.uid}/${baseCollection}`;
     }
-    
-    // Small delay to ensure cleanup
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
-    this.db = new PouchDB(dbName);
-    
-    // Create indexes for better query performance
-    try {
-      await this.db.createIndex({
-        index: { fields: ['createdAt'] }
-      });
-    } catch (err) {
-      console.warn('Could not create createdAt index:', err);
-    }
-    
-    try {
-      await this.db.createIndex({
-        index: { fields: ['id'] }
-      });
-    } catch (err) {
-      console.warn('Could not create id index:', err);
-    }
-
-    // Setup sync for the new database
-    await this.setupSync();
-  }
-
-  private handleUserChange(user: User | null): void {
-    // Use setTimeout to avoid immediate database switching during constructor
-    setTimeout(async () => {
-      if (user) {
-        const userDbName = this.authService.getUserDatabaseName();
-        if (userDbName && userDbName !== (this.db?.name)) {
-          this.initializationPromise = this.initializeDatabase(userDbName);
-          await this.initializationPromise;
-        }
-      } else {
-        // User logged out - switch to anonymous/demo database
-        const anonymousDb = 'creative-writer-stories-anonymous';
-        if (this.db?.name !== anonymousDb) {
-          this.initializationPromise = this.initializeDatabase(anonymousDb);
-          await this.initializationPromise;
-        }
-      }
-    }, 100);
-  }
-
-  async getDatabase(): Promise<PouchDB.Database> {
-    // Wait for initialization to complete
-    if (this.initializationPromise) {
-      await this.initializationPromise;
-    }
-    if (!this.db) {
-      throw new Error('Database not initialized');
-    }
-    return this.db;
-  }
-
-  // Synchronous getter for backwards compatibility (use with caution)
-  getDatabaseSync(): PouchDB.Database | null {
-    return this.db;
-  }
-
-  async setupSync(remoteUrl?: string): Promise<void> {
-    try {
-      // Use provided URL or try to detect from environment/location
-      const couchUrl = remoteUrl || this.getCouchDBUrl();
-      
-      if (!couchUrl) {
-        return;
-      }
-
-      
-      this.remoteDb = new PouchDB(couchUrl, {
-        auth: {
-          username: 'admin',
-          password: 'password' // TODO: Make this configurable
-        }
-      });
-
-      // Test connection
-      await this.remoteDb.info();
-
-      // Start bidirectional sync
-      this.startSync();
-      
-    } catch (error) {
-      console.warn('Could not setup sync:', error);
-      this.updateSyncStatus({ error: `Sync setup failed: ${error}` });
-    }
-  }
-
-  private getCouchDBUrl(): string | null {
-    // Try to determine CouchDB URL based on current location
-    const hostname = window.location.hostname;
-    const protocol = window.location.protocol;
-    const port = window.location.port;
-    
-    // Get the current database name (user-specific)
-    const dbName = this.db ? this.db.name : 'creative-writer-stories-anonymous';
-    
-    // Check if we're running with nginx reverse proxy (through /_db/ path)
-    const baseUrl = port ? `${protocol}//${hostname}:${port}` : `${protocol}//${hostname}`;
-    
-    // For development with direct CouchDB access
-    if ((hostname === 'localhost' || hostname === '127.0.0.1') && !this.isReverseProxySetup()) {
-      return `${protocol}//${hostname}:5984/${dbName}`;
-    }
-    
-    // For production or reverse proxy setup - use /_db/ prefix
-    return `${baseUrl}/_db/${dbName}`;
-  }
-
-  private isReverseProxySetup(): boolean {
-    // Check if we can detect reverse proxy setup by testing for nginx-specific headers
-    // or by checking if the current port is not 5984 (standard CouchDB port)
-    const port = window.location.port;
-    // If running on port 3080 (nginx proxy port) or any non-5984 port, assume reverse proxy
-    return port === '3080' || (port !== '5984' && port !== '');
-  }
-
-  private startSync(): void {
-    if (!this.remoteDb || !this.db) return;
-
-    this.syncHandler = this.db.sync(this.remoteDb, {
-      live: true,
-      retry: true,
-      timeout: 30000
-    })
-    .on('change', () => {
-      this.updateSyncStatus({ 
-        isSync: false, 
-        lastSync: new Date(),
-        error: undefined 
-      });
-    })
-    .on('active', () => {
-      this.updateSyncStatus({ isSync: true, error: undefined });
-    })
-    .on('paused', (info: unknown) => {
-      this.updateSyncStatus({ 
-        isSync: false, 
-        error: info ? `Sync paused: ${info}` : undefined 
-      });
-    })
-    .on('error', (info: unknown) => {
-      console.error('Sync error:', info);
-      this.updateSyncStatus({ 
-        isSync: false, 
-        error: `Sync error: ${info}` 
-      });
-    });
+    return `anonymous/${baseCollection}`;
   }
 
   private updateOnlineStatus(isOnline: boolean): void {
@@ -223,48 +58,123 @@ export class DatabaseService {
     this.syncStatusSubject.next({ ...current, ...updates });
   }
 
+  // Public API methods that maintain compatibility with existing code
+  async getDatabase(): Promise<FirestoreService> {
+    return this.firestoreService;
+  }
+
+  // Document CRUD operations
+  async create<T extends FirestoreDocument>(
+    collectionName: string, 
+    data: Omit<T, 'id'>, 
+    customId?: string
+  ): Promise<T> {
+    const userCollectionName = this.getCollectionName(collectionName);
+    return this.firestoreService.create<T>(userCollectionName, data, customId);
+  }
+
+  async get<T extends FirestoreDocument>(
+    collectionName: string, 
+    id: string
+  ): Promise<T | null> {
+    const userCollectionName = this.getCollectionName(collectionName);
+    return this.firestoreService.get<T>(userCollectionName, id);
+  }
+
+  async getAll<T extends FirestoreDocument>(
+    collectionName: string, 
+    options?: QueryOptions
+  ): Promise<T[]> {
+    const userCollectionName = this.getCollectionName(collectionName);
+    return this.firestoreService.getAll<T>(userCollectionName, options);
+  }
+
+  async update<T extends FirestoreDocument>(
+    collectionName: string, 
+    id: string, 
+    data: Partial<Omit<T, 'id' | 'createdAt'>>
+  ): Promise<void> {
+    const userCollectionName = this.getCollectionName(collectionName);
+    return this.firestoreService.update<T>(userCollectionName, id, data);
+  }
+
+  async delete(collectionName: string, id: string): Promise<void> {
+    const userCollectionName = this.getCollectionName(collectionName);
+    return this.firestoreService.delete(userCollectionName, id);
+  }
+
+  // Observable methods
+  getObservable<T extends FirestoreDocument>(
+    collectionName: string, 
+    id: string
+  ): Observable<T | null> {
+    const userCollectionName = this.getCollectionName(collectionName);
+    return this.firestoreService.getObservable<T>(userCollectionName, id);
+  }
+
+  getAllObservable<T extends FirestoreDocument>(
+    collectionName: string, 
+    options?: QueryOptions
+  ): Observable<T[]> {
+    const userCollectionName = this.getCollectionName(collectionName);
+    return this.firestoreService.getAllObservable<T>(userCollectionName, options);
+  }
+
+  // Bulk operations
+  async createMany<T extends FirestoreDocument>(
+    collectionName: string, 
+    items: Omit<T, 'id'>[]
+  ): Promise<T[]> {
+    const userCollectionName = this.getCollectionName(collectionName);
+    return this.firestoreService.createMany<T>(userCollectionName, items);
+  }
+
+  async updateMany<T extends FirestoreDocument>(
+    collectionName: string, 
+    updates: { id: string; data: Partial<Omit<T, 'id' | 'createdAt'>> }[]
+  ): Promise<void> {
+    const userCollectionName = this.getCollectionName(collectionName);
+    return this.firestoreService.updateMany<T>(userCollectionName, updates);
+  }
+
+  async deleteMany(collectionName: string, ids: string[]): Promise<void> {
+    const userCollectionName = this.getCollectionName(collectionName);
+    return this.firestoreService.deleteMany(userCollectionName, ids);
+  }
+
+  // Legacy methods for backwards compatibility
+  async setupSync(): Promise<void> {
+    this.updateSyncStatus({ 
+      isSync: false, 
+      lastSync: new Date(),
+      error: undefined 
+    });
+  }
+
   async stopSync(): Promise<void> {
-    if (this.syncHandler) {
-      try {
-        this.syncHandler.cancel();
-      } catch (error) {
-        console.warn('Error canceling sync:', error);
-      }
-      this.syncHandler = null;
-    }
     this.updateSyncStatus({ isSync: false });
   }
 
   async forcePush(): Promise<void> {
-    if (!this.remoteDb || !this.db) return;
-    
-    try {
-      await this.db.replicate.to(this.remoteDb);
-    } catch (error) {
-      console.error('Force push failed:', error);
-      throw error;
-    }
+    // Firebase handles sync automatically
+    this.updateSyncStatus({ lastSync: new Date() });
   }
 
   async forcePull(): Promise<void> {
-    if (!this.remoteDb || !this.db) return;
-    
-    try {
-      await this.db.replicate.from(this.remoteDb);
-    } catch (error) {
-      console.error('Force pull failed:', error);
-      throw error;
-    }
+    // Firebase handles sync automatically
+    this.updateSyncStatus({ lastSync: new Date() });
   }
 
   async compact(): Promise<void> {
-    if (!this.db) return;
-    await this.db.compact();
+    // Not needed with Firestore
   }
 
   async destroy(): Promise<void> {
-    await this.stopSync();
-    if (!this.db) return;
-    await this.db.destroy();
+    // Not needed with Firestore
+  }
+
+  // Synchronous getter for backwards compatibility (deprecated)
+  getDatabaseSync(): FirestoreService | null {
+    return this.firestoreService;
   }
 }

@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 
 export interface User {
+  uid: string;
   username: string;
   displayName?: string;
   lastLogin: Date;
@@ -58,6 +59,7 @@ export class AuthService {
       }
 
       const user: User = {
+        uid: sanitizedUsername, // Use sanitized username as uid for now
         username: sanitizedUsername,
         displayName: displayName || username,
         lastLogin: new Date()
