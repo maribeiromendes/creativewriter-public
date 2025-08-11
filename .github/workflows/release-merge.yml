@@ -163,6 +163,9 @@ jobs:
     name: 🔄 Auto Merge to Release
     runs-on: ubuntu-latest
     needs: [quality-gate]
+    permissions:
+      contents: write
+      pull-requests: write
     if: |
       always() && 
       (needs.quality-gate.result == 'success' || inputs.skip_checks) &&
