@@ -43,7 +43,6 @@ services:
 
   replicate-proxy:
     image: ghcr.io/marcodroll/creativewriter2-proxy:latest
-    # container_name removed
     restart: unless-stopped
     environment:
       - PORT=3001
