@@ -774,18 +774,18 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
       --width: 90vw;
       --max-width: 900px;
       --height: 92vh;
-      --border-radius: 24px;
-      --background: linear-gradient(135deg, rgba(28, 28, 32, 0.98) 0%, rgba(20, 20, 24, 0.98) 100%);
-      backdrop-filter: blur(24px) saturate(180%);
-      --box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 80px rgba(71, 118, 230, 0.1);
+      --border-radius: 16px;
+      --background: linear-gradient(135deg, rgba(20, 20, 20, 0.95) 0%, rgba(15, 15, 15, 0.95) 100%);
+      backdrop-filter: blur(20px) saturate(120%);
+      --box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
     }
     
     .entry-modal ion-header {
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
     
     .entry-modal ion-toolbar {
-      --background: linear-gradient(135deg, rgba(71, 118, 230, 0.15) 0%, rgba(143, 84, 233, 0.15) 100%);
+      --background: linear-gradient(135deg, rgba(20, 20, 20, 0.3) 0%, rgba(15, 15, 15, 0.3) 100%);
       --border-width: 0;
       --padding-start: 20px;
       --padding-end: 20px;
@@ -820,25 +820,25 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
     .modal-form-container {
       padding: 0;
       max-width: none;
-      background: linear-gradient(to bottom, transparent 0%, rgba(20, 20, 24, 0.3) 100%);
+      background: transparent;
     }
 
     /* Form Sections */
     .form-section {
-      background: rgba(255, 255, 255, 0.02);
+      background: linear-gradient(135deg, rgba(20, 20, 20, 0.3) 0%, rgba(15, 15, 15, 0.3) 100%);
       margin: 16px;
       padding: 20px;
       border-radius: 16px;
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      backdrop-filter: blur(10px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(8px) saturate(120%);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
       transition: all 0.3s ease;
     }
     
     .form-section:hover {
-      background: rgba(255, 255, 255, 0.03);
-      border-color: rgba(71, 118, 230, 0.2);
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+      background: linear-gradient(135deg, rgba(25, 25, 25, 0.4) 0%, rgba(20, 20, 20, 0.4) 100%);
+      border-color: rgba(71, 118, 230, 0.3);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
     }
 
     .form-section:last-of-type {
@@ -909,14 +909,14 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
     .form-item ion-input,
     .form-item ion-textarea,
     .form-item ion-select {
-      --background: rgba(255, 255, 255, 0.04);
+      --background: rgba(0, 0, 0, 0.2);
       --padding-start: 16px;
       --padding-end: 16px;
       --padding-top: 14px;
       --padding-bottom: 14px;
       font-size: 0.95rem;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
       margin-top: 8px;
       color: #f8f9fa;
       transition: all 0.3s ease;
@@ -925,16 +925,16 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
     .form-item ion-input:hover,
     .form-item ion-textarea:hover,
     .form-item ion-select:hover {
-      --background: rgba(255, 255, 255, 0.06);
-      border-color: rgba(255, 255, 255, 0.12);
+      --background: rgba(0, 0, 0, 0.3);
+      border-color: rgba(255, 255, 255, 0.15);
     }
     
     .form-item ion-input:focus,
     .form-item ion-textarea:focus,
     .form-item ion-select:focus {
-      --background: rgba(71, 118, 230, 0.08);
+      --background: rgba(0, 0, 0, 0.3);
       border-color: rgba(71, 118, 230, 0.5);
-      box-shadow: 0 0 0 3px rgba(71, 118, 230, 0.1);
+      box-shadow: 0 0 0 2px rgba(71, 118, 230, 0.15);
     }
 
     .required {
@@ -965,9 +965,9 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
       gap: 10px;
       margin-top: 12px;
       padding: 14px 16px;
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 12px;
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
       min-height: 56px;
       align-items: flex-start;
       align-content: flex-start;
@@ -975,8 +975,8 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
     }
     
     .tags-container:hover {
-      background: rgba(255, 255, 255, 0.04);
-      border-color: rgba(255, 255, 255, 0.12);
+      background: rgba(0, 0, 0, 0.3);
+      border-color: rgba(255, 255, 255, 0.15);
     }
 
     .tag-help-text {
@@ -1024,16 +1024,16 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
     .image-preview {
       margin-top: 12px;
       padding: 16px;
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 12px;
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
       text-align: center;
       transition: all 0.3s ease;
     }
     
     .image-preview:hover {
-      background: rgba(255, 255, 255, 0.04);
-      border-color: rgba(255, 255, 255, 0.12);
+      background: rgba(0, 0, 0, 0.3);
+      border-color: rgba(255, 255, 255, 0.15);
     }
 
     .image-preview img {
@@ -1053,16 +1053,16 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
     }
 
     .custom-field-item {
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 12px;
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
       padding: 16px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
       transition: all 0.3s ease;
     }
     
     .custom-field-item:hover {
-      background: rgba(255, 255, 255, 0.04);
+      background: rgba(0, 0, 0, 0.3);
       border-color: rgba(71, 118, 230, 0.3);
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
@@ -1094,17 +1094,17 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
     }
 
     .new-custom-field {
-      background: linear-gradient(135deg, rgba(71, 118, 230, 0.05) 0%, rgba(143, 84, 233, 0.05) 100%);
-      border: 2px dashed rgba(71, 118, 230, 0.3);
-      border-radius: 12px;
+      background: rgba(71, 118, 230, 0.05);
+      border: 2px dashed rgba(71, 118, 230, 0.2);
+      border-radius: 8px;
       padding: 16px;
       transition: all 0.3s ease;
     }
 
     .new-custom-field:hover {
-      border-color: rgba(71, 118, 230, 0.5);
-      background: linear-gradient(135deg, rgba(71, 118, 230, 0.1) 0%, rgba(143, 84, 233, 0.1) 100%);
-      box-shadow: 0 4px 12px rgba(71, 118, 230, 0.1);
+      border-color: rgba(71, 118, 230, 0.3);
+      background: rgba(71, 118, 230, 0.1);
+      box-shadow: 0 2px 8px rgba(71, 118, 230, 0.1);
     }
 
     /* Modal Actions */
@@ -1114,13 +1114,13 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
       align-items: center;
       gap: 16px;
       padding: 20px 24px;
-      background: linear-gradient(to top, rgba(20, 20, 24, 0.98) 0%, rgba(20, 20, 24, 0.9) 100%);
-      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      background: linear-gradient(135deg, rgba(20, 20, 20, 0.95) 0%, rgba(15, 15, 15, 0.95) 100%);
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
       position: sticky;
       bottom: 0;
       z-index: 10;
-      backdrop-filter: blur(20px);
-      box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 -2px 16px rgba(0, 0, 0, 0.3);
     }
 
     .modal-actions ion-button {
