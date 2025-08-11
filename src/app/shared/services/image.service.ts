@@ -1,14 +1,12 @@
 import { Injectable, inject } from '@angular/core';
 import { DatabaseService } from '../../core/services/database.service';
+import { FirestoreDocument } from '../../core/services/firestore.service';
 
-export interface StoredImage {
-  _id: string;
-  id: string;
+export interface StoredImage extends FirestoreDocument {
   name: string;
   base64Data: string;
   mimeType: string;
   size: number;
-  createdAt: Date;
   type: 'image';
 }
 
@@ -48,19 +46,16 @@ export class ImageService {
       
       // Create image record
       const imageId = this.generateImageId();
-      const storedImage: StoredImage = {
-        _id: `image_${imageId}`,
-        id: imageId,
+      const imageData = {
         name: file.name,
         base64Data,
         mimeType: file.type,
         size: file.size,
-        createdAt: new Date(),
-        type: 'image'
+        type: 'image' as const
       };
 
-      // Store in PouchDB
-      await this.storeImage(storedImage);
+      // Store in Firestore
+      const storedImage = await this.databaseService.create<StoredImage>('images', imageData, imageId);
 
       // Return both URL and ID
       return {
@@ -99,19 +94,16 @@ export class ImageService {
       
       // Create image record
       const imageId = this.generateImageId();
-      const storedImage: StoredImage = {
-        _id: `image_${imageId}`,
-        id: imageId,
+      const imageData = {
         name: file.name,
         base64Data,
         mimeType: file.type,
         size: file.size,
-        createdAt: new Date(),
-        type: 'image'
+        type: 'image' as const
       };
 
-      // Store in PouchDB
-      await this.storeImage(storedImage);
+      // Store in Firestore
+      const storedImage = await this.databaseService.create<StoredImage>('images', imageData, imageId);
 
       // Return data URL for immediate use
       return this.getImageDataUrl(storedImage);
@@ -129,22 +121,10 @@ export class ImageService {
    */
   async getAllImages(): Promise<StoredImage[]> {
     try {
-      const db = await this.databaseService.getDatabase();
-      const result = await db.find({
-        selector: { type: 'image' }
-        // Remove sort to avoid index issues - we'll sort in memory instead
+      return await this.databaseService.getAll<StoredImage>('images', {
+        where: [{ field: 'type', operator: '==', value: 'image' }],
+        orderBy: [{ field: 'createdAt', direction: 'desc' }]
       });
-      
-      const images = result.docs.map((doc: unknown) => {
-        const typedDoc = doc as StoredImage & { _id: string; _rev: string };
-        return {
-          ...typedDoc,
-          createdAt: new Date(typedDoc.createdAt)
-        };
-      }) as StoredImage[];
-      
-      // Sort in memory by createdAt descending
-      return images.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
     } catch (error) {
       console.error('Error loading images:', error);
       return [];
@@ -156,16 +136,8 @@ export class ImageService {
    */
   async getImage(id: string): Promise<StoredImage | null> {
     try {
-      const db = await this.databaseService.getDatabase();
-      const doc = await db.get(`image_${id}`) as StoredImage & { _id: string; _rev: string };
-      return {
-        ...doc,
-        createdAt: new Date(doc['createdAt'])
-      } as StoredImage;
+      return await this.databaseService.get<StoredImage>('images', id);
     } catch (error) {
-      if ((error as PouchDB.Core.Error).status === 404) {
-        return null;
-      }
       console.error('Error loading image:', error);
       return null;
     }
@@ -176,9 +148,7 @@ export class ImageService {
    */
   async deleteImage(id: string): Promise<boolean> {
     try {
-      const db = await this.databaseService.getDatabase();
-      const doc = await db.get(`image_${id}`);
-      await db.remove(doc);
+      await this.databaseService.delete('images', id);
       return true;
     } catch (error) {
       console.error('Error deleting image:', error);
@@ -246,25 +216,6 @@ export class ImageService {
     });
   }
 
-  private async storeImage(image: StoredImage): Promise<void> {
-    try {
-      const db = await this.databaseService.getDatabase();
-      await db.put(image);
-    } catch (error) {
-      if (error instanceof Error && (error.name === 'QuotaExceededError' || error.message.includes('storage quota'))) {
-        // Try to clean up space and retry
-        await this.cleanupImages();
-        try {
-          const db = await this.databaseService.getDatabase();
-          await db.put(image);
-        } catch {
-          throw new Error('Nicht genügend Speicherplatz verfügbar. Versuchen Sie, alte Bilder zu löschen.');
-        }
-      } else {
-        throw error;
-      }
-    }
-  }
 
   private generateImageId(): string {
     return `img_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
