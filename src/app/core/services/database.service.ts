@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { BehaviorSubject, Observable, from } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { AuthService, User } from './auth.service';
 import { FirestoreService, FirestoreDocument, QueryOptions } from './firestore.service';
 

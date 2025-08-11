@@ -1,6 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { BehaviorSubject, Observable, combineLatest } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { BehaviorSubject } from 'rxjs';
 import { v4 as uuidv4 } from 'uuid';
 import { Codex, CodexCategory, CodexEntry, DEFAULT_CODEX_CATEGORIES } from '../models/codex.interface';
 import { DatabaseService } from '../../core/services/database.service';
@@ -54,7 +53,6 @@ export class CodexService {
 
   // Create new codex with default categories
   private async createCodex(storyId: string): Promise<LegacyCodex> {
-    const now = new Date();
     
     // Create the codex document
     const codexData = {

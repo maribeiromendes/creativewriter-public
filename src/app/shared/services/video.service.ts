@@ -42,7 +42,7 @@ export class VideoService {
       };
 
       // Store in Firestore
-      const storedVideo = await this.databaseService.create<StoredVideo>('videos', videoData, videoId);
+      await this.databaseService.create<StoredVideo>('videos', videoData, videoId);
 
       // Return video ID for association
       return videoId;

@@ -72,7 +72,7 @@ export class StoryService {
 
   async updateStory(story: Story): Promise<void> {
     try {
-      const { id, createdAt, ...updateData } = story;
+      const { id, ...updateData } = story;
       await this.databaseService.update<StoryDoc>('stories', id, updateData);
     } catch (error) {
       console.error('Error updating story:', error);
