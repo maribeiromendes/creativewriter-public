@@ -12,66 +12,29 @@ import { AuthService } from '../../core/services/auth.service';
     <div class="login-container" *ngIf="!isLoggedIn">
       <div class="login-card">
         <h2>Creative Writer</h2>
-        <p class="login-subtitle">Sign in to sync your stories</p>
+        <p class="login-subtitle">Start writing immediately</p>
         
-        <form (ngSubmit)="onLogin()" #loginForm="ngForm">
-          <div class="form-group">
-            <label for="username">Username</label>
-            <input 
-              type="text" 
-              id="username" 
-              name="username"
-              [(ngModel)]="username" 
-              required 
-              minlength="2"
-              maxlength="20"
-              pattern="[a-zA-Z0-9_-]+"
-              placeholder="your-username"
-              #usernameField="ngModel">
-            <div class="field-help" *ngIf="usernameField.invalid && usernameField.touched">
-              <small *ngIf="usernameField.errors?.['required']">Username is required</small>
-              <small *ngIf="usernameField.errors?.['minlength']">At least 2 characters</small>
-              <small *ngIf="usernameField.errors?.['pattern']">Only letters, numbers, _ and - allowed</small>
-            </div>
-          </div>
-          
-          <div class="form-group">
-            <label for="displayName">Display name (optional)</label>
-            <input 
-              type="text" 
-              id="displayName" 
-              name="displayName"
-              [(ngModel)]="displayName" 
-              maxlength="50"
-              placeholder="Your Name">
-          </div>
-          
-          <button 
-            type="submit" 
-            class="login-btn"
-            [disabled]="loginForm.invalid || isLoading">
-            <span *ngIf="!isLoading">Sign in</span>
-            <span *ngIf="isLoading">Signing in...</span>
-          </button>
-          
-          <div class="error-message" *ngIf="errorMessage">
-            {{ errorMessage }}
-          </div>
-        </form>
+        <button 
+          class="login-btn"
+          (click)="startWriting()"
+          [disabled]="isLoading">
+          <span *ngIf="!isLoading">🚀 Start Writing Now</span>
+          <span *ngIf="isLoading">Starting...</span>
+        </button>
         
-        <div class="login-info">
-          <h3>ℹ️ Notes:</h3>
-          <ul>
-            <li>No registration required - just enter username</li>
-            <li>Your stories are automatically synced across all your devices</li>
-            <li>Without signing in, data is only stored locally</li>
-            <li>The username is used for the database (only a-z, 0-9, _, -)</li>
-          </ul>
+        <div class="error-message" *ngIf="errorMessage">
+          {{ errorMessage }}
         </div>
         
-        <button class="skip-btn" (click)="skipLogin()">
-          Continue without signing in (local only)
-        </button>
+        <div class="login-info">
+          <h3>ℹ️ About Anonymous Writing:</h3>
+          <ul>
+            <li>Your stories are automatically saved to Firebase</li>
+            <li>No registration required - start writing immediately</li>
+            <li>Anonymous accounts are secure and private</li>
+            <li>Upgrade to permanent account later to access across devices</li>
+          </ul>
+        </div>
       </div>
     </div>
   `,
@@ -234,8 +197,6 @@ export class LoginComponent implements OnInit {
   private authService = inject(AuthService);
   private router = inject(Router);
 
-  username = '';
-  displayName = '';
   isLoading = false;
   errorMessage = '';
   isLoggedIn = false;
@@ -246,24 +207,19 @@ export class LoginComponent implements OnInit {
     });
   }
 
-  async onLogin() {
+  async startWriting() {
     if (this.isLoading) return;
     
     this.isLoading = true;
     this.errorMessage = '';
     
     try {
-      await this.authService.login(this.username, this.displayName || undefined);
-      // Login successful - component will hide automatically
+      await this.authService.login();
+      // Anonymous login successful - component will hide automatically
     } catch (error: unknown) {
-      this.errorMessage = error instanceof Error ? error.message : 'Sign in failed';
+      this.errorMessage = error instanceof Error ? error.message : 'Failed to start writing session';
     } finally {
       this.isLoading = false;
     }
-  }
-
-  skipLogin() {
-    // Just hide the login - user will work with anonymous/local storage
-    this.isLoggedIn = true;
   }
 }
