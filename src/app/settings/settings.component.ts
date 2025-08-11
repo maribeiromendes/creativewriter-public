@@ -83,7 +83,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
                     size="small"
                     fill="outline"
                     (click)="loadCombinedModels()" 
-                    [disabled]="(!settings.openRouter.enabled || !settings.openRouter.apiKey) && (!settings.googleGemini.enabled || !settings.googleGemini.apiKey) || loadingModels"
+                    [disabled]="(!settings.openRouter.enabled || !settings.openRouter.apiKey) && (!settings.replicate.enabled || !settings.replicate.apiKey) || loadingModels"
                     title="Load Models">
                     {{ loadingModels ? 'Loading...' : 'Load Models' }}
                   </ion-button>

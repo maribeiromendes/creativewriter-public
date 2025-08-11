@@ -1270,7 +1270,14 @@ export class StoryStructureComponent implements OnInit, OnChanges, AfterViewInit
   }
 
   async addChapter(): Promise<void> {
-    await this.storyService.addChapter(this.story.id);
+    const newChapter = {
+      title: 'New Chapter',
+      order: this.story.chapters.length,
+      chapterNumber: this.story.chapters.length + 1,
+      scenes: []
+    };
+    
+    await this.storyService.addChapter(this.story.id, newChapter);
     // Refresh story data
     const updatedStory = await this.storyService.getStory(this.story.id);
     if (updatedStory) {
@@ -1305,7 +1312,21 @@ export class StoryStructureComponent implements OnInit, OnChanges, AfterViewInit
   }
 
   async addScene(chapterId: string): Promise<void> {
-    await this.storyService.addScene(this.story.id, chapterId);
+    // Find the chapter to determine scene order
+    const chapter = this.story.chapters.find(c => c.id === chapterId);
+    if (!chapter) {
+      console.error('Chapter not found');
+      return;
+    }
+    
+    const newScene = {
+      title: 'New Scene',
+      content: '',
+      order: chapter.scenes.length,
+      sceneNumber: chapter.scenes.length + 1
+    };
+    
+    await this.storyService.addScene(this.story.id, chapterId, newScene);
     const updatedStory = await this.storyService.getStory(this.story.id);
     if (updatedStory) {
       this.story = updatedStory;
@@ -1384,10 +1405,9 @@ export class StoryStructureComponent implements OnInit, OnChanges, AfterViewInit
       return;
     }
     const openRouterAvailable = settings.openRouter.enabled && settings.openRouter.apiKey;
-    const googleGeminiAvailable = settings.googleGemini.enabled && settings.googleGemini.apiKey;
     
-    if (!openRouterAvailable && !googleGeminiAvailable) {
-      alert('No AI API configured. Please configure OpenRouter or Google Gemini in settings.');
+    if (!openRouterAvailable) {
+      alert('OpenRouter API not configured. Please configure OpenRouter in settings.');
       return;
     }
     
@@ -1634,10 +1654,9 @@ The summary should capture the most important plot points and character developm
     
     // Check which APIs are available and configured
     const openRouterAvailable = settings.openRouter.enabled && settings.openRouter.apiKey;
-    const googleGeminiAvailable = settings.googleGemini.enabled && settings.googleGemini.apiKey;
     
-    if (!openRouterAvailable && !googleGeminiAvailable) {
-      alert('No AI API configured. Please configure OpenRouter or Google Gemini in settings.');
+    if (!openRouterAvailable) {
+      alert('OpenRouter API not configured. Please configure OpenRouter in settings.');
       return;
     }
     

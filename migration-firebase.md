@@ -126,3 +126,31 @@
     *   I will review `src/app/settings/settings.component.ts` and `src/app/core/models/settings.interface.ts` to remove any settings related to selecting Google Gemini as the AI provider.
 4.  **Update UI:**
     *   I will remove any UI elements that allow the user to select Google Gemini as the AI provider.
+
+### Phase 6: Code Cleanup and Refinement
+
+This phase addresses remaining issues after the initial migration.
+
+1.  **Remove Google Gemini References from `settings.component.ts`**
+    *   **Status:** Pending
+    *   **Action:** Read `src/app/settings/settings.component.ts` to identify and remove all UI elements and component logic related to Google Gemini. This includes form fields, toggles, and any associated properties or methods in the component's class.
+
+2.  **Fix Missing Method Parameters in `story-structure.component.ts`**
+    *   **Status:** Pending
+    *   **Action:** Investigate and correct the method calls for `addChapter` and `addScene`.
+        1.  Read `src/app/stories/services/story.service.ts` to determine the correct method signatures for `addChapter` and `addScene`.
+        2.  Read `src/app/stories/components/story-structure.component.ts` and update the calls to these methods to ensure they pass all the required parameters.
+
+3.  **Resolve Codex Interface Mismatches**
+    *   **Status:** Pending
+    *   **Action:** Investigate and resolve inconsistencies in the Codex interface usage.
+        1.  Read `src/app/stories/models/codex.interface.ts` to understand the intended data structures.
+        2.  Examine `src/app/stories/services/codex.service.ts` and `src/app/core/services/codex-relevance.service.ts` to see how they use these interfaces.
+        3.  Identify any discrepancies and update the code to ensure the interface usage is consistent and correct.
+
+4.  **Eliminate Remaining PouchDB Service References**
+    *   **Status:** Pending
+    *   **Action:** Find and remove all remaining references to PouchDB.
+        1.  Perform a global search for "pouchdb" across the entire `src` directory.
+        2.  For each file that still references PouchDB, refactor the code to use the new Firestore-based services.
+        3.  Delete the PouchDB type definition file at `src/types/pouchdb.d.ts`.
