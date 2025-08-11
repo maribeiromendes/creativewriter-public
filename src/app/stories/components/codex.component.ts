@@ -386,7 +386,9 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
                         [(ngModel)]="field.value" 
                         placeholder="Feldwert eingeben..."
                         rows="3"
-                        autoGrow="true">
+                        [autoGrow]="true"
+                        class="scrollable-textarea"
+                        (ionInput)="onTextareaInput($event)">
                       </ion-textarea>
                     </ion-item>
                   </div>
@@ -406,7 +408,9 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
                         [(ngModel)]="newCustomFieldValue" 
                         placeholder="Feldwert eingeben..."
                         rows="3"
-                        autoGrow="true">
+                        [autoGrow]="true"
+                        class="scrollable-textarea"
+                        (ionInput)="onTextareaInput($event)">
                       </ion-textarea>
                     </ion-item>
                   </div>
@@ -424,8 +428,9 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
                       [(ngModel)]="editingEntry.content" 
                       placeholder="Beschreibung, Details, Notizen..."
                       rows="8"
-                      autoGrow="true"
-                      class="content-textarea">
+                      [autoGrow]="true"
+                      class="content-textarea scrollable-textarea"
+                      (ionInput)="onTextareaInput($event)">
                     </ion-textarea>
                   </ion-item>
                 </div>
@@ -492,7 +497,10 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
                   <ion-textarea 
                     [(ngModel)]="newCategory.description" 
                     placeholder="Beschreibung..."
-                    rows="3">
+                    rows="3"
+                    [autoGrow]="true"
+                    class="scrollable-textarea"
+                    (ionInput)="onTextareaInput($event)">
                   </ion-textarea>
                 </ion-item>
               </ion-card-content>
@@ -1087,6 +1095,43 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
       pointer-events: none;
     }
 
+    /* Scrollable textarea improvements */
+    .scrollable-textarea {
+      min-height: 60px;
+      max-height: 300px;
+      --padding-start: 12px;
+      --padding-end: 12px;
+      --padding-top: 12px;
+      --padding-bottom: 12px;
+      resize: vertical;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--ion-color-medium) transparent;
+    }
+
+    .scrollable-textarea::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .scrollable-textarea::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .scrollable-textarea::-webkit-scrollbar-thumb {
+      background: var(--ion-color-medium);
+      border-radius: 3px;
+    }
+
+    .scrollable-textarea::-webkit-scrollbar-thumb:hover {
+      background: var(--ion-color-medium-shade);
+    }
+
+    /* Enhanced content textarea */
+    .content-textarea {
+      min-height: 120px;
+      max-height: 400px;
+    }
+
     /* Dark mode specific adjustments */
     @media (prefers-color-scheme: dark) {
       .form-section {
@@ -1122,6 +1167,14 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
       
       .new-custom-field:hover {
         background: var(--ion-color-primary-shade);
+      }
+
+      .scrollable-textarea::-webkit-scrollbar-thumb {
+        background: var(--ion-color-step-600);
+      }
+
+      .scrollable-textarea::-webkit-scrollbar-thumb:hover {
+        background: var(--ion-color-step-500);
       }
     }
   `]
@@ -1485,6 +1538,20 @@ export class CodexComponent implements OnInit, OnDestroy {
 
   goBack() {
     this.router.navigate(['/stories/editor', this.storyId()]);
+  }
+
+  onTextareaInput(event: CustomEvent) {
+    // Fix for autoGrow scroll-to-top issue
+    setTimeout(() => {
+      if (event.target && event.target.getInputElement) {
+        event.target.getInputElement().then((textArea: HTMLTextAreaElement) => {
+          if (textArea) {
+            textArea.style.scrollBehavior = 'smooth';
+            textArea.scrollTop = textArea.scrollHeight;
+          }
+        });
+      }
+    }, 0);
   }
 
   private initializeHeaderActions(): void {
