@@ -175,8 +175,8 @@ export class CodexRelevanceService {
     // Character-specific prompt patterns
     if (entry.category === 'character') {
       const characterPatterns = [
-        /beschreibe\s+\w+/,  // "beschreibe [character]"
-        /dialog\s+mit\s+\w+/, // "dialog mit [character]"
+        /describe\s+\w+/,  // "describe [character]"
+        /dialog\s+with\s+\w+/, // "dialog with [character]"
         /\w+\s+(sagt|spricht|antwortet|fragt)/, // character actions
       ];
       
@@ -192,8 +192,8 @@ export class CodexRelevanceService {
     if (entry.category === 'location') {
       const locationPatterns = [
         /(in|bei|am|im)\s+\w+/,  // prepositions indicating location
-        /szene\s+(in|bei|am|im)/, // "szene in/bei/am/im"
-        /beschreibe\s+(den|die|das)\s+\w+/, // "beschreibe den/die/das [location]"
+        /scene\s+(in|at|by)/, // "scene in/at/by"
+        /describe\s+(the)\s+\w+/, // "describe the [location]"
       ];
       
       for (const pattern of locationPatterns) {
@@ -306,7 +306,7 @@ export class CodexRelevanceService {
       return acc;
     }, {} as Record<string, CodexEntry[]>);
 
-    let formatted = '## Relevante Informationen aus dem Codex:\n\n';
+    let formatted = '## Relevant Information from Codex:\n\n';
 
     const categoryLabels = {
       character: 'Characters',

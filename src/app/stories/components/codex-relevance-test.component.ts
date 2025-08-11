@@ -193,8 +193,8 @@ export class CodexRelevanceTestComponent implements OnInit {
   
   ngOnInit() {
     // Set default test values
-    this.sceneContext = 'Emma betritt das verlassene Schloss. Die alten Mauern erzählen von vergangenen Zeiten. Sie sucht nach dem magischen Amulett.';
-    this.beatPrompt = 'Beschreibe Emmas Gefühle beim Betreten des Schlosses';
+    this.sceneContext = 'Emma enters the abandoned castle. The old walls tell of bygone times. She searches for the magical amulet.';
+    this.beatPrompt = 'Describe Emma\'s feelings when entering the castle';
   }
   
   async testRelevance() {

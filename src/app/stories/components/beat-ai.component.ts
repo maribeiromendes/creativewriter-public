@@ -1399,7 +1399,7 @@ export class BeatAIComponent implements OnInit, OnDestroy, AfterViewInit {
     if (!this.promptInput || this.editorView) return;
 
     const config: SimpleEditorConfig = {
-      placeholder: 'Beschreibe den Beat, den die AI generieren soll...',
+      placeholder: 'Describe the beat that the AI should generate...',
       onUpdate: (content: string) => {
         this.currentPrompt = content;
         this.onPromptChange();
