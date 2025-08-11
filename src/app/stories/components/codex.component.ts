@@ -772,11 +772,30 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
     /* Entry Modal Styling */
     .entry-modal {
       --width: 90vw;
-      --max-width: 800px;
-      --height: 90vh;
-      --border-radius: 16px;
-      --background: linear-gradient(135deg, rgba(20, 20, 20, 0.95) 0%, rgba(15, 15, 15, 0.95) 100%);
-      backdrop-filter: blur(20px);
+      --max-width: 900px;
+      --height: 92vh;
+      --border-radius: 24px;
+      --background: linear-gradient(135deg, rgba(28, 28, 32, 0.98) 0%, rgba(20, 20, 24, 0.98) 100%);
+      backdrop-filter: blur(24px) saturate(180%);
+      --box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 80px rgba(71, 118, 230, 0.1);
+    }
+    
+    .entry-modal ion-header {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    
+    .entry-modal ion-toolbar {
+      --background: linear-gradient(135deg, rgba(71, 118, 230, 0.15) 0%, rgba(143, 84, 233, 0.15) 100%);
+      --border-width: 0;
+      --padding-start: 20px;
+      --padding-end: 20px;
+      --min-height: 64px;
+    }
+    
+    .entry-modal ion-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      letter-spacing: 0.5px;
     }
     
     .entry-modal ion-content {
@@ -785,8 +804,9 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
 
     @media (max-width: 768px) {
       .entry-modal {
-        --width: 95vw;
-        --height: 95vh;
+        --width: 100vw;
+        --height: 100vh;
+        --border-radius: 0;
       }
     }
 
@@ -800,50 +820,64 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
     .modal-form-container {
       padding: 0;
       max-width: none;
+      background: linear-gradient(to bottom, transparent 0%, rgba(20, 20, 24, 0.3) 100%);
     }
 
     /* Form Sections */
     .form-section {
-      background: var(--ion-background-color);
-      margin: 0;
-      padding: 4px;
-      border-bottom: 1px solid var(--ion-color-step-150);
+      background: rgba(255, 255, 255, 0.02);
+      margin: 16px;
+      padding: 20px;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s ease;
+    }
+    
+    .form-section:hover {
+      background: rgba(255, 255, 255, 0.03);
+      border-color: rgba(71, 118, 230, 0.2);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
     }
 
     .form-section:last-of-type {
-      border-bottom: none;
+      margin-bottom: 100px; /* Space for sticky action buttons */
     }
 
     .section-title {
-      margin: 0 0 4px 0;
-      font-size: 1rem;
+      margin: 0 0 16px 0;
+      font-size: 1.1rem;
       font-weight: 600;
-      color: var(--ion-color-primary);
+      color: #f8f9fa;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
     }
 
     .section-title::before {
       content: '';
       width: 4px;
-      height: 20px;
-      background: var(--ion-color-primary);
+      height: 24px;
+      background: linear-gradient(135deg, #4776E6 0%, #8E54E9 100%);
       border-radius: 2px;
+      box-shadow: 0 0 8px rgba(71, 118, 230, 0.4);
     }
 
     .section-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 4px;
+      margin-bottom: 16px;
       flex-wrap: wrap;
       gap: 12px;
     }
 
     /* Form Groups and Items */
     .form-group {
-      margin-bottom: 4px;
+      margin-bottom: 20px;
     }
 
     .form-group:last-child {
@@ -851,7 +885,7 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
     }
 
     .form-item {
-      --background: var(--ion-item-background);
+      --background: transparent;
       --border-color: transparent;
       --border-width: 0;
       --border-style: none;
@@ -866,29 +900,41 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
 
     .form-item ion-label {
       font-weight: 500;
-      color: var(--ion-text-color);
-      margin-bottom: 4px;
-      opacity: 0.8;
+      color: #e0e0e0;
+      margin-bottom: 8px;
+      font-size: 0.95rem;
+      letter-spacing: 0.3px;
     }
 
     .form-item ion-input,
     .form-item ion-textarea,
     .form-item ion-select {
-      --background: var(--ion-background-color);
+      --background: rgba(255, 255, 255, 0.04);
       --padding-start: 16px;
       --padding-end: 16px;
-      --padding-top: 12px;
-      --padding-bottom: 12px;
-      font-size: 0.9rem;
-      border: 1px solid var(--ion-color-step-200);
-      border-radius: 8px;
+      --padding-top: 14px;
+      --padding-bottom: 14px;
+      font-size: 0.95rem;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
       margin-top: 8px;
+      color: #f8f9fa;
+      transition: all 0.3s ease;
+    }
+    
+    .form-item ion-input:hover,
+    .form-item ion-textarea:hover,
+    .form-item ion-select:hover {
+      --background: rgba(255, 255, 255, 0.06);
+      border-color: rgba(255, 255, 255, 0.12);
     }
     
     .form-item ion-input:focus,
     .form-item ion-textarea:focus,
     .form-item ion-select:focus {
-      border-color: var(--ion-color-primary);
+      --background: rgba(71, 118, 230, 0.08);
+      border-color: rgba(71, 118, 230, 0.5);
+      box-shadow: 0 0 0 3px rgba(71, 118, 230, 0.1);
     }
 
     .required {
@@ -916,39 +962,50 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
     .tags-container {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
+      gap: 10px;
       margin-top: 12px;
-      padding: 12px 16px;
-      background: var(--ion-item-background);
-      border: 1px solid var(--ion-color-step-200);
-      border-radius: 8px;
-      min-height: 50px;
+      padding: 14px 16px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      min-height: 56px;
       align-items: flex-start;
       align-content: flex-start;
+      transition: all 0.3s ease;
+    }
+    
+    .tags-container:hover {
+      background: rgba(255, 255, 255, 0.04);
+      border-color: rgba(255, 255, 255, 0.12);
     }
 
     .tag-help-text {
       display: block;
       margin-top: 8px;
-      margin-left: 16px;
-      font-size: 0.875rem;
-      color: var(--ion-color-medium);
-      font-style: italic;
+      margin-left: 4px;
+      font-size: 0.85rem;
+      color: rgba(255, 255, 255, 0.5);
+      font-style: normal;
+      letter-spacing: 0.2px;
     }
 
     .tag-chip {
-      --background: var(--ion-color-primary-tint);
-      --color: var(--ion-color-primary-contrast);
+      --background: linear-gradient(135deg, rgba(71, 118, 230, 0.2) 0%, rgba(143, 84, 233, 0.2) 100%);
+      --color: #8bb4f8;
+      border: 1px solid rgba(71, 118, 230, 0.3);
       cursor: pointer;
       transition: all 0.2s ease;
       font-size: 0.875rem;
       height: 32px;
+      border-radius: 16px;
+      backdrop-filter: blur(10px);
     }
 
     .tag-chip:hover {
-      --background: var(--ion-color-primary);
-      transform: translateY(-1px);
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      --background: linear-gradient(135deg, rgba(71, 118, 230, 0.3) 0%, rgba(143, 84, 233, 0.3) 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(71, 118, 230, 0.2);
+      border-color: rgba(71, 118, 230, 0.5);
     }
 
     .tag-chip ion-icon {
@@ -960,46 +1017,61 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
 
     .tag-chip:hover ion-icon {
       opacity: 1;
+      color: #ff4444;
     }
 
     /* Image Preview */
     .image-preview {
       margin-top: 12px;
-      padding: 12px 16px;
-      background: var(--ion-item-background);
-      border: 1px solid var(--ion-color-step-200);
-      border-radius: 8px;
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
       text-align: center;
+      transition: all 0.3s ease;
+    }
+    
+    .image-preview:hover {
+      background: rgba(255, 255, 255, 0.04);
+      border-color: rgba(255, 255, 255, 0.12);
     }
 
     .image-preview img {
       max-width: 100%;
-      max-height: 200px;
+      max-height: 240px;
       height: auto;
-      border-radius: 8px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     /* Custom Fields Styling */
     .custom-fields-container {
       display: flex;
       flex-direction: column;
-      gap: 20px;
+      gap: 16px;
     }
 
     .custom-field-item {
-      background: var(--ion-item-background);
-      border: 1px solid var(--ion-color-step-200);
-      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
       padding: 16px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s ease;
+    }
+    
+    .custom-field-item:hover {
+      background: rgba(255, 255, 255, 0.04);
+      border-color: rgba(71, 118, 230, 0.3);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
 
     .custom-field-header {
       display: flex;
       align-items: flex-end;
       gap: 12px;
-      margin-bottom: 4px;
+      margin-bottom: 12px;
     }
 
     .field-name-item {
@@ -1010,42 +1082,82 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
     .remove-field-btn {
       --padding-start: 8px;
       --padding-end: 8px;
+      --color: #ff6b6b;
       height: 40px;
       margin-bottom: 0;
+      transition: all 0.2s ease;
+    }
+    
+    .remove-field-btn:hover {
+      --color: #ff4444;
+      transform: scale(1.1);
     }
 
     .new-custom-field {
-      background: var(--ion-color-step-50);
-      border: 2px dashed var(--ion-color-step-300);
-      border-radius: 8px;
+      background: linear-gradient(135deg, rgba(71, 118, 230, 0.05) 0%, rgba(143, 84, 233, 0.05) 100%);
+      border: 2px dashed rgba(71, 118, 230, 0.3);
+      border-radius: 12px;
       padding: 16px;
-      transition: all 0.2s ease;
+      transition: all 0.3s ease;
     }
 
     .new-custom-field:hover {
-      border-color: var(--ion-color-primary);
-      background: var(--ion-color-primary-tint);
+      border-color: rgba(71, 118, 230, 0.5);
+      background: linear-gradient(135deg, rgba(71, 118, 230, 0.1) 0%, rgba(143, 84, 233, 0.1) 100%);
+      box-shadow: 0 4px 12px rgba(71, 118, 230, 0.1);
     }
 
     /* Modal Actions */
     .modal-actions {
       display: flex;
-      justify-content: flex-end;
+      justify-content: space-between;
       align-items: center;
-      gap: 12px;
-      padding: 4px;
-      background: var(--ion-toolbar-background);
-      border-top: 1px solid var(--ion-color-step-200);
+      gap: 16px;
+      padding: 20px 24px;
+      background: linear-gradient(to top, rgba(20, 20, 24, 0.98) 0%, rgba(20, 20, 24, 0.9) 100%);
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
       position: sticky;
       bottom: 0;
       z-index: 10;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.3);
     }
 
     .modal-actions ion-button {
-      --padding-start: 20px;
-      --padding-end: 20px;
-      --height: 44px;
-      font-weight: 500;
+      --padding-start: 24px;
+      --padding-end: 24px;
+      --height: 48px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      letter-spacing: 0.5px;
+      --border-radius: 12px;
+      transition: all 0.3s ease;
+    }
+    
+    .modal-actions ion-button[color="danger"] {
+      --background: rgba(255, 67, 67, 0.1);
+      --color: #ff6b6b;
+      --border-width: 1px;
+      --border-style: solid;
+      --border-color: rgba(255, 67, 67, 0.3);
+    }
+    
+    .modal-actions ion-button[color="danger"]:hover {
+      --background: rgba(255, 67, 67, 0.2);
+      --border-color: rgba(255, 67, 67, 0.5);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(255, 67, 67, 0.2);
+    }
+    
+    .modal-actions ion-button[color="primary"] {
+      --background: linear-gradient(135deg, #4776E6 0%, #8E54E9 100%);
+      --color: white;
+      box-shadow: 0 4px 12px rgba(71, 118, 230, 0.3);
+    }
+    
+    .modal-actions ion-button[color="primary"]:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(71, 118, 230, 0.4);
     }
 
     /* Responsive adjustments */
@@ -1132,50 +1244,24 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
       max-height: 400px;
     }
 
-    /* Dark mode specific adjustments */
-    @media (prefers-color-scheme: dark) {
-      .form-section {
-        background: var(--ion-background-color);
-      }
-      
-      .form-item ion-input,
-      .form-item ion-textarea,
-      .form-item ion-select {
-        --background: var(--ion-item-background);
-        border-color: var(--ion-color-step-300);
-      }
-      
-      .tags-container {
-        background: var(--ion-item-background);
-        border-color: var(--ion-color-step-300);
-      }
-      
-      .image-preview {
-        background: var(--ion-item-background);
-        border-color: var(--ion-color-step-300);
-      }
-      
-      .custom-field-item {
-        background: var(--ion-item-background);
-        border-color: var(--ion-color-step-300);
-      }
-      
-      .new-custom-field {
-        background: var(--ion-color-step-100);
-        border-color: var(--ion-color-step-400);
-      }
-      
-      .new-custom-field:hover {
-        background: var(--ion-color-primary-shade);
-      }
+    /* Toggle styling */
+    .form-item ion-toggle {
+      --background: rgba(255, 255, 255, 0.1);
+      --background-checked: linear-gradient(135deg, #4776E6 0%, #8E54E9 100%);
+      --handle-background: #ffffff;
+      --handle-background-checked: #ffffff;
+      --handle-box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      padding-top: 12px;
+      padding-bottom: 12px;
+    }
 
-      .scrollable-textarea::-webkit-scrollbar-thumb {
-        background: var(--ion-color-step-600);
-      }
+    /* Dark mode is already the default theme - these styles are applied by default */
+    .scrollable-textarea::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2);
+    }
 
-      .scrollable-textarea::-webkit-scrollbar-thumb:hover {
-        background: var(--ion-color-step-500);
-      }
+    .scrollable-textarea::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.3);
     }
   `]
 })
@@ -1543,8 +1629,9 @@ export class CodexComponent implements OnInit, OnDestroy {
   onTextareaInput(event: CustomEvent) {
     // Fix for autoGrow scroll-to-top issue
     setTimeout(() => {
-      if (event.target && event.target.getInputElement) {
-        event.target.getInputElement().then((textArea: HTMLTextAreaElement) => {
+      const target = event.target as HTMLIonTextareaElement;
+      if (target && typeof target.getInputElement === 'function') {
+        target.getInputElement().then((textArea: HTMLTextAreaElement) => {
           if (textArea) {
             textArea.style.scrollBehavior = 'smooth';
             textArea.scrollTop = textArea.scrollHeight;
