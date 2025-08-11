@@ -9,8 +9,6 @@ services:
     depends_on:
       - creativewriter
       - couchdb
-      - replicate-proxy
-      - gemini-proxy
     networks:
       - creativewriter-network
 
@@ -41,25 +39,6 @@ services:
     networks:
       - creativewriter-network
 
-  replicate-proxy:
-    image: ghcr.io/marcodroll/creativewriter2-proxy:latest
-    restart: unless-stopped
-    environment:
-      - PORT=3001
-    networks:
-      - creativewriter-network
-    labels:
-      - "com.centurylinklabs.watchtower.enable=true"
-
-  gemini-proxy:
-    image: ghcr.io/marcodroll/creativewriter2-gemini-proxy:latest
-    restart: unless-stopped
-    environment:
-      - PORT=3002
-    networks:
-      - creativewriter-network
-    labels:
-      - "com.centurylinklabs.watchtower.enable=true"
 
 networks:
   creativewriter-network:
