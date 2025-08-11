@@ -3,7 +3,6 @@ import { Observable, Subject, map, scan, catchError, of, switchMap, from, tap } 
 import { BeatAI, BeatAIGenerationEvent } from '../../stories/models/beat-ai.interface';
 import { Story } from '../../stories/models/story.interface';
 import { OpenRouterApiService } from '../../core/services/openrouter-api.service';
-import { GoogleGeminiApiService } from '../../core/services/google-gemini-api.service';
 import { SettingsService } from '../../core/services/settings.service';
 import { StoryService } from '../../stories/services/story.service';
 import { CodexService } from '../../stories/services/codex.service';
@@ -56,11 +55,11 @@ export class BeatAIService {
     }
     
     // Check which API to use based on the model's provider
-    const useGoogleGemini = provider === 'gemini' && settings.googleGemini.enabled && settings.googleGemini.apiKey;
+    // Only use OpenRouter now
     const useOpenRouter = provider === 'openrouter' && settings.openRouter.enabled && settings.openRouter.apiKey;
     
-    if (!useGoogleGemini && !useOpenRouter) {
-      console.warn('No AI API configured, using fallback content');
+    if (!useOpenRouter) {
+      console.warn('OpenRouter API not configured, using fallback content');
       return this.generateFallbackContent(prompt, beatId);
     }
 
@@ -91,10 +90,8 @@ export class BeatAIService {
         // Update options with the actual model ID
         const updatedOptions = { ...options, model: actualModelId || undefined };
         
-        // Choose API based on configuration (prefer Google Gemini if available)
-        const apiCall = useGoogleGemini 
-          ? this.callGoogleGeminiStreamingAPI(enhancedPrompt, updatedOptions, maxTokens, wordCount, requestId, beatId)
-          : this.callOpenRouterStreamingAPI(enhancedPrompt, updatedOptions, maxTokens, wordCount, requestId, beatId);
+        // Use OpenRouter API
+        const apiCall = this.callOpenRouterStreamingAPI(enhancedPrompt, updatedOptions, maxTokens, wordCount, requestId, beatId);
 
         return apiCall.pipe(
           catchError(() => {
@@ -120,18 +117,17 @@ export class BeatAIService {
     );
   }
 
-  private callGoogleGeminiStreamingAPI(prompt: string, options: { model?: string; temperature?: number; topP?: number }, maxTokens: number, wordCount: number, requestId: string, beatId: string): Observable<string> {
+  private callOpenRouterStreamingAPI(prompt: string, options: { model?: string; temperature?: number; topP?: number }, maxTokens: number, wordCount: number, requestId: string, beatId: string): Observable<string> {
     // Parse the structured prompt to extract messages
     const messages = this.parseStructuredPrompt(prompt);
     
     let accumulatedContent = '';
     
-    return this.googleGeminiApi.generateTextStream(prompt, {
+    return this.openRouterApi.generateTextStream(prompt, {
       model: options.model,
       maxTokens: maxTokens,
-      wordCount: wordCount,
-      requestId: requestId,
-      messages: messages
+      temperature: 0.75,
+      requestId: requestId
     }).pipe(
       tap((chunk: string) => {
         // Emit each chunk as it arrives
@@ -176,18 +172,15 @@ export class BeatAIService {
       map(() => accumulatedContent), // Return full content at the end
       catchError(() => {
         
-        // Try non-streaming API as fallback
-        return this.googleGeminiApi.generateText(prompt, {
+        // Try non-streaming OpenRouter API as fallback
+        return this.openRouterApi.generateText(prompt, {
           model: options.model,
           maxTokens: maxTokens,
-          temperature: options.temperature,
-          topP: options.topP,
-          wordCount: wordCount,
-          requestId: requestId,
-          messages: messages
+          temperature: options.temperature || 0.75,
+          topP: options.topP
         }).pipe(
           map(response => {
-            const content = response.candidates?.[0]?.content?.parts?.[0]?.text || '';
+            const content = response.choices?.[0]?.message?.content || '';
             accumulatedContent = content;
             
             // Simulate streaming by emitting in chunks
@@ -223,49 +216,6 @@ export class BeatAIService {
     );
   }
 
-  private callOpenRouterStreamingAPI(prompt: string, options: { model?: string; temperature?: number; topP?: number }, maxTokens: number, wordCount: number, requestId: string, beatId: string): Observable<string> {
-    let accumulatedContent = '';
-    
-    return this.openRouterApi.generateTextStream(prompt, {
-      model: options.model,
-      maxTokens: maxTokens,
-      wordCount: wordCount,
-      requestId: requestId
-    }).pipe(
-      tap((chunk: string) => {
-        // Emit each chunk as it arrives
-        accumulatedContent += chunk;
-        this.generationSubject.next({
-          beatId,
-          chunk: chunk,
-          isComplete: false
-        });
-      }),
-      scan((acc, chunk) => acc + chunk, ''), // Accumulate chunks
-      tap({
-        complete: () => {
-          // Post-process to remove duplicate character analyses
-          accumulatedContent = this.removeDuplicateCharacterAnalyses(accumulatedContent);
-          
-          // Emit completion
-          this.generationSubject.next({
-            beatId,
-            chunk: '',
-            isComplete: true
-          });
-          
-          // Clean up active generation
-          this.activeGenerations.delete(beatId);
-          
-          // Signal streaming stopped if no more active generations
-          if (this.activeGenerations.size === 0) {
-            this.isStreamingSubject.next(false);
-          }
-        }
-      }),
-      map(() => accumulatedContent) // Return full content at the end
-    );
-  }
 
   private parseStructuredPrompt(prompt: string): {role: 'system' | 'user' | 'assistant', content: string}[] {
     // Parse XML-like message structure from the template
@@ -597,12 +547,8 @@ export class BeatAIService {
   stopGeneration(beatId: string): void {
     const requestId = this.activeGenerations.get(beatId);
     if (requestId) {
-      // Try to abort on both APIs (one will succeed based on request ID format)
-      if (requestId.startsWith('gemini_')) {
-        this.googleGeminiApi.abortRequest(requestId);
-      } else {
-        this.openRouterApi.abortRequest(requestId);
-      }
+      // Abort OpenRouter request
+      this.openRouterApi.abortRequest(requestId);
       
       this.activeGenerations.delete(beatId);
       

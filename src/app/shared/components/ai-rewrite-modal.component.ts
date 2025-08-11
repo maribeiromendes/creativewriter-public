@@ -691,13 +691,12 @@ export class AIRewriteModalComponent implements OnInit {
       actualModelId = modelIdParts.join(':'); // Rejoin in case model ID contains colons
     }
     
-    // Check which API to use based on the selected model's provider
-    const useGoogleGemini = provider === 'gemini' && settings.googleGemini.enabled && settings.googleGemini.apiKey;
+    // Only use OpenRouter now
     const useOpenRouter = provider === 'openrouter' && settings.openRouter.enabled && settings.openRouter.apiKey;
     
-    if (!useGoogleGemini && !useOpenRouter) {
-      console.warn('No AI API configured or no model selected');
-      return of('Entschuldigung, keine AI API konfiguriert oder kein Modell ausgewählt.');
+    if (!useOpenRouter) {
+      console.warn('OpenRouter API not configured or not using OpenRouter model');
+      return of('Entschuldigung, OpenRouter API ist nicht konfiguriert oder kein OpenRouter-Modell ausgewählt.');
     }
     
     // For direct calls, we bypass the beat AI service and call the API directly
@@ -752,8 +751,8 @@ export class AIRewriteModalComponent implements OnInit {
   
   private callGeminiAPI(prompt: string, options: { wordCount: number; model?: string | null }): Observable<string> {
     const settings = this.settingsService.getSettings();
-    const apiKey = settings.googleGemini.apiKey;
-    const model = options.model || settings.googleGemini.model || 'gemini-1.5-flash';
+    const apiKey = settings.openRouter.apiKey;
+    const model = options.model || settings.openRouter.model;
     
     const requestBody = {
       contents: [{
@@ -875,7 +874,7 @@ export class AIRewriteModalComponent implements OnInit {
 
   private logGeminiRequest(prompt: string, options: { wordCount: number; model?: string | null }): string {
     const settings = this.settingsService.getSettings();
-    const model = options.model || settings.googleGemini.model || 'gemini-1.5-flash';
+    const model = options.model || settings.openRouter.model;
     const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent`;
     
     return this.aiLogger.logRequest({

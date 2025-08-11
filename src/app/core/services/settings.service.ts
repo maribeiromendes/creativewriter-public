@@ -33,14 +33,6 @@ export class SettingsService {
             ...DEFAULT_SETTINGS.replicate,
             ...parsed.replicate
           },
-          googleGemini: {
-            ...DEFAULT_SETTINGS.googleGemini,
-            ...parsed.googleGemini,
-            contentFilter: {
-              ...DEFAULT_SETTINGS.googleGemini.contentFilter,
-              ...parsed.googleGemini?.contentFilter
-            }
-          },
           sceneTitleGeneration: {
             ...DEFAULT_SETTINGS.sceneTitleGeneration,
             ...parsed.sceneTitleGeneration
@@ -90,11 +82,6 @@ export class SettingsService {
         ...currentSettings.openRouter,
         ...settings
       },
-      // If OpenRouter is being enabled, disable Gemini
-      googleGemini: settings.enabled ? {
-        ...currentSettings.googleGemini,
-        enabled: false
-      } : currentSettings.googleGemini,
       updatedAt: new Date()
     };
     
@@ -148,30 +135,7 @@ export class SettingsService {
     return settings.replicate.enabled && !!settings.replicate.apiKey;
   }
 
-  updateGoogleGeminiSettings(settings: Partial<Settings['googleGemini']>): void {
-    const currentSettings = this.settingsSubject.value;
-    const updatedSettings = {
-      ...currentSettings,
-      googleGemini: {
-        ...currentSettings.googleGemini,
-        ...settings
-      },
-      // If Gemini is being enabled, disable OpenRouter
-      openRouter: settings.enabled ? {
-        ...currentSettings.openRouter,
-        enabled: false
-      } : currentSettings.openRouter,
-      updatedAt: new Date()
-    };
-    
-    this.saveSettings(updatedSettings);
-    this.settingsSubject.next(updatedSettings);
-  }
 
-  isGoogleGeminiConfigured(): boolean {
-    const settings = this.getSettings();
-    return settings.googleGemini.enabled && !!settings.googleGemini.apiKey;
-  }
 
   updateAppearanceSettings(settings: Partial<Settings['appearance']>): void {
     const currentSettings = this.settingsSubject.value;

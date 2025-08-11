@@ -94,7 +94,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
                            bindValue="id"
                            [searchable]="true"
                            [clearable]="true"
-                           [disabled]="(!settings.openRouter.enabled || !settings.openRouter.apiKey) && (!settings.googleGemini.enabled || !settings.googleGemini.apiKey)"
+                           [disabled]="(!settings.openRouter.enabled || !settings.openRouter.apiKey) && (!settings.replicate.enabled || !settings.replicate.apiKey)"
                            placeholder="Select or search model..."
                            (ngModelChange)="onGlobalModelChange()"
                            [loading]="loadingModels"
@@ -104,7 +104,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
                   <ng-template ng-option-tmp let-item="item">
                     <div class="model-option">
                       <div class="model-option-header">
-                        <ion-icon [name]="item.provider === 'gemini' ? 'logo-google' : 'globe-outline'" class="provider-icon" [class.gemini]="item.provider === 'gemini'" [class.openrouter]="item.provider === 'openrouter'"></ion-icon>
+                        <ion-icon [name]="item.provider === 'openrouter' ? 'globe-outline' : 'cloud-outline'" class="provider-icon" [class.replicate]="item.provider === 'replicate'" [class.openrouter]="item.provider === 'openrouter'"></ion-icon>
                         <span class="model-label">{{ item.label }}</span>
                       </div>
                       <div class="model-option-details">
@@ -120,7 +120,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
                   <p *ngIf="!modelLoadError && combinedModels.length > 0" class="info-text">
                     {{ combinedModels.length }} models available. Prices in EUR per 1M tokens.
                   </p>
-                  <p *ngIf="!modelLoadError && combinedModels.length === 0 && (settings.openRouter.enabled || settings.googleGemini.enabled)" class="info-text">
+                  <p *ngIf="!modelLoadError && combinedModels.length === 0 && (settings.openRouter.enabled || settings.replicate.enabled)" class="info-text">
                     Click 'Load Models' to display available models.
                   </p>
                 </div>
@@ -275,149 +275,6 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
           </ion-card-content>
         </ion-card>
 
-        <!-- Google Gemini Settings -->
-        <ion-card>
-          <ion-card-header>
-            <ion-card-title>Google Gemini API</ion-card-title>
-          </ion-card-header>
-          <ion-card-content>
-            <ion-item>
-              <ion-label>Enable Google Gemini</ion-label>
-              <ion-toggle 
-                [(ngModel)]="settings.googleGemini.enabled"
-                (ngModelChange)="onProviderToggle('googleGemini')"
-                slot="end">
-              </ion-toggle>
-            </ion-item>
-
-            <ion-item [class.disabled]="!settings.googleGemini.enabled">
-              <ion-input
-                type="password"
-                [(ngModel)]="settings.googleGemini.apiKey"
-                (ngModelChange)="onApiKeyChange('googleGemini')"
-                placeholder="AIza..."
-                [disabled]="!settings.googleGemini.enabled"
-                label="API Key"
-                labelPlacement="stacked"
-                helperText="Find your Google AI API key at aistudio.google.com/app/apikey">
-              </ion-input>
-            </ion-item>
-
-            <div class="model-info" [class.disabled]="!settings.googleGemini.enabled">
-              <p class="info-text">Use the global model selection above.</p>
-            </div>
-
-            <div class="settings-row" [class.disabled]="!settings.googleGemini.enabled">
-              <ion-item>
-                <ion-input
-                  type="number"
-                  [(ngModel)]="settings.googleGemini.temperature"
-                  (ngModelChange)="onSettingsChange()"
-                  min="0"
-                  max="2"
-                  step="0.1"
-                  [disabled]="!settings.googleGemini.enabled"
-                  label="Temperature"
-                  labelPlacement="stacked">
-                </ion-input>
-              </ion-item>
-              <ion-item>
-                <ion-input
-                  type="number"
-                  [(ngModel)]="settings.googleGemini.topP"
-                  (ngModelChange)="onSettingsChange()"
-                  min="0"
-                  max="1"
-                  step="0.1"
-                  [disabled]="!settings.googleGemini.enabled"
-                  label="Top P"
-                  labelPlacement="stacked">
-                </ion-input>
-              </ion-item>
-            </div>
-
-            <!-- Content Filter Settings -->
-            <div *ngIf="settings.googleGemini.enabled" class="content-filter-section">
-              <h4 class="section-title">Content Filter Settings</h4>
-              
-              <ion-item>
-                <ion-label>Harassment</ion-label>
-                <ion-select
-                  [(ngModel)]="settings.googleGemini.contentFilter.harassment"
-                  (ngModelChange)="onSettingsChange()"
-                  interface="popover"
-                  slot="end">
-                  <ion-select-option value="BLOCK_NONE">Don't Block</ion-select-option>
-                  <ion-select-option value="BLOCK_ONLY_HIGH">Only high risks</ion-select-option>
-                  <ion-select-option value="BLOCK_MEDIUM_AND_ABOVE">Medium and high risks</ion-select-option>
-                  <ion-select-option value="BLOCK_LOW_AND_ABOVE">Low and higher risks</ion-select-option>
-                </ion-select>
-              </ion-item>
-
-              <ion-item>
-                <ion-label>Hate Speech</ion-label>
-                <ion-select
-                  [(ngModel)]="settings.googleGemini.contentFilter.hateSpeech"
-                  (ngModelChange)="onSettingsChange()"
-                  interface="popover"
-                  slot="end">
-                  <ion-select-option value="BLOCK_NONE">Don't Block</ion-select-option>
-                  <ion-select-option value="BLOCK_ONLY_HIGH">Only high risks</ion-select-option>
-                  <ion-select-option value="BLOCK_MEDIUM_AND_ABOVE">Medium and high risks</ion-select-option>
-                  <ion-select-option value="BLOCK_LOW_AND_ABOVE">Low and higher risks</ion-select-option>
-                </ion-select>
-              </ion-item>
-
-              <ion-item>
-                <ion-label>Sexually Explicit</ion-label>
-                <ion-select
-                  [(ngModel)]="settings.googleGemini.contentFilter.sexuallyExplicit"
-                  (ngModelChange)="onSettingsChange()"
-                  interface="popover"
-                  slot="end">
-                  <ion-select-option value="BLOCK_NONE">Don't Block</ion-select-option>
-                  <ion-select-option value="BLOCK_ONLY_HIGH">Only high risks</ion-select-option>
-                  <ion-select-option value="BLOCK_MEDIUM_AND_ABOVE">Medium and high risks</ion-select-option>
-                  <ion-select-option value="BLOCK_LOW_AND_ABOVE">Low and higher risks</ion-select-option>
-                </ion-select>
-              </ion-item>
-
-              <ion-item>
-                <ion-label>Dangerous Content</ion-label>
-                <ion-select
-                  [(ngModel)]="settings.googleGemini.contentFilter.dangerousContent"
-                  (ngModelChange)="onSettingsChange()"
-                  interface="popover"
-                  slot="end">
-                  <ion-select-option value="BLOCK_NONE">Don't Block</ion-select-option>
-                  <ion-select-option value="BLOCK_ONLY_HIGH">Only high risks</ion-select-option>
-                  <ion-select-option value="BLOCK_MEDIUM_AND_ABOVE">Medium and high risks</ion-select-option>
-                  <ion-select-option value="BLOCK_LOW_AND_ABOVE">Low and higher risks</ion-select-option>
-                </ion-select>
-              </ion-item>
-
-              <ion-item>
-                <ion-label>Civic Integrity</ion-label>
-                <ion-select
-                  [(ngModel)]="settings.googleGemini.contentFilter.civicIntegrity"
-                  (ngModelChange)="onSettingsChange()"
-                  interface="popover"
-                  slot="end">
-                  <ion-select-option value="BLOCK_NONE">Don't Block</ion-select-option>
-                  <ion-select-option value="BLOCK_ONLY_HIGH">Only high risks</ion-select-option>
-                  <ion-select-option value="BLOCK_MEDIUM_AND_ABOVE">Medium and high risks</ion-select-option>
-                  <ion-select-option value="BLOCK_LOW_AND_ABOVE">Low and higher risks</ion-select-option>
-                </ion-select>
-              </ion-item>
-            </div>
-
-            <div class="model-info" *ngIf="settings.googleGemini.enabled">
-              <p class="info-text">
-                <strong>Content Filter:</strong> Configurable safety settings for different content categories.
-              </p>
-            </div>
-          </ion-card-content>
-        </ion-card>
           </div>
           
           <!-- Appearance Tab -->
@@ -536,7 +393,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
                            bindValue="id"
                            [searchable]="true"
                            [clearable]="true"
-                           [disabled]="(!settings.openRouter.enabled || !settings.openRouter.apiKey) && (!settings.googleGemini.enabled || !settings.googleGemini.apiKey)"
+                           [disabled]="(!settings.openRouter.enabled || !settings.openRouter.apiKey) && (!settings.replicate.enabled || !settings.replicate.apiKey)"
                            placeholder="Select model (empty = use global model)"
                            (ngModelChange)="onSceneTitleModelChange()"
                            [loading]="loadingModels"
@@ -546,7 +403,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
                   <ng-template ng-option-tmp let-item="item">
                     <div class="model-option">
                       <div class="model-option-header">
-                        <ion-icon [name]="item.provider === 'gemini' ? 'logo-google' : 'globe-outline'" class="provider-icon" [class.gemini]="item.provider === 'gemini'" [class.openrouter]="item.provider === 'openrouter'"></ion-icon>
+                        <ion-icon [name]="item.provider === 'openrouter' ? 'globe-outline' : 'cloud-outline'" class="provider-icon" [class.replicate]="item.provider === 'replicate'" [class.openrouter]="item.provider === 'openrouter'"></ion-icon>
                         <span class="model-label">{{ item.label }}</span>
                       </div>
                       <div class="model-option-details">
@@ -644,7 +501,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
                            bindValue="id"
                            [searchable]="true"
                            [clearable]="true"
-                           [disabled]="(!settings.openRouter.enabled || !settings.openRouter.apiKey) && (!settings.googleGemini.enabled || !settings.googleGemini.apiKey)"
+                           [disabled]="(!settings.openRouter.enabled || !settings.openRouter.apiKey) && (!settings.replicate.enabled || !settings.replicate.apiKey)"
                            placeholder="Select model (empty = use global model)"
                            (ngModelChange)="onSceneSummaryModelChange()"
                            [loading]="loadingModels"
@@ -654,7 +511,7 @@ import { CustomBackground } from '../shared/services/synced-custom-background.se
                   <ng-template ng-option-tmp let-item="item">
                     <div class="model-option">
                       <div class="model-option-header">
-                        <ion-icon [name]="item.provider === 'gemini' ? 'logo-google' : 'globe-outline'" class="provider-icon" [class.gemini]="item.provider === 'gemini'" [class.openrouter]="item.provider === 'openrouter'"></ion-icon>
+                        <ion-icon [name]="item.provider === 'openrouter' ? 'globe-outline' : 'cloud-outline'" class="provider-icon" [class.replicate]="item.provider === 'replicate'" [class.openrouter]="item.provider === 'openrouter'"></ion-icon>
                         <span class="model-label">{{ item.label }}</span>
                       </div>
                       <div class="model-description" *ngIf="item.description">{{ item.description }}</div>
@@ -1439,7 +1296,6 @@ export class SettingsComponent implements OnInit, OnDestroy {
   // Model loading state
   openRouterModels: ModelOption[] = [];
   replicateModels: ModelOption[] = [];
-  geminiModels: ModelOption[] = [];
   combinedModels: ModelOption[] = [];
   loadingModels = false;
   modelLoadError: string | null = null;
@@ -1501,18 +1357,13 @@ export class SettingsComponent implements OnInit, OnDestroy {
       })
     );
     
-    this.subscription.add(
-      this.modelService.geminiModels$.subscribe(models => {
-        this.geminiModels = models;
-      })
-    );
     
     // Initial auto-load check
     this.autoLoadModelsIfNeeded();
     
     // Load combined models if any API is enabled
     if ((this.settings.openRouter.enabled && this.settings.openRouter.apiKey) ||
-        (this.settings.googleGemini.enabled && this.settings.googleGemini.apiKey)) {
+        (this.settings.replicate.enabled && this.settings.replicate.apiKey)) {
       this.loadCombinedModels();
     }
   }
@@ -1552,7 +1403,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
     });
   }
   
-  onApiKeyChange(provider: 'openRouter' | 'replicate' | 'googleGemini'): void {
+  onApiKeyChange(provider: 'openRouter' | 'replicate'): void {
     this.onSettingsChange();
     
     // Auto-load models when API key is entered and provider is enabled
@@ -1561,12 +1412,10 @@ export class SettingsComponent implements OnInit, OnDestroy {
       this.modelService.loadOpenRouterModels().subscribe();
     } else if (provider === 'replicate' && this.settings.replicate.enabled && this.settings.replicate.apiKey) {
       this.modelService.loadReplicateModels().subscribe();
-    } else if (provider === 'googleGemini' && this.settings.googleGemini.enabled && this.settings.googleGemini.apiKey) {
-      this.modelService.loadGeminiModels().subscribe();
     }
   }
   
-  onProviderToggle(provider: 'openRouter' | 'replicate' | 'googleGemini'): void {
+  onProviderToggle(provider: 'openRouter' | 'replicate'): void {
     // No more mutual exclusion - both can be enabled at the same time
     this.onSettingsChange();
     
@@ -1576,8 +1425,6 @@ export class SettingsComponent implements OnInit, OnDestroy {
       this.modelService.loadOpenRouterModels().subscribe();
     } else if (provider === 'replicate' && this.settings.replicate.enabled && this.settings.replicate.apiKey) {
       this.modelService.loadReplicateModels().subscribe();
-    } else if (provider === 'googleGemini' && this.settings.googleGemini.enabled && this.settings.googleGemini.apiKey) {
-      this.modelService.loadGeminiModels().subscribe();
     }
   }
   
@@ -1629,18 +1476,6 @@ export class SettingsComponent implements OnInit, OnDestroy {
       this.modelService.loadReplicateModels().subscribe();
     }
     
-    // Auto-load Gemini models if:
-    // 1. Gemini is enabled
-    // 2. API key is present
-    // 3. A model is already selected
-    // 4. Models haven't been loaded yet
-    if (this.settings.googleGemini.enabled && 
-        this.settings.googleGemini.apiKey && 
-        this.settings.googleGemini.model && 
-        this.geminiModels.length === 0 &&
-        !this.loadingModels) {
-      this.modelService.loadGeminiModels().subscribe();
-    }
   }
 
   goBack(): void {
@@ -1694,8 +1529,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
       
       if (provider === 'openrouter') {
         this.settings.openRouter.model = modelId;
-      } else if (provider === 'gemini') {
-        this.settings.googleGemini.model = modelId;
+      } else if (provider === 'replicate') {
+        this.settings.replicate.model = modelId;
       }
     }
     

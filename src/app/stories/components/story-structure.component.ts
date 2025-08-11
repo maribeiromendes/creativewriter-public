@@ -14,7 +14,6 @@ import {
 import { Story, Chapter, Scene } from '../models/story.interface';
 import { StoryService } from '../services/story.service';
 import { OpenRouterApiService } from '../../core/services/openrouter-api.service';
-import { GoogleGeminiApiService } from '../../core/services/google-gemini-api.service';
 import { ModelService } from '../../core/services/model.service';
 import { SettingsService } from '../../core/services/settings.service';
 import { PromptManagerService } from '../../shared/services/prompt-manager.service';
@@ -1170,7 +1169,6 @@ import { Subscription } from 'rxjs';
 export class StoryStructureComponent implements OnInit, OnChanges, AfterViewInit, OnDestroy {
   private storyService = inject(StoryService);
   private openRouterApiService = inject(OpenRouterApiService);
-  private googleGeminiApiService = inject(GoogleGeminiApiService);
   private modelService = inject(ModelService);
   private settingsService = inject(SettingsService);
   private cdr = inject(ChangeDetectorRef);
