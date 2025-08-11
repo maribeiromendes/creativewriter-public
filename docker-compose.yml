@@ -8,7 +8,6 @@ services:
       - "${PORT:-3080}:80"  # Port can be overridden via .env, defaults to 3080
     depends_on:
       - creativewriter
-      - couchdb
     networks:
       - creativewriter-network
 
@@ -20,22 +19,6 @@ services:
       - TZ=${TZ:-Europe/Berlin}  # Timezone can be overridden via .env
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
-    networks:
-      - creativewriter-network
-    depends_on:
-      - couchdb
-
-  couchdb:
-    image: couchdb:3.3
-    restart: unless-stopped
-    # No ports exposed directly - only through nginx
-    environment:
-      - COUCHDB_USER=${COUCHDB_USER:-admin}
-      - COUCHDB_PASSWORD=${COUCHDB_PASSWORD:-password}  # Change this in production!
-      - COUCHDB_SECRET=${COUCHDB_SECRET:-mysecret}    # Change this in production!
-    volumes:
-      - ${DATA_PATH:-./data}/couchdb-data:/opt/couchdb/data
-      - ${DATA_PATH:-./data}/log/couchdb_log:/opt/couchdb/var/log
     networks:
       - creativewriter-network
 
