@@ -1163,12 +1163,7 @@ export class StoryListComponent implements OnInit {
   
   private setupBurgerMenu(): void {
     this.burgerMenuItems = [
-      ...this.headerNavService.getStoryBurgerMenuItems(),
-      {
-        icon: 'download',
-        label: 'NovelCrafter Import',
-        action: () => this.importNovelCrafter()
-      }
+      ...this.headerNavService.getStoryBurgerMenuItems()
     ];
   }
 
