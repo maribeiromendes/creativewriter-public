@@ -1576,7 +1576,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
   onBackgroundUploaded(customBackground: CustomBackground): void {
     // Automatically select the newly uploaded background
-    const customId = `custom:${customBackground._id}`;
+    const customId = `custom:${customBackground.id}`;
     this.onBackgroundImageChange(customId);
     
   }

@@ -15,7 +15,6 @@ import { CodexEntry, CustomField } from '../../stories/models/codex.interface';
 })
 export class BeatAIService {
   private readonly openRouterApi = inject(OpenRouterApiService);
-  private readonly googleGeminiApi = inject(GoogleGeminiApiService);
   private readonly settingsService = inject(SettingsService);
   private readonly storyService = inject(StoryService);
   private readonly codexService = inject(CodexService);
@@ -119,7 +118,7 @@ export class BeatAIService {
 
   private callOpenRouterStreamingAPI(prompt: string, options: { model?: string; temperature?: number; topP?: number }, maxTokens: number, wordCount: number, requestId: string, beatId: string): Observable<string> {
     // Parse the structured prompt to extract messages
-    const messages = this.parseStructuredPrompt(prompt);
+    // const messages = this.parseStructuredPrompt(prompt); // Unused for now
     
     let accumulatedContent = '';
     

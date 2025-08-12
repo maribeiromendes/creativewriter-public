@@ -362,6 +362,22 @@ export class CodexService {
       });
   }
 
+  // Get all entries by story ID - flattened array for highlighting
+  async getAllEntriesByStory(storyId?: string): Promise<CodexEntry[]> {
+    if (!storyId) return [];
+    
+    try {
+      const entries = await this.databaseService.getAll<CodexEntry>('codexEntries', {
+        where: [{ field: 'storyId', operator: '==', value: storyId }],
+        orderBy: [{ field: 'order', direction: 'asc' }]
+      });
+      return entries;
+    } catch (error) {
+      console.error('Error getting all entries by story:', error);
+      return [];
+    }
+  }
+
   // Utility methods
   private updateCodexCache(storyId: string, codex: LegacyCodex): void {
     const currentCodexMap = this.codexSubject.value;

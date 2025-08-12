@@ -1236,7 +1236,7 @@ Strukturiere die Antwort klar nach Gegenständen getrennt.`
     }
     
     // Check which API to use based on the selected model's provider
-    const useGoogleGemini = provider === 'gemini' && settings.googleGemini.enabled && settings.googleGemini.apiKey;
+    const useGoogleGemini = false; // Google Gemini support removed
     const useOpenRouter = provider === 'openrouter' && settings.openRouter.enabled && settings.openRouter.apiKey;
     
     if (!useGoogleGemini && !useOpenRouter) {
@@ -1295,38 +1295,12 @@ Strukturiere die Antwort klar nach Gegenständen getrennt.`
     });
   }
   
-  private callGeminiAPI(prompt: string, options: { wordCount: number; model?: string | null }): Observable<string> {
-    const settings = this.settingsService.getSettings();
-    const apiKey = settings.googleGemini.apiKey;
-    const model = options.model || settings.googleGemini.model || 'gemini-1.5-flash';
-    
-    const requestBody = {
-      contents: [{
-        role: 'user',
-        parts: [{ text: prompt }]
-      }],
-      generationConfig: {
-        temperature: 0.7,
-        maxOutputTokens: Math.ceil(options.wordCount * 2.5),
-        topP: 0.95,
-        topK: 40
-      }
-    };
-    
-    return from(fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?key=${apiKey}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(requestBody)
-    })).pipe(
-      switchMap(response => {
-        if (!response.ok) {
-          throw new Error(`API error: ${response.statusText}`);
-        }
-        return this.processStreamResponse(response);
-      })
-    );
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  private callGeminiAPI(_prompt: string, _options: { wordCount: number; model?: string | null }): Observable<string> {
+    // Google Gemini support removed
+    return new Observable<string>(observer => {
+      observer.error(new Error('Google Gemini support has been removed'));
+    });
   }
   
   private callOpenRouterAPI(prompt: string, options: { wordCount: number; model?: string | null }): Observable<string> {
@@ -1419,8 +1393,8 @@ Strukturiere die Antwort klar nach Gegenständen getrennt.`
   }
 
   private logGeminiRequest(prompt: string, options: { wordCount: number; model?: string | null }): string {
-    const settings = this.settingsService.getSettings();
-    const model = options.model || settings.googleGemini.model || 'gemini-1.5-flash';
+    // Google Gemini support removed
+    const model = options.model || 'gemini-removed';
     const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent`;
     
     return this.aiLogger.logRequest({

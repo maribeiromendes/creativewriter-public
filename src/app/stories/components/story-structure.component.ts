@@ -1470,33 +1470,29 @@ The summary should capture the most important plot points and character developm
       actualModelId = modelIdParts.join(':'); // Rejoin in case model ID contains colons
     }
     
-    // Determine which API to use
-    const useGoogleGemini = (provider === 'gemini' && googleGeminiAvailable) || 
-                           (provider !== 'gemini' && provider !== 'openrouter' && googleGeminiAvailable && !openRouterAvailable);
-    const useOpenRouter = (provider === 'openrouter' && openRouterAvailable) || 
-                         (provider !== 'gemini' && provider !== 'openrouter' && openRouterAvailable);
+    // Only use OpenRouter now
+    const useOpenRouter = provider === 'openrouter' && settings.openRouter?.enabled && settings.openRouter?.apiKey;
     
     // Set the actual model ID for fallback cases
-    if (provider !== 'gemini' && provider !== 'openrouter') {
+    if (provider !== 'openrouter') {
       actualModelId = this.selectedModel; // Use the full model string for fallback
     }
 
-    // Use the appropriate API
-    if (useGoogleGemini) {
-      this.googleGeminiApiService.generateText(prompt, {
-        model: actualModelId!,
+    // Use OpenRouter API
+    if (useOpenRouter) {
+      this.openRouterApiService.generateText(prompt, {
+        model: actualModelId || settings.openRouter.model,
         maxTokens: 3000,
-        temperature: settings.sceneSummaryGeneration.temperature
+        temperature: settings.sceneSummaryGeneration?.temperature || 0.7
       }).subscribe({
-        next: async (response) => {
+        next: async (response: string | { choices: { message?: { content?: string } }[] }) => {
           let summary = '';
           
-          // Google Gemini response format
-          if (response.candidates && response.candidates.length > 0) {
-            const candidate = response.candidates[0];
-            if (candidate.content && candidate.content.parts && candidate.content.parts.length > 0) {
-              summary = candidate.content.parts[0].text.trim();
-            }
+          // OpenRouter response format
+          if (typeof response === 'string') {
+            summary = response.trim();
+          } else if (response.choices && response.choices.length > 0) {
+            summary = response.choices[0].message?.content?.trim() || '';
           }
           
           if (summary) {
@@ -1550,88 +1546,8 @@ The summary should capture the most important plot points and character developm
           this.cdr.detectChanges(); // Force change detection
         }
       });
-    } else if (useOpenRouter) {
-      this.openRouterApiService.generateText(prompt, {
-        model: actualModelId!,
-        maxTokens: 3000,
-        temperature: settings.sceneSummaryGeneration.temperature
-      }).subscribe({
-      next: async (response) => {
-        if (response.choices && response.choices.length > 0) {
-          let summary = response.choices[0].message.content.trim();
-          
-          // Check if summary seems incomplete (ends abruptly without proper punctuation)
-          if (summary && !summary.match(/[.!?]$/)) {
-            summary += '.'; // Add period if missing
-          }
-          
-          // Check if response was truncated due to max_tokens limit
-          if (response.choices[0].finish_reason === 'length') {
-            console.warn('Summary was truncated due to token limit. Consider increasing maxTokens.');
-            summary += ' [Zusammenfassung wurde aufgrund der Token-Begrenzung gekürzt]';
-          }
-          
-          // Update the scene summary in the local object first
-          if (scene) {
-            scene.summary = summary;
-            scene.summaryGeneratedAt = new Date();
-          }
-          
-          // Force change detection before service update
-          this.cdr.detectChanges();
-          
-          // Update in service
-          await this.updateSceneSummary(chapterId, sceneId, summary);
-          await this.storyService.updateScene(this.story.id, chapterId, sceneId, {
-            summary: summary,
-            summaryGeneratedAt: scene?.summaryGeneratedAt || new Date()
-          });
-          
-          // Refresh the story data to ensure consistency
-          const updatedStory = await this.storyService.getStory(this.story.id);
-          if (updatedStory) {
-            this.story = updatedStory;
-          }
-        }
-        clearTimeout(timeoutId); // Clear timeout on success
-        this.isGeneratingSummary.delete(sceneId);
-        this.cdr.detectChanges(); // Force change detection
-        
-        // Ensure textarea is properly resized and updated after content update
-        setTimeout(() => {
-          if (scene && scene.summary) {
-            this.updateTextareaValue(sceneId, scene.summary);
-          }
-          this.resizeTextareaForScene(sceneId);
-          this.cdr.detectChanges();
-        }, 150);
-      },
-      error: (error) => {
-        console.error('Error generating scene summary:', error);
-        clearTimeout(timeoutId); // Clear timeout on error
-        
-        let errorMessage = 'Error generating summary.';
-        
-        // Check for specific error types
-        if (error.status === 400) {
-          errorMessage = 'Ungültige Anfrage. Bitte überprüfen Sie Ihre API-Einstellungen.';
-        } else if (error.status === 401) {
-          errorMessage = 'API-Schlüssel ungültig. Bitte überprüfen Sie Ihren OpenRouter API-Key in den Einstellungen.';
-        } else if (error.status === 403) {
-          errorMessage = 'Zugriff verweigert. Ihr API-Schlüssel hat möglicherweise nicht die erforderlichen Berechtigungen.';
-        } else if (error.status === 429) {
-          errorMessage = 'Rate-Limit erreicht. Bitte warten Sie einen Moment und versuchen Sie es erneut.';
-        } else if (error.status === 500) {
-          errorMessage = 'Server-Fehler bei OpenRouter. Bitte versuchen Sie es später erneut.';
-        } else if (error.message?.includes('nicht aktiviert')) {
-          errorMessage = error.message;
-        }
-        
-        alert(errorMessage);
-        this.isGeneratingSummary.delete(sceneId);
-        this.cdr.detectChanges(); // Force change detection
-        }
-      });
+    } else {
+      alert('OpenRouter API not configured. Please configure OpenRouter in settings.');
     }
   }
   
@@ -1670,14 +1586,11 @@ The summary should capture the most important plot points and character developm
       actualModelId = modelIdParts.join(':'); // Rejoin in case model ID contains colons
     }
     
-    // Determine which API to use based on the model's provider and availability
-    const useGoogleGemini = (provider === 'gemini' && googleGeminiAvailable) || 
-                           (provider !== 'gemini' && provider !== 'openrouter' && googleGeminiAvailable && !openRouterAvailable);
-    const useOpenRouter = (provider === 'openrouter' && openRouterAvailable) || 
-                         (provider !== 'gemini' && provider !== 'openrouter' && openRouterAvailable);
+    // Only use OpenRouter now
+    const useOpenRouter = provider === 'openrouter' && openRouterAvailable;
     
     // Set the actual model ID for fallback cases
-    if (provider !== 'gemini' && provider !== 'openrouter') {
+    if (provider !== 'openrouter') {
       actualModelId = modelToUse; // Use the full model string for fallback
     }
     
@@ -1760,22 +1673,21 @@ ${sceneContent}
 Respond only with the title, without further explanations or quotation marks.`;
     }
 
-    // Choose API based on provider
-    if (useGoogleGemini) {
-      this.googleGeminiApiService.generateText(prompt, {
-        model: actualModelId!,
+    // Use OpenRouter API
+    if (useOpenRouter) {
+      this.openRouterApiService.generateText(prompt, {
+        model: actualModelId || settings.openRouter.model,
         maxTokens: Math.max(50, titleSettings.maxWords * 6), // Allow more tokens for longer titles (up to 20 words)
         temperature: titleSettings.temperature
       }).subscribe({
-        next: async (response) => {
+        next: async (response: string | { choices: { message?: { content?: string } }[] }) => {
           let title = '';
           
-          // Google Gemini response format
-          if (response.candidates && response.candidates.length > 0) {
-            const candidate = response.candidates[0];
-            if (candidate.content && candidate.content.parts && candidate.content.parts.length > 0) {
-              title = candidate.content.parts[0].text.trim();
-            }
+          // OpenRouter response format
+          if (typeof response === 'string') {
+            title = response.trim();
+          } else if (response.choices && response.choices.length > 0) {
+            title = response.choices[0].message?.content?.trim() || '';
           }
           
           if (title) {
@@ -1802,60 +1714,8 @@ Respond only with the title, without further explanations or quotation marks.`;
           this.cdr.detectChanges(); // Force change detection
         }
       });
-    } else if (useOpenRouter) {
-      this.openRouterApiService.generateText(prompt, {
-        model: actualModelId!,
-        maxTokens: Math.max(50, titleSettings.maxWords * 6), // Allow more tokens for longer titles (up to 20 words)
-        temperature: titleSettings.temperature
-      }).subscribe({
-        next: async (response) => {
-          let title = '';
-          
-          // OpenRouter response format
-          if (response.choices && response.choices.length > 0) {
-            title = response.choices[0].message.content.trim();
-          }
-          
-          if (title) {
-            // Remove quotes if present
-            title = title.replace(/^["']|["']$/g, '');
-            
-            // Update scene title
-            if (scene) {
-              scene.title = title;
-              await this.updateScene(chapterId, scene);
-            }
-          }
-          clearTimeout(timeoutId); // Clear timeout on success
-          this.isGeneratingTitle.delete(sceneId);
-          this.cdr.detectChanges(); // Force change detection
-        },
-      error: (error) => {
-        console.error('Error generating scene title:', error);
-        clearTimeout(timeoutId); // Clear timeout on error
-        
-        let errorMessage = 'Error generating title.';
-        
-        // Check for specific error types
-        if (error.status === 400) {
-          errorMessage = 'Ungültige Anfrage. Bitte überprüfen Sie Ihre API-Einstellungen.';
-        } else if (error.status === 401) {
-          errorMessage = 'API-Schlüssel ungültig. Bitte überprüfen Sie Ihren OpenRouter API-Key in den Einstellungen.';
-        } else if (error.status === 403) {
-          errorMessage = 'Zugriff verweigert. Ihr API-Schlüssel hat möglicherweise nicht die erforderlichen Berechtigungen.';
-        } else if (error.status === 429) {
-          errorMessage = 'Rate-Limit erreicht. Bitte warten Sie einen Moment und versuchen Sie es erneut.';
-        } else if (error.status === 500) {
-          errorMessage = 'Server-Fehler bei OpenRouter. Bitte versuchen Sie es später erneut.';
-        } else if (error.message?.includes('nicht aktiviert')) {
-          errorMessage = error.message;
-        }
-        
-        alert(errorMessage);
-        this.isGeneratingTitle.delete(sceneId);
-        this.cdr.detectChanges(); // Force change detection
-        }
-      });
+    } else {
+      alert('OpenRouter API not configured. Please configure OpenRouter in settings.');
     }
   }
   

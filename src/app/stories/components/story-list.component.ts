@@ -1169,7 +1169,15 @@ export class StoryListComponent implements OnInit {
 
   async createNewStory(): Promise<void> {
     this.fabMenuOpen = false;
-    const newStory = await this.storyService.createStory();
+    const newStoryData = {
+      title: 'New Story',
+      description: '',
+      genre: '',
+      chapters: [],
+      settings: {} as Record<string, unknown>,
+      order: 0
+    };
+    const newStory = await this.storyService.createStory(newStoryData);
     this.router.navigate(['/stories/editor', newStory.id]);
   }
 

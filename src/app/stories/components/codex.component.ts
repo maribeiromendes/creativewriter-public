@@ -16,8 +16,8 @@ import {
   arrowBack, add, ellipsisVertical, create, trash, save, close,
   search, person, bookmark, pricetag, star
 } from 'ionicons/icons';
-import { CodexService } from '../services/codex.service';
-import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole } from '../models/codex.interface';
+import { CodexService, LegacyCodex } from '../services/codex.service';
+import { CodexEntry, STORY_ROLES, CustomField, StoryRole } from '../models/codex.interface';
 
 @Component({
   selector: 'app-codex',
@@ -194,7 +194,7 @@ import { Codex, CodexCategory, CodexEntry, STORY_ROLES, CustomField, StoryRole }
                                     <ion-icon name="tag"></ion-icon>
                                     <ion-label>{{ tag }}</ion-label>
                                   </ion-chip>
-                                  <ion-note>{{ formatDate(entry.updatedAt) }}</ion-note>
+                                  <ion-note>{{ formatDate(getEntryDate(entry)) }}</ion-note>
                                 </div>
                               </ion-card-content>
                             </ion-card>
@@ -1336,7 +1336,7 @@ export class CodexComponent implements OnInit, OnDestroy {
   private subscriptions = new Subscription();
 
   storyId = signal<string>('');
-  codex = signal<Codex | undefined>(undefined);
+  codex = signal<LegacyCodex | undefined>(undefined);
   selectedCategoryId = signal<string | null>(null);
   selectedEntry = signal<CodexEntry | null>(null);
   searchQuery = signal<string>('');
@@ -1383,7 +1383,7 @@ export class CodexComponent implements OnInit, OnDestroy {
     const codex = this.codex();
     const categoryId = this.selectedCategoryId();
     if (!codex || !categoryId) return null;
-    return codex.categories.find((c: CodexCategory) => c.id === categoryId) || null;
+    return codex.categories.find((c) => c.id === categoryId) || null;
   });
 
   sortedEntries = computed(() => {
@@ -1621,7 +1621,7 @@ export class CodexComponent implements OnInit, OnDestroy {
   getCategoryName(categoryId: string): string {
     const codex = this.codex();
     if (!codex) return '';
-    const category = codex.categories.find((c: CodexCategory) => c.id === categoryId);
+    const category = codex.categories.find((c) => c.id === categoryId);
     return category?.title || '';
   }
 
@@ -1714,5 +1714,9 @@ export class CodexComponent implements OnInit, OnDestroy {
         showOnDesktop: true
       }
     ];
+  }
+
+  getEntryDate(entry: CodexEntry): Date {
+    return entry.updatedAt || entry.createdAt || new Date();
   }
 }

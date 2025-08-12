@@ -1,8 +1,8 @@
 import { Component, Input, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { CodexService } from '../services/codex.service';
-import { Codex, CodexEntry } from '../models/codex.interface';
+import { CodexService, LegacyCodex } from '../services/codex.service';
+import { CodexEntry } from '../models/codex.interface';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -179,7 +179,7 @@ export class CodexRelevanceSettingsComponent implements OnInit, OnDestroy {
 
   @Input() storyId!: string;
   
-  codex: Codex | null = null;
+  codex: LegacyCodex | null = null;
   globalIncludes: Record<string, boolean> = {};
   private subscription = new Subscription();
   

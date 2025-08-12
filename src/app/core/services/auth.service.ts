@@ -112,8 +112,9 @@ export class AuthService {
     return this.isAnonymous();
   }
 
-  // Placeholder for future account upgrade functionality
-  async upgradeAccount(email: string, password: string): Promise<User> {
+  // Placeholder for future account upgrade functionality  
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async upgradeAccount(_email: string, _password: string): Promise<User> {
     // This would implement account linking in the future
     // For now, just return current user
     const user = this.getCurrentUser();

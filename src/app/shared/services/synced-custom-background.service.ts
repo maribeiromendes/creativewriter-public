@@ -1,24 +1,16 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
 import { DatabaseService } from '../../core/services/database.service';
 import { AuthService } from '../../core/services/auth.service';
+import { FirestoreDocument } from '../../core/services/firestore.service';
 
-export interface CustomBackground {
-  _id: string;
-  _rev?: string;
+export interface CustomBackground extends FirestoreDocument {
   type: 'custom-background';
   name: string;
   filename: string;
   contentType: string;
   size: number;
-  createdAt: Date;
   createdBy: string; // username
-  _attachments?: Record<string, {
-      content_type: string;
-      digest?: string;
-      length?: number;
-      stub?: boolean;
-      data?: string; // Base64 encoded when creating
-    }>;
+  attachmentData?: string; // Base64 encoded data
 }
 
 export interface CustomBackgroundOption {
@@ -76,31 +68,21 @@ export class SyncedCustomBackgroundService {
 
     // Convert file to base64
     const base64Data = await this.fileToBase64(file);
-    const docId = `custom-bg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const attachmentName = `image_${Date.now()}.${this.getFileExtension(file.name)}`;
     const name = customName || file.name.replace(/\.[^/.]+$/, ""); // Remove extension
 
-    const backgroundDoc: CustomBackground = {
-      _id: docId,
+    const backgroundDoc: Omit<CustomBackground, 'id' | 'createdAt' | 'updatedAt'> = {
       type: 'custom-background',
       name,
       filename: attachmentName,
       contentType: file.type,
       size: file.size,
-      createdAt: new Date(),
       createdBy: currentUser.username,
-      _attachments: {
-        [attachmentName]: {
-          content_type: file.type,
-          data: base64Data.split(',')[1] // Remove data:image/... prefix
-        }
-      }
+      attachmentData: base64Data.split(',')[1] // Remove data:image/... prefix
     };
 
-    // Save to PouchDB
-    const db = await this.databaseService.getDatabase();
-    const result = await db.put(backgroundDoc);
-    backgroundDoc._rev = result.rev;
+    // Save to Firestore
+    const result = await this.databaseService.create('custom-backgrounds', backgroundDoc);
 
     // Small delay to ensure document is persisted and indexed
     await new Promise(resolve => setTimeout(resolve, 200));
@@ -108,7 +90,12 @@ export class SyncedCustomBackgroundService {
     // Reload backgrounds to update signals
     await this.loadCustomBackgrounds();
 
-    return backgroundDoc;
+    return {
+      ...backgroundDoc,
+      id: result.id,
+      createdAt: result.createdAt,
+      updatedAt: result.updatedAt
+    };
   }
 
   /**
@@ -116,17 +103,18 @@ export class SyncedCustomBackgroundService {
    */
   async deleteBackground(id: string): Promise<void> {
     try {
-      const db = await this.databaseService.getDatabase();
-      const doc = await db.get(id);
+      const doc = await this.databaseService.get<CustomBackground>('custom-backgrounds', id);
+      if (!doc) {
+        throw new Error('Background not found.');
+      }
       
       // Check if user can delete this background
       const currentUser = this.authService.getCurrentUser();
-      const typedDoc = doc as CustomBackground;
-      if (!currentUser || typedDoc.createdBy !== currentUser.username) {
+      if (!currentUser || doc.createdBy !== currentUser.username) {
         throw new Error('You can only delete your own backgrounds.');
       }
       
-      await db.remove(doc);
+      await this.databaseService.delete('custom-backgrounds', id);
       
       // Clean up blob URL
       const cachedUrl = this.blobUrlCache.get(id);
@@ -148,8 +136,7 @@ export class SyncedCustomBackgroundService {
    */
   async getBackground(id: string): Promise<CustomBackground | null> {
     try {
-      const db = await this.databaseService.getDatabase();
-      const doc = await db.get(id) as CustomBackground;
+      const doc = await this.databaseService.get<CustomBackground>('custom-backgrounds', id);
       return doc;
     } catch (error) {
       console.error('Error getting background:', error);
@@ -168,11 +155,10 @@ export class SyncedCustomBackgroundService {
     }
 
     try {
-      const db = await this.databaseService.getDatabase();
-      const attachment = await db.getAttachment(id, attachmentName);
+      const doc = await this.databaseService.get<CustomBackground>('custom-backgrounds', id);
       
-      if (attachment) {
-        const blobUrl = URL.createObjectURL(attachment as Blob);
+      if (doc?.attachmentData) {
+        const blobUrl = await this.createBlobUrlFromBase64(doc.attachmentData, doc.contentType);
         this.blobUrlCache.set(cacheKey, blobUrl);
         return blobUrl;
       }
@@ -188,42 +174,29 @@ export class SyncedCustomBackgroundService {
    */
   private async loadCustomBackgrounds(): Promise<void> {
     try {
-      const db = await this.databaseService.getDatabase();
-      
-      // Use allDocs with startkey/endkey for more reliable results
-      const result = await db.allDocs({
-        include_docs: true,
-        startkey: 'custom-bg_',
-        endkey: 'custom-bg_\ufff0'
-      });
-
       const backgrounds: CustomBackgroundOption[] = [];
+      const customBackgrounds = await this.databaseService.getAll<CustomBackground>('custom-backgrounds');
 
-      for (const row of result.rows) {
-        const doc = row.doc as CustomBackground;
-        
+      for (const doc of customBackgrounds) {
         // Verify document structure
-        if (doc && doc.type === 'custom-background' && doc._attachments) {
-          // Get the first attachment (should be the image)
-          const attachmentKey = Object.keys(doc._attachments)[0];
-          if (attachmentKey) {
-            try {
-              const blobUrl = await this.getBackgroundBlobUrl(doc._id, attachmentKey);
-              if (blobUrl) {
-                backgrounds.push({
-                  id: doc._id,
-                  name: doc.name,
-                  filename: doc.filename,
-                  blobUrl,
-                  size: doc.size,
-                  createdAt: new Date(doc.createdAt),
-                  createdBy: doc.createdBy
-                });
-              }
-            } catch {
-              // Skip this background if attachment loading fails
-              continue;
+        if (doc && doc.type === 'custom-background' && doc.attachmentData) {
+          try {
+            const blobUrl = await this.createBlobUrlFromBase64(doc.attachmentData, doc.contentType);
+            if (blobUrl) {
+              backgrounds.push({
+                id: doc.id,
+                name: doc.name,
+                filename: doc.filename,
+                blobUrl,
+                size: doc.size,
+                createdAt: doc.createdAt || new Date(),
+                createdBy: doc.createdBy
+              });
             }
+          } catch (error) {
+            console.warn(`Could not load background ${doc.id}:`, error);
+            // Skip this background if processing fails
+            continue;
           }
         }
       }
@@ -285,6 +258,29 @@ export class SyncedCustomBackgroundService {
   }
 
   /**
+   * Create blob URL from base64 data
+   */
+  private async createBlobUrlFromBase64(base64Data: string, contentType: string): Promise<string> {
+    try {
+      // Convert base64 to blob
+      const byteCharacters = atob(base64Data);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: contentType });
+      
+      // Create and cache blob URL
+      const blobUrl = URL.createObjectURL(blob);
+      return blobUrl;
+    } catch (error) {
+      console.error('Error creating blob URL from base64:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Clear all custom backgrounds for current user
    */
   async clearAllBackgrounds(): Promise<void> {
@@ -294,25 +290,16 @@ export class SyncedCustomBackgroundService {
         throw new Error('Sie müssen angemeldet sein.');
       }
 
-      const db = await this.databaseService.getDatabase();
-      const result = await db.find({
-        selector: {
-          type: 'custom-background',
-          createdBy: currentUser.username
-        }
-      });
+      // Get all custom backgrounds for the current user
+      const userBackgrounds = await this.databaseService.getAll<CustomBackground>('custom-backgrounds');
+      const userOwnedBackgrounds = userBackgrounds.filter(bg => bg.createdBy === currentUser.username);
 
-      const docsToDelete = result.docs.map((doc: unknown) => {
-        const existingDoc = doc as PouchDB.Core.ExistingDocument & CustomBackground;
-        return {
-          _id: existingDoc._id,
-          _rev: existingDoc._rev,
-          _deleted: true
-        };
-      });
+      // Delete each background
+      for (const background of userOwnedBackgrounds) {
+        await this.databaseService.delete('custom-backgrounds', background.id);
+      }
 
-      if (docsToDelete.length > 0) {
-        await db.bulkDocs(docsToDelete);
+      if (userOwnedBackgrounds.length > 0) {
         this.clearBlobCache();
         await this.loadCustomBackgrounds();
       }

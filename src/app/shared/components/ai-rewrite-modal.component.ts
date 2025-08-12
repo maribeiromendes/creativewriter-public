@@ -702,13 +702,11 @@ export class AIRewriteModalComponent implements OnInit {
     // For direct calls, we bypass the beat AI service and call the API directly
     return new Observable<string>(observer => {
       let accumulatedResponse = '';
-      let logId: string;
+      const logId: string = this.logOpenRouterRequest(prompt, { ...options, model: actualModelId });
       const startTime = Date.now();
       
-      // Create a simple API call based on configuration
-      const apiCall = useGoogleGemini 
-        ? this.callGeminiAPI(prompt, { ...options, model: actualModelId })
-        : this.callOpenRouterAPI(prompt, { ...options, model: actualModelId });
+      // Only use OpenRouter now
+      const apiCall = this.callOpenRouterAPI(prompt, { ...options, model: actualModelId });
         
       apiCall.subscribe({
         next: (chunk) => {
@@ -739,48 +737,7 @@ export class AIRewriteModalComponent implements OnInit {
           observer.error(error);
         }
       });
-      
-      // Store log ID for later use
-      if (useGoogleGemini) {
-        logId = this.logGeminiRequest(prompt, { ...options, model: actualModelId });
-      } else {
-        logId = this.logOpenRouterRequest(prompt, { ...options, model: actualModelId });
-      }
     });
-  }
-  
-  private callGeminiAPI(prompt: string, options: { wordCount: number; model?: string | null }): Observable<string> {
-    const settings = this.settingsService.getSettings();
-    const apiKey = settings.openRouter.apiKey;
-    const model = options.model || settings.openRouter.model;
-    
-    const requestBody = {
-      contents: [{
-        role: 'user',
-        parts: [{ text: prompt }]
-      }],
-      generationConfig: {
-        temperature: 0.7,
-        maxOutputTokens: Math.ceil(options.wordCount * 2.5),
-        topP: 0.95,
-        topK: 40
-      }
-    };
-    
-    return from(fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?key=${apiKey}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(requestBody)
-    })).pipe(
-      switchMap(response => {
-        if (!response.ok) {
-          throw new Error(`API error: ${response.statusText}`);
-        }
-        return this.processStreamResponse(response);
-      })
-    );
   }
   
   private callOpenRouterAPI(prompt: string, options: { wordCount: number; model?: string | null }): Observable<string> {

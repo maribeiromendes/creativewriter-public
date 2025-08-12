@@ -422,28 +422,24 @@ export class ProseMirrorEditorService {
       return createCodexHighlightingPlugin({ codexEntries: [] });
     }
 
-    // Get initial codex entries synchronously
-    const codex = this.codexService.getCodex(this.currentStoryContext.storyId);
-    let codexEntries: CodexEntry[] = [];
-    
-    if (codex) {
-      codexEntries = this.extractAllCodexEntries(codex);
-    }
+    // Load codex entries asynchronously
+    this.loadCodexEntries();
     
     // Subscribe to codex changes to update highlighting dynamically
-    this.codexService.codex$.subscribe(codexMap => {
+    this.codexService.codex$.subscribe(async codexMap => {
       const updatedCodex = codexMap.get(this.currentStoryContext.storyId!);
       if (updatedCodex) {
-        const updatedEntries = this.extractAllCodexEntries(updatedCodex);
-        // Update the plugin when codex entries change (for simple text editor)
-        if (this.simpleEditorView) {
-          updateCodexHighlightingPlugin(this.simpleEditorView, updatedEntries);
+        try {
+          const updatedEntries = await this.codexService.getAllEntriesByStory(this.currentStoryContext.storyId);
+          this.updateCodexHighlighting(updatedEntries);
+        } catch (error) {
+          console.error('Error updating codex highlighting:', error);
         }
       }
     });
 
     return createCodexHighlightingPlugin({ 
-      codexEntries,
+      codexEntries: [], // Will be loaded asynchronously
       storyId: this.currentStoryContext.storyId
     });
   }
@@ -1377,40 +1373,51 @@ export class ProseMirrorEditorService {
   }
 
   private createCodexHighlightingPlugin(config: EditorConfig): Plugin {
-    // Get initial codex entries
-    let codexEntries: CodexEntry[] = [];
-    
     if (config.storyContext?.storyId) {
-      this.codexService.codex$.subscribe(codexMap => {
-        const codex = codexMap.get(config.storyContext!.storyId!);
-        if (codex) {
-          codexEntries = this.extractAllCodexEntries(codex);
-          // Update the plugin when codex entries change
-          if (this.editorView) {
-            updateCodexHighlightingPlugin(this.editorView, codexEntries);
+      // Load initial codex entries
+      this.loadCodexEntries();
+
+      // Subscribe to codex changes to update highlighting dynamically
+      this.codexService.codex$.subscribe(async codexMap => {
+        const updatedCodex = codexMap.get(config.storyContext!.storyId!);
+        if (updatedCodex) {
+          try {
+            const updatedEntries = await this.codexService.getAllEntriesByStory(config.storyContext!.storyId);
+            // Update the plugin when codex entries change
+            if (this.editorView) {
+              updateCodexHighlightingPlugin(this.editorView, updatedEntries);
+            }
+          } catch (error) {
+            console.error('Error updating codex highlighting:', error);
           }
         }
       });
     }
 
     return createCodexHighlightingPlugin({
-      codexEntries,
+      codexEntries: [], // Will be loaded asynchronously
       storyId: config.storyContext?.storyId
     });
   }
 
-  private extractAllCodexEntries(codex: import('../../stories/models/codex.interface').Codex): CodexEntry[] {
-    const entries: CodexEntry[] = [];
-    
-    if (codex.categories) {
-      for (const category of codex.categories) {
-        if (category.entries) {
-          entries.push(...category.entries);
-        }
-      }
+  private async loadCodexEntries(): Promise<void> {
+    try {
+      const codexEntries = await this.codexService.getAllEntriesByStory(this.currentStoryContext.storyId);
+      // Update highlighting plugin with new entries
+      this.updateCodexHighlighting(codexEntries);
+    } catch (error) {
+      console.error('Error loading codex entries for editor:', error);
     }
-    
-    return entries;
+  }
+
+  private updateCodexHighlighting(entries: CodexEntry[]): void {
+    // Update the plugin when codex entries change
+    if (this.simpleEditorView) {
+      updateCodexHighlightingPlugin(this.simpleEditorView, entries);
+    }
+    if (this.editorView) {
+      updateCodexHighlightingPlugin(this.editorView, entries);
+    }
   }
 
 
