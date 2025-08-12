@@ -10,7 +10,7 @@ import { CdkDropList, CdkDrag, CdkDragDrop, moveItemInArray } from '@angular/cdk
 import { addIcons } from 'ionicons';
 import { add, download, settings, statsChart, trash, create, images, menu, close, reorderThree, swapVertical, move, appsOutline } from 'ionicons/icons';
 import { StoryService } from '../services/story.service';
-import { Story } from '../models/story.interface';
+import { Story, DEFAULT_STORY_SETTINGS } from '../models/story.interface';
 import { SyncStatusComponent } from '../../shared/components/sync-status.component';
 import { LoginComponent } from '../../shared/components/login.component';
 import { AuthService, User } from '../../core/services/auth.service';
@@ -1174,7 +1174,7 @@ export class StoryListComponent implements OnInit {
       description: '',
       genre: '',
       chapters: [],
-      settings: {} as Record<string, unknown>,
+      settings: DEFAULT_STORY_SETTINGS,
       order: 0
     };
     const newStory = await this.storyService.createStory(newStoryData);

@@ -1,11 +1,14 @@
 import { TestBed } from '@angular/core/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { TokenCounterService, SupportedModel } from './token-counter.service';
 
 describe('TokenCounterService', () => {
   let service: TokenCounterService;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
+    TestBed.configureTestingModule({
+      imports: [HttpClientTestingModule]
+    });
     service = TestBed.inject(TokenCounterService);
   });
 
@@ -14,44 +17,44 @@ describe('TokenCounterService', () => {
   });
 
   describe('countTokens', () => {
-    it('should return token count for simple text', () => {
-      const result = service.countTokens('Hello world', 'claude-3.7-sonnet');
+    it('should return token count for simple text', async () => {
+      const result = await service.countTokens('Hello world', 'claude-3.7-sonnet');
       expect(result.tokens).toBeGreaterThan(0);
       expect(result.model).toBe('claude-3.7-sonnet');
       expect(result.method).toBe('estimation');
     });
 
-    it('should handle empty string', () => {
-      const result = service.countTokens('', 'claude-3.7-sonnet');
+    it('should handle empty string', async () => {
+      const result = await service.countTokens('', 'claude-3.7-sonnet');
       expect(result.tokens).toBe(0);
     });
 
-    it('should handle long text', () => {
+    it('should handle long text', async () => {
       const longText = 'Lorem ipsum '.repeat(100);
-      const result = service.countTokens(longText, 'gemini-2.5-pro');
+      const result = await service.countTokens(longText, 'gemini-2.5-pro');
       expect(result.tokens).toBeGreaterThan(100);
     });
 
-    it('should count special characters as additional tokens', () => {
+    it('should count special characters as additional tokens', async () => {
       const textWithSpecial = 'Hello <world> {test} [array]';
       const textWithout = 'Hello world test array';
       
-      const resultWith = service.countTokens(textWithSpecial, 'claude-3.7-sonnet');
-      const resultWithout = service.countTokens(textWithout, 'claude-3.7-sonnet');
+      const resultWith = await service.countTokens(textWithSpecial, 'claude-3.7-sonnet');
+      const resultWithout = await service.countTokens(textWithout, 'claude-3.7-sonnet');
       
       expect(resultWith.tokens).toBeGreaterThan(resultWithout.tokens);
     });
 
-    it('should handle code blocks', () => {
+    it('should handle code blocks', async () => {
       const textWithCode = '```\nfunction test() {\n  return true;\n}\n```';
-      const result = service.countTokens(textWithCode, 'grok-3');
+      const result = await service.countTokens(textWithCode, 'grok-3');
       expect(result.tokens).toBeGreaterThan(10);
     });
 
-    it('should use different ratios for different models', () => {
+    it('should use different ratios for different models', async () => {
       const text = 'This is a test prompt for token counting';
-      const claudeResult = service.countTokens(text, 'claude-3.7-sonnet');
-      const geminiResult = service.countTokens(text, 'gemini-2.5-pro');
+      const claudeResult = await service.countTokens(text, 'claude-3.7-sonnet');
+      const geminiResult = await service.countTokens(text, 'gemini-2.5-pro');
       
       // Different models should produce different token counts
       expect(claudeResult.tokens).not.toBe(geminiResult.tokens);

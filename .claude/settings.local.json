@@ -6,7 +6,11 @@
       "Bash(rm:*)",
       "Bash(npm run lint)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(npm test)",
+      "Bash(tasklist:*)",
+      "Bash(powershell:*)",
+      "Bash(npm start)"
     ],
     "deny": []
   }

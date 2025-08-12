@@ -1,156 +1,177 @@
-### Phase 1: Replace PouchDB/CouchDB with Firestore
+# Firebase Migration Status & Implementation Plan
 
-1.  **Firebase Project Setup:**
-    *   Create a new Firebase project in the Firebase console.
-    *   Add a new web application to the project and copy the Firebase configuration object.
-2.  **Install Dependencies:**
-    *   Install the AngularFire library: `npm install @angular/fire`.
-3.  **Initialize Firebase:**
-    *   Create a new file `src/environments/environment.ts` (and `environment.prod.ts`) to store your Firebase configuration.
-    *   Import and initialize Firebase in `app.config.ts` using `provideFirebaseApp` and `initializeApp`.
-    *   Import and configure Firestore using `provideFirestore` and `getFirestore`.
-4.  **Analyze Data Models:**
-    *   I will read the contents of `src/app/core/models` and `src/app/stories/models` to understand the exact data structures that need to be migrated.
-5.  **Create a Firestore Service:**
-    *   I will create a new service `src/app/core/services/firestore.service.ts`.
-    *   This service will use AngularFire to provide generic methods for CRUD (Create, Read, Update, Delete) operations on Firestore collections.
-6.  **Migrate `database.service.ts`:**
-    *   I will read `src/app/core/services/database.service.ts` to understand its public API.
-    *   I will then replace the PouchDB implementation within this service with calls to the new `firestore.service.ts`, ensuring the public methods of `database.service.ts` remain the same to minimize impact on other services.
-7.  **Update Dependent Services (One by One):**
-    
-    **Status: IN PROGRESS** - The following services need to be updated to work with Firestore instead of PouchDB:
+## 📊 Overall Status
+- **Core Infrastructure:** ✅ COMPLETED
+- **Basic Authentication:** ✅ COMPLETED  
+- **Service Migration:** 🟡 IN PROGRESS
+- **New Features:** 🟡 PENDING
 
-    **Completed Services:**
-    - ✅ `story.service.ts` - Completely rewritten to use Firestore CRUD operations
-    - ✅ `database.service.ts` - Migrated to use Firestore as backend with compatibility layer
-    - ✅ `auth.service.ts` - Updated User interface to include `uid` property for Firebase compatibility
+---
 
-    **Services Requiring Updates:**
-    
-    **(A) Services using PouchDB-specific methods that need Firestore equivalents:**
-    
-    - `src/app/shared/services/image.service.ts`
-      - **Methods to update:** `db.find()`, `db.get()`, `db.put()`, `db.remove()`
-      - **Plan:** Replace with `databaseService.getAll()`, `databaseService.get()`, `databaseService.create()/update()`, `databaseService.delete()`
-      - **Collection:** `images`
-    
-    - `src/app/shared/services/video.service.ts` 
-      - **Methods to update:** `db.find()`, `db.get()`, `db.put()`, `db.remove()`
-      - **Plan:** Replace with Firestore equivalents for video storage
-      - **Collection:** `videos`
-    
-    - `src/app/stories/services/codex.service.ts`
-      - **Methods to update:** `db.put()`, `db.get()`, `db.remove()`, `db.find()`
-      - **Plan:** Migrate to use `databaseService` methods for codex entries
-      - **Collection:** `codex`
-    
-    - `src/app/shared/services/db-maintenance.service.ts`
-      - **Methods to update:** `db.find()`, `db.info()`, `db.compact()`
-      - **Plan:** Replace `find()` with `getAll()`, remove `info()` and `compact()` (not needed in Firestore)
-    
-    - `src/app/shared/services/novelcrafter-import.service.ts`
-      - **Methods to update:** `storyService.createStory()` method signature
-      - **Plan:** Update to provide required story object parameter
-    
-    **(B) Components with missing method calls:**
-    
-    - `src/app/stories/components/story-editor.component.ts`
-      - **Missing methods:** `storyService.getScene()`
-      - **Plan:** Add `getScene()` method to story service or use existing scene access patterns
-    
-    - `src/app/stories/components/story-list.component.ts`
-      - **Missing methods:** `storyService.reorderStories()`, updated `createStory()` signature
-      - **Plan:** Add `reorderStories()` method and fix `createStory()` calls with proper parameters
-    
-    - `src/app/stories/components/story-structure.component.ts`
-      - **Missing methods:** `addChapter()`, `addScene()`, `formatChapterDisplay()`, `formatSceneDisplay()`
-      - **Plan:** Fix method signatures and add missing display formatting methods
-    
-    - `src/app/shared/components/ai-rewrite-modal.component.ts`
-      - **Missing methods:** `storyService.getStory()` (already added as legacy method)
-      - **Status:** ✅ Fixed with legacy compatibility method
-    
-    - `src/app/shared/services/beat-ai.service.ts`
-      - **Missing methods:** `storyService.getStory()` (already added as legacy method)
-      - **Status:** ✅ Fixed with legacy compatibility method
+## ✅ COMPLETED PHASES
 
-    **Migration Strategy:**
-    1. **Service-by-Service Approach:** Update each service individually to minimize disruption
-    2. **Maintain Compatibility:** Keep existing method signatures where possible
-    3. **Add Missing Methods:** Implement missing methods in story service with proper Firestore operations
-    4. **Test Incrementally:** Verify each service works after migration before moving to the next
-    5. **Clean Up:** Remove PouchDB-specific code after all services are migrated
+### Phase 1: Replace PouchDB/CouchDB with Firestore ✅
+1.  **Firebase Project Setup:** ✅
+    *   ✅ Create a new Firebase project in the Firebase console
+    *   ✅ Add a new web application to the project and copy the Firebase configuration object
+2.  **Install Dependencies:** ✅
+    *   ✅ Install the AngularFire library: `npm install @angular/fire`
+3.  **Initialize Firebase:** ✅
+    *   ✅ Create `src/environments/environment.ts` and `environment.prod.ts` with Firebase configuration
+    *   ✅ Import and initialize Firebase in `app.config.ts` using `provideFirebaseApp` and `initializeApp`
+    *   ✅ Import and configure Firestore using `provideFirestore` and `getFirestore`
+4.  **Core Services Migration:** ✅
+    *   ✅ Create `src/app/core/services/firestore.service.ts` with generic CRUD operations
+    *   ✅ Migrate `database.service.ts` to use Firestore with compatibility layer
+    *   ✅ Update `auth.service.ts` with Firebase Auth and User interface with `uid` property
+    *   ✅ Completely rewrite `story.service.ts` to use Firestore CRUD operations
 
-### Phase 2: Implement Firebase Authentication
+### Phase 2: Basic Firebase Authentication ✅
+1.  **Firebase Console Setup:** ✅
+    *   ✅ Enable "Email/Password" and "Google" sign-in providers
+2.  **App Configuration:** ✅
+    *   ✅ Configure Firebase Auth in `app.config.ts` using `provideAuth` and `getAuth`
+3.  **Service Implementation:** ✅
+    *   ✅ Refactor `auth.service.ts` with Firebase Auth calls (anonymous login working)
+    *   ✅ Update `login.component.ts` to use refactored auth service
 
-1.  **Enable Firebase Authentication:**
-    *   In the Firebase console, I will enable the "Email/Password" and "Google" sign-in providers.
-2.  **Configure Firebase Auth in App:**
-    *   In `app.config.ts`, I will import and configure Firebase Auth using `provideAuth` and `getAuth`.
-3.  **Refactor `auth.service.ts`:**
-    *   I will replace the logic in `src/app/core/services/auth.service.ts` with calls to AngularFire Auth for login, logout, and checking the current user's authentication state.
-4.  **Update Login Component:**
-    *   I will update `src/app/shared/components/login.component.ts` to use the refactored `auth.service.ts`.
-5.  **Create Route Guard:**
-    *   I will create a new route guard using `CanActivateFn` that uses the `auth.service.ts` to protect authenticated routes.
-6.  **Update Routes:**
-    *   I will apply the new route guard to the relevant routes in `app.routes.ts`.
+### Phase 4: Configuration and Deployment Cleanup ✅
+1.  ✅ **Update `angular.json`:** Remove `proxyConfig` setting from serve target
+2.  ✅ **Update Docker Configuration:** Remove gemini-proxy and proxy services from docker-compose.yml
+3.  ✅ **Update Nginx Configuration:** Remove proxy-related location blocks from nginx.conf
 
-### Phase 3: Remove Proxies and Update API Services
+### Phase 5: OpenRouter-Only Refactoring ✅
+1.  ✅ **Remove Google Gemini Service:** Delete `google-gemini-api.service.ts`
+2.  ✅ **Refactor Model Service:** Remove GoogleGeminiApiService usage, exclusively use OpenRouterApiService
 
-1.  **Update API Services:**
-    *   I will modify `src/app/core/services/openrouter-api.service.ts` to use the official API endpoint directly, removing the proxy path.
-2.  **Secure API Keys:**
-    *   I will move the API keys from the client-side code to a secure backend. I will start by creating Firebase Cloud Functions to handle the API requests.
-3.  **Delete Proxy Files:**
-    *   I will delete the `gemini-proxy` and `proxy` directories, as well as the `proxy.conf.json` file.
+---
 
-### Phase 4: Update Configuration and Deployment
+## 🟡 PENDING TASKS (Priority Order)
 
-1.  **Update `angular.json`:**
-    *   I will remove the `proxyConfig` setting from the `serve` target in `angular.json`.
-2.  **Update Docker Configuration:**
-    *   I will remove the `gemini-proxy` and `proxy` services from `docker-compose.yml`.
-    *   I will delete the `Dockerfile.gemini-proxy` and `Dockerfile.proxy` files.
-3.  **Update Nginx Configuration:**
-    *   I will remove the proxy-related `location` blocks from `nginx.conf`.
+### PRIORITY 1: Complete Google Authentication 🟡
+**Current Status:** Anonymous login works, Google login needs implementation
 
-### Phase 5: OpenRouter-Only Refactoring
+**Tasks:**
+- 🟡 **Modify `auth.service.ts` for Google Authentication:**
+  - Import `GoogleAuthProvider` and `signInWithPopup` from `@angular/fire/auth`
+  - Add `loginWithGoogle()` method with GoogleAuthProvider
+  - Ensure consistent error handling with existing login method
 
-1.  **Remove Google Gemini Service:**
-    *   I will delete the file `src/app/core/services/google-gemini-api.service.ts`.
-2.  **Refactor Model Service:**
-    *   I will refactor `src/app/core/services/model.service.ts` to remove any logic that uses the `GoogleGeminiApiService` and make it exclusively use `OpenRouterApiService`.
-3.  **Update Settings:**
-    *   I will review `src/app/settings/settings.component.ts` and `src/app/core/models/settings.interface.ts` to remove any settings related to selecting Google Gemini as the AI provider.
-4.  **Update UI:**
-    *   I will remove any UI elements that allow the user to select Google Gemini as the AI provider.
+- 🟡 **Update `login.component.ts` for Google Login:**
+  - Add call to new `authService.loginWithGoogle()` method
+  - Change button text from "Start Writing Now" to "Login with Google"
+  - Remove "About Anonymous Writing" section from template
+  - Add Google icon to login button for better UX
 
-### Phase 6: Code Cleanup and Refinement
+### PRIORITY 2: Route Protection 🟡
+**Current Status:** Routes are unprotected
 
-This phase addresses remaining issues after the initial migration.
+**Tasks:**
+- 🟡 **Create Route Guard:** Implement `CanActivateFn` using `auth.service.ts`
+- 🟡 **Update Routes:** Apply route guard to relevant routes in `app.routes.ts`
 
-1.  **Remove Google Gemini References from `settings.component.ts`**
-    *   **Status:** Pending
-    *   **Action:** Read `src/app/settings/settings.component.ts` to identify and remove all UI elements and component logic related to Google Gemini. This includes form fields, toggles, and any associated properties or methods in the component's class.
+### PRIORITY 3: Complete Service Migration 🟡
+**Current Status:** 5 services still using PouchDB methods
 
-2.  **Fix Missing Method Parameters in `story-structure.component.ts`**
-    *   **Status:** Pending
-    *   **Action:** Investigate and correct the method calls for `addChapter` and `addScene`.
-        1.  Read `src/app/stories/services/story.service.ts` to determine the correct method signatures for `addChapter` and `addScene`.
-        2.  Read `src/app/stories/components/story-structure.component.ts` and update the calls to these methods to ensure they pass all the required parameters.
+**Services Requiring Updates:**
 
-3.  **Resolve Codex Interface Mismatches**
-    *   **Status:** Pending
-    *   **Action:** Investigate and resolve inconsistencies in the Codex interface usage.
-        1.  Read `src/app/stories/models/codex.interface.ts` to understand the intended data structures.
-        2.  Examine `src/app/stories/services/codex.service.ts` and `src/app/core/services/codex-relevance.service.ts` to see how they use these interfaces.
-        3.  Identify any discrepancies and update the code to ensure the interface usage is consistent and correct.
+**(A) PouchDB-specific method replacements:**
+- 🟡 `src/app/shared/services/image.service.ts`
+  - **Methods:** `db.find()`, `db.get()`, `db.put()`, `db.remove()`
+  - **Replace with:** `databaseService.getAll()`, `get()`, `create()/update()`, `delete()`
+  - **Collection:** `images`
 
-4.  **Eliminate Remaining PouchDB Service References**
-    *   **Status:** Pending
-    *   **Action:** Find and remove all remaining references to PouchDB.
-        1.  Perform a global search for "pouchdb" across the entire `src` directory.
-        2.  For each file that still references PouchDB, refactor the code to use the new Firestore-based services.
-        3.  Delete the PouchDB type definition file at `src/types/pouchdb.d.ts`.
+- 🟡 `src/app/shared/services/video.service.ts`
+  - **Methods:** `db.find()`, `db.get()`, `db.put()`, `db.remove()`
+  - **Replace with:** Firestore equivalents via databaseService
+  - **Collection:** `videos`
+
+- 🟡 `src/app/stories/services/codex.service.ts`
+  - **Methods:** `db.put()`, `db.get()`, `db.remove()`, `db.find()`
+  - **Replace with:** `databaseService` methods for codex entries
+  - **Collection:** `codex`
+
+- 🟡 `src/app/shared/services/db-maintenance.service.ts`
+  - **Methods:** `db.find()`, `db.info()`, `db.compact()`
+  - **Replace with:** `getAll()` for find(), remove info() and compact() (not needed in Firestore)
+
+- 🟡 `src/app/shared/services/novelcrafter-import.service.ts`
+  - **Methods:** `storyService.createStory()` method signature
+  - **Fix:** Update to provide required story object parameter
+
+### PRIORITY 4: Fix Component Method Issues 🟡
+**Current Status:** 3 components have missing/broken method calls
+
+**Components:**
+- 🟡 `src/app/stories/components/story-editor.component.ts`
+  - **Missing:** `storyService.getScene()` method
+  - **Fix:** Add getScene() method to story service or use existing scene access patterns
+
+- 🟡 `src/app/stories/components/story-list.component.ts`
+  - **Missing:** `storyService.reorderStories()`, updated `createStory()` signature
+  - **Fix:** Add reorderStories() method and fix createStory() calls with proper parameters
+
+- 🟡 `src/app/stories/components/story-structure.component.ts`
+  - **Missing:** `addChapter()`, `addScene()`, `formatChapterDisplay()`, `formatSceneDisplay()`
+  - **Fix:** Implement missing methods with proper signatures and display formatting
+
+### PRIORITY 5: Final Cleanup 🟡
+**Current Status:** Some legacy references remain
+
+**Tasks:**
+- 🟡 **Remove Google Gemini UI References:**
+  - Clean up `settings.component.ts` - remove Gemini-related form fields, toggles, properties
+  - Update `settings.interface.ts` - remove Gemini provider settings
+  - Remove any remaining UI elements for Gemini provider selection
+
+- 🟡 **Eliminate PouchDB Remnants:**
+  - Delete `src/proxy.conf.json` (still exists)
+  - Delete `src/types/pouchdb.d.ts` (still exists)
+  - Global search for remaining "pouchdb" references in src directory
+  - Refactor any remaining PouchDB code to use Firestore services
+
+- 🟡 **API Services Update:**
+  - Modify `openrouter-api.service.ts` to use official API endpoint (remove proxy path)
+  - Create Firebase Cloud Functions for secure API key handling
+  - Remove client-side API key exposure
+
+---
+
+## 🚀 FUTURE FEATURES (Phase 7)
+
+### Role-Based System Implementation 🟡
+**Current Status:** Not started - new feature
+
+**1. Index Page and Role-Based Routing:**
+- 🟡 Generate new component `src/app/home/home.component.ts` as landing page
+- 🟡 Add buttons: "Enter as Author" and "Enter as Reader"
+- 🟡 Create `AuthorModule` for existing writing application
+- 🟡 Create `ReaderModule` for new reader functionality  
+- 🟡 Create `AdminModule` for admin-specific tasks
+- 🟡 Update `app.routes.ts` to make HomeComponent default route (`/`)
+- 🟡 Move existing application logic into AuthorModule
+
+**2. Role System Implementation:**
+- 🟡 Add `role` property to User interface ('author', 'reader', 'admin')
+- 🟡 Implement role assignment logic (default to 'author')
+- 🟡 Create role-based route guards (AuthorGuard, ReaderGuard, AdminGuard)
+- 🟡 Update Firestore security rules for role-based access control
+
+---
+
+## 📋 Implementation Strategy
+
+**Migration Approach:**
+1. **Service-by-Service:** Update each service individually to minimize disruption
+2. **Maintain Compatibility:** Keep existing method signatures where possible
+3. **Test Incrementally:** Verify each service works after migration before moving to next
+4. **Priority-Based:** Focus on authentication and core functionality first
+5. **Clean Up Last:** Remove legacy code after all services are migrated
+
+**Current App State:**
+- ✅ **Functional:** Firebase/Firestore integrated, anonymous auth working
+- ✅ **Stable:** Core writing functionality operational
+- 🟡 **Needs Work:** Google auth, some service migrations, component method fixes
+- 🟡 **Future:** Role-based system for multi-user scenarios
+
+**Next Recommended Action:** Start with Priority 1 (Google Authentication) to enhance user experience.
